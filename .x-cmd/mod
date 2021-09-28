@@ -8,6 +8,21 @@ add(){
     git subtree add --prefix="lib/$name" "$position" "$branch" --squash
 }
 
+add_all(){
+    local mod_list=(
+        str
+        dict
+        http
+        param
+        gitee
+        static-build
+        ccmd
+    )
+    for mod in "${mod_list[@]}"; do
+        x mod add "$mod"
+    done
+}
+
 if [ "$#" -gt 0 ]; then
     op="$1"
     shift

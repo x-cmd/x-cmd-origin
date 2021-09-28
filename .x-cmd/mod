@@ -8,7 +8,15 @@ add(){
     git subtree add --prefix="lib/$name" "$position" "$branch" --squash
 }
 
-add_all(){
+pull(){
+    local name="${1:?Provide module name}"
+    # local position="${2:-"git@gitee.com/x-bash/$name.git"}"
+    local position="${2:-"https://gitee.com/x-bash/$name.git"}"
+    local branch="${3:-master}"
+    git subtree pull --prefix="lib/$name" "$position" "$branch" --squash
+}
+
+all(){
     local mod_list=(
         str
         dict
@@ -19,7 +27,11 @@ add_all(){
         ccmd
     )
     for mod in "${mod_list[@]}"; do
-        add "$mod"
+        if [ -e "lib/$mod" ]; then
+            pull "$mod"
+        else
+            add "$mod"
+        fi
     done
 }
 

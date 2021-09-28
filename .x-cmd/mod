@@ -5,7 +5,7 @@ add(){
     # local position="${2:-"git@gitee.com/x-bash/$name.git"}"
     local position="${2:-"https://gitee.com/x-bash/$name.git"}"
     local branch="${3:-master}"
-    git subtree add --prefix="$name" "$position" "$branch" --squash
+    git subtree add --prefix="lib/$name" "$position" "$branch" --squash
 }
 
 if [ "$#" -gt 0 ]; then

@@ -1,0 +1,15 @@
+#! /usr/bin/env bash
+
+add(){
+    local name="${1:?Provide module name}"
+    # local position="${2:-"git@gitee.com/x-bash/$name.git"}"
+    local position="${2:-"https://gitee.com/x-bash/$name.git"}"
+    local branch="${3:-master}"
+    git subtree add --prefix="$name" "$position" "$branch" --squash
+}
+
+if [ "$#" -gt 0 ]; then
+    op="$1"
+    shift
+    "$op" "$@"
+fi

@@ -1,0 +1,32 @@
+# shellcheck shell=sh
+
+echo "fu igf ih  diu disu fhs aa iudd dsiu fh" | awk '
+{
+    LEN = "len"
+    arguments = $0
+    arg_arr_len = split(arguments, arg_arr, " ")
+    arg_arr[ LEN ] = arg_arr_len
+
+    for (i=1; i<=arg_arr[ LEN ]; ++i) {
+        gsub("\004", "\n", arg_arr[ i ])
+    }
+
+    print "LEN: " arg_arr[ LEN ]
+    if (arg_arr[ LEN ] <= 2) {
+        print "arg_arr[ LEN ] is string " arg_arr[ LEN ] " <= 2"
+    } else {
+        print "arg_arr[ LEN ] is int " arg_arr[ LEN ] " > 2"
+    }
+
+    for (key in arg_arr) {
+        gsub("\004", "\n", arg_arr[ key ])
+    }
+
+    print "LEN: " arg_arr[ LEN ]
+    if (arg_arr[ LEN ] <= 2) {
+        print "arg_arr[ LEN ] is string " arg_arr[ LEN ] " <= 2"
+    } else {
+        print "arg_arr[ LEN ] is int " arg_arr[ LEN ] " > 2"
+    }
+}
+'

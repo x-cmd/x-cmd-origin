@@ -1,0 +1,4914 @@
+```json
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "<p class=\"15\" style=\"font-size: medium; margin-left: 18pt; text-indent: -18pt; text-align: justify;\" align=\"justify\"><span style=\"text-indent: -18pt; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; medium; margin-left: 18pt; text-indent: -18pt; text-align: justify;\" align=\"justify\"><br></p>",
+    "version": "v1",
+    "title": "xxxxxxxxx"
+  },
+  "tags": [
+    {
+      "name": "用户相关接口",
+      "description": "用户登录，获取token",
+      "sortWeight": 1
+    },
+    {
+      "name": "任务数据相关接口",
+      "description": "",
+      "sortWeight": 2
+    },
+    {
+      "name": "图片下载接口",
+      "description": "只有已完成的任务才能下载照片\n",
+      "sortWeight": 3
+    },
+    {
+      "name": "图传接口",
+      "description": "支持的流媒体协议：RTMP\n",
+      "sortWeight": 4
+    },
+    {
+      "name": "实时状态接口",
+      "description": "实时监控机场状态和无人机位置、任务状态",
+      "sortWeight": 5
+    }
+  ],
+  "schemes": [],
+  "consumes": [],
+  "produces": [],
+  "paths": {
+    "/image/{id}": {
+      "get": {
+        "tags": [
+          "图片下载接口"
+        ],
+        "summary": "下载指定图片",
+        "description": "成功响应时返回图片文件流",
+        "operationId": "",
+        "schemes": [
+          "http"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "图片ID",
+            "required": true,
+            "type": "string",
+            "default": "",
+            "format": ""
+          }
+        ],
+        "responses": {
+          "failed response": {
+            "description": "失败响应",
+            "schema": {
+              "type": "object",
+              "format": "",
+              "required": false,
+              "description": "失败响应",
+              "title": "failed response",
+              "properties": {
+                "isSuccess": {
+                  "type": "boolean",
+                  "required": true,
+                  "description": "是否成功，必须为false"
+                },
+                "error": {
+                  "type": "object",
+                  "format": "",
+                  "required": true,
+                  "description": "响应结果",
+                  "title": "error",
+                  "properties": {
+                    "errCode": {
+                      "type": "integer",
+                      "format": "int32",
+                      "required": true,
+                      "description": "异常编码"
+                    },
+                    "errMsg": {
+                      "type": "string",
+                      "required": true,
+                      "description": "异常信息"
+                    }
+                  }
+                }
+              }
+            },
+            "sortWeight": 1
+          }
+        },
+        "sortWeight": 4,
+        "devStatus": "none",
+        "devStatusName": "不显示",
+        "showDevStatus": false,
+        "skipCommonParam": false,
+        "label": "",
+        "developer": "",
+        "modifyDate": "2020-08-07 13:28:21"
+      }
+    },
+    "/assignment/": {
+      "get": {
+        "tags": [
+          "任务数据相关接口"
+        ],
+        "summary": "获取所有任务信息",
+        "description": "<p>获取所有任务信息<br></p>",
+        "operationId": "",
+        "schemes": [
+          "http"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "failed response": {
+            "description": "失败响应",
+            "schema": {
+              "type": "object",
+              "format": "",
+              "required": false,
+              "description": "失败响应",
+              "title": "failed response",
+              "properties": {
+                "isSuccess": {
+                  "type": "boolean",
+                  "required": true,
+                  "description": "是否成功，必须为false"
+                },
+                "error": {
+                  "type": "object",
+                  "format": "",
+                  "required": true,
+                  "description": "响应结果",
+                  "title": "error",
+                  "properties": {
+                    "errCode": {
+                      "type": "integer",
+                      "format": "int32",
+                      "required": true,
+                      "description": "异常编码"
+                    },
+                    "errMsg": {
+                      "type": "string",
+                      "required": true,
+                      "description": "异常信息"
+                    }
+                  }
+                }
+              }
+            },
+            "sortWeight": 2
+          },
+          "succeed response": {
+            "description": "成功响应",
+            "schema": {
+              "type": "object",
+              "format": "",
+              "required": false,
+              "description": "成功响应",
+              "title": "succeed response",
+              "properties": {
+                "isSuccess": {
+                  "type": "boolean",
+                  "required": true,
+                  "description": "是否成功，必须为true"
+                },
+                "result": {
+                  "type": "object",
+                  "format": "",
+                  "required": true,
+                  "description": "响应结果",
+                  "title": "result",
+                  "properties": {
+                    "idList": {
+                      "type": "array",
+                      "format": "",
+                      "required": true,
+                      "description": "任务id列表",
+                      "items": {
+                        "type": "string",
+                        "required": true,
+                        "description": "任务id"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "sortWeight": 1
+          }
+        },
+        "sortWeight": 7,
+        "devStatus": "none",
+        "devStatusName": "不显示",
+        "showDevStatus": false,
+        "skipCommonParam": false,
+        "label": "",
+        "developer": "",
+        "modifyDate": "2020-08-07 13:39:04"
+      }
+    },
+    "/assignment/{assignmentId}": {
+      "delete": {
+        "tags": [
+          "任务数据相关接口"
+        ],
+        "summary": "删除指定任务信息",
+        "description": "<p>只有已完成的任务可删除，删除内容包括任务信息和相关图片</p><div><br></div>",
+        "operationId": "",
+        "schemes": [
+          "http"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "assignmentId",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "type": "string",
+            "default": "",
+            "format": ""
+          }
+        ],
+        "responses": {
+          "failed response": {
+            "description": "失败响应",
+            "schema": {
+              "type": "object",
+              "format": "",
+              "required": false,
+              "description": "失败响应",
+              "title": "failed response",
+              "properties": {
+                "isSuccess": {
+                  "type": "boolean",
+                  "required": true,
+                  "description": "是否成功，必须为false"
+                },
+                "error": {
+                  "type": "object",
+                  "format": "",
+                  "required": true,
+                  "description": "响应结果",
+                  "title": "error",
+                  "properties": {
+                    "errCode": {
+                      "type": "integer",
+                      "format": "int32",
+                      "required": true,
+                      "description": "异常编码"
+                    },
+                    "errMsg": {
+                      "type": "string",
+                      "required": true,
+                      "description": "异常信息"
+                    }
+                  }
+                }
+              }
+            },
+            "sortWeight": 2
+          },
+          "succeed response": {
+            "description": "成功响应",
+            "schema": {
+              "type": "object",
+              "format": "",
+              "required": false,
+              "description": "成功响应",
+              "title": "succeed response",
+              "properties": {
+                "isSuccess": {
+                  "type": "boolean",
+                  "required": true,
+                  "description": "是否成功，必须为true"
+                },
+                "result": {
+                  "type": "string",
+                  "required": true,
+                  "description": "响应结果"
+                }
+              }
+            },
+            "sortWeight": 1
+          }
+        },
+        "sortWeight": 2,
+        "devStatus": "none",
+        "devStatusName": "不显示",
+        "showDevStatus": false,
+        "skipCommonParam": false,
+        "label": "",
+        "developer": "",
+        "modifyDate": "2020-08-07 11:15:42"
+      }
+    },
+    "/assignment/{assignmentId} ": {
+      "get": {
+        "tags": [
+          "任务数据相关接口"
+        ],
+        "summary": "获取指定任务信息",
+        "description": "<p>通过任务ID获取指定任务信息</p>",
+        "operationId": "",
+        "schemes": [
+          "http"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "assignmentId",
+            "in": "path",
+            "description": "任务ID",
+            "required": true,
+            "type": "string",
+            "default": "",
+            "format": ""
+          }
+        ],
+        "responses": {
+          "failed response": {
+            "description": "失败响应",
+            "schema": {
+              "type": "object",
+              "format": "",
+              "required": false,
+              "description": "失败响应",
+              "title": "failed response",
+              "properties": {
+                "isSuccess": {
+                  "type": "boolean",
+                  "required": true,
+                  "description": "是否成功，必须为false"
+                },
+                "error": {
+                  "type": "object",
+                  "format": "",
+                  "required": true,
+                  "description": "响应结果",
+                  "title": "error",
+                  "properties": {
+                    "errCode": {
+                      "type": "integer",
+                      "format": "int32",
+                      "required": true,
+                      "description": "异常编码"
+                    },
+                    "errMsg": {
+                      "type": "string",
+                      "required": true,
+                      "description": "异常信息"
+                    }
+                  }
+                }
+              }
+            },
+            "sortWeight": 1
+          },
+          "succeed response": {
+            "description": "成功响应",
+            "schema": {
+              "type": "object",
+              "format": "",
+              "required": false,
+              "description": "成功响应",
+              "title": "succeed response",
+              "properties": {
+                "isSuccess": {
+                  "type": "boolean",
+                  "required": true,
+                  "description": "是否成功,必须为true"
+                },
+                "result": {
+                  "type": "object",
+                  "format": "",
+                  "required": true,
+                  "description": "响应结果",
+                  "title": "result",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "required": true,
+                      "description": "任务ID"
+                    },
+                    "routeIdList": {
+                      "type": "array",
+                      "format": "",
+                      "required": true,
+                      "description": "航线ID列表",
+                      "items": {
+                        "type": "string",
+                        "required": true,
+                        "description": "航线ID"
+                      }
+                    },
+                    "status": {
+                      "type": "string",
+                      "required": true,
+                      "description": "任务状态，有 “created” 已创建, “started” 进行中, “done” 已完成 “canceled” 已取消  4种状态"
+                    },
+                    "createdAt": {
+                      "type": "integer",
+                      "format": "int32",
+                      "required": true,
+                      "description": "创建时间戳"
+                    }
+                  }
+                }
+              }
+            },
+            "sortWeight": 2
+          }
+        },
+        "sortWeight": 3,
+        "devStatus": "none",
+        "devStatusName": "不显示",
+        "showDevStatus": false,
+        "skipCommonParam": false,
+        "label": "",
+        "developer": "",
+        "modifyDate": "2020-08-07 13:37:40"
+      }
+    },
+    "/assignment?token=xxx": {
+      "get": {
+        "tags": [
+          "实时状态接口"
+        ],
+        "summary": "任务状态改变消息",
+        "description": "<p>websocket 建立连接后向 assignmentchannel 发 { action: \"start\" } ，当有任务状态改变时推送该任务最新信息；向 status channel 发 { action: \"stop\" } 停止推送<br></p>",
+        "operationId": "",
+        "schemes": [
+          "http"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "data",
+            "description": "action，只能为“start”或“stop”。",
+            "required": true,
+            "schema": {
+              "type": "cust",
+              "format": "json",
+              "content": "{\n    \"action\": \"start\"\n}"
+            },
+            "type": "cust",
+            "default": ""
+          }
+        ],
+        "responses": {
+          "任务信息": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "format": "",
+              "required": false,
+              "description": "",
+              "title": "任务信息",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "required": false,
+                  "description": "任务id"
+                },
+                "status": {
+                  "type": "string",
+                  "required": false,
+                  "description": "任务状态，有 ’created‘ 已创建, ’started‘ 进行中, ’done‘ 已完成 ’canceled‘ 已取消  4种状态"
+                },
+                "routeIdList": {
+                  "type": "array",
+                  "format": "",
+                  "required": false,
+                  "description": "航线ID列表",
+                  "items": {
+                    "type": "string",
+                    "required": false,
+                    "description": "航线ID"
+                  }
+                },
+                "createdAt": {
+                  "type": "integer",
+                  "format": "int32",
+                  "required": false,
+                  "description": "创建时间戳"
+                }
+              }
+            },
+            "sortWeight": 1
+          }
+        },
+        "sortWeight": 2,
+        "devStatus": "none",
+        "devStatusName": "不显示",
+        "showDevStatus": false,
+        "skipCommonParam": false,
+        "label": "",
+        "developer": "",
+        "modifyDate": "2020-08-07 14:14:55"
+      }
+    },
+    "/cancel/assignment/{assignmentId}": {
+      "get": {
+        "tags": [
+          "任务数据相关接口"
+        ],
+        "summary": "取消指定任务",
+        "description": "<p>取消某一任务，仅能取消 “created” 已创建, “started” 进行中 2种状态的任务<br></p><div><br></div>",
+        "operationId": "",
+        "schemes": [
+          "http"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "assignmentId",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "type": "string",
+            "default": "",
+            "format": ""
+          }
+        ],
+        "responses": {
+          "failed response": {
+            "description": "失败响应",
+            "schema": {
+              "type": "object",
+              "format": "",
+              "required": false,
+              "description": "失败响应",
+              "title": "failed response",
+              "properties": {
+                "isSuccess": {
+                  "type": "boolean",
+                  "required": true,
+                  "description": "是否成功，必须为false"
+                },
+                "error": {
+                  "type": "object",
+                  "format": "",
+                  "required": true,
+                  "description": "响应结果",
+                  "title": "error",
+                  "properties": {
+                    "errCode": {
+                      "type": "integer",
+                      "format": "int32",
+                      "required": true,
+                      "description": "异常编码"
+                    },
+                    "errMsg": {
+                      "type": "string",
+                      "required": true,
+                      "description": "异常信息"
+                    }
+                  }
+                }
+              }
+            },
+            "sortWeight": 2
+          },
+          "succeed response": {
+            "description": "成功响应",
+            "schema": {
+              "type": "object",
+              "format": "",
+              "required": false,
+              "description": "成功响应",
+              "title": "succeed response",
+              "properties": {
+                "isSuccess": {
+                  "type": "boolean",
+                  "required": true,
+                  "description": "是否成功，必须为true"
+                },
+                "result": {
+                  "type": "string",
+                  "required": true,
+                  "description": "响应结果"
+                }
+              }
+            },
+            "sortWeight": 1
+          }
+        },
+        "sortWeight": 8,
+        "devStatus": "none",
+        "devStatusName": "不显示",
+        "showDevStatus": false,
+        "skipCommonParam": false,
+        "label": "",
+        "developer": "",
+        "modifyDate": "2020-08-07 11:37:56"
+      }
+    },
+    "/createAssignment": {
+      "post": {
+        "tags": [
+          "任务数据相关接口"
+        ],
+        "summary": "增加任务信息",
+        "description": "<p>增加任务信息<br></p>",
+        "operationId": "",
+        "schemes": [
+          "http"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "data",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "cust",
+              "format": "json",
+              "content": "{\n    \"userId\": \"string // 执行任务的用户ID\", \n    \"startTime\": \"2020-05-12 17:30:00 // 开始时间\",\n    \"endTime\": \"2020-05-13 17:30:00 // 结束时间\",\n    \"routeIdList\": [\"航线ID // 支持多航线\"] ,\n    \"taskDescription\": \"test // 任务描述\"\n}"
+            },
+            "type": "cust",
+            "default": ""
+          }
+        ],
+        "responses": {
+          "failed response": {
+            "description": "失败响应",
+            "schema": {
+              "type": "object",
+              "format": "",
+              "required": false,
+              "description": "失败响应",
+              "title": "failed response",
+              "properties": {
+                "isSuccess": {
+                  "type": "boolean",
+                  "required": true,
+                  "description": "是否成功，必须为false"
+                },
+                "error": {
+                  "type": "object",
+                  "format": "",
+                  "required": true,
+                  "description": "响应结果",
+                  "title": "error",
+                  "properties": {
+                    "errCode": {
+                      "type": "integer",
+                      "format": "int32",
+                      "required": true,
+                      "description": "异常编码"
+                    },
+                    "errMsg": {
+                      "type": "string",
+                      "required": true,
+                      "description": "异常信息"
+                    }
+                  }
+                }
+              }
+            },
+            "sortWeight": 1
+          },
+          "succeed response": {
+            "description": "成功响应",
+            "schema": {
+              "type": "object",
+              "format": "",
+              "required": false,
+              "description": "成功响应",
+              "title": "succeed response",
+              "properties": {
+                "isSuccess": {
+                  "type": "boolean",
+                  "required": true,
+                  "description": "是否成功，必须为true"
+                },
+                "result": {
+                  "type": "object",
+                  "format": "",
+                  "required": true,
+                  "description": "响应结果",
+                  "title": "result",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "required": true,
+                      "description": "任务ID"
+                    }
+                  }
+                }
+              }
+            },
+            "sortWeight": 2
+          }
+        },
+        "sortWeight": 4,
+        "devStatus": "none",
+        "devStatusName": "不显示",
+        "showDevStatus": false,
+        "skipCommonParam": false,
+        "label": "",
+        "developer": "",
+        "modifyDate": "2020-08-07 14:17:24"
+      }
+    },
+    "/createRoute ": {
+      "post": {
+        "tags": [
+          "任务数据相关接口"
+        ],
+        "summary": "增加航线信息",
+        "description": "<p>增加航线信息，输入航线所需数据。<br></p>",
+        "operationId": "",
+        "schemes": [
+          "http"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "data",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "cust",
+              "format": "json",
+              "content": "{\n    \"routeName\": \"string, 航线名称\",\n    \"routeDescription\": \"string, 描述\",\n    \"routeType\": \"integer, 航线类型\",\n    \"startPoint\": {\n        \"lat\": \"double, 纬度\",\n        \"lon\": \"double, 经度\",\n        \"alt\": \"double, 绝对海拔，单位:米\"\n    },\n    \"endPoint\": {\n        \"lat\": \"double, 纬度\",\n        \"lon\": \"double, 经度\",\n        \"alt\": \"double, 绝对海拔，单位:米\"\n    },\n    \"fpList\": [\n        {\n            \"lat\": \"double, 纬度\",\n            \"lon\": \"double, 经度\",\n            \"alt\": \"double, 绝对海拔，单位:米\",\n            \"index\": \"integer, 路点序号\",\n            \"yaw\": \"integer, 云台yaw角度,单位：°, 有效范围：-180~180\",\n            \"gimbalPitch\": \"integer, 云台pitch角度,单位：°, 有效范围：-90～0\",\n            \"shootPhoto\": \"integer, 是否为拍照点，1为拍照， 0则不拍\"\n        }\n    ]\n}"
+            },
+            "type": "cust",
+            "default": ""
+          }
+        ],
+        "responses": {
+          "failed response": {
+            "description": "失败响应",
+            "schema": {
+              "type": "object",
+              "format": "",
+              "required": false,
+              "description": "失败响应",
+              "title": "failed response",
+              "properties": {
+                "isSuccess": {
+                  "type": "boolean",
+                  "required": true,
+                  "description": "是否成功，必须为false"
+                },
+                "error": {
+                  "type": "object",
+                  "format": "",
+                  "required": true,
+                  "description": "响应结果",
+                  "title": "error",
+                  "properties": {
+                    "errCode": {
+                      "type": "integer",
+                      "format": "int32",
+                      "required": true,
+                      "description": "异常编码"
+                    },
+                    "errMsg": {
+                      "type": "string",
+                      "required": true,
+                      "description": "异常信息"
+                    }
+                  }
+                }
+              }
+            },
+            "sortWeight": 2
+          },
+          "succeed response": {
+            "description": "成功响应",
+            "schema": {
+              "type": "object",
+              "format": "",
+              "required": false,
+              "description": "成功响应",
+              "title": "succeed response",
+              "properties": {
+                "isSuccess": {
+                  "type": "boolean",
+                  "required": true,
+                  "description": "是否成功，必须为true"
+                },
+                "result": {
+                  "type": "array",
+                  "format": "",
+                  "required": true,
+                  "description": "响应结果",
+                  "items": {
+                    "required": false,
+                    "title": "result",
+                    "properties": {
+                      "routeId": {
+                        "type": "string",
+                        "required": true,
+                        "description": "航线ID"
+                      },
+                      "routeName": {
+                        "type": "string",
+                        "required": true,
+                        "description": "航线名称"
+                      },
+                      "routeDescription": {
+                        "type": "string",
+                        "required": true,
+                        "description": "航线描述"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "sortWeight": 1
+          }
+        },
+        "sortWeight": 5,
+        "devStatus": "none",
+        "devStatusName": "不显示",
+        "showDevStatus": false,
+        "skipCommonParam": false,
+        "label": "",
+        "developer": "",
+        "modifyDate": "2020-08-08 11:19:22"
+      }
+    },
+    "/images/assignment/{assignmentId}": {
+      "get": {
+        "tags": [
+          "图片下载接口"
+        ],
+        "summary": "下载巡检任务相关联的所有照片",
+        "description": "<p>query 中 onlyId 为 true 时，成功响应返回图片 ID 列表，否则返回图片的压缩文件流，解压后的每张图片的文件名命名对应其图片ID</p>",
+        "operationId": "",
+        "schemes": [
+          "http"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "assignmentId",
+            "in": "path",
+            "description": "任务ID",
+            "required": true,
+            "type": "string",
+            "default": "",
+            "format": ""
+          },
+          {
+            "name": "onlyId",
+            "in": "query",
+            "description": "是否只获取图片ID列表，为true 时接口只返回图片ID列表",
+            "required": false,
+            "type": "string",
+            "default": "",
+            "format": ""
+          }
+        ],
+        "responses": {
+          "failed response": {
+            "description": "失败响应",
+            "schema": {
+              "type": "object",
+              "format": "",
+              "required": false,
+              "description": "失败响应",
+              "title": "failed response",
+              "properties": {
+                "isSuccess": {
+                  "type": "boolean",
+                  "required": true,
+                  "description": "是否成功，必须为false"
+                },
+                "error": {
+                  "type": "object",
+                  "format": "",
+                  "required": true,
+                  "description": "响应结果",
+                  "title": "error",
+                  "properties": {
+                    "errCode": {
+                      "type": "integer",
+                      "format": "int32",
+                      "required": true,
+                      "description": "异常编码"
+                    },
+                    "errMsg": {
+                      "type": "string",
+                      "required": true,
+                      "description": "异常信息"
+                    }
+                  }
+                }
+              }
+            },
+            "sortWeight": 2
+          },
+          "succeed response": {
+            "description": "成功响应",
+            "schema": {
+              "type": "object",
+              "format": "",
+              "required": false,
+              "description": "成功响应",
+              "title": "succeed response",
+              "properties": {
+                "isSuccess": {
+                  "type": "boolean",
+                  "required": true,
+                  "description": "是否响应，必须为true"
+                },
+                "result": {
+                  "type": "object",
+                  "format": "",
+                  "required": true,
+                  "description": "响应结果",
+                  "title": "result",
+                  "properties": {
+                    "idList": {
+                      "type": "array",
+                      "format": "",
+                      "required": true,
+                      "description": "图片id列表",
+                      "items": {
+                        "type": "string",
+                        "required": false,
+                        "description": "图片id"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "sortWeight": 1
+          }
+        },
+        "sortWeight": 2,
+        "devStatus": "none",
+        "devStatusName": "不显示",
+        "showDevStatus": false,
+        "skipCommonParam": false,
+        "label": "",
+        "developer": "",
+        "modifyDate": "2020-08-07 13:42:18"
+      }
+    },
+    "/images/assignment/{assignmentId}/ {routeId}": {
+      "get": {
+        "tags": [
+          "图片下载接口"
+        ],
+        "summary": "获取巡检任务中跟特定航线相关联的所有图片",
+        "description": "<p>通过对应的assignmentId 以及 routeId 获取相应的图片列表信息</p>",
+        "operationId": "",
+        "schemes": [
+          "http"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "assignmentId",
+            "in": "path",
+            "description": "任务ID",
+            "required": true,
+            "type": "string",
+            "default": "",
+            "format": ""
+          },
+          {
+            "name": "routeId",
+            "in": "path",
+            "description": "航线ID",
+            "required": true,
+            "type": "string",
+            "default": "",
+            "format": ""
+          },
+          {
+            "name": "onlyId",
+            "in": "query",
+            "description": "是否只获取图片ID列表，为true 时接口只返回图片ID列表",
+            "required": false,
+            "type": "string",
+            "default": "",
+            "format": ""
+          }
+        ],
+        "responses": {
+          "failed response": {
+            "description": "失败响应",
+            "schema": {
+              "type": "object",
+              "format": "",
+              "required": false,
+              "description": "失败响应",
+              "title": "failed response",
+              "properties": {
+                "isSuccess": {
+                  "type": "boolean",
+                  "required": true,
+                  "description": "是否成功，必须为false"
+                },
+                "error": {
+                  "type": "object",
+                  "format": "",
+                  "required": true,
+                  "description": "成功响应",
+                  "title": "error",
+                  "properties": {
+                    "errCode": {
+                      "type": "integer",
+                      "format": "int32",
+                      "required": true,
+                      "description": "异常编码"
+                    },
+                    "errMsg": {
+                      "type": "string",
+                      "required": true,
+                      "description": "异常信息"
+                    }
+                  }
+                }
+              }
+            },
+            "sortWeight": 2
+          },
+          "succeed response": {
+            "description": "成功响应",
+            "schema": {
+              "type": "object",
+              "format": "",
+              "required": false,
+              "description": "成功响应",
+              "title": "succeed response",
+              "properties": {
+                "isSuccess": {
+                  "type": "boolean",
+                  "required": true,
+                  "description": "是否成功，必须为true"
+                },
+                "result": {
+                  "type": "object",
+                  "format": "",
+                  "required": true,
+                  "description": "响应结果",
+                  "title": "result",
+                  "properties": {
+                    "idList": {
+                      "type": "array",
+                      "format": "",
+                      "required": true,
+                      "description": "图片ID列表",
+                      "items": {
+                        "type": "string",
+                        "required": false,
+                        "description": "图片ID"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "sortWeight": 1
+          }
+        },
+        "sortWeight": 3,
+        "devStatus": "none",
+        "devStatusName": "不显示",
+        "showDevStatus": false,
+        "skipCommonParam": false,
+        "label": "",
+        "developer": "",
+        "modifyDate": "2020-08-07 14:43:28"
+      }
+    },
+    "/liveview/start ": {
+      "post": {
+        "tags": [
+          "图传接口"
+        ],
+        "summary": "打开机场某一无人机视频流",
+        "description": "<p>打开机场某一无人机视频流<br></p>",
+        "operationId": "",
+        "schemes": [
+          "http"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "data",
+            "description": "streamId：无人机飞控id ，必须，string",
+            "required": true,
+            "schema": {
+              "type": "cust",
+              "format": "json",
+              "content": "{\n    \"airportId\": \"pickup-id\",\n    \"msgId\": 31,\n    \"streamId\": \"aicraftId, 无人机飞控id\", \n    \"liveTime\": 600000\n}"
+            },
+            "type": "cust",
+            "default": ""
+          }
+        ],
+        "responses": {
+          "failed response": {
+            "description": "失败响应",
+            "schema": {
+              "type": "object",
+              "format": "",
+              "required": false,
+              "description": "失败响应",
+              "title": "failed response",
+              "properties": {
+                "isSuccess": {
+                  "type": "boolean",
+                  "required": true,
+                  "description": "是否成功，必须为false"
+                },
+                "error": {
+                  "type": "object",
+                  "format": "",
+                  "required": true,
+                  "description": "响应结果",
+                  "title": "error",
+                  "properties": {
+                    "errCode": {
+                      "type": "integer",
+                      "format": "int32",
+                      "required": true,
+                      "description": "异常编码"
+                    },
+                    "errMsg": {
+                      "type": "string",
+                      "required": true,
+                      "description": "异常信息"
+                    }
+                  }
+                }
+              }
+            },
+            "sortWeight": 2
+          },
+          "succeed responese": {
+            "description": "成功响应",
+            "schema": {
+              "type": "object",
+              "format": "",
+              "required": false,
+              "description": "成功响应",
+              "title": "succeed responese",
+              "properties": {
+                "isSuccess": {
+                  "type": "boolean",
+                  "required": true,
+                  "description": "是否成功，必须为true"
+                },
+                "result": {
+                  "type": "object",
+                  "format": "",
+                  "required": true,
+                  "description": "响应结果",
+                  "title": "result",
+                  "properties": {
+                    "airportId": {
+                      "type": "string",
+                      "required": true,
+                      "description": "机场ID"
+                    },
+                    "msgId": {
+                      "type": "string",
+                      "required": true,
+                      "description": "消息序列号"
+                    },
+                    "srcUrl": {
+                      "type": "string",
+                      "required": true,
+                      "description": "视频流地址"
+                    }
+                  }
+                }
+              }
+            },
+            "sortWeight": 1
+          }
+        },
+        "sortWeight": 1,
+        "devStatus": "none",
+        "devStatusName": "不显示",
+        "showDevStatus": false,
+        "skipCommonParam": false,
+        "label": "",
+        "developer": "",
+        "modifyDate": "2020-08-07 15:36:36"
+      }
+    },
+    "/liveview/stop": {
+      "post": {
+        "tags": [
+          "图传接口"
+        ],
+        "summary": "关闭机场某一无人机视频流",
+        "description": "<p>关闭机场某一无人机视频流<br></p>",
+        "operationId": "",
+        "schemes": [
+          "http"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "data",
+            "description": "streamId：特定摄像头 ，必须，string，无人机飞控id",
+            "required": true,
+            "schema": {
+              "type": "cust",
+              "format": "json",
+              "content": "{\n    \"airportId\": \"pickup-id\",\n    \"msgId\": 31,\n    \"streamId\": \"aircraftId\"\n}"
+            },
+            "type": "cust",
+            "default": ""
+          }
+        ],
+        "responses": {
+          "failed response": {
+            "description": "失败响应",
+            "schema": {
+              "type": "object",
+              "format": "",
+              "required": false,
+              "description": "失败响应",
+              "title": "failed response",
+              "properties": {
+                "isSuccess": {
+                  "type": "boolean",
+                  "required": true,
+                  "description": "是否成功，必须为false"
+                },
+                "error": {
+                  "type": "object",
+                  "format": "",
+                  "required": true,
+                  "description": "响应结果",
+                  "title": "error",
+                  "properties": {
+                    "errCode": {
+                      "type": "integer",
+                      "format": "int32",
+                      "required": true,
+                      "description": "异常编码"
+                    },
+                    "errMsg": {
+                      "type": "string",
+                      "required": true,
+                      "description": "异常信息"
+                    }
+                  }
+                }
+              }
+            },
+            "sortWeight": 2
+          },
+          "succeed responese": {
+            "description": "成功响应",
+            "schema": {
+              "type": "object",
+              "format": "",
+              "required": false,
+              "description": "成功响应",
+              "title": "succeed responese",
+              "properties": {
+                "isSuccess": {
+                  "type": "boolean",
+                  "required": true,
+                  "description": "是否成功，必须为true"
+                },
+                "result": {
+                  "type": "object",
+                  "format": "",
+                  "required": true,
+                  "description": "响应结果",
+                  "title": "result",
+                  "properties": {
+                    "airportId": {
+                      "type": "string",
+                      "required": true,
+                      "description": "机场ID"
+                    },
+                    "msgId": {
+                      "type": "string",
+                      "required": true,
+                      "description": "消息序列号"
+                    }
+                  }
+                }
+              }
+            },
+            "sortWeight": 1
+          }
+        },
+        "sortWeight": 2,
+        "devStatus": "none",
+        "devStatusName": "不显示",
+        "showDevStatus": false,
+        "skipCommonParam": false,
+        "label": "",
+        "developer": "",
+        "modifyDate": "2020-08-07 15:36:51"
+      }
+    },
+    "/login": {
+      "post": {
+        "tags": [
+          "用户相关接口"
+        ],
+        "summary": "用户登录",
+        "description": "<p>用户登录使用，登录成功会返回对应的token</p>",
+        "operationId": "",
+        "schemes": [
+          "http"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "data",
+            "description": "密码经过sha256加密处理后的base64字符串，该示例的密码为 123456",
+            "required": false,
+            "schema": {
+              "type": "cust",
+              "format": "json",
+              "content": "{\n    \"username\": \"zhangsan\",\n    \"password\": \"jZae727K08KaOmKSgOaGzww/XVqGr/PKEgIMkjrcbJI=\"\n}"
+            },
+            "type": "cust",
+            "default": ""
+          }
+        ],
+        "responses": {
+          "failed response": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "format": "",
+              "required": false,
+              "description": "",
+              "title": "failed response",
+              "properties": {
+                "isSuccess": {
+                  "type": "boolean",
+                  "required": true,
+                  "description": "是否成功，必须为false"
+                },
+                "error": {
+                  "type": "object",
+                  "format": "",
+                  "required": true,
+                  "description": "异常结果",
+                  "title": "error",
+                  "properties": {
+                    "errCode": {
+                      "type": "integer",
+                      "format": "int32",
+                      "required": true,
+                      "description": "异常编码"
+                    },
+                    "errMsg": {
+                      "type": "string",
+                      "required": true,
+                      "description": "异常信息"
+                    }
+                  }
+                }
+              }
+            },
+            "sortWeight": 2
+          },
+          "succeed response": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "format": "",
+              "required": false,
+              "description": "",
+              "title": "succeed response",
+              "properties": {
+                "isSuccess": {
+                  "type": "boolean",
+                  "required": false,
+                  "description": "是否成功，必须为true"
+                },
+                "result": {
+                  "type": "object",
+                  "format": "",
+                  "required": false,
+                  "description": "响应结果",
+                  "title": "result",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "required": false,
+                      "description": "token"
+                    },
+                    "user": {
+                      "type": "object",
+                      "format": "",
+                      "required": false,
+                      "description": "用户详情",
+                      "title": "user",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "required": false,
+                          "description": "用户ID"
+                        },
+                        "username": {
+                          "type": "string",
+                          "required": false,
+                          "description": "用户名"
+                        },
+                        "nickname": {
+                          "type": "string",
+                          "required": false,
+                          "description": "用户昵称"
+                        },
+                        "createdAt": {
+                          "type": "integer",
+                          "format": "int32",
+                          "required": false,
+                          "description": "创建时间"
+                        },
+                        "updatedAt": {
+                          "type": "integer",
+                          "format": "int32",
+                          "required": false,
+                          "description": "修改时间"
+                        },
+                        "role": {
+                          "type": "object",
+                          "format": "",
+                          "required": false,
+                          "description": "职能详情",
+                          "title": "role",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "required": false,
+                              "description": "职能ID"
+                            },
+                            "name": {
+                              "type": "string",
+                              "required": false,
+                              "description": "职能名称"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "env": {
+                      "type": "string",
+                      "required": false,
+                      "description": "应用环境"
+                    }
+                  }
+                }
+              }
+            },
+            "sortWeight": 1
+          }
+        },
+        "sortWeight": 1,
+        "devStatus": "none",
+        "devStatusName": "不显示",
+        "showDevStatus": false,
+        "skipCommonParam": true,
+        "label": "",
+        "developer": "",
+        "modifyDate": "2020-08-07 14:39:00"
+      }
+    },
+    "/pickups": {
+      "get": {
+        "tags": [
+          "任务数据相关接口"
+        ],
+        "summary": "获取所有胶囊机场",
+        "description": "<p>获取所有胶囊机场的ID</p>",
+        "operationId": "",
+        "schemes": [
+          "http"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "failed response": {
+            "description": "失败响应",
+            "schema": {
+              "type": "object",
+              "format": "",
+              "required": false,
+              "description": "失败响应",
+              "title": "failed response",
+              "properties": {
+                "isSuccess": {
+                  "type": "boolean",
+                  "required": true,
+                  "description": "是否成功,必须为false"
+                },
+                "error": {
+                  "type": "object",
+                  "format": "",
+                  "required": true,
+                  "description": "响应结果",
+                  "title": "error",
+                  "properties": {
+                    "errCode": {
+                      "type": "integer",
+                      "format": "int32",
+                      "required": true,
+                      "description": "异常编码"
+                    },
+                    "errMsg": {
+                      "type": "string",
+                      "required": true,
+                      "description": "异常信息"
+                    }
+                  }
+                }
+              }
+            },
+            "sortWeight": 2
+          },
+          "succeed response": {
+            "description": "成功响应",
+            "schema": {
+              "type": "object",
+              "format": "",
+              "required": false,
+              "description": "成功响应",
+              "title": "succeed response",
+              "properties": {
+                "isSuccess": {
+                  "type": "boolean",
+                  "required": true,
+                  "description": "是否成功，必须为true"
+                },
+                "result": {
+                  "type": "array",
+                  "format": "",
+                  "required": true,
+                  "description": "响应结果, 数组",
+                  "items": {
+                    "type": "string",
+                    "required": true,
+                    "description": "胶囊机场ID"
+                  }
+                }
+              }
+            },
+            "sortWeight": 1
+          }
+        },
+        "sortWeight": 1,
+        "devStatus": "none",
+        "devStatusName": "不显示",
+        "showDevStatus": false,
+        "skipCommonParam": false,
+        "label": "",
+        "developer": "",
+        "modifyDate": "2020-08-07 13:37:58"
+      }
+    },
+    "/route/{routeId} ": {
+      "get": {
+        "tags": [
+          "任务数据相关接口"
+        ],
+        "summary": "获取航线信息",
+        "description": "<p>通过 routeId 获取航线信息<br></p>",
+        "operationId": "",
+        "schemes": [
+          "http"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "routeId",
+            "in": "path",
+            "description": "航线id",
+            "required": true,
+            "type": "string",
+            "default": "",
+            "format": ""
+          }
+        ],
+        "responses": {
+          "failed response": {
+            "description": "失败响应",
+            "schema": {
+              "type": "object",
+              "format": "",
+              "required": false,
+              "description": "失败响应",
+              "title": "failed response",
+              "properties": {
+                "isSuccess": {
+                  "type": "boolean",
+                  "required": true,
+                  "description": "是否成功,必须为false"
+                },
+                "error": {
+                  "type": "object",
+                  "format": "",
+                  "required": true,
+                  "description": "响应结果",
+                  "title": "error",
+                  "properties": {
+                    "errCode": {
+                      "type": "integer",
+                      "format": "int32",
+                      "required": true,
+                      "description": "异常编码"
+                    },
+                    "errMsg": {
+                      "type": "string",
+                      "required": true,
+                      "description": "异常信息"
+                    }
+                  }
+                }
+              }
+            },
+            "sortWeight": 1
+          },
+          "succeed response": {
+            "description": "成功响应",
+            "schema": {
+              "type": "object",
+              "format": "",
+              "required": false,
+              "description": "成功响应",
+              "title": "succeed response",
+              "properties": {
+                "isSuccess": {
+                  "type": "boolean",
+                  "required": true,
+                  "description": "是否成功,必须为true"
+                },
+                "result": {
+                  "type": "array",
+                  "format": "",
+                  "required": true,
+                  "description": "响应结果",
+                  "items": {
+                    "required": false,
+                    "title": "result",
+                    "properties": {
+                      "routeId": {
+                        "type": "string",
+                        "required": true,
+                        "description": "航线ID"
+                      },
+                      "routeName": {
+                        "type": "string",
+                        "required": true,
+                        "description": "航线名称"
+                      },
+                      "routeDescription": {
+                        "type": "string",
+                        "required": true,
+                        "description": "航线描述"
+                      },
+                      "routeType": {
+                        "type": "integer",
+                        "format": "int32",
+                        "required": true,
+                        "description": "0:'visible', 1:'visiblePassageway', 10:'infrared', 11:'infraredPassageway'"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "sortWeight": 2
+          }
+        },
+        "sortWeight": 6,
+        "devStatus": "none",
+        "devStatusName": "不显示",
+        "showDevStatus": false,
+        "skipCommonParam": false,
+        "label": "",
+        "developer": "",
+        "modifyDate": "2020-08-07 13:38:55"
+      }
+    },
+    "/status?token=xxx": {
+      "get": {
+        "tags": [
+          "实时状态接口"
+        ],
+        "summary": "实时监控机场状态和无人机状态",
+        "description": "<p>websocket 建立连接后向 status channel 发 { action: \"start\" } ，开始推送设备状态；向 status channel 发 { action: \"stop\" } 停止推送<br></p>",
+        "operationId": "",
+        "schemes": [
+          "http"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "data",
+            "description": "action，只能为“start”或“stop”。",
+            "required": true,
+            "schema": {
+              "type": "cust",
+              "format": "json",
+              "content": "{\n    \"action\": \"start\"\n}"
+            },
+            "type": "cust",
+            "default": ""
+          }
+        ],
+        "responses": {
+          "succeed response": {
+            "description": "成功响应，无人机已经连接的情况下，无人机状态才会实时更新，如果处于断联状态，会持续推送断联前无人机的状态",
+            "schema": {
+              "type": "object",
+              "format": "",
+              "required": false,
+              "description": "成功响应，无人机已经连接的情况下，无人机状态才会实时更新，如果处于断联状态，会持续推送断联前无人机的状态",
+              "title": "succeed response",
+              "properties": {
+                "carriers": {
+                  "type": "array",
+                  "format": "",
+                  "required": false,
+                  "description": "",
+                  "items": {
+                    "required": false,
+                    "title": "carriers",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "required": false,
+                        "description": ""
+                      },
+                      "devices": {
+                        "type": "object",
+                        "format": "",
+                        "required": false,
+                        "description": "",
+                        "title": "devices",
+                        "properties": {
+                          "airport": {
+                            "type": "object",
+                            "format": "",
+                            "required": false,
+                            "description": "",
+                            "title": "airport",
+                            "properties": {
+                              "toward": {
+                                "type": "integer",
+                                "format": "int32",
+                                "required": false,
+                                "description": "车头朝向，正北为0, 顺时针方向的度数"
+                              },
+                              "version": {
+                                "type": "string",
+                                "required": false,
+                                "description": "版本号"
+                              },
+                              "power_system": {
+                                "type": "object",
+                                "format": "",
+                                "required": false,
+                                "description": "",
+                                "title": "power_system",
+                                "properties": {
+                                  "totalVoltage": {
+                                    "type": "number",
+                                    "format": "double",
+                                    "required": false,
+                                    "description": ""
+                                  },
+                                  "stateOfCharge": {
+                                    "type": "number",
+                                    "format": "double",
+                                    "required": false,
+                                    "description": ""
+                                  },
+                                  "bms": {
+                                    "type": "array",
+                                    "format": "",
+                                    "required": false,
+                                    "description": "",
+                                    "items": {
+                                      "required": false,
+                                      "title": "bms",
+                                      "properties": {
+                                        "maxCellVoltage": {
+                                          "type": "number",
+                                          "format": "double",
+                                          "required": false,
+                                          "description": ""
+                                        },
+                                        "minCellVoltage": {
+                                          "type": "number",
+                                          "format": "double",
+                                          "required": false,
+                                          "description": ""
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "drone": {
+                            "type": "array",
+                            "format": "",
+                            "required": false,
+                            "description": "飞机不在线时为 [ ]",
+                            "items": {
+                              "required": false,
+                              "title": "drone",
+                              "properties": {
+                                "droneId": {
+                                  "type": "string",
+                                  "required": false,
+                                  "description": "无人机ID"
+                                },
+                                "status": {
+                                  "type": "object",
+                                  "format": "",
+                                  "required": false,
+                                  "description": "'available'可用的，在这个状态下可以hire、   'awaitTakingOff'  就绪，等待起飞命令、   'takingoff' 正在起飞、   'awaitLanding'飞机在降落半径边缘等待降落命, 'landing' 正在降落、   'landed'飞机降落到机场甲板上，landed状态下地面站开始下载，上传数据, 'approaching'飞往巡检目标、’returning'无人机返航中",
+                                  "title": "status",
+                                  "properties": {
+                                    "physicDrone": {
+                                      "type": "object",
+                                      "format": "",
+                                      "required": false,
+                                      "description": "无人机物理状态",
+                                      "title": "physicDrone",
+                                      "properties": {
+                                        "location": {
+                                          "type": "object",
+                                          "format": "",
+                                          "required": false,
+                                          "description": "位置",
+                                          "title": "location",
+                                          "properties": {
+                                            "lat": {
+                                              "type": "number",
+                                              "format": "double",
+                                              "required": false,
+                                              "description": "纬度"
+                                            },
+                                            "lon": {
+                                              "type": "number",
+                                              "format": "double",
+                                              "required": false,
+                                              "description": "经度"
+                                            },
+                                            "alt": {
+                                              "type": "number",
+                                              "format": "double",
+                                              "required": false,
+                                              "description": "高度"
+                                            }
+                                          }
+                                        },
+                                        "gps_health": {
+                                          "type": "integer",
+                                          "format": "int32",
+                                          "required": false,
+                                          "description": ""
+                                        },
+                                        "angleInDegree": {
+                                          "type": "object",
+                                          "format": "",
+                                          "required": false,
+                                          "description": "",
+                                          "title": "angleInDegree",
+                                          "properties": {
+                                            "roll": {
+                                              "type": "number",
+                                              "format": "double",
+                                              "required": false,
+                                              "description": ""
+                                            },
+                                            "pitch": {
+                                              "type": "number",
+                                              "format": "double",
+                                              "required": false,
+                                              "description": ""
+                                            },
+                                            "yaw": {
+                                              "type": "number",
+                                              "format": "double",
+                                              "required": false,
+                                              "description": ""
+                                            }
+                                          }
+                                        },
+                                        "chargeRemainingInPercent": {
+                                          "type": "number",
+                                          "format": "double",
+                                          "required": false,
+                                          "description": "无人机电量信息"
+                                        },
+                                        "velocityInMps": {
+                                          "type": "object",
+                                          "format": "",
+                                          "required": false,
+                                          "description": "三维空间速度, 精度：1.0 单位：m/s",
+                                          "title": "velocityInMps",
+                                          "properties": {
+                                            "vx": {
+                                              "type": "number",
+                                              "format": "double",
+                                              "required": false,
+                                              "description": "x轴速度"
+                                            },
+                                            "vy": {
+                                              "type": "number",
+                                              "format": "double",
+                                              "required": false,
+                                              "description": "y轴速度"
+                                            },
+                                            "vz": {
+                                              "type": "number",
+                                              "format": "double",
+                                              "required": false,
+                                              "description": "z轴速度"
+                                            }
+                                          }
+                                        },
+                                        "voltageInV": {
+                                          "type": "number",
+                                          "format": "double",
+                                          "required": false,
+                                          "description": "无人机电池电压 精度：0.1 单位：V"
+                                        },
+                                        "is_arm": {
+                                          "type": "boolean",
+                                          "required": false,
+                                          "description": "是否正在执行任务"
+                                        },
+                                        "is_low_voltage": {
+                                          "type": "boolean",
+                                          "required": false,
+                                          "description": ""
+                                        },
+                                        "is_motor_on": {
+                                          "type": "boolean",
+                                          "required": false,
+                                          "description": ""
+                                        },
+                                        "is_in_air": {
+                                          "type": "boolean",
+                                          "required": false,
+                                          "description": ""
+                                        },
+                                        "is_go_home": {
+                                          "type": "boolean",
+                                          "required": false,
+                                          "description": "是否在返航"
+                                        },
+                                        "controller": {
+                                          "type": "string",
+                                          "required": false,
+                                          "description": ""
+                                        },
+                                        "isRTKBeingUsed": {
+                                          "type": "boolean",
+                                          "required": false,
+                                          "description": ""
+                                        },
+                                        "isHeadVaild": {
+                                          "type": "boolean",
+                                          "required": false,
+                                          "description": ""
+                                        },
+                                        "isAirCraft_connected": {
+                                          "type": "boolean",
+                                          "required": false,
+                                          "description": "无人机是否已连接"
+                                        },
+                                        "isCameraOk": {
+                                          "type": "boolean",
+                                          "required": false,
+                                          "description": ""
+                                        },
+                                        "isVideoFeedOk": {
+                                          "type": "boolean",
+                                          "required": false,
+                                          "description": "视频流是否正常"
+                                        },
+                                        "videoFeedHealth": {
+                                          "type": "integer",
+                                          "format": "int32",
+                                          "required": false,
+                                          "description": ""
+                                        },
+                                        "dji_RTK": {
+                                          "type": "object",
+                                          "format": "",
+                                          "required": false,
+                                          "description": "",
+                                          "title": "dji_RTK",
+                                          "properties": {
+                                            "alt": {
+                                              "type": "number",
+                                              "format": "double",
+                                              "required": false,
+                                              "description": ""
+                                            },
+                                            "lon": {
+                                              "type": "number",
+                                              "format": "double",
+                                              "required": false,
+                                              "description": ""
+                                            },
+                                            "lat": {
+                                              "type": "number",
+                                              "format": "double",
+                                              "required": false,
+                                              "description": ""
+                                            }
+                                          }
+                                        },
+                                        "aircraftId": {
+                                          "type": "string",
+                                          "required": false,
+                                          "description": ""
+                                        },
+                                        "rtkPositionSolution": {
+                                          "type": "string",
+                                          "required": false,
+                                          "description": ""
+                                        },
+                                        "absoluteAltitude": {
+                                          "type": "number",
+                                          "format": "double",
+                                          "required": false,
+                                          "description": "当前无人机海拔高度"
+                                        },
+                                        "djiDiagnostics": {
+                                          "type": "array",
+                                          "format": "",
+                                          "required": false,
+                                          "description": "dji提示信息",
+                                          "items": {
+                                            "type": "object",
+                                            "required": false
+                                          }
+                                        },
+                                        "remainFlightTimeInS": {
+                                          "type": "number",
+                                          "format": "double",
+                                          "required": false,
+                                          "description": "剩余最大飞行时长"
+                                        },
+                                        "cameraType": {
+                                          "type": "array",
+                                          "format": "",
+                                          "required": false,
+                                          "description": "",
+                                          "items": {
+                                            "required": false,
+                                            "title": "cameraType",
+                                            "properties": {
+                                              "key": {
+                                                "type": "string",
+                                                "required": false,
+                                                "description": ""
+                                              },
+                                              "value": {
+                                                "type": "object",
+                                                "format": "",
+                                                "required": false,
+                                                "description": "",
+                                                "title": "value",
+                                                "properties": {
+                                                  "shootModel": {
+                                                    "type": "string",
+                                                    "required": false,
+                                                    "description": ""
+                                                  },
+                                                  "maxFocalLength": {
+                                                    "type": "integer",
+                                                    "format": "int32",
+                                                    "required": false,
+                                                    "description": ""
+                                                  },
+                                                  "minFocalLength": {
+                                                    "type": "integer",
+                                                    "format": "int32",
+                                                    "required": false,
+                                                    "description": ""
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    },
+                                    "missionDrone": {
+                                      "type": "object",
+                                      "format": "",
+                                      "required": false,
+                                      "description": "",
+                                      "title": "missionDrone",
+                                      "properties": {
+                                        "flightId": {
+                                          "type": "string",
+                                          "required": false,
+                                          "description": ""
+                                        },
+                                        "assignmentId": {
+                                          "type": "string",
+                                          "required": false,
+                                          "description": ""
+                                        },
+                                        "status": {
+                                          "type": "object",
+                                          "format": "",
+                                          "required": false,
+                                          "description": "",
+                                          "title": "status",
+                                          "properties": {
+                                            "key": {
+                                              "type": "string",
+                                              "required": false,
+                                              "description": ""
+                                            }
+                                          }
+                                        },
+                                        "totalWayPointCount": {
+                                          "type": "integer",
+                                          "format": "int32",
+                                          "required": false,
+                                          "description": ""
+                                        },
+                                        "uploadedWayPointCount": {
+                                          "type": "integer",
+                                          "format": "int32",
+                                          "required": false,
+                                          "description": ""
+                                        },
+                                        "inspectProgress": {
+                                          "type": "array",
+                                          "format": "",
+                                          "required": false,
+                                          "description": "",
+                                          "items": {
+                                            "type": "object",
+                                            "required": false
+                                          }
+                                        }
+                                      }
+                                    },
+                                    "physicRC": {
+                                      "type": "object",
+                                      "format": "",
+                                      "required": false,
+                                      "description": "",
+                                      "title": "physicRC",
+                                      "properties": {
+                                        "rcPowerState": {
+                                          "type": "string",
+                                          "required": false,
+                                          "description": ""
+                                        },
+                                        "isAircraftConnected": {
+                                          "type": "boolean",
+                                          "required": false,
+                                          "description": ""
+                                        }
+                                      }
+                                    },
+                                    "groundStationDataStatus": {
+                                      "type": "array",
+                                      "format": "",
+                                      "required": false,
+                                      "description": "",
+                                      "items": {
+                                        "required": false,
+                                        "title": "groundStationDataStatus",
+                                        "properties": {
+                                          "assignmentId": {
+                                            "type": "string",
+                                            "required": false,
+                                            "description": ""
+                                          },
+                                          "dataStatus": {
+                                            "type": "object",
+                                            "format": "",
+                                            "required": false,
+                                            "description": "",
+                                            "title": "dataStatus",
+                                            "properties": {
+                                              "download": {
+                                                "type": "array",
+                                                "format": "",
+                                                "required": false,
+                                                "description": "若不在下载时，download 为 “idle”",
+                                                "items": {
+                                                  "required": false,
+                                                  "title": "download",
+                                                  "properties": {
+                                                    "progress": {
+                                                      "type": "integer",
+                                                      "format": "int32",
+                                                      "required": false,
+                                                      "description": ""
+                                                    },
+                                                    "flightId": {
+                                                      "type": "string",
+                                                      "required": false,
+                                                      "description": ""
+                                                    },
+                                                    "towerId": {
+                                                      "type": "array",
+                                                      "format": "",
+                                                      "required": false,
+                                                      "description": "",
+                                                      "items": {
+                                                        "required": false,
+                                                        "title": "towerId",
+                                                        "properties": {
+                                                          "id": {
+                                                            "type": "string",
+                                                            "required": false,
+                                                            "description": ""
+                                                          },
+                                                          "index": {
+                                                            "type": "integer",
+                                                            "format": "int32",
+                                                            "required": false,
+                                                            "description": ""
+                                                          },
+                                                          "version": {
+                                                            "type": "string",
+                                                            "required": false,
+                                                            "description": ""
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              "upload": {
+                                                "type": "array",
+                                                "format": "",
+                                                "required": false,
+                                                "description": "若不在上传时，upload 为 “idle”",
+                                                "items": {
+                                                  "required": false,
+                                                  "title": "upload",
+                                                  "properties": {
+                                                    "progress": {
+                                                      "type": "integer",
+                                                      "format": "int32",
+                                                      "required": false,
+                                                      "description": ""
+                                                    },
+                                                    "flightId": {
+                                                      "type": "string",
+                                                      "required": false,
+                                                      "description": ""
+                                                    },
+                                                    "towerId": {
+                                                      "type": "array",
+                                                      "format": "",
+                                                      "required": false,
+                                                      "description": "",
+                                                      "items": {
+                                                        "required": false,
+                                                        "title": "towerId",
+                                                        "properties": {
+                                                          "id": {
+                                                            "type": "string",
+                                                            "required": false,
+                                                            "description": ""
+                                                          },
+                                                          "index": {
+                                                            "type": "integer",
+                                                            "format": "int32",
+                                                            "required": false,
+                                                            "description": ""
+                                                          },
+                                                          "version": {
+                                                            "type": "string",
+                                                            "required": false,
+                                                            "description": ""
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "imageUploadProgress": {
+                            "type": "array",
+                            "format": "",
+                            "required": false,
+                            "description": "",
+                            "items": {
+                              "required": false,
+                              "title": "imageUploadProgress",
+                              "properties": {
+                                "assignmentId": {
+                                  "type": "string",
+                                  "required": false,
+                                  "description": ""
+                                },
+                                "flightId": {
+                                  "type": "string",
+                                  "required": false,
+                                  "description": ""
+                                },
+                                "total": {
+                                  "type": "integer",
+                                  "format": "int32",
+                                  "required": false,
+                                  "description": ""
+                                },
+                                "uploaded": {
+                                  "type": "integer",
+                                  "format": "int32",
+                                  "required": false,
+                                  "description": ""
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "sortWeight": 1
+          }
+        },
+        "sortWeight": 1,
+        "devStatus": "none",
+        "devStatusName": "不显示",
+        "showDevStatus": false,
+        "skipCommonParam": false,
+        "label": "",
+        "developer": "",
+        "modifyDate": "2020-08-07 15:34:52"
+      }
+    },
+    "/user": {
+      "post": {
+        "tags": [
+          "用户相关接口"
+        ],
+        "summary": "新增用户",
+        "description": "<p>增加用户信息<br></p>",
+        "operationId": "",
+        "schemes": [
+          "http"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "data",
+            "description": "密码经过sha256加密处理后的base64字符串，该示例的密码为 123456",
+            "required": true,
+            "schema": {
+              "type": "cust",
+              "format": "json",
+              "content": "{\n    \"username\":  \"zhangsan\",\n    \"nickname\":  \"张三\",\n    \"password\":  \"jZae727K08KaOmKSgOaGzww/XVqGr/PKEgIMkjrcbJI=\"\n}"
+            },
+            "type": "cust",
+            "default": ""
+          }
+        ],
+        "responses": {
+          "failed response": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "format": "",
+              "required": false,
+              "description": "",
+              "title": "failed response",
+              "properties": {
+                "isSuccess": {
+                  "type": "boolean",
+                  "required": false,
+                  "description": "是否成功，必须为false"
+                },
+                "error": {
+                  "type": "object",
+                  "format": "",
+                  "required": false,
+                  "description": "",
+                  "title": "error",
+                  "properties": {
+                    "errCode": {
+                      "type": "integer",
+                      "format": "int32",
+                      "required": false,
+                      "description": "异常编码"
+                    },
+                    "errMsg": {
+                      "type": "string",
+                      "required": false,
+                      "description": "异常信息"
+                    }
+                  }
+                }
+              }
+            },
+            "sortWeight": 2
+          },
+          "succeed response": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "format": "",
+              "required": false,
+              "description": "",
+              "title": "succeed response",
+              "properties": {
+                "isSuccess": {
+                  "type": "boolean",
+                  "required": false,
+                  "description": "boolean,是否成功，必须为true"
+                },
+                "result": {
+                  "type": "object",
+                  "format": "",
+                  "required": false,
+                  "description": "",
+                  "title": "result",
+                  "properties": {
+                    "user": {
+                      "type": "object",
+                      "format": "",
+                      "required": false,
+                      "description": "",
+                      "title": "user",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "required": false,
+                          "description": "用户ID"
+                        },
+                        "username": {
+                          "type": "string",
+                          "required": false,
+                          "description": "用户名"
+                        },
+                        "nickname": {
+                          "type": "string",
+                          "required": false,
+                          "description": "用户昵称"
+                        },
+                        "createdAt": {
+                          "type": "integer",
+                          "format": "int32",
+                          "required": false,
+                          "description": "创建时间"
+                        },
+                        "updatedAt": {
+                          "type": "integer",
+                          "format": "int32",
+                          "required": false,
+                          "description": "修改时间"
+                        },
+                        "role": {
+                          "type": "object",
+                          "format": "",
+                          "required": false,
+                          "description": "职能",
+                          "title": "role",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "required": false,
+                              "description": "职能ID"
+                            },
+                            "name": {
+                              "type": "string",
+                              "required": false,
+                              "description": "职能名称"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "env": {
+                      "type": "string",
+                      "required": false,
+                      "description": "应用环境"
+                    }
+                  }
+                }
+              }
+            },
+            "sortWeight": 1
+          }
+        },
+        "sortWeight": 2,
+        "devStatus": "none",
+        "devStatusName": "不显示",
+        "showDevStatus": false,
+        "skipCommonParam": false,
+        "label": "",
+        "developer": "",
+        "modifyDate": "2020-08-07 14:38:19"
+      }
+    }
+  },
+  "definitions": {},
+  "errorCodes": [
+    {
+      "code": "80111",
+      "msg": "机场未连接",
+      "description": ""
+    },
+    {
+      "code": "80233",
+      "msg": "视频流关闭失败",
+      "description": ""
+    },
+    {
+      "code": "80250",
+      "msg": "视频流开启失败",
+      "description": ""
+    },
+    {
+      "code": "80291",
+      "msg": "找不到对应图片信息",
+      "description": ""
+    },
+    {
+      "code": "80341",
+      "msg": "用户权限不足",
+      "description": ""
+    },
+    {
+      "code": "80371",
+      "msg": "找不到对应航线",
+      "description": ""
+    },
+    {
+      "code": "80901",
+      "msg": "网络不可用",
+      "description": ""
+    },
+    {
+      "code": "80911",
+      "msg": "数据库操作失败",
+      "description": ""
+    },
+    {
+      "code": "80921",
+      "msg": "不合法请求",
+      "description": ""
+    },
+    {
+      "code": "90001",
+      "msg": "后台服务操作未成功",
+      "description": ""
+    },
+    {
+      "code": "99999",
+      "msg": "未知错误",
+      "description": ""
+    }
+  ],
+  "apiEnvs": [
+    {
+      "name": "前缀",
+      "baseUrl": "/api/v1",
+      "sortWeight": 1,
+      "mock": false,
+      "status": "on"
+    },
+    {
+      "name": "mock环境",
+      "baseUrl": "http://www.sosoapi.com/pass/mock/18710/",
+      "sortWeight": 2147483647,
+      "mock": true,
+      "status": "on"
+    }
+  ],
+  "commonParams": [
+    {
+      "name": "Authorization",
+      "in": "header",
+      "description": "token",
+      "required": true,
+      "type": "string",
+      "default": "",
+      "format": ""
+    }
+  ]
+}
+```
+
+```yaml
+swagger: '2.0'
+info:
+  description: >-
+    <p class="15" style="font-size: medium; margin-left: 18pt; text-indent:
+    -18pt; text-align: justify;" align="justify"><span style="text-indent:
+    justify;" align="justify"><br></p>
+  version: v1
+  title: 多翼飞行控制系统api接口文档-中电胶囊机场对接
+tags:
+  - name: 用户相关接口
+    description: 用户登录，获取token
+    sortWeight: 1
+  - name: 任务数据相关接口
+    description: ''
+    sortWeight: 2
+  - name: 图片下载接口
+    description: |
+      只有已完成的任务才能下载照片
+    sortWeight: 3
+  - name: 图传接口
+    description: |
+      支持的流媒体协议：RTMP
+    sortWeight: 4
+  - name: 实时状态接口
+    description: 实时监控机场状态和无人机位置、任务状态
+    sortWeight: 5
+schemes: []
+consumes: []
+produces: []
+paths:
+  ' /image/{id}':
+    get:
+      tags:
+        - 图片下载接口
+      summary: 下载指定图片
+      description: 成功响应时返回图片文件流
+      operationId: ''
+      schemes:
+        - http
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          description: 图片ID
+          required: true
+          type: string
+          default: ''
+          format: ''
+      responses:
+        failed response:
+          description: 失败响应
+          schema:
+            type: object
+            format: ''
+            required: false
+            description: 失败响应
+            title: failed response
+            properties:
+              isSuccess:
+                type: boolean
+                required: true
+                description: 是否成功，必须为false
+              error:
+                type: object
+                format: ''
+                required: true
+                description: 响应结果
+                title: error
+                properties:
+                  errCode:
+                    type: integer
+                    format: int32
+                    required: true
+                    description: 异常编码
+                  errMsg:
+                    type: string
+                    required: true
+                    description: 异常信息
+          sortWeight: 1
+      sortWeight: 4
+      devStatus: none
+      devStatusName: 不显示
+      showDevStatus: false
+      skipCommonParam: false
+      label: ''
+      developer: ''
+      modifyDate: '2020-08-07 13:28:21'
+  /assignment/:
+    get:
+      tags:
+        - 任务数据相关接口
+      summary: 获取所有任务信息
+      description: <p>获取所有任务信息<br></p>
+      operationId: ''
+      schemes:
+        - http
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters: []
+      responses:
+        failed response:
+          description: 失败响应
+          schema:
+            type: object
+            format: ''
+            required: false
+            description: 失败响应
+            title: failed response
+            properties:
+              isSuccess:
+                type: boolean
+                required: true
+                description: 是否成功，必须为false
+              error:
+                type: object
+                format: ''
+                required: true
+                description: 响应结果
+                title: error
+                properties:
+                  errCode:
+                    type: integer
+                    format: int32
+                    required: true
+                    description: 异常编码
+                  errMsg:
+                    type: string
+                    required: true
+                    description: 异常信息
+          sortWeight: 2
+        succeed response:
+          description: 成功响应
+          schema:
+            type: object
+            format: ''
+            required: false
+            description: 成功响应
+            title: succeed response
+            properties:
+              isSuccess:
+                type: boolean
+                required: true
+                description: 是否成功，必须为true
+              result:
+                type: object
+                format: ''
+                required: true
+                description: 响应结果
+                title: result
+                properties:
+                  idList:
+                    type: array
+                    format: ''
+                    required: true
+                    description: 任务id列表
+                    items:
+                      type: string
+                      required: true
+                      description: 任务id
+          sortWeight: 1
+      sortWeight: 7
+      devStatus: none
+      devStatusName: 不显示
+      showDevStatus: false
+      skipCommonParam: false
+      label: ''
+      developer: ''
+      modifyDate: '2020-08-07 13:39:04'
+  '/assignment/{assignmentId}':
+    delete:
+      tags:
+        - 任务数据相关接口
+      summary: 删除指定任务信息
+      description: <p>只有已完成的任务可删除，删除内容包括任务信息和相关图片</p><div><br></div>
+      operationId: ''
+      schemes:
+        - http
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: assignmentId
+          in: path
+          description: ''
+          required: true
+          type: string
+          default: ''
+          format: ''
+      responses:
+        failed response:
+          description: 失败响应
+          schema:
+            type: object
+            format: ''
+            required: false
+            description: 失败响应
+            title: failed response
+            properties:
+              isSuccess:
+                type: boolean
+                required: true
+                description: 是否成功，必须为false
+              error:
+                type: object
+                format: ''
+                required: true
+                description: 响应结果
+                title: error
+                properties:
+                  errCode:
+                    type: integer
+                    format: int32
+                    required: true
+                    description: 异常编码
+                  errMsg:
+                    type: string
+                    required: true
+                    description: 异常信息
+          sortWeight: 2
+        succeed response:
+          description: 成功响应
+          schema:
+            type: object
+            format: ''
+            required: false
+            description: 成功响应
+            title: succeed response
+            properties:
+              isSuccess:
+                type: boolean
+                required: true
+                description: 是否成功，必须为true
+              result:
+                type: string
+                required: true
+                description: 响应结果
+          sortWeight: 1
+      sortWeight: 2
+      devStatus: none
+      devStatusName: 不显示
+      showDevStatus: false
+      skipCommonParam: false
+      label: ''
+      developer: ''
+      modifyDate: '2020-08-07 11:15:42'
+  '/assignment/{assignmentId} ':
+    get:
+      tags:
+        - 任务数据相关接口
+      summary: 获取指定任务信息
+      description: <p>通过任务ID获取指定任务信息</p>
+      operationId: ''
+      schemes:
+        - http
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: assignmentId
+          in: path
+          description: 任务ID
+          required: true
+          type: string
+          default: ''
+          format: ''
+      responses:
+        failed response:
+          description: 失败响应
+          schema:
+            type: object
+            format: ''
+            required: false
+            description: 失败响应
+            title: failed response
+            properties:
+              isSuccess:
+                type: boolean
+                required: true
+                description: 是否成功，必须为false
+              error:
+                type: object
+                format: ''
+                required: true
+                description: 响应结果
+                title: error
+                properties:
+                  errCode:
+                    type: integer
+                    format: int32
+                    required: true
+                    description: 异常编码
+                  errMsg:
+                    type: string
+                    required: true
+                    description: 异常信息
+          sortWeight: 1
+        succeed response:
+          description: 成功响应
+          schema:
+            type: object
+            format: ''
+            required: false
+            description: 成功响应
+            title: succeed response
+            properties:
+              isSuccess:
+                type: boolean
+                required: true
+                description: '是否成功,必须为true'
+              result:
+                type: object
+                format: ''
+                required: true
+                description: 响应结果
+                title: result
+                properties:
+                  id:
+                    type: string
+                    required: true
+                    description: 任务ID
+                  routeIdList:
+                    type: array
+                    format: ''
+                    required: true
+                    description: 航线ID列表
+                    items:
+                      type: string
+                      required: true
+                      description: 航线ID
+                  status:
+                    type: string
+                    required: true
+                    description: >-
+                      任务状态，有 “created” 已创建, “started” 进行中, “done” 已完成 “canceled”
+                      已取消  4种状态
+                  createdAt:
+                    type: integer
+                    format: int32
+                    required: true
+                    description: 创建时间戳
+          sortWeight: 2
+      sortWeight: 3
+      devStatus: none
+      devStatusName: 不显示
+      showDevStatus: false
+      skipCommonParam: false
+      label: ''
+      developer: ''
+      modifyDate: '2020-08-07 13:37:40'
+  /assignment?token=xxx:
+    get:
+      tags:
+        - 实时状态接口
+      summary: 任务状态改变消息
+      description: >-
+        <p>websocket 建立连接后向 assignmentchannel 发 { action: "start" }
+        ，当有任务状态改变时推送该任务最新信息；向 status channel 发 { action: "stop" } 停止推送<br></p>
+      operationId: ''
+      schemes:
+        - http
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: data
+          description: action，只能为“start”或“stop”。
+          required: true
+          schema:
+            type: cust
+            format: json
+            content: |-
+              {
+                  "action": "start"
+              }
+          type: cust
+          default: ''
+      responses:
+        任务信息:
+          description: ''
+          schema:
+            type: object
+            format: ''
+            required: false
+            description: ''
+            title: 任务信息
+            properties:
+              id:
+                type: string
+                required: false
+                description: 任务id
+              status:
+                type: string
+                required: false
+                description: >-
+                  任务状态，有 ’created‘ 已创建, ’started‘ 进行中, ’done‘ 已完成 ’canceled‘
+                  已取消  4种状态
+              routeIdList:
+                type: array
+                format: ''
+                required: false
+                description: 航线ID列表
+                items:
+                  type: string
+                  required: false
+                  description: 航线ID
+              createdAt:
+                type: integer
+                format: int32
+                required: false
+                description: 创建时间戳
+          sortWeight: 1
+      sortWeight: 2
+      devStatus: none
+      devStatusName: 不显示
+      showDevStatus: false
+      skipCommonParam: false
+      label: ''
+      developer: ''
+      modifyDate: '2020-08-07 14:14:55'
+  '/cancel/assignment/{assignmentId}':
+    get:
+      tags:
+        - 任务数据相关接口
+      summary: 取消指定任务
+      description: >-
+        <p>取消某一任务，仅能取消 “created” 已创建, “started” 进行中
+        2种状态的任务<br></p><div><br></div>
+      operationId: ''
+      schemes:
+        - http
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: assignmentId
+          in: path
+          description: ''
+          required: true
+          type: string
+          default: ''
+          format: ''
+      responses:
+        failed response:
+          description: 失败响应
+          schema:
+            type: object
+            format: ''
+            required: false
+            description: 失败响应
+            title: failed response
+            properties:
+              isSuccess:
+                type: boolean
+                required: true
+                description: 是否成功，必须为false
+              error:
+                type: object
+                format: ''
+                required: true
+                description: 响应结果
+                title: error
+                properties:
+                  errCode:
+                    type: integer
+                    format: int32
+                    required: true
+                    description: 异常编码
+                  errMsg:
+                    type: string
+                    required: true
+                    description: 异常信息
+          sortWeight: 2
+        succeed response:
+          description: 成功响应
+          schema:
+            type: object
+            format: ''
+            required: false
+            description: 成功响应
+            title: succeed response
+            properties:
+              isSuccess:
+                type: boolean
+                required: true
+                description: 是否成功，必须为true
+              result:
+                type: string
+                required: true
+                description: 响应结果
+          sortWeight: 1
+      sortWeight: 8
+      devStatus: none
+      devStatusName: 不显示
+      showDevStatus: false
+      skipCommonParam: false
+      label: ''
+      developer: ''
+      modifyDate: '2020-08-07 11:37:56'
+  /createAssignment:
+    post:
+      tags:
+        - 任务数据相关接口
+      summary: 增加任务信息
+      description: <p>增加任务信息<br></p>
+      operationId: ''
+      schemes:
+        - http
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: data
+          description: ''
+          required: true
+          schema:
+            type: cust
+            format: json
+            content: |-
+              {
+                  "userId": "string // 执行任务的用户ID", 
+                  "startTime": "2020-05-12 17:30:00 // 开始时间",
+                  "endTime": "2020-05-13 17:30:00 // 结束时间",
+                  "routeIdList": ["航线ID // 支持多航线"] ,
+                  "taskDescription": "test // 任务描述"
+              }
+          type: cust
+          default: ''
+      responses:
+        failed response:
+          description: 失败响应
+          schema:
+            type: object
+            format: ''
+            required: false
+            description: 失败响应
+            title: failed response
+            properties:
+              isSuccess:
+                type: boolean
+                required: true
+                description: 是否成功，必须为false
+              error:
+                type: object
+                format: ''
+                required: true
+                description: 响应结果
+                title: error
+                properties:
+                  errCode:
+                    type: integer
+                    format: int32
+                    required: true
+                    description: 异常编码
+                  errMsg:
+                    type: string
+                    required: true
+                    description: 异常信息
+          sortWeight: 1
+        succeed response:
+          description: 成功响应
+          schema:
+            type: object
+            format: ''
+            required: false
+            description: 成功响应
+            title: succeed response
+            properties:
+              isSuccess:
+                type: boolean
+                required: true
+                description: 是否成功，必须为true
+              result:
+                type: object
+                format: ''
+                required: true
+                description: 响应结果
+                title: result
+                properties:
+                  id:
+                    type: string
+                    required: true
+                    description: 任务ID
+          sortWeight: 2
+      sortWeight: 4
+      devStatus: none
+      devStatusName: 不显示
+      showDevStatus: false
+      skipCommonParam: false
+      label: ''
+      developer: ''
+      modifyDate: '2020-08-07 14:17:24'
+  '/createRoute ':
+    post:
+      tags:
+        - 任务数据相关接口
+      summary: 增加航线信息
+      description: <p>增加航线信息，输入航线所需数据。<br></p>
+      operationId: ''
+      schemes:
+        - http
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: data
+          description: ''
+          required: true
+          schema:
+            type: cust
+            format: json
+            content: |-
+              {
+                  "routeName": "string, 航线名称",
+                  "routeDescription": "string, 描述",
+                  "routeType": "integer, 航线类型",
+                  "startPoint": {
+                      "lat": "double, 纬度",
+                      "lon": "double, 经度",
+                      "alt": "double, 绝对海拔，单位:米"
+                  },
+                  "endPoint": {
+                      "lat": "double, 纬度",
+                      "lon": "double, 经度",
+                      "alt": "double, 绝对海拔，单位:米"
+                  },
+                  "fpList": [
+                      {
+                          "lat": "double, 纬度",
+                          "lon": "double, 经度",
+                          "alt": "double, 绝对海拔，单位:米",
+                          "index": "integer, 路点序号",
+                          "yaw": "integer, 云台yaw角度,单位：°, 有效范围：-180~180",
+                          "gimbalPitch": "integer, 云台pitch角度,单位：°, 有效范围：-90～0",
+                          "shootPhoto": "integer, 是否为拍照点，1为拍照， 0则不拍"
+                      }
+                  ]
+              }
+          type: cust
+          default: ''
+      responses:
+        failed response:
+          description: 失败响应
+          schema:
+            type: object
+            format: ''
+            required: false
+            description: 失败响应
+            title: failed response
+            properties:
+              isSuccess:
+                type: boolean
+                required: true
+                description: 是否成功，必须为false
+              error:
+                type: object
+                format: ''
+                required: true
+                description: 响应结果
+                title: error
+                properties:
+                  errCode:
+                    type: integer
+                    format: int32
+                    required: true
+                    description: 异常编码
+                  errMsg:
+                    type: string
+                    required: true
+                    description: 异常信息
+          sortWeight: 2
+        succeed response:
+          description: 成功响应
+          schema:
+            type: object
+            format: ''
+            required: false
+            description: 成功响应
+            title: succeed response
+            properties:
+              isSuccess:
+                type: boolean
+                required: true
+                description: 是否成功，必须为true
+              result:
+                type: array
+                format: ''
+                required: true
+                description: 响应结果
+                items:
+                  required: false
+                  title: result
+                  properties:
+                    routeId:
+                      type: string
+                      required: true
+                      description: 航线ID
+                    routeName:
+                      type: string
+                      required: true
+                      description: 航线名称
+                    routeDescription:
+                      type: string
+                      required: true
+                      description: 航线描述
+          sortWeight: 1
+      sortWeight: 5
+      devStatus: none
+      devStatusName: 不显示
+      showDevStatus: false
+      skipCommonParam: false
+      label: ''
+      developer: ''
+      modifyDate: '2020-08-08 11:19:22'
+  '/images/assignment/{assignmentId}':
+    get:
+      tags:
+        - 图片下载接口
+      summary: 下载巡检任务相关联的所有照片
+      description: >-
+        <p>query 中 onlyId 为 true 时，成功响应返回图片 ID
+        列表，否则返回图片的压缩文件流，解压后的每张图片的文件名命名对应其图片ID</p>
+      operationId: ''
+      schemes:
+        - http
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: assignmentId
+          in: path
+          description: 任务ID
+          required: true
+          type: string
+          default: ''
+          format: ''
+        - name: onlyId
+          in: query
+          description: 是否只获取图片ID列表，为true 时接口只返回图片ID列表
+          required: false
+          type: string
+          default: ''
+          format: ''
+      responses:
+        failed response:
+          description: 失败响应
+          schema:
+            type: object
+            format: ''
+            required: false
+            description: 失败响应
+            title: failed response
+            properties:
+              isSuccess:
+                type: boolean
+                required: true
+                description: 是否成功，必须为false
+              error:
+                type: object
+                format: ''
+                required: true
+                description: 响应结果
+                title: error
+                properties:
+                  errCode:
+                    type: integer
+                    format: int32
+                    required: true
+                    description: 异常编码
+                  errMsg:
+                    type: string
+                    required: true
+                    description: 异常信息
+          sortWeight: 2
+        succeed response:
+          description: 成功响应
+          schema:
+            type: object
+            format: ''
+            required: false
+            description: 成功响应
+            title: succeed response
+            properties:
+              isSuccess:
+                type: boolean
+                required: true
+                description: 是否响应，必须为true
+              result:
+                type: object
+                format: ''
+                required: true
+                description: 响应结果
+                title: result
+                properties:
+                  idList:
+                    type: array
+                    format: ''
+                    required: true
+                    description: 图片id列表
+                    items:
+                      type: string
+                      required: false
+                      description: 图片id
+          sortWeight: 1
+      sortWeight: 2
+      devStatus: none
+      devStatusName: 不显示
+      showDevStatus: false
+      skipCommonParam: false
+      label: ''
+      developer: ''
+      modifyDate: '2020-08-07 13:42:18'
+  '/images/assignment/{assignmentId}/ {routeId}':
+    get:
+      tags:
+        - 图片下载接口
+      summary: 获取巡检任务中跟特定航线相关联的所有图片
+      description: <p>通过对应的assignmentId 以及 routeId 获取相应的图片列表信息</p>
+      operationId: ''
+      schemes:
+        - http
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: assignmentId
+          in: path
+          description: 任务ID
+          required: true
+          type: string
+          default: ''
+          format: ''
+        - name: routeId
+          in: path
+          description: 航线ID
+          required: true
+          type: string
+          default: ''
+          format: ''
+        - name: onlyId
+          in: query
+          description: 是否只获取图片ID列表，为true 时接口只返回图片ID列表
+          required: false
+          type: string
+          default: ''
+          format: ''
+      responses:
+        failed response:
+          description: 失败响应
+          schema:
+            type: object
+            format: ''
+            required: false
+            description: 失败响应
+            title: failed response
+            properties:
+              isSuccess:
+                type: boolean
+                required: true
+                description: 是否成功，必须为false
+              error:
+                type: object
+                format: ''
+                required: true
+                description: 成功响应
+                title: error
+                properties:
+                  errCode:
+                    type: integer
+                    format: int32
+                    required: true
+                    description: 异常编码
+                  errMsg:
+                    type: string
+                    required: true
+                    description: 异常信息
+          sortWeight: 2
+        succeed response:
+          description: 成功响应
+          schema:
+            type: object
+            format: ''
+            required: false
+            description: 成功响应
+            title: succeed response
+            properties:
+              isSuccess:
+                type: boolean
+                required: true
+                description: 是否成功，必须为true
+              result:
+                type: object
+                format: ''
+                required: true
+                description: 响应结果
+                title: result
+                properties:
+                  idList:
+                    type: array
+                    format: ''
+                    required: true
+                    description: 图片ID列表
+                    items:
+                      type: string
+                      required: false
+                      description: 图片ID
+          sortWeight: 1
+      sortWeight: 3
+      devStatus: none
+      devStatusName: 不显示
+      showDevStatus: false
+      skipCommonParam: false
+      label: ''
+      developer: ''
+      modifyDate: '2020-08-07 14:43:28'
+  '/liveview/start ':
+    post:
+      tags:
+        - 图传接口
+      summary: 打开机场某一无人机视频流
+      description: <p>打开机场某一无人机视频流<br></p>
+      operationId: ''
+      schemes:
+        - http
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: data
+          description: streamId：无人机飞控id ，必须，string
+          required: true
+          schema:
+            type: cust
+            format: json
+            content: |-
+              {
+                  "airportId": "pickup-id",
+                  "msgId": 31,
+                  "streamId": "aicraftId, 无人机飞控id", 
+                  "liveTime": 600000
+              }
+          type: cust
+          default: ''
+      responses:
+        failed response:
+          description: 失败响应
+          schema:
+            type: object
+            format: ''
+            required: false
+            description: 失败响应
+            title: failed response
+            properties:
+              isSuccess:
+                type: boolean
+                required: true
+                description: 是否成功，必须为false
+              error:
+                type: object
+                format: ''
+                required: true
+                description: 响应结果
+                title: error
+                properties:
+                  errCode:
+                    type: integer
+                    format: int32
+                    required: true
+                    description: 异常编码
+                  errMsg:
+                    type: string
+                    required: true
+                    description: 异常信息
+          sortWeight: 2
+        succeed responese:
+          description: 成功响应
+          schema:
+            type: object
+            format: ''
+            required: false
+            description: 成功响应
+            title: succeed responese
+            properties:
+              isSuccess:
+                type: boolean
+                required: true
+                description: 是否成功，必须为true
+              result:
+                type: object
+                format: ''
+                required: true
+                description: 响应结果
+                title: result
+                properties:
+                  airportId:
+                    type: string
+                    required: true
+                    description: 机场ID
+                  msgId:
+                    type: string
+                    required: true
+                    description: 消息序列号
+                  srcUrl:
+                    type: string
+                    required: true
+                    description: 视频流地址
+          sortWeight: 1
+      sortWeight: 1
+      devStatus: none
+      devStatusName: 不显示
+      showDevStatus: false
+      skipCommonParam: false
+      label: ''
+      developer: ''
+      modifyDate: '2020-08-07 15:36:36'
+  /liveview/stop:
+    post:
+      tags:
+        - 图传接口
+      summary: 关闭机场某一无人机视频流
+      description: <p>关闭机场某一无人机视频流<br></p>
+      operationId: ''
+      schemes:
+        - http
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: data
+          description: streamId：特定摄像头 ，必须，string，无人机飞控id
+          required: true
+          schema:
+            type: cust
+            format: json
+            content: |-
+              {
+                  "airportId": "pickup-id",
+                  "msgId": 31,
+                  "streamId": "aircraftId"
+              }
+          type: cust
+          default: ''
+      responses:
+        failed response:
+          description: 失败响应
+          schema:
+            type: object
+            format: ''
+            required: false
+            description: 失败响应
+            title: failed response
+            properties:
+              isSuccess:
+                type: boolean
+                required: true
+                description: 是否成功，必须为false
+              error:
+                type: object
+                format: ''
+                required: true
+                description: 响应结果
+                title: error
+                properties:
+                  errCode:
+                    type: integer
+                    format: int32
+                    required: true
+                    description: 异常编码
+                  errMsg:
+                    type: string
+                    required: true
+                    description: 异常信息
+          sortWeight: 2
+        succeed responese:
+          description: 成功响应
+          schema:
+            type: object
+            format: ''
+            required: false
+            description: 成功响应
+            title: succeed responese
+            properties:
+              isSuccess:
+                type: boolean
+                required: true
+                description: 是否成功，必须为true
+              result:
+                type: object
+                format: ''
+                required: true
+                description: 响应结果
+                title: result
+                properties:
+                  airportId:
+                    type: string
+                    required: true
+                    description: 机场ID
+                  msgId:
+                    type: string
+                    required: true
+                    description: 消息序列号
+          sortWeight: 1
+      sortWeight: 2
+      devStatus: none
+      devStatusName: 不显示
+      showDevStatus: false
+      skipCommonParam: false
+      label: ''
+      developer: ''
+      modifyDate: '2020-08-07 15:36:51'
+  /login:
+    post:
+      tags:
+        - 用户相关接口
+      summary: 用户登录
+      description: <p>用户登录使用，登录成功会返回对应的token</p>
+      operationId: ''
+      schemes:
+        - http
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: data
+          description: 密码经过sha256加密处理后的base64字符串，该示例的密码为 123456
+          required: false
+          schema:
+            type: cust
+            format: json
+            content: |-
+              {
+                  "username": "zhangsan",
+                  "password": "jZae727K08KaOmKSgOaGzww/XVqGr/PKEgIMkjrcbJI="
+              }
+          type: cust
+          default: ''
+      responses:
+        failed response:
+          description: ''
+          schema:
+            type: object
+            format: ''
+            required: false
+            description: ''
+            title: failed response
+            properties:
+              isSuccess:
+                type: boolean
+                required: true
+                description: 是否成功，必须为false
+              error:
+                type: object
+                format: ''
+                required: true
+                description: 异常结果
+                title: error
+                properties:
+                  errCode:
+                    type: integer
+                    format: int32
+                    required: true
+                    description: 异常编码
+                  errMsg:
+                    type: string
+                    required: true
+                    description: 异常信息
+          sortWeight: 2
+        succeed response:
+          description: ''
+          schema:
+            type: object
+            format: ''
+            required: false
+            description: ''
+            title: succeed response
+            properties:
+              isSuccess:
+                type: boolean
+                required: false
+                description: 是否成功，必须为true
+              result:
+                type: object
+                format: ''
+                required: false
+                description: 响应结果
+                title: result
+                properties:
+                  token:
+                    type: string
+                    required: false
+                    description: token
+                  user:
+                    type: object
+                    format: ''
+                    required: false
+                    description: 用户详情
+                    title: user
+                    properties:
+                      id:
+                        type: string
+                        required: false
+                        description: 用户ID
+                      username:
+                        type: string
+                        required: false
+                        description: 用户名
+                      nickname:
+                        type: string
+                        required: false
+                        description: 用户昵称
+                      createdAt:
+                        type: integer
+                        format: int32
+                        required: false
+                        description: 创建时间
+                      updatedAt:
+                        type: integer
+                        format: int32
+                        required: false
+                        description: 修改时间
+                      role:
+                        type: object
+                        format: ''
+                        required: false
+                        description: 职能详情
+                        title: role
+                        properties:
+                          id:
+                            type: string
+                            required: false
+                            description: 职能ID
+                          name:
+                            type: string
+                            required: false
+                            description: 职能名称
+                  env:
+                    type: string
+                    required: false
+                    description: 应用环境
+          sortWeight: 1
+      sortWeight: 1
+      devStatus: none
+      devStatusName: 不显示
+      showDevStatus: false
+      skipCommonParam: true
+      label: ''
+      developer: ''
+      modifyDate: '2020-08-07 14:39:00'
+  /pickups:
+    get:
+      tags:
+        - 任务数据相关接口
+      summary: 获取所有胶囊机场
+      description: <p>获取所有胶囊机场的ID</p>
+      operationId: ''
+      schemes:
+        - http
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters: []
+      responses:
+        failed response:
+          description: 失败响应
+          schema:
+            type: object
+            format: ''
+            required: false
+            description: 失败响应
+            title: failed response
+            properties:
+              isSuccess:
+                type: boolean
+                required: true
+                description: '是否成功,必须为false'
+              error:
+                type: object
+                format: ''
+                required: true
+                description: 响应结果
+                title: error
+                properties:
+                  errCode:
+                    type: integer
+                    format: int32
+                    required: true
+                    description: 异常编码
+                  errMsg:
+                    type: string
+                    required: true
+                    description: 异常信息
+          sortWeight: 2
+        succeed response:
+          description: 成功响应
+          schema:
+            type: object
+            format: ''
+            required: false
+            description: 成功响应
+            title: succeed response
+            properties:
+              isSuccess:
+                type: boolean
+                required: true
+                description: 是否成功，必须为true
+              result:
+                type: array
+                format: ''
+                required: true
+                description: '响应结果, 数组'
+                items:
+                  type: string
+                  required: true
+                  description: 胶囊机场ID
+          sortWeight: 1
+      sortWeight: 1
+      devStatus: none
+      devStatusName: 不显示
+      showDevStatus: false
+      skipCommonParam: false
+      label: ''
+      developer: ''
+      modifyDate: '2020-08-07 13:37:58'
+  '/route/{routeId} ':
+    get:
+      tags:
+        - 任务数据相关接口
+      summary: 获取航线信息
+      description: <p>通过 routeId 获取航线信息<br></p>
+      operationId: ''
+      schemes:
+        - http
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: routeId
+          in: path
+          description: 航线id
+          required: true
+          type: string
+          default: ''
+          format: ''
+      responses:
+        failed response:
+          description: 失败响应
+          schema:
+            type: object
+            format: ''
+            required: false
+            description: 失败响应
+            title: failed response
+            properties:
+              isSuccess:
+                type: boolean
+                required: true
+                description: '是否成功,必须为false'
+              error:
+                type: object
+                format: ''
+                required: true
+                description: 响应结果
+                title: error
+                properties:
+                  errCode:
+                    type: integer
+                    format: int32
+                    required: true
+                    description: 异常编码
+                  errMsg:
+                    type: string
+                    required: true
+                    description: 异常信息
+          sortWeight: 1
+        succeed response:
+          description: 成功响应
+          schema:
+            type: object
+            format: ''
+            required: false
+            description: 成功响应
+            title: succeed response
+            properties:
+              isSuccess:
+                type: boolean
+                required: true
+                description: '是否成功,必须为true'
+              result:
+                type: array
+                format: ''
+                required: true
+                description: 响应结果
+                items:
+                  required: false
+                  title: result
+                  properties:
+                    routeId:
+                      type: string
+                      required: true
+                      description: 航线ID
+                    routeName:
+                      type: string
+                      required: true
+                      description: 航线名称
+                    routeDescription:
+                      type: string
+                      required: true
+                      description: 航线描述
+                    routeType:
+                      type: integer
+                      format: int32
+                      required: true
+                      description: >-
+                        0:'visible', 1:'visiblePassageway', 10:'infrared',
+                        11:'infraredPassageway'
+          sortWeight: 2
+      sortWeight: 6
+      devStatus: none
+      devStatusName: 不显示
+      showDevStatus: false
+      skipCommonParam: false
+      label: ''
+      developer: ''
+      modifyDate: '2020-08-07 13:38:55'
+  /status?token=xxx:
+    get:
+      tags:
+        - 实时状态接口
+      summary: 实时监控机场状态和无人机状态
+      description: >-
+        <p>websocket 建立连接后向 status channel 发 { action: "start" } ，开始推送设备状态；向
+        status channel 发 { action: "stop" } 停止推送<br></p>
+      operationId: ''
+      schemes:
+        - http
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: data
+          description: action，只能为“start”或“stop”。
+          required: true
+          schema:
+            type: cust
+            format: json
+            content: |-
+              {
+                  "action": "start"
+              }
+          type: cust
+          default: ''
+      responses:
+        succeed response:
+          description: 成功响应，无人机已经连接的情况下，无人机状态才会实时更新，如果处于断联状态，会持续推送断联前无人机的状态
+          schema:
+            type: object
+            format: ''
+            required: false
+            description: 成功响应，无人机已经连接的情况下，无人机状态才会实时更新，如果处于断联状态，会持续推送断联前无人机的状态
+            title: succeed response
+            properties:
+              carriers:
+                type: array
+                format: ''
+                required: false
+                description: ''
+                items:
+                  required: false
+                  title: carriers
+                  properties:
+                    id:
+                      type: string
+                      required: false
+                      description: ''
+                    devices:
+                      type: object
+                      format: ''
+                      required: false
+                      description: ''
+                      title: devices
+                      properties:
+                        airport:
+                          type: object
+                          format: ''
+                          required: false
+                          description: ''
+                          title: airport
+                          properties:
+                            toward:
+                              type: integer
+                              format: int32
+                              required: false
+                              description: '车头朝向，正北为0, 顺时针方向的度数'
+                            version:
+                              type: string
+                              required: false
+                              description: 版本号
+                            power_system:
+                              type: object
+                              format: ''
+                              required: false
+                              description: ''
+                              title: power_system
+                              properties:
+                                totalVoltage:
+                                  type: number
+                                  format: double
+                                  required: false
+                                  description: ''
+                                stateOfCharge:
+                                  type: number
+                                  format: double
+                                  required: false
+                                  description: ''
+                                bms:
+                                  type: array
+                                  format: ''
+                                  required: false
+                                  description: ''
+                                  items:
+                                    required: false
+                                    title: bms
+                                    properties:
+                                      maxCellVoltage:
+                                        type: number
+                                        format: double
+                                        required: false
+                                        description: ''
+                                      minCellVoltage:
+                                        type: number
+                                        format: double
+                                        required: false
+                                        description: ''
+                        drone:
+                          type: array
+                          format: ''
+                          required: false
+                          description: '飞机不在线时为 [ ]'
+                          items:
+                            required: false
+                            title: drone
+                            properties:
+                              droneId:
+                                type: string
+                                required: false
+                                description: 无人机ID
+                              status:
+                                type: object
+                                format: ''
+                                required: false
+                                description: >-
+                                  'available'可用的，在这个状态下可以hire、  
+                                  'awaitTakingOff'  就绪，等待起飞命令、   'takingoff'
+                                  正在起飞、   'awaitLanding'飞机在降落半径边缘等待降落命,
+                                  'landing' 正在降落、  
+                                  'landed'飞机降落到机场甲板上，landed状态下地面站开始下载，上传数据,
+                                  'approaching'飞往巡检目标、’returning'无人机返航中
+                                title: status
+                                properties:
+                                  physicDrone:
+                                    type: object
+                                    format: ''
+                                    required: false
+                                    description: 无人机物理状态
+                                    title: physicDrone
+                                    properties:
+                                      location:
+                                        type: object
+                                        format: ''
+                                        required: false
+                                        description: 位置
+                                        title: location
+                                        properties:
+                                          lat:
+                                            type: number
+                                            format: double
+                                            required: false
+                                            description: 纬度
+                                          lon:
+                                            type: number
+                                            format: double
+                                            required: false
+                                            description: 经度
+                                          alt:
+                                            type: number
+                                            format: double
+                                            required: false
+                                            description: 高度
+                                      gps_health:
+                                        type: integer
+                                        format: int32
+                                        required: false
+                                        description: ''
+                                      angleInDegree:
+                                        type: object
+                                        format: ''
+                                        required: false
+                                        description: ''
+                                        title: angleInDegree
+                                        properties:
+                                          roll:
+                                            type: number
+                                            format: double
+                                            required: false
+                                            description: ''
+                                          pitch:
+                                            type: number
+                                            format: double
+                                            required: false
+                                            description: ''
+                                          yaw:
+                                            type: number
+                                            format: double
+                                            required: false
+                                            description: ''
+                                      chargeRemainingInPercent:
+                                        type: number
+                                        format: double
+                                        required: false
+                                        description: 无人机电量信息
+                                      velocityInMps:
+                                        type: object
+                                        format: ''
+                                        required: false
+                                        description: '三维空间速度, 精度：1.0 单位：m/s'
+                                        title: velocityInMps
+                                        properties:
+                                          vx:
+                                            type: number
+                                            format: double
+                                            required: false
+                                            description: x轴速度
+                                          vy:
+                                            type: number
+                                            format: double
+                                            required: false
+                                            description: y轴速度
+                                          vz:
+                                            type: number
+                                            format: double
+                                            required: false
+                                            description: z轴速度
+                                      voltageInV:
+                                        type: number
+                                        format: double
+                                        required: false
+                                        description: 无人机电池电压 精度：0.1 单位：V
+                                      is_arm:
+                                        type: boolean
+                                        required: false
+                                        description: 是否正在执行任务
+                                      is_low_voltage:
+                                        type: boolean
+                                        required: false
+                                        description: ''
+                                      is_motor_on:
+                                        type: boolean
+                                        required: false
+                                        description: ''
+                                      is_in_air:
+                                        type: boolean
+                                        required: false
+                                        description: ''
+                                      is_go_home:
+                                        type: boolean
+                                        required: false
+                                        description: 是否在返航
+                                      controller:
+                                        type: string
+                                        required: false
+                                        description: ''
+                                      isRTKBeingUsed:
+                                        type: boolean
+                                        required: false
+                                        description: ''
+                                      isHeadVaild:
+                                        type: boolean
+                                        required: false
+                                        description: ''
+                                      isAirCraft_connected:
+                                        type: boolean
+                                        required: false
+                                        description: 无人机是否已连接
+                                      isCameraOk:
+                                        type: boolean
+                                        required: false
+                                        description: ''
+                                      isVideoFeedOk:
+                                        type: boolean
+                                        required: false
+                                        description: 视频流是否正常
+                                      videoFeedHealth:
+                                        type: integer
+                                        format: int32
+                                        required: false
+                                        description: ''
+                                      dji_RTK:
+                                        type: object
+                                        format: ''
+                                        required: false
+                                        description: ''
+                                        title: dji_RTK
+                                        properties:
+                                          alt:
+                                            type: number
+                                            format: double
+                                            required: false
+                                            description: ''
+                                          lon:
+                                            type: number
+                                            format: double
+                                            required: false
+                                            description: ''
+                                          lat:
+                                            type: number
+                                            format: double
+                                            required: false
+                                            description: ''
+                                      aircraftId:
+                                        type: string
+                                        required: false
+                                        description: ''
+                                      rtkPositionSolution:
+                                        type: string
+                                        required: false
+                                        description: ''
+                                      absoluteAltitude:
+                                        type: number
+                                        format: double
+                                        required: false
+                                        description: 当前无人机海拔高度
+                                      djiDiagnostics:
+                                        type: array
+                                        format: ''
+                                        required: false
+                                        description: dji提示信息
+                                        items:
+                                          type: object
+                                          required: false
+                                      remainFlightTimeInS:
+                                        type: number
+                                        format: double
+                                        required: false
+                                        description: 剩余最大飞行时长
+                                      cameraType:
+                                        type: array
+                                        format: ''
+                                        required: false
+                                        description: ''
+                                        items:
+                                          required: false
+                                          title: cameraType
+                                          properties:
+                                            key:
+                                              type: string
+                                              required: false
+                                              description: ''
+                                            value:
+                                              type: object
+                                              format: ''
+                                              required: false
+                                              description: ''
+                                              title: value
+                                              properties:
+                                                shootModel:
+                                                  type: string
+                                                  required: false
+                                                  description: ''
+                                                maxFocalLength:
+                                                  type: integer
+                                                  format: int32
+                                                  required: false
+                                                  description: ''
+                                                minFocalLength:
+                                                  type: integer
+                                                  format: int32
+                                                  required: false
+                                                  description: ''
+                                  missionDrone:
+                                    type: object
+                                    format: ''
+                                    required: false
+                                    description: ''
+                                    title: missionDrone
+                                    properties:
+                                      flightId:
+                                        type: string
+                                        required: false
+                                        description: ''
+                                      assignmentId:
+                                        type: string
+                                        required: false
+                                        description: ''
+                                      status:
+                                        type: object
+                                        format: ''
+                                        required: false
+                                        description: ''
+                                        title: status
+                                        properties:
+                                          key:
+                                            type: string
+                                            required: false
+                                            description: ''
+                                      totalWayPointCount:
+                                        type: integer
+                                        format: int32
+                                        required: false
+                                        description: ''
+                                      uploadedWayPointCount:
+                                        type: integer
+                                        format: int32
+                                        required: false
+                                        description: ''
+                                      inspectProgress:
+                                        type: array
+                                        format: ''
+                                        required: false
+                                        description: ''
+                                        items:
+                                          type: object
+                                          required: false
+                                  physicRC:
+                                    type: object
+                                    format: ''
+                                    required: false
+                                    description: ''
+                                    title: physicRC
+                                    properties:
+                                      rcPowerState:
+                                        type: string
+                                        required: false
+                                        description: ''
+                                      isAircraftConnected:
+                                        type: boolean
+                                        required: false
+                                        description: ''
+                                  groundStationDataStatus:
+                                    type: array
+                                    format: ''
+                                    required: false
+                                    description: ''
+                                    items:
+                                      required: false
+                                      title: groundStationDataStatus
+                                      properties:
+                                        assignmentId:
+                                          type: string
+                                          required: false
+                                          description: ''
+                                        dataStatus:
+                                          type: object
+                                          format: ''
+                                          required: false
+                                          description: ''
+                                          title: dataStatus
+                                          properties:
+                                            download:
+                                              type: array
+                                              format: ''
+                                              required: false
+                                              description: 若不在下载时，download 为 “idle”
+                                              items:
+                                                required: false
+                                                title: download
+                                                properties:
+                                                  progress:
+                                                    type: integer
+                                                    format: int32
+                                                    required: false
+                                                    description: ''
+                                                  flightId:
+                                                    type: string
+                                                    required: false
+                                                    description: ''
+                                                  towerId:
+                                                    type: array
+                                                    format: ''
+                                                    required: false
+                                                    description: ''
+                                                    items:
+                                                      required: false
+                                                      title: towerId
+                                                      properties:
+                                                        id:
+                                                          type: string
+                                                          required: false
+                                                          description: ''
+                                                        index:
+                                                          type: integer
+                                                          format: int32
+                                                          required: false
+                                                          description: ''
+                                                        version:
+                                                          type: string
+                                                          required: false
+                                                          description: ''
+                                            upload:
+                                              type: array
+                                              format: ''
+                                              required: false
+                                              description: 若不在上传时，upload 为 “idle”
+                                              items:
+                                                required: false
+                                                title: upload
+                                                properties:
+                                                  progress:
+                                                    type: integer
+                                                    format: int32
+                                                    required: false
+                                                    description: ''
+                                                  flightId:
+                                                    type: string
+                                                    required: false
+                                                    description: ''
+                                                  towerId:
+                                                    type: array
+                                                    format: ''
+                                                    required: false
+                                                    description: ''
+                                                    items:
+                                                      required: false
+                                                      title: towerId
+                                                      properties:
+                                                        id:
+                                                          type: string
+                                                          required: false
+                                                          description: ''
+                                                        index:
+                                                          type: integer
+                                                          format: int32
+                                                          required: false
+                                                          description: ''
+                                                        version:
+                                                          type: string
+                                                          required: false
+                                                          description: ''
+                        imageUploadProgress:
+                          type: array
+                          format: ''
+                          required: false
+                          description: ''
+                          items:
+                            required: false
+                            title: imageUploadProgress
+                            properties:
+                              assignmentId:
+                                type: string
+                                required: false
+                                description: ''
+                              flightId:
+                                type: string
+                                required: false
+                                description: ''
+                              total:
+                                type: integer
+                                format: int32
+                                required: false
+                                description: ''
+                              uploaded:
+                                type: integer
+                                format: int32
+                                required: false
+                                description: ''
+          sortWeight: 1
+      sortWeight: 1
+      devStatus: none
+      devStatusName: 不显示
+      showDevStatus: false
+      skipCommonParam: false
+      label: ''
+      developer: ''
+      modifyDate: '2020-08-07 15:34:52'
+  /user:
+    post:
+      tags:
+        - 用户相关接口
+      summary: 新增用户
+      description: <p>增加用户信息<br></p>
+      operationId: ''
+      schemes:
+        - http
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: data
+          description: 密码经过sha256加密处理后的base64字符串，该示例的密码为 123456
+          required: true
+          schema:
+            type: cust
+            format: json
+            content: |-
+              {
+                  "username":  "zhangsan",
+                  "nickname":  "张三",
+                  "password":  "jZae727K08KaOmKSgOaGzww/XVqGr/PKEgIMkjrcbJI="
+              }
+          type: cust
+          default: ''
+      responses:
+        failed response:
+          description: ''
+          schema:
+            type: object
+            format: ''
+            required: false
+            description: ''
+            title: failed response
+            properties:
+              isSuccess:
+                type: boolean
+                required: false
+                description: 是否成功，必须为false
+              error:
+                type: object
+                format: ''
+                required: false
+                description: ''
+                title: error
+                properties:
+                  errCode:
+                    type: integer
+                    format: int32
+                    required: false
+                    description: 异常编码
+                  errMsg:
+                    type: string
+                    required: false
+                    description: 异常信息
+          sortWeight: 2
+        succeed response:
+          description: ''
+          schema:
+            type: object
+            format: ''
+            required: false
+            description: ''
+            title: succeed response
+            properties:
+              isSuccess:
+                type: boolean
+                required: false
+                description: 'boolean,是否成功，必须为true'
+              result:
+                type: object
+                format: ''
+                required: false
+                description: ''
+                title: result
+                properties:
+                  user:
+                    type: object
+                    format: ''
+                    required: false
+                    description: ''
+                    title: user
+                    properties:
+                      id:
+                        type: string
+                        required: false
+                        description: 用户ID
+                      username:
+                        type: string
+                        required: false
+                        description: 用户名
+                      nickname:
+                        type: string
+                        required: false
+                        description: 用户昵称
+                      createdAt:
+                        type: integer
+                        format: int32
+                        required: false
+                        description: 创建时间
+                      updatedAt:
+                        type: integer
+                        format: int32
+                        required: false
+                        description: 修改时间
+                      role:
+                        type: object
+                        format: ''
+                        required: false
+                        description: 职能
+                        title: role
+                        properties:
+                          id:
+                            type: string
+                            required: false
+                            description: 职能ID
+                          name:
+                            type: string
+                            required: false
+                            description: 职能名称
+                  env:
+                    type: string
+                    required: false
+                    description: 应用环境
+          sortWeight: 1
+      sortWeight: 2
+      devStatus: none
+      devStatusName: 不显示
+      showDevStatus: false
+      skipCommonParam: false
+      label: ''
+      developer: ''
+      modifyDate: '2020-08-07 14:38:19'
+definitions: {}
+errorCodes:
+  - code: '80111'
+    msg: 机场未连接
+    description: ''
+  - code: '80233'
+    msg: 视频流关闭失败
+    description: ''
+  - code: '80250'
+    msg: 视频流开启失败
+    description: ''
+  - code: '80291'
+    msg: 找不到对应图片信息
+    description: ''
+  - code: '80341'
+    msg: 用户权限不足
+    description: ''
+  - code: '80371'
+    msg: 找不到对应航线
+    description: ''
+  - code: '80901'
+    msg: 网络不可用
+    description: ''
+  - code: '80911'
+    msg: 数据库操作失败
+    description: ''
+  - code: '80921'
+    msg: 不合法请求
+    description: ''
+  - code: '90001'
+    msg: 后台服务操作未成功
+    description: ''
+  - code: '99999'
+    msg: 未知错误
+    description: ''
+apiEnvs:
+  - name: 前缀
+    baseUrl: /api/v1
+    sortWeight: 1
+    mock: false
+    status: 'on'
+  - name: mock环境
+    baseUrl: 'http://www.sosoapi.com/pass/mock/18710/'
+    sortWeight: 2147483647
+    mock: true
+    status: 'on'
+commonParams:
+  - name: Authorization
+    in: header
+    description: token
+    required: true
+    type: string
+    default: ''
+    format: ''
+```

@@ -1,0 +1,233 @@
+# shellcheck shell=bash disable=SC2039,3043
+
+# author:       Li Junhao           l@x-cmd.com    edwinjhlee.github.io
+# maintainer:   Li Junhao
+
+if [ -z "${ZSH_VERSION}${BASH_VERSION}" ]; then
+    xrc_log info "advise is only available in 'bash' or 'zsh'."
+elif ! ___ADVISE_AWK_PATH="$(xrc which advise/v0.awk)"; then
+    xrc_log error "Cannot introduce advise"
+else
+
+xrc log init advise
+
+advise(){
+    local op="${1:?Provide subcommand}"; shift
+    case "$op" in
+        ls)
+            ls "$@" "${TMPDIR%/}/.x-cmd/advise_auto_json" ;;
+        rm)
+            rm -rf "${TMPDIR%/}/.x-cmd/advise_auto_json"/*  ;;
+        which)
+            if [ "$#" -eq 0 ]; then
+                printf "%s" "${TMPDIR%/}/.x-cmd/advise_auto_json"
+            else
+                printf "%s/%s" "${TMPDIR%/}/.x-cmd/advise_auto_json" "$1"
+            fi
+            ;;
+        cat)
+            local mod
+            for mod in "$@"; do
+                cat "${TMPDIR%/}/.x-cmd/advise_auto_json/$mod"
+            done
+            ;;
+        _x_cmd_advise_json)
+            cat <<A
+{
+    "ls": null,
+    "rm": null,
+    "which": "ls ${TMPDIR%/}/.x-cmd/advise_auto_json/",
+    "cat": "ls ${TMPDIR%/}/.x-cmd/advise_auto_json/",
+    "init": null
+}
+A
+            return 126
+            ;;
+        init)
+            _advise_main "$@" ;;
+        "")
+            # TODO: help doc
+            ;;
+        *)
+            _advise_main "$op" "$@" ;;
+    esac
+}
+
+# Section : adviser helper function: ls lsd seq
+
+___advise_lsd(){
+    local localdir="${1:-${cur:-.}}"
+
+    local l
+
+    ls -d "${localdir}"*/ 2>/dev/null | while read -r l; do
+        printf "%s\n" "${l%/}"
+    done
+}
+
+___advise_ls(){
+    local localdir="${1:-${cur:-""}}"
+
+    if [ -z "$localdir" ]; then
+        ls
+        return
+    fi
+
+    if [ "${localdir%/*}" = "${localdir}" ]; then
+        folder=""
+        pattern="${localdir}"
+
+    else
+        folder="${localdir%/*}"
+        pattern="${localdir##*/}"
+    fi
+
+    ls "${folder:-.}" | awk -v folder="$folder" -v pattern="$pattern" 'match($0, "^" pattern){
+        if (folder == "") {
+            print $0
+        } else {
+            print folder "/" $0
+        }
+    }' 2>/dev/null
+
+    # local l
+    # ls "${localdir}" | while read -r l; do
+    #     printf "%s%s\n" "$localdir" "$l"
+    # done
+}
+
+# 1-10
+___advise_seq(){
+    local curnum="${cur:-""}"
+    awk -v range="$1" -v cur="$cur" '
+function inside(num, start, end, step){
+    if ( (num < start) || (num > end) ) return 0
+    if ( ( num - start ) % step == 0 ) return 1
+    return 0
+}
+
+BEGIN{
+
+    arr_len = split(range, arr, /\//)
+    start = arr[1]
+    end = arr[2]
+    step = arr[3]
+    if (step == "") step = 1
+
+    num = (end - start + 1) / step
+    if (num < 16) {
+        for (i=start; i<=end; i=i+step) print i
+        exit(0)
+    }
+
+    if (cur !~ /[0-9]+/) {
+        exit(0)
+    }
+
+    if (inside(cur, start, end, step) == 1) print cur
+
+    cur = cur * 10
+    for (i=0; i<=9; ++i) {
+        newnum = cur + i
+        if (inside(newnum, start, end, step) == 1) print newnum
+    }
+}
+' <<A
+A
+
+}
+
+# EndSection
+
+# Section : main
+
+_advise_main(){
+    local func="${1:?Provide function name}"
+    local filepath="${2}"
+    local tmp_filepath=${TMPDIR%/}/.x-cmd/advise_auto_json/$func
+    mkdir -p "$(dirname "$tmp_filepath")"
+
+    if [ - = "$filepath" ]; then
+        filepath=$tmp_filepath
+        advise_log "Pipe standard input to $filepath"
+        cat >"$filepath"
+    elif [ -z "$filepath" ]; then
+        local filepath=$tmp_filepath
+        if [ -n "$___XRC_UDPATE" ] || [ ! -f "$filepath" ]; then
+            advise_log debug "Pipe the result of \"$func _x_cmd_advise_json\" to $filepath"
+            local content
+            content="$(X_CMD_ADVISE_FUNC_NAME=$func eval "$func" _x_cmd_advise_json)"
+            if [ $? = 126 ]; then
+                printf "%s" "$content" >"$filepath"
+            else
+                advise_log warn "Fail to write file because the return code of \"$func _x_cmd_advise_json\" is not 126."
+                return 0
+            fi
+        fi
+    else
+        advise_log debug "Copy self-defined file $filepath to $tmp_filepath"
+        cp "$filepath" "$tmp_filepath"
+        filepath="$tmp_filepath"
+    fi
+
+    eval "_adviser_of_${func}(){
+        [ -f \"$filepath\" ] && _advise <\"$filepath\"
+    }"
+
+    complete -F "_adviser_of_${func}" "$func"
+}
+
+_advise() {
+    _get_comp_words_by_ref -n : cur prev words cword
+    shift 2>/dev/null
+    local IFS=$'\002' # IFS="$(printf "\002")"
+
+    local cur="${words[cword]}"
+
+    if [ "$cur" == "" ]; then
+        # Notice: The following line handle zsh compatibility problem.
+        # In zsh, When input word is empty, COMP_WORDS[COMP_CWORD] does not exist.
+        # In bash, When input word is empty, COMP_WORDS[COMP_CWORD] exist, and it is ""
+        # This will result in difference value of "${COMP_WORDS[*]}"
+        words[cword]=""
+    fi
+
+    s="${words[*]}"
+    s="${s#*$IFS}"
+
+    IFS=$'\n'   # Bash/Zsh Only
+
+    local result
+    result="$(
+        {
+            cat
+            printf "\034%s\034" "$s"  # printf "\034${s}\034"
+        } | awk -f "$___ADVISE_AWK_PATH" 2>/dev/null
+    )"
+
+    local cmd="${result##*#> }"
+    local cmd_result=""
+    if [ "$cmd" != "$result" ]; then
+        cmd_result="$(eval "$cmd")"
+        result="${result%%#> *}"
+    fi
+
+    # shellcheck disable=SC2207
+    COMPREPLY=(
+        $(
+            compgen -W "$result
+$cmd_result" -- "$cur"
+        )
+    )
+    __ltrim_colon_completions "$cur"
+}
+
+# EndSection
+
+advise init advise
+
+if [ -n "$ZSH_VERSION" ]; then
+    autoload -U +X bashcompinit compinit && bashcompinit && compinit
+fi
+
+fi

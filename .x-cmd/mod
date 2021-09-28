@@ -19,15 +19,21 @@ pull(){
 all(){
     local mod_list=(
         str
+        list
+        assert
+
         dict
         http
         param
         advise
         ui
+
+        static-build
+
+        ccmd
+
         ali
         gitee
-        static-build
-        ccmd
     )
     for mod in "${mod_list[@]}"; do
         if [ -e "lib/$mod" ]; then

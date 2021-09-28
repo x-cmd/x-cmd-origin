@@ -19,7 +19,7 @@ add_all(){
         ccmd
     )
     for mod in "${mod_list[@]}"; do
-        x mod add "$mod"
+        add "$mod"
     done
 }
 

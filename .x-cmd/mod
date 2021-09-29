@@ -16,32 +16,55 @@ pull(){
     git subtree pull --prefix="lib/$name" "$position" "$branch" --squash
 }
 
+ls(){
+
+    # TODO: add modules: xrc xcmd adviser
+    local mod_list="
+# basic modules: non dependency
+str
+list
+assert
+dict
+
+# basic modules: dependencies
+param
+http
+advise
+ui
+
+# modules
+static-build
+ccmd
+
+# web clients
+ali
+gitee
+
+"
+    while read -r mod; do
+        case "$mod" in
+            *#*)    continue ;;
+            "")     continue ;;
+            *)      printf "%s\n" "$mod"
+        esac
+    done <<A
+$(printf "%s" "$mod_list")
+A
+
+}
+
 all(){
-    local mod_list=(
-        str
-        list
-        assert
-
-        dict
-        http
-        param
-        advise
-        ui
-
-        static-build
-
-        ccmd
-
-        ali
-        gitee
-    )
-    for mod in "${mod_list[@]}"; do
+    local IFS
+    local mod
+    while read -r mod; do
         if [ -e "lib/$mod" ]; then
             pull "$mod"
         else
             add "$mod"
         fi
-    done
+    done <<A
+$(ls)
+A
 }
 
 if [ "$#" -gt 0 ]; then

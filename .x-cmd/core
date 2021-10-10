@@ -4,6 +4,7 @@ mod_list="
 str
 list
 dict
+json
 
 # basic modules: dependencies
 param

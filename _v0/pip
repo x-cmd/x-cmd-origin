@@ -1,0 +1,135 @@
+
+# https://www.jianshu.com/p/dfbb90995a2c
+
+
+# xrc proxy
+# proxy pip auto ...
+# proxy gem auto ...
+# proxy auto
+
+
+
+proxy_pip(){
+    param <<A
+subcommands:
+    url        Provide url of mirror candidates
+    set        Setting the mirror
+    unset      Reset the source to the original official
+A
+
+    "proxy_pip_${PARAM_SUBCMD}" "$@"
+}
+
+proxy_pip_url(){
+    param <<A
+subcommands:
+    qinghua|qh|tsinghua|tuna        "Ali"
+    ustc                            "goproxy.cn"
+    aliyun                          "goproxy.io"
+    huazhong                        "Official"
+    douban                          "Official"
+    tencent|qq|weixin               "Official"
+A
+
+    case "${PARAM_SUBCMD}" in
+        qinghua|qh|tsinghua|tuna)   printf "https://pypi.tuna.tsinghua.edu.cn/simple"       ;;
+        ustc)                       printf "https://pypi.mirrors.ustc.edu.cn/simple/"       ;;
+        aliyun)                     printf "http://mirrors.aliyun.com/pypi/simple/"         ;;
+        huazhong)                   printf "http://pypi.hustunique.com/"                    ;;
+        shandong)                   printf "http://pypi.sdutlinux.org/"                     ;;
+        douban)                     printf "http://pypi.douban.com/simple/"                 ;;
+        tencent|qq|weixin)          printf "http://mirrors.cloud.tencent.com/pypi/simple"   ;;
+        # TODO: add self-defined new proxy
+        # http://|https://)           printf "$op" ;;
+        *)                          echo "Unrecognized source name"; return 1
+    esac
+}
+
+proxy_pip_set(){
+    param <<A
+subcommands:
+    qinghua|qh|tsinghua|tuna        "Ali"
+    ustc                            "goproxy.cn"
+    aliyun                          "goproxy.io"
+    huazhong                        "Official"
+    douban                          "Official"
+    tencent|qq|weixin               "Official"
+A
+
+    local url
+    if url="$(proxy_pip_url "$PARAM_SUBCMD")"; then
+        proxy_pip_set_url "$url"
+    else
+        return 1
+    fi
+}
+
+# Better idea ?
+proxy_pip_unset(){
+    cp "$HOME/.pip/pip.conf" "$HOME/.pip/pip.conf.bak"
+        awk \
+            -e index_url="$index_url" \
+            -e install_url="$install_url" '
+{
+    line=$0
+    gsub(/^[ \t]+/, "", line)
+    if (line ~ /index-url\=/) {
+        # print "index-url=" $index_url
+    } else if (line ~ /trusted-host\=/) {
+        # print "trusted-host=" $install_url
+    } else {
+        print $0
+    }
+}
+        
+'>"$HOME/.pip/pip.conf"  <"$HOME/.pip/pip.conf.bak"
+}
+
+proxy_pip_recover(){
+    : Use recent bak config file to replace current config file
+}
+
+proxy_pip_set_url(){
+    local index_url="${1:?index_url}"
+    pip config set global.index-url "$index_url"
+
+    # local install_url="${2:?install_url}"
+
+#     if [ ! -f "$HOME/.pip/pip.conf" ]; then
+
+#     cat >"$HOME/.pip/pip.conf" <<A    
+# [global]
+# index-url=$index_url
+# [install]
+# trusted-host=$install_url
+# A
+#     else
+        
+
+        # This modification in some case probably not works.
+        # Maybe local?
+#         cp "$HOME/.pip/pip.conf" "$HOME/.pip/pip.conf.bak"
+#         awk \
+#             -e index_url="$index_url" \
+#             -e install_url="$install_url" '
+# {
+#     line=$0
+#     gsub(/^[ \t]+/, "", line)
+#     if (line ~ /index-url\=/) {
+#         print "index-url=" $index_url
+#     } else if (line ~ /trusted-host\=/) {
+#         print "trusted-host=" $install_url
+#     } else {
+#         print $0
+#     }
+# }
+        
+# '>"$HOME/.pip/pip.conf"  <"$HOME/.pip/pip.conf.bak"
+    # fi
+
+}
+
+if [ -n "${BASH_VERSION}${ZSH_VERSION}" ] && [ "${-#*i}" != "$-" ]; then
+    xrc advise/v0
+    advise proxy_pip
+fi

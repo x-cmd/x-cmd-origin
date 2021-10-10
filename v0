@@ -1,0 +1,14 @@
+# shellcheck shell=sh disable=SC3043
+
+# author:       Li Junhao           l@x-cmd.com    edwinjhlee.github.io
+# maintainer:   Li Junhao
+
+proxy(){
+    bash "$(xrc which proxy/_v0/main)" "$@"
+    # bash ./_v0/main "$@"
+}
+
+if [ -n "${BASH_VERSION}${ZSH_VERSION}" ] && [ "${-#*i}" != "$-" ]; then
+    xrc advise/v0
+    advise proxy
+fi

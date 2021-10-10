@@ -1,0 +1,69 @@
+awk_regex(){
+    echo "$1" | awk '{ 
+        if ($0~/[0-9A-Za-z]+/) print "hi" 
+        if ($0~/[A-Za-z]+/) print "hi" 
+        if ($0~/[0-9a-z]+/) print "hi" 
+}'
+}
+
+work(){
+    for i in `seq 10`; do
+        awk_regex abc$i
+        # [[ $i =~ [0-9A-Za-z]+ ]] && echo hi
+    done >/dev/null
+}
+
+time work
+
+### Solution
+
+proxy(){
+
+param '
+--versbose,-v =
+
+'
+
+# if [ -z "$_PARAM_CODE_$0" ]; then
+#     param_generate ""
+# fi
+
+proxy(){
+    param proxy_$O "
+--verbose,-v
+"
+
+    proxy(){
+        eval "$(param code proxy_$O)"
+
+        # handle code ...
+    }
+
+    proxy "${1:-"$@"}"
+}
+
+
+proxy(){
+    param proxy_$O "
+--verbose,-v
+" <<A
+
+    # handle code ...
+    "$abc"
+    
+A
+
+    proxy "${1:-"$@"}"
+}
+
+proxy(){
+    param proxy_$O "
+--verbose,-v
+"
+
+    # handle code ...
+}
+
+
+eval "$(eval "\$_PARAM_CODE_$0")"
+

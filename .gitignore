@@ -1,0 +1,15 @@
+
+!.vscode
+!dev
+
+!cmd
+!el
+!net
+
+.source.mirror.list
+
+std
+scm
+cmd
+
+index

@@ -1,5 +1,8 @@
 
 mod_list="
+xrc
+x-cmd
+
 # basic modules: non dependency
 str
 list

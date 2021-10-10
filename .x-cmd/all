@@ -23,6 +23,7 @@ ccmd
 # web clients
 ali
 gitee
+proxy
 "
 
 all_ls(){

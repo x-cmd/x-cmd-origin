@@ -1,0 +1,2 @@
+# shellcheck shell=bash
+@src cloud/aws

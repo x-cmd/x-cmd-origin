@@ -1,0 +1,55 @@
+work(){
+    case "$1" in
+        abc)    echo 1;;
+        cde)    echo 2;;
+        def)    echo 3;;
+        a1)     echo 3;;
+        a2)     echo 3;;
+        a5)     echo 3;;
+        a6)     echo 3;;
+        ab)     echo 3;;
+        *)      echo 110000;
+    esac
+    [ $1 == 111 ] && echo 123
+    [ $1 == 111 ] &&  echo 123
+}
+
+work100(){
+    for i in `seq 20`; do work kkk; done
+}
+
+
+
+work2(){
+    eval '
+    case "$1" in
+        abc)    echo 1;;
+        cde)    echo 2;;
+        def)    echo 3;;
+        a1)     echo 3;;
+        a2)     echo 3;;
+        a5)     echo 3;;
+        a6)     echo 3;;
+        ab)     echo 3;;
+        *)      echo 110000;
+    esac
+    [ $1 == 111 ] && echo 123
+    [ $1 == 111 ] &&  echo 123
+    '
+}
+
+work2_100(){
+    for i in `seq 20`; do work2 kkk; done
+}
+
+work3_100(){
+    for i in `seq 20`; do eval 'work kkk'; done
+}
+
+
+time work100 >/dev/null
+
+time work2_100 >/dev/null
+
+time work3_100 >/dev/null
+

@@ -25,6 +25,7 @@ str
 list
 assert
 dict
+json
 
 # basic modules: dependencies
 param

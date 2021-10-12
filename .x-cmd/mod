@@ -5,7 +5,7 @@ add(){
     # local position="${2:-"git@gitee.com/x-bash/$name.git"}"
     local position="${2:-"https://gitee.com/x-bash/$name.git"}"
     local branch="${3:-master}"
-    git subtree add --prefix="lib/$name" "$position" "$branch" --squash
+    git subtree add --prefix="mod/$name" "$position" "$branch" --squash
 }
 
 pull(){
@@ -13,7 +13,7 @@ pull(){
     # local position="${2:-"git@gitee.com/x-bash/$name.git"}"
     local position="${2:-"https://gitee.com/x-bash/$name.git"}"
     local branch="${3:-master}"
-    git subtree pull --prefix="lib/$name" "$position" "$branch" --squash
+    git subtree pull --prefix="mod/$name" "$position" "$branch" --squash
 }
 
 ls(){
@@ -58,7 +58,7 @@ all(){
     local IFS
     local mod
     while read -r mod; do
-        if [ -e "lib/$mod" ]; then
+        if [ -e "mod/$mod" ]; then
             pull "$mod"
         else
             add "$mod"

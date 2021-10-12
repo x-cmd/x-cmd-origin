@@ -1,6 +1,7 @@
 {
     "files.defaultLanguage": "shellscript",
     "files.associations": {
+        "**/.gitignore": "gitignore",
         "**/*.awk": "awk",
         "**/*.json": "json",
         "**/*.md": "markdown",

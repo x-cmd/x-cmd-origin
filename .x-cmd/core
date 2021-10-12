@@ -32,16 +32,16 @@ core_wc(){
     core_ls | xargs wc
 }
 
-core_targz(){
-    mkdir -p dist
-    eval "tar czvf dist/core.tar.gz $(core_ls | tr '\n' ' ')" 2>/dev/null
-    ls -alh dist/core.tar.gz
-}
-
 core_tar(){
     mkdir -p dist
-    eval "tar cvf dist/core.tar.gz $(core_ls | tr '\n' ' ')" 2>/dev/null
-    ls -alh dist/core.tar.gz
+    eval "tar cvf dist/core.tar $(core_ls | tr '\n' ' ')" 2>/dev/null
+    ls -alh dist/core.tar
+}
+
+core_tgz(){
+    mkdir -p dist
+    eval "tar czvf dist/core.tgz $(core_ls | tr '\n' ' ')" 2>/dev/null
+    ls -alh dist/core.tgz
 }
 
 core_7z(){
@@ -55,4 +55,3 @@ if [ "$#" -gt 0 ]; then
     shift
     "core_$op" "$@"
 fi
-

@@ -1,3 +1,0 @@
-# shellcheck shell=sh disable=SC2039,SC2142,SC3043
-. "$HOME/.x-cmd/boot" 2>/dev/null || eval '$(curl https://get.x-cmd.com)'
-. ./testcases/v0_test

@@ -1,5 +1,0 @@
-# shellcheck shell=sh disable=SC3043
-
-# https://cargo.budshome.com/reference/source-replacement.html#:~:text=目前国内%20cargo,镜像源有：中国科学技术大学源、上海交通大学源、清华大学源，以及%20rustcc%20社区源%E3%80%82
-
-

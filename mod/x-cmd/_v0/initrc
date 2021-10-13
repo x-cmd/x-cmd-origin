@@ -1,0 +1,52 @@
+# shellcheck shell=sh
+
+___x_cmd_initrc_setup(){
+    if [ "$BASH_VERSION" ]; then        CAN="$HOME/.bashrc"
+       [ "$(uname)" = "Darwin" ]  &&    CAN="$CAN $HOME/.bash_profile"
+    elif [ "$ZSH_VERSION" ]; then       CAN="$HOME/.zshrc"
+    elif [ "$KSH_VERSION" ]; then       CAN="$HOME/.kshrc"
+    else                                CAN="$HOME/.shinit"
+    fi
+}
+
+
+# ___x_cmd_initrc(){
+#     local subcmd="${1:?Provide}"
+#     case "$subcmd" in
+#         setup)     ___x_cmd_initrc_setup ;;
+#     esac
+# }
+
+# Section: initrc, consider external module.
+___x_cmd_initrc(){
+    case "${1}" in
+        trust)
+                # trust gitee, github, gitlab, or any other url
+                ;;
+        mod)    shift
+                case "$1" in
+                    add|+)      shift
+                                (
+                                    for i in "$@"; do
+                                        s="$(printf "xrc %s # auto generated" "$i")"
+                                        if ! grep "$s" "$X_CMD_SRC_PATH/.init.rc" 1>/dev/null 2>&1; then
+                                            printf "%s\n" "$s" >> "$X_CMD_SRC_PATH/.init.rc"
+                                        fi
+                                    done
+                                ) ;;
+                    del|-)      shift
+                                (
+                                    s="$(cat "$X_CMD_SRC_PATH/.init.rc")"
+                                    for i in "$@"; do
+                                        s="$(printf "%s" "$s" | grep -v "xrc $i # auto generated")"
+                                    done
+                                    printf "%s" "$s" > "$X_CMD_SRC_PATH/.init.rc"
+                                )
+                                ;;
+                    ls|*)         awk '$0~"auto generated"{ print $2; }' "$X_CMD_SRC_PATH/.init.rc" ;;
+                esac
+                ;;
+        which)  printf "%s\n" "$X_CMD_SRC_PATH/.init.rc"    ;;
+        cat|*)  cat "$X_CMD_SRC_PATH/.init.rc" 2>/dev/null  ;;
+    esac
+}

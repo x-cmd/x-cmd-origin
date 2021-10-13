@@ -1,1 +1,0 @@
-console.log("Hello\nThis is javascript hosted in the remote service.")

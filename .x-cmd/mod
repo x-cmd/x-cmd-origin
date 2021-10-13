@@ -4,7 +4,7 @@ add(){
     local name="${1:?Provide module name}"
     # local position="${2:-"git@gitee.com/x-bash/$name.git"}"
     local position="${2:-"https://gitee.com/x-bash/$name.git"}"
-    local branch="${3:-master}"
+    local branch="${3:-main}"
     git subtree add --prefix="mod/$name" "$position" "$branch" --squash
 }
 
@@ -12,7 +12,7 @@ pull(){
     local name="${1:?Provide module name}"
     # local position="${2:-"git@gitee.com/x-bash/$name.git"}"
     local position="${2:-"https://gitee.com/x-bash/$name.git"}"
-    local branch="${3:-master}"
+    local branch="${3:-main}"
     git subtree pull --prefix="mod/$name" "$position" "$branch" --squash
 }
 

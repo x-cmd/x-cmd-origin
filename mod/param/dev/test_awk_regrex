@@ -1,0 +1,13 @@
+# shellcheck shell=sh
+# test awk regex
+test_awk_regex() {
+    echo "$1 ^(\d{1,2}|100)$" | awk '
+    {  
+        print "\ntry to match: " $1 " " $2 "\n"
+        if ( match($1, $2) ) { 
+            print "Match Successed!!! \n"
+        } else {
+            print "Match Failed!!! \n"
+        }
+    }'
+}

@@ -1,0 +1,395 @@
+# shellcheck shell=bash disable=SC2039,3043
+
+# author:       Li Junhao           l@x-cmd.com    edwinjhlee.github.io
+
+if [ -z "${ZSH_VERSION}${BASH_VERSION}" ]; then
+    xrc_log info "advise is only available in 'bash' or 'zsh'."
+elif ! ___ADVISE_AWK_PATH="$(xrc which advise/v0.awk)"; then
+    xrc_log error "Cannot introduce advise"
+else
+
+xrc log init advise
+
+# Section : advise entrance
+
+advise(){
+    local op="${1:?Provide subcommand}"; shift
+    case "$op" in
+        ls)
+            ls "$@" "${TMPDIR%/}/.x-cmd/advise_auto_json" ;;
+        rm)
+            rm -rf "${TMPDIR%/}/.x-cmd/advise_auto_json"/*  ;;
+        which)
+            if [ "$#" -eq 0 ]; then
+                printf "%s" "${TMPDIR%/}/.x-cmd/advise_auto_json"
+            else
+                printf "%s/%s" "${TMPDIR%/}/.x-cmd/advise_auto_json" "$1"
+            fi
+            ;;
+        cat)
+            local mod
+            for mod in "$@"; do
+                cat "${TMPDIR%/}/.x-cmd/advise_auto_json/$mod"
+            done
+            ;;
+        _x_cmd_advise_json)
+            cat <<A
+{
+    "ls": null,
+    "rm": null,
+    "which": {
+        "#n": "ls ${TMPDIR%/}/.x-cmd/advise_auto_json/"
+    },
+    "cat": {
+        "#n": "ls ${TMPDIR%/}/.x-cmd/advise_auto_json/"
+    }
+    "init": null
+}
+A
+            return 126
+            ;;
+        init|new)
+            ___advise_main "$@" ;;
+        del)
+            complete -r "${1:?Provide function name}"
+            ;;
+        obj-new)
+            local aliasname="${2:?Provide alias name}"
+            local filepath="${TMPDIR%/}/.x-cmd/advise_auto_json/$op"
+
+            # TODO: There is one more solution. But it is not not worked in ZSH. Please figure it out.
+            # complete -C "___advise_completer \"$filepath\"" "$aliasname"
+
+            eval "
+            function ______adviser_of_$op(){
+                ___advise_completer \"$filepath\"
+            }
+            "
+            complete -F "______adviser_of_$op" "$aliasname"
+            ;;
+        obj-del)
+            local aliasname="${2:?Provide alias name}"
+
+            complete -r "$aliasname"
+            if ! complete | grep "______adviser_of_$op" 1>/dev/null 2>&1; then
+                unset -f "______adviser_of_$op"
+            fi
+            ;;
+
+        "")
+            # TODO: help doc
+            ;;
+        *)
+            ___advise_main "$op" "$@" ;;
+    esac
+}
+
+# EndSection
+
+# Section : adviser helper function: ls lsd seq
+
+___advise_lsd(){
+    local localdir="${1:-${cur:-.}}"
+
+    local l
+
+    ls -d "${localdir}"*/ 2>/dev/null | while read -r l; do
+        printf "%s\n" "${l%/}"
+    done
+}
+
+___advise_ls(){
+    local localdir="${1:-${cur:-""}}"
+
+    if [ -z "$localdir" ]; then
+        ls
+        return
+    fi
+
+    if [ "${localdir%/*}" = "${localdir}" ]; then
+        folder=""
+        pattern="${localdir}"
+
+    else
+        folder="${localdir%/*}"
+        pattern="${localdir##*/}"
+    fi
+
+    ls "${folder:-.}" | awk -v folder="$folder" -v pattern="$pattern" 'match($0, "^" pattern){
+        if (folder == "") {
+            print $0
+        } else {
+            print folder "/" $0
+        }
+    }' 2>/dev/null
+
+    # local l
+    # ls "${localdir}" | while read -r l; do
+    #     printf "%s%s\n" "$localdir" "$l"
+    # done
+}
+
+# 1-10
+___advise_seq(){
+    local curnum="${cur:-""}"
+    awk -v range="$1" -v cur="$cur" '
+function inside(num, start, end, step){
+    if ( (num < start) || (num > end) ) return 0
+    if ( ( num - start ) % step == 0 ) return 1
+    return 0
+}
+
+BEGIN{
+
+    arr_len = split(range, arr, /\//)
+    start = arr[1]
+    end = arr[2]
+    step = arr[3]
+    if (step == "") step = 1
+
+    num = (end - start + 1) / step
+    if (num < 16) {
+        for (i=start; i<=end; i=i+step) print i
+        exit(0)
+    }
+
+    if (cur !~ /[0-9]+/) {
+        exit(0)
+    }
+
+    if (inside(cur, start, end, step) == 1) print cur
+
+    cur = cur * 10
+    for (i=0; i<=9; ++i) {
+        newnum = cur + i
+        if (inside(newnum, start, end, step) == 1) print newnum
+    }
+}
+' <<A
+A
+
+}
+
+___advise_get_result(){
+    local offset="${2:-0}"
+
+    local resname="${1:-${COMP_WORDS[offset]}}"
+
+    local filepath
+    case "$resname" in
+        /*) filepath="$resname" ;;
+        -)  filepath=/dev/stdin ;;
+        *)  filepath="${TMPDIR%/}/.x-cmd/advise_auto_json/$resname" ;;
+    esac
+
+    local OLDIFS="$IFS"
+    local IFS=$'\002' # IFS="$(printf "\002")"
+
+    # Delete $offset numbers from the COMP_WORDS
+    local i
+    local words=()
+    for ((i=0; i<=$(($COMP_CWORD-$offset)); ++i)); do
+        words+=( "${COMP_WORDS[i+offset]}" )
+    done
+
+    COMP_WORDS=("${words[@]}")
+    COMP_CWORD="$(( ${#words[@]}-1 ))"
+
+    s="${COMP_WORDS[*]}"
+    s="${s#*$IFS}"
+
+    # TODO: Can be optimized.
+    local cur_1="${COMP_WORDS[COMP_CWORD-1]}"
+    case "$cur_1" in
+        *@|*:)
+            if [ "${COMP_LINE% }" != "${COMP_LINE}" ]; then
+                s="${s%$cur_1$IFS$cur}"
+                s="${s}${cur_1}$cur"
+            fi
+            ;;
+        *)
+    esac
+
+    IFS=$'\n'   # Bash/Zsh Only
+
+    [ -f "$filepath" ] || return
+
+    local result
+    result="$(
+        {
+            cat "$filepath"
+            printf "\034%s\034" "$s"  # printf "\034${s}\034"
+        } | awk -f "$___ADVISE_AWK_PATH" 2>/dev/null
+    )"
+    IFS="$OLDIFS"
+
+    local cmd="${result##*#> }"
+    local cmd_result=""
+    if [ "$cmd" != "$result" ]; then
+        cmd_result="$(eval "$cmd")"
+        result="${result%%#> *}"
+    fi
+
+    printf "%s" "$result
+$cmd_result"
+}
+
+# EndSection
+
+# Section : main
+
+___advise_main(){
+    local func="${1:?Provide function name}"
+    local filepath="${2}"
+    local tmp_filepath=${TMPDIR%/}/.x-cmd/advise_auto_json/$func
+    mkdir -p "$(dirname "$tmp_filepath")"
+
+    if [ - = "$filepath" ]; then
+        filepath=$tmp_filepath
+        advise_log "Pipe standard input to $filepath"
+        cat >"$filepath"
+    elif [ -z "$filepath" ]; then
+        local filepath=$tmp_filepath
+        if [ -n "$___XRC_UDPATE" ] || [ ! -f "$filepath" ]; then
+            advise_log debug "Pipe the result of \"$func _x_cmd_advise_json\" to $filepath"
+            local content
+            content="$(X_CMD_ADVISE_FUNC_NAME=$func eval "$func" _x_cmd_advise_json)"
+            if [ $? = 126 ]; then
+                printf "%s" "$content" >"$filepath"
+            else
+                advise_log warn "Fail to write file because the return code of \"$func _x_cmd_advise_json\" is not 126."
+                return 0
+            fi
+        fi
+    else
+        advise_log debug "Copy self-defined file $filepath to $tmp_filepath"
+        cp "$filepath" "$tmp_filepath"
+        filepath="$tmp_filepath"
+    fi
+
+    complete -F "___advise_completer" "$func"
+}
+
+___advise_run(){
+
+    local offset="${2:-0}"
+    local resname="${1:-${COMP_WORDS[0]}}"
+
+    local filepath
+    case "$resname" in
+        /*) filepath="$resname" ;;
+        -)  filepath=/dev/stdin ;;
+        *)  filepath="${TMPDIR%/}/.x-cmd/advise_auto_json/$resname" ;;
+    esac
+
+    shift 2>/dev/null
+
+    if [ -n "$BASH_VERSION" ] && [ "${BASH_VERSION#3}" = "${BASH_VERSION}" ]; then
+        local last="${COMP_WORDS[COMP_CWORD]}"
+        case "$last" in
+            \"*|\'*)
+                COMP_LINE="${COMP_LINE%$last}"
+                words=( $COMP_LINE )
+                words+=("$last")
+                ;;
+            *)
+                words=( $COMP_LINE )
+                ;;
+        esac
+
+        # Ends with space
+        if [ "${COMP_LINE% }" != "${COMP_LINE}" ]; then
+            words+=( "" )
+        fi
+
+        COMP_WORDS=("${words[@]}")
+        COMP_CWORD="$(( ${#words[@]}-1 ))"
+    fi
+
+    local cur="${COMP_WORDS[COMP_CWORD]}"
+
+    if [ "$cur" == "" ]; then
+        # Notice: The following line handle zsh compatibility problem.
+        # In zsh, When input word is empty, COMP_WORDS[COMP_CWORD] does not exist.
+        # In bash, When input word is empty, COMP_WORDS[COMP_CWORD] exist, and it is ""
+        # This will result in difference value of "${COMP_WORDS[*]}"
+        COMP_WORDS[COMP_CWORD]=""
+    fi
+
+    local OLDIFS="$IFS"
+    local IFS=$'\002' # IFS="$(printf "\002")"
+
+    s="${COMP_WORDS[*]}"
+    s="${s#*$IFS}"
+
+    local cur_1="${COMP_WORDS[COMP_CWORD-1]}"
+    case "$cur_1" in
+        *@|*:)
+            if [ "${COMP_LINE% }" != "${COMP_LINE}" ]; then
+                s="${s%$cur_1$IFS$cur}"
+                s="${s}${cur_1}$cur"
+            fi
+            ;;
+        *)
+    esac
+
+    IFS=$'\n'   # Bash/Zsh Only
+
+    [ -f "$filepath" ] || return
+
+    local result
+    result="$(
+        {
+            cat "$filepath"
+            printf "\034%s\034" "$s"  # printf "\034${s}\034"
+        } | awk -f "$___ADVISE_AWK_PATH" 2>/dev/null
+    )"
+    IFS="$OLDIFS"
+
+    local cmd="${result##*#> }"
+    local cmd_result=""
+    if [ "$cmd" != "$result" ]; then
+        cmd_result="$(eval "$cmd" 2>/dev/null)"
+        result="${result%%#> *}"
+    fi
+
+    # shellcheck disable=SC2207
+    COMPREPLY=(
+        $(
+            compgen -W "$result
+$cmd_result" -- "$cur"
+        )
+    )
+
+    __ltrim_completions "$cur" "@"
+    __ltrim_completions "$cur" ":"
+}
+
+__ltrim_completions()
+{
+    local i=${#COMPREPLY[*]}
+    ((i == 0)) && return 0
+    if [[ $1 == *$2* && $COMP_WORDBREAKS == *$2* ]]; then
+        # Remove colon-word prefix from COMPREPLY items
+        local colon_word=${1%"${1##*:}"}
+        COMPREPLY=("${COMPREPLY[@]}")
+        while ((i-- > 0)); do
+            COMPREPLY[i]=${COMPREPLY[i]#"$colon_word"}
+        done
+    fi
+}
+
+___advise_completer() {
+    # Interesting ... Passing
+    ___advise_run ""
+}
+
+# EndSection
+
+if [ -n "$ZSH_VERSION" ]; then
+    autoload -U +X bashcompinit compinit && bashcompinit && compinit
+fi
+
+advise init advise
+
+fi

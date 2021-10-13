@@ -1,0 +1,13 @@
+# shellcheck shell=sh
+
+# author:       Li Junhao           edwin.jh.lee@gmail.com    edwinjhlee.github.io
+# maintainer:   Li Junhao
+
+if [ -n "$BASH_VERSION" ]; then
+    xrc list/v0_bash
+elif [ -n "$ZSH_VERSION" ]; then
+    xrc list/v0_str
+    # xrc std/list_zsh
+else
+    xrc list/v0_str
+fi

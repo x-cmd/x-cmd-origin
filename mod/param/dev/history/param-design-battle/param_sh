@@ -1,0 +1,626 @@
+#shellcheck shell=bash
+
+# author:       Li Junhao           edwin.jh.lee@gmail.com    edwinjhlee.github.io
+# maintainer:   Li Junhao
+
+xrc std/assert std/list std/dict std/str std/line
+
+debug_init param
+
+X_BASH_PARAM_PREFIX_="X_BASH_STD_PARAM_DEFAULT_LIST_PREFIX_"
+
+param.base64(){
+    # \r => \n fix bug for base64 command append \r in string.
+    echo -n "$1" | base64 | tr '=' '_' | tr -d '\r\n'
+}
+
+param.unbase64(){
+    # \r => \n fix bug for base64 command append \r in string.
+    echo -n "$1" | tr '_' '=' | base64 --decode | tr -d '\r\n'
+}
+
+# Notice: scope and key should NEVER contains character '|'
+param.default(){
+    case $# in
+    0)
+        echo "At least provide scope." >&2 ;;
+        # local name="${X_BASH_PARAM_PREFIX}_"
+        # local i
+        # for i in "${!${name}@}"; do
+        #     echo "${!i}"
+        # done ;;
+    1)
+        local scope="$1"
+        local i fff a b
+        # ${!${X_BASH_PARAM_PREFIX}@}: bad substitution
+        for i in $(eval "echo \${!${X_BASH_PARAM_PREFIX_}@}"); do
+            fff="$(param.unbase64 "${i:${#X_BASH_PARAM_PREFIX_}}")"
+            a="$(echo "$fff" | cut -d '|' -f 1)"
+            [ ! "$scope" = "$a" ] && continue
+            b="$(echo "$fff" | cut -d '|' -f 2-)"
+            echo "${b}" "${!i}"
+        done ;;
+    2)
+        local scope=$1 key=$2 code
+        code="$(param.base64 "${scope}|${key}")"
+        local name="${X_BASH_PARAM_PREFIX_}${code}"
+        declare -p "$name" 1>/dev/null 2>&1 || return 1
+        echo "${!name}" ;;
+    3)
+        local scope=$1 key=$2 val=$3 code
+        code="$(param.base64 "${scope}|${key}")"
+        local name="${X_BASH_PARAM_PREFIX_}${code}"
+        # echo "$name"
+        eval "${name}=$(str.repr "$val")" ;;
+    esac
+}
+
+param.default.delete(){
+    local scope=${1:?Provide scope} key=${2:?Provide key} code
+    code="$(param.base64 "${scope}|${key}")"
+    local name="${X_BASH_PARAM_PREFIX_}${code}"
+    unset "$name"
+}
+
+param.default.clear(){
+    local scope="${1:?Provide scope}"
+    local i fff a b
+    # ${!${X_BASH_PARAM_PREFIX}@}: bad substitution
+    for i in $(eval "echo \${!${X_BASH_PARAM_PREFIX_}@}"); do
+        fff="$(param.unbase64 "${i:${#X_BASH_PARAM_PREFIX_}}")"
+        a="$(echo "$fff" | cut -d '|' -f 1)"
+        [ ! "$scope" = "$a" ] && continue
+        unset "$i"
+    done
+}
+
+param.default.load(){
+    local scope="${1:?Provide scope}"
+    local fp="${2:?Provide File path}"
+
+    if [ ! -r "$fp" ]; then
+        param_debug "Readable config file not found: $fp"
+        return 0
+    fi
+
+    local line key value
+    while read -r line; do
+        key="$(echo "$line" | cut -d ' ' -f 1)"
+        value="$(echo "$line" | cut -d ' ' -f 2-)"
+        param.default "$scope" "$key" "$value"
+    done < "$fp"
+}
+
+param.default.save(){
+    local scope="${1:?Provide scope}"
+    local fp="${2:?Provide File path}"
+    mkdir -p "$(dirname "$fp")"
+    param.default "$scope" > "$fp"
+}
+
+# shellcheck disable=SC2142
+# shellcheck disable=SC2154
+alias param='
+    local _param_code _param_help_docs=() 2>/dev/null;
+    {
+        _param_code="$(param_.parse "${FUNCNAME[0]:-$0}" "$@")";
+        case "$?" in
+            0) eval "$_param_code" ;;
+            1) return 1 2>/dev/null || exit 1 ;;
+            *) return 0 ;;
+        esac
+    } <<<'
+
+param._parse2(){
+    # For ash/dash "$@"
+    local a=""
+    for i in $(seq 1 $(($# - 1))); do
+        a="$a \"\$$i\""
+    done
+
+    local _param_code
+    _param_code="$(eval param_.parse "$a")"
+    case "$?" in
+        0) echo "$_param_code" ;;
+        1) echo "return 1 2>/dev/null || exit 1" ;;
+        *) echo "return 0" ;;
+    esac
+}
+
+# shellcheck disable=SC2142
+# shellcheck disable=SC2154
+alias param2='
+    local _param_code _param_help_docs=() 2>/dev/null;
+    param._parse2 "${FUNCNAME[0]:-$0}" "$@"
+'
+
+
+
+# alias param='
+#     local _param_code _param_help_docs=() 2>/dev/null;
+#     {
+#         _param_code="$(param_.parse "${FUNCNAME[0]:-$0}" "$@")";
+#         echo "$_param_code" >>test_debug
+#         case "$?" in
+#             0) eval "$_param_code" ;;
+#             1) return 1 2>/dev/null || exit 1 ;;
+#             *) return 0 ;;
+#         esac
+#     } <<<'
+
+
+alias show_help_then_return_or_exit="param.help.show; return 1 2>/dev/null || exit 1; "
+
+param.help.show(){
+    param_.param.show "$funcname" "${_param_help_docs[@]}" >&2
+    param_.example.show >&2
+}
+
+param_.type.check(){
+    local code=0 name="$1" val="$2" op="$3"; shift 3;
+
+    if [ -n "$op" ]; then
+        assert "$val" "$op" "$@"
+        code=$?
+    fi
+
+    if [ "$code" -eq 1 ]; then
+        echo "Parameter check ERROR: $name" >&2
+        param.help.show
+        return 1
+    fi
+
+    if [[ "$name" == \\\$* ]]; then
+        return 0
+    fi
+
+    if [[ "$op" == '=~['?']' || "$op" == '=['?']' ]]; then
+        local sep=${op:((${#op}-2)):1}
+        # shellcheck disable=SC2207
+        local data=( $(echo "$val" | tr "$sep" '\n') ) # should not quote '$(...)'
+        [ ${#data[@]} -eq 0 ] && data=("")
+
+        echo "local $name 2>/dev/null"
+        echo "$name=$(list.repr "${data[@]}")"
+    else
+        echo "local $name 2>/dev/null"
+        echo "$name=$(str.repr "$val")"
+    fi
+
+    return 0
+}
+
+param_.parse.add_help_doc_item(){
+    local IFS
+
+    local name="${1}" # $1
+    local desc="${2}" # $3
+    local op="${3}"
+    local default="${4}"
+    shift; shift; shift; shift
+
+    local type_desc="" o
+
+    case "$op" in
+        = | ==) IFS='|'; type_desc="$*";;
+        =~) IFS='|'; type_desc="Regex pattern: $*";;
+        =str) IFS='|'; [ $# -eq 0 ] && type_desc="String" || type_desc="String: $*" ;;
+        =int) IFS='|'; [ $# -eq 0 ] && type_desc="Int" || type_desc="Int: $*" ;;
+        =\[?\])
+            o="${op:2:1}"
+            IFS=' '; type_desc="Join by '$o'. Item: $*"
+            ;;
+        =~\[?\])
+            o="${op:3:1}"
+            IFS=' '; type_desc="Join by '$o'. Item match regex: $*"
+            ;;
+        *) type_desc=""
+    esac
+
+    _param_help_docs+=( "$name" "$default" "$type_desc" "$desc")
+}
+
+param_.parse(){
+    local i IFS=$'\n'
+    local funcname="$1"; shift
+
+    local varlist=()    typelist=()     deslist=()
+    local vallist=()    deflist=()      # default
+    local oplist=()     choicelist=()   required=()
+
+    local arg_description arg_deslist=() arg_oplist=() arg_choicelist=()
+    local rest_argv_des="" rest_argv_op="" rest_argv_choices=()
+
+    local linelist=() line nextline lineindex all_arg_arr all_arg_arr2
+    line.to_array.trim.ignore_empty linelist
+
+    local scope=""
+    local boolvar=() boolvar_short=() boolvar_short_str="" boolvar_desc=()
+
+    # Step 1: Parsing into tokens
+    # for line in "${linelist[@]}"; do
+    for (( lineindex=0; lineindex < ${#linelist[@]}; lineindex++ )); do
+        line="${linelist[lineindex]}"
+
+        # shellcheck disable=SC2207 # this rule is wrong
+        all_arg_arr=( $(echo "$line" | xargs -n 1) ) # all_arg_arr=( "$(str.arg "$line")" )
+
+        if [ "${all_arg_arr[0]}" = "default-scope" ]; then
+            scope="${all_arg_arr[1]}"
+            continue
+        fi
+
+        nextline="${linelist[lineindex+1]}"
+        if [[ "$nextline" = =* ]]; then
+            # shellcheck disable=SC2207 # this rule is wrong
+            all_arg_arr2=( $(echo "$nextline" | xargs -n 1) )
+            # TODO: !!!
+            all_arg_arr+=( "${all_arg_arr2[@]}" )
+            (( lineindex ++ ))
+        fi
+
+        varname="${all_arg_arr[0]}"
+
+        ###### BEGIN: handle boolean parameter
+        # --verbise -v "Provide version"
+        if [[ "$varname" = --* ]]; then
+            local full="${varname:2}"
+            boolvar+=("$full")
+            local short="${all_arg_arr[1]}"
+            if [[ "$short" = -? ]]; then
+                boolvar_short+=("${short:1:1}")
+                boolvar_short_str+="${short:1:1}"
+                boolvar_desc+=("${all_arg_arr[2]}")
+            else
+                boolvar_short+=("")
+                boolvar_short_str+=" "
+                boolvar_desc+=("$short")
+            fi
+            echo "local $full= 2>/dev/null"
+            continue
+        fi
+
+        ###### BEGIN: handle #1 like
+        if [[ "$varname" =~ \#[[:digit:]]+ ]]; then
+            # echo "KKK $varname" >&2
+            varname="${varname:1}"
+            case "${all_arg_arr[1]}" in
+            = | =~ | =str | =str? | =float | =int | =\[?\] | =? | =~\[?\] | =~? )
+                arg_description=""
+                arg_oplist+=( "${all_arg_arr[1]}" )
+                arg_choicelist+=( "${all_arg_arr[*]:2}" )
+                param_.parse.add_help_doc_item "$varname" "$arg_description" "${all_arg_arr[1]}" "" "${all_arg_arr[@]:2}"
+                ;;
+            *)
+                arg_description="${all_arg_arr[1]}"
+                arg_oplist+=( "${all_arg_arr[2]}" )
+                arg_choicelist+=( "${all_arg_arr[*]:3}" )
+                param_.parse.add_help_doc_item "$varname" "$arg_description" "${all_arg_arr[2]}" "" "${all_arg_arr[@]:3}"
+                ;;
+            esac
+            arg_deslist+=("$arg_description")
+            continue
+        fi
+        ###### END: handle #1 like
+
+        ###### BEGIN: handle ... for rest_argv
+        if [ "$varname" = "..." ]; then
+            # IFS=
+            case "${all_arg_arr[1]}" in
+            = | =~ | =str | =str? | =float | =int | =\[?\] | =? | =~\[?\] | =~? )
+                rest_argv_op="${all_arg_arr[1]}"
+                rest_argv_choices=( "${all_arg_arr[@]:2}" )
+                param_.parse.add_help_doc_item "$varname" "" "${all_arg_arr[1]}" "" "${all_arg_arr[@]:2}"
+                ;;
+            *)
+                rest_argv_des="${all_arg_arr[1]}"
+                rest_argv_op="${all_arg_arr[2]}"
+                rest_argv_choices=( "${all_arg_arr[@]:3}" )
+
+                param_.parse.add_help_doc_item "$varname" "$rest_argv_des" "${all_arg_arr[2]}" "" "${all_arg_arr[@]:3}"
+                ;;
+            esac
+            IFS=$'\n'
+            continue
+        fi
+        ###### END: handle ... for rest_argv
+
+        if [[ "$varname" =~ ^(arg)+((ENV)|(env))+: ]]; then
+            typelist+=( "${varname%%:*}" )
+            varname="${varname#*:}"
+        else
+            typelist+=("arg")
+        fi
+
+        local default
+        if [[ "$varname" == *=* ]]; then
+            required+=("default")
+            default="${varname#*=}"
+            varname="${varname%%=*}"
+            deflist+=("$default")
+        else
+            required+=("not-fill")
+            default=""
+            deflist+=("")
+        fi
+        varlist+=("$varname")
+        vallist+=("")
+
+        IFS=$'\n'
+        local description op
+        case "${all_arg_arr[1]}" in
+        = | =~ | =str | =str? | =float | =int | =\[?\] | =? | =~\[?\] | =~? )
+            description=""
+            op="${all_arg_arr[1]}"
+            choicelist+=( "${all_arg_arr[*]:2}" )
+            param_.parse.add_help_doc_item "$varname" "$description" "$op" "$default" "${all_arg_arr[@]:2}"
+            ;;
+
+        *)
+            description="${all_arg_arr[1]}"
+            op="${all_arg_arr[2]}"
+            choicelist+=( "${all_arg_arr[*]:3}" )
+            param_.parse.add_help_doc_item "$varname" "$description" "$op" "$default" "${all_arg_arr[@]:3}"
+            ;;
+        esac
+
+        deslist+=("$description")
+        oplist+=( "$op" )
+    done
+
+    # Step 1b: Check --help or -h
+    for i in $#; do
+        if [ "$i" = "-h" ] || [ "$i" = "--help" ]; then
+            param.help.show
+            return 2
+        fi
+    done
+
+    # Step 1c: Setupt _varlist
+    IFS=$'\n'
+    echo "local _varlist 2>/dev/null"
+    echo "_varlist=$(list.repr "${varlist[@]}")"
+
+
+    # Step 2a: Init the values with the parameter; Also, extract the _rest_argv
+
+    local rest_argv_str="local _rest_argv=( "
+    local rest_argv=()
+
+    while [ ! "$#" -eq 0 ]; do
+        local parameter_name=$1
+        if [ "$parameter_name" = --help ] || [ "$parameter_name" = -h ]; then
+            param.help.show
+            return 1
+        fi
+
+        # local boolvar=() boolvar_short=() boolvar_desc=()
+
+        if [[ "$parameter_name" =~ ^-[A-Za-z0-9]+$ ]]; then
+            local i short full p="${parameter_name:1}" sw=0
+            for i in "${!boolvar_short[@]}"; do
+                short=${boolvar_short[i]}
+                full=${boolvar[i]}
+                if [[ "$p" = *${short}* ]]; then
+                    echo "local $full=true 2>/dev/null"
+                    sw=1
+                    break
+                fi
+            done
+
+            if [ $sw = 1 ]; then
+                shift
+                continue
+            fi
+        fi
+
+        if [[ ! "$parameter_name" == --* ]]; then
+            rest_argv_str+="$(str.repr "$parameter_name") "
+            rest_argv+=("$parameter_name")
+            shift
+            continue
+        fi
+
+        parameter_name=${parameter_name:2}
+
+        # boolean variable
+        local i sw=0
+        for i in "${!boolvar[@]}"; do
+            full=${boolvar[i]}
+            if [ "$parameter_name" = "$full" ]; then
+                echo "local $full=true 2>/dev/null"
+                sw=1
+                break
+            fi
+        done
+        if [ $sw = 1 ]; then
+            shift
+            continue
+        fi
+
+        # Not boolean variable
+        shift
+        local sw=0 i
+        for i in "${!varlist[@]}"; do
+            [[ ! "${typelist[i]}" = arg* ]] && continue
+            local _varname=${varlist[i]}
+            if [ "$parameter_name" == "$_varname" ]; then
+                vallist[i]=$1
+                required[i]="arg"
+                shift
+                sw=1
+                break
+            fi
+        done
+        if [ $sw -eq 0 ]; then
+            echo "ERROR: Unsupported parameter: --$parameter_name" >&2
+            param.help.show
+            return 0
+        fi
+
+    done
+
+    echo "$rest_argv_str ) 2>/dev/null"
+
+
+    # Step 2b: Init the values with the enviroment
+    for (( i=0; i < ${#varlist[@]}; ++i )); do
+        # [ -n "${vallist[i]}" ] && continue
+        [ "${required[i]}" = "arg" ] && continue
+
+        local name=${varlist[i]}
+
+        case "${typelist[i]}" in
+            *env) ;;
+            *ENV) name="$(echo "$name" | tr '[:lower:]' '[:upper:]')";;
+            *) continue;;
+        esac
+
+        local value=${!name}
+        if [ -n "$value" ]; then
+            vallist[i]=$value
+            required[i]="env"
+        fi
+    done
+
+    # echo "${varlist[@]}" >>test_debug
+    # echo "${vallist[@]}" >>test_debug
+
+    # Step 2c: Init the values with the default scope.
+    if [[ -n "$scope" ]]; then
+        for (( i=0; i < ${#varlist[@]}; ++i )); do
+            # [ -n "${vallist[i]}" ] && continue
+            if [ "${required[i]}" = "arg" ] || [ "${required[i]}" = "env" ]; then
+                continue
+            fi
+            local name=${varlist[i]} v
+            if v=$(param.default "$scope" "$name"); then
+                vallist[i]=$v
+                required[i]="scope"
+            fi
+        done
+    fi
+
+    # Step 3: If value is STILL NULL, use the default value. Then, Type-CHECK
+    for i in "${!varlist[@]}"; do
+        if [ "${required[i]}" = "default" ]; then
+            vallist[i]="${deflist[i]}"
+        fi
+
+        if [ "${required[i]}" = "not-fill" ]; then
+            echo "Value should not be null. Parameter check ERROR: ${varlist[i]}" >&2
+            param.help.show
+            return 1
+        fi
+
+        # shellcheck disable=SC2206
+        local choices=( ${choicelist[i]} )  # should not quote '$(...)'
+
+        param_.type.check "${varlist[i]}" "${vallist[i]}" "${oplist[$i]}" "${choices[@]}"
+        [ $? -eq 1 ] && {
+            param.help.show
+            return 1
+        }
+    done
+
+    # Step 5: Handle the positional parameter
+    local max_i=-1
+    for i in "${!arg_deslist[@]}"; do
+        [ $max_i -lt "$i" ] && max_i=$i
+
+        # shellcheck disable=SC2206
+        local choices=( ${arg_choicelist[i]} )  # should not quote '$(...)'
+        param_.type.check "\\\$$i" "${rest_argv[i]}" "${arg_oplist[i]}" "${choices[@]}"
+        [ $? -eq 1 ] && return 1
+    done
+
+    # Step 6: Handle the rest parameter
+    if [ -n "$rest_argv_op" ]; then
+        for i in "${!rest_argv[@]}"; do
+            [ "$i" -le "$max_i" ] && continue
+
+            param_.type.check "\\\$$((i+1))" "${rest_argv[i]}" "$rest_argv_op" "${rest_argv_choices[@]}"
+            [ $? -eq 1 ] && return 1
+        done
+    fi
+
+    echo funcname="${funcname}"
+    echo "_param_help_docs=$(list.repr "${_param_help_docs[@]}")"
+}
+
+shopt -s expand_aliases
+
+param_.param.show(){
+    echo
+    echo "----------------"
+    local i funcname="${1#*/}"
+    shift
+    printf "%s:\n" "${funcname}" # "${FUNCNAME[0]}"
+    while [ $# -gt 0 ]; do
+        # echo "fff"
+        param_.param.item "$1" "$2" "$3" "$4"
+        shift 1; shift 1; shift 1; shift 1; # Not equal shift 4
+    done
+}
+
+param_.param.item(){
+    local varname="$1"
+    local default="$2"
+    local typedef="$3"
+    local descrip="$4"
+
+    local max_width
+    max_width="$(tput cols)"
+    (( max_width > 80 )) && (( max_width = 80 ))
+    (( max_width -= 20 ))
+
+    local space30 diffspace
+    space30="$(printf "%${max_width}s" "")"
+
+    local a b
+    if [[ "$varname" =~ [0-9]+ ]]; then
+        varname="\$$varname"
+    elif [ "$varname" != "..." ]; then
+        varname="--$varname"
+    fi
+    a="$(printf "    %-10s %-10s <%s>" "${varname}" "${default}" "${typedef}")"
+    b="$(printf "    $(tput bold; tput setaf 6)%-10s$(tput init) %-10s <$(tput setaf 3)%s$(tput init)>" "${varname}" "${default}" "${typedef}")"
+
+    descrip="$(tput bold; tput setaf 1)$descrip$(tput init)"
+
+    if [ "$max_width" -le "${#a}" ]; then
+        printf "%s\n$space30%s"  "$b" "$descrip"
+    else
+        local diff=$(( max_width - ${#a} ))
+        diffspace="$( printf "%${diff}s" " " )"
+        # printf "%s${diffspace}%s" "$b" "$descrip"
+        printf "%s${diffspace}%s" "$b" "$descrip"
+    fi
+    printf "\n"
+}
+
+alias param.example='local _param_example 2>/dev/null; param_.__example _param_example'
+
+param_.example.show(){
+    # shellcheck disable=SC2154
+    echo "$_param_example"
+}
+
+param_.__example(){
+    local name=$1 s
+    shift
+    # shellcheck disable=SC2034
+    s="$(param_.__example.cat "$@")"
+    eval "$name=\"\$s\""
+}
+
+param_.__example.cat(){
+    local i
+    echo "----------------"
+    printf "Example:\n"
+    for (( i=1; i<${#@}; i++ )); do
+        printf "  $(tput setaf 6)%s:$(tput init)\n" "* ${!i}"
+        (( i++ ))
+        printf "    > $(tput setaf 2)%s$(tput init)\n" "${!i}"
+    done
+}

@@ -1,0 +1,28 @@
+[advise]
+    repo=list_repo
+    1='
+        list_repo
+        list_repo
+    '
+    --repo2=['
+            list_repo
+            list_repo
+        ',
+        '
+            list_repo
+            list_repo
+        '
+    ]
+[type]
+    repo_type: "=~ [A-Za-z0-9]"
+[default]
+    scope=$O
+[option]
+    --repo|-r: ' <repo>:repo_type=""  "Provide repo name"  '
+    --repo2|-r2: ' <repo1>:repo_type=""  <repo2>:repo_type=""  "Provide repo name" '
+[subcommand]
+    repo=""
+    user=""
+[argument]
+    1='<repo name>:repo_type=""    "Repo Name"'
+    n='<repo name>:repo_type=""    "Repo Name"'

@@ -38,26 +38,23 @@ core_wc()(
 )
 
 core_tar()(
-    echo "$WSROOT/mod"
-    cd "$WSROOT/mod" && \
-        mkdir -p dist \
-        eval "tar cvf $WSROOT/dist/core.tar $(core_ls | tr '\n' ' ')" 2>/dev/null \
-        ls -alh dist/core.tar
+    mkdir -p "$WSROOT/dist" \
+    eval "tar -C $WSROOT/mod cvf $WSROOT/dist/core.tar $(core_ls | tr '\n' ' ')" 2>/dev/null \
+    ls -alh dist/core.tar
 )
 
 core_tgz()(
-    cd "$WSROOT/mod" && \
-        mkdir -p dist \
-        eval "tar czvf $WSROOT/dist/core.tgz $(core_ls | tr '\n' ' ')" 2>/dev/null \
-        ls -alh dist/core.tgz
+    mkdir -p "$WSROOT/dist" \
+    eval "tar -C $WSROOT/mod czvf $WSROOT/dist/core.tgz $(core_ls | tr '\n' ' ')" 2>/dev/null \
+    ls -alh dist/core.tgz
 )
 
-core_7z(){
-    cd "$WSROOT/mod" && \
-        mkdir -p dist \
-        eval "7z a $WSROOT/dist/core.tar.7z $(core_ls | tr '\n' ' ')" \
-        ls -alh dist/core.tar.7z
-}
+# core_7z(){
+#     cd "$WSROOT/mod" && \
+#         mkdir -p dist \
+#         eval "7z a $WSROOT/dist/core.tar.7z $(core_ls | tr '\n' ' ')" \
+#         ls -alh dist/core.tar.7z
+# }
 
 if [ "$#" -gt 0 ]; then
     op="$1"

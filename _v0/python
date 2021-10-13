@@ -1,4 +1,4 @@
-# shellcheck shell=sh disable=SC3043
+# shellcheck shell=sh disable=SC3043,SC2034
 
 xrc os/v0
 
@@ -18,7 +18,7 @@ ___x_cmd_python3_path_linux()(
         mkdir -p "$X_PYTHON_PATH"
         cd "$X_PYTHON_PATH" || return 1
         local url="https://repo.anaconda.com/miniconda"
-        if [ "${XRC_CHINA_NET:-0}" -eq 1 ]; then
+        if [ "${___X_CMD_IN_CHINA_NET:-0}" -eq 1 ]; then
             url="https://mirrors.tuna.tsinghua.edu.cn/anaconda/miniconda"
         fi
         if curl --fail --output "${MINICONDA_NAME}.sh" "$url/${MINICONDA_NAME}.sh"; then

@@ -1,4 +1,4 @@
-# shellcheck shell=sh disable=SC3043
+# shellcheck shell=sh disable=SC3043,SC2034
 
 ___x_cmd_nvm_install(){
     local VERSION="${1:?Provide node version}"

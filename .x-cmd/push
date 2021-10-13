@@ -9,3 +9,4 @@ git remote add github git@github.com:x-cmd/x-cmd.git
 git push github
 
 git push gitee main
+git push github main

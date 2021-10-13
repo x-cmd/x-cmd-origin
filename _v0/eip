@@ -1,0 +1,139 @@
+# shellcheck shell=sh disable=SC3043,SC2154
+
+# elastics ip
+
+ali_eip(){
+    param:dsl <<A
+subcommand:
+    allocate            "handle_domains"
+    release             "handling record"
+    associate           "associate the ip to the instance"
+    unassociate         "unassociate the ip to the instance"
+    ls                  "list"
+    quick               "quick"
+A
+    param:run
+
+    if [ -z "$PARAM_SUBCMD" ]; then
+        ali_eip_quick "$@"
+        return
+    fi
+
+    "ali_eip_$PARAM_SUBCMD" "$@"
+}
+
+
+ali_eip_allocate(){
+    param:dsl <<A
+options:
+    --bandwidth|-b          "Provide bandwidth"     <bandwidth>=5
+    --pay_by_bandwidth      "If set, paid by bandwdith. Otherwise, paid by traffic"
+    --bgp_pro               "Only for Hongkong Region"
+A
+    param:run
+
+    local args=""
+    [ -n "$pay_by_bandwidth" ] && args="$args --InternetChargeType PayByBandwidth"
+    [ -n "$bgp_pro" ] && args="$args --ISP BGP_PRO"
+
+    eval aliyun ecs AllocateEipAddress --Bandwidth "${bandwidth}" "$args"
+}
+
+ali_eip_ls_format(){
+    case "$LANG" in
+        zh_CN*) 
+            ali_table_json \
+                IP地址=.IpAddress 带宽=.Bandwidth  分配时间=.AllocationTime \
+                实例ID=.InstanceId 收费类型=.ChargeType 收费模式=.InternetChargeType ;;
+        *)      
+            ali_table_json \
+                ip=.IpAddress bw=.Bandwidth charge=.ChargeType time=.AllocationTime \
+                insId=.InstanceId insCharge=.InternetChargeType ;;
+    esac
+}
+
+# Translate title
+# Translate title
+
+# shellcheck disable=SC2120
+ali_eip_ls(){
+    param:void
+    case $# in
+        0)  ccmd 1s -- aliyun ecs DescribeEipAddresses | x jq .EipAddresses.EipAddress
+            ;;
+        *)  local regex="${1:-Provide regex pattern}"
+            ali_eip_ls | x jq -r "
+                .[] | 
+                if .IpAddress | test(\"$regex\")      then .
+                elif .AllocationId | test(\"$regex\")      then .
+                else empty end
+            " | x jq -s .
+            ;;
+    esac | {
+        if [ -t 1 ]; then
+            ali_eip_ls_format
+        else
+            cat
+        fi
+    }
+}
+
+ali_eip_exact_id(){
+    param:void
+    local s
+    s="$(ali_eip_ls "${1:-Provide ip}")"
+    local len
+    len="$(echo "$s" | x jq ' . | length ')"
+    case $len in
+        0)  ali_log warn "No such ip found."
+            ;;
+        1)  echo "$s" | x jq -r .[0].AllocationId
+            return 0
+            ;;
+        *)  ali_log warn "Multiple ip found."
+            ;;
+    esac
+    return 1
+}
+
+ali_eip_release(){
+    param:void
+    local id
+    if id="$(ali_eip_exact_id "$@")"; then
+        ali_log info "Allocation ID: $id"
+        aliyun ecs ReleaseEipAddress --AllocationId "$id"
+    fi
+}
+
+ali_eip_associate(){
+    param:void
+    local eip_id
+    local ecs_id
+
+    if eip_id="$(ali_eip_exact_id "${1:?Provide eip keyword}")" && \
+        ecs_id="$(ali_ec_exactid "${2:?Provide ecs keyword}")"
+    then
+        aliyun ecs AssociateEipAddress --AllocationId "$eip_id" --InstanceId "$ecs_id"
+    fi
+}
+
+# Very wired design.
+# I think, only ip should be provided.
+ali_eip_unassociate(){
+    param:void
+    local eip_id
+    local ecs_id
+
+    if eip_id="$(ali_eip_exact_id "${1:?Provide eip keyword}")" && \
+        ecs_id="$(ali_ec_exactid "${2:?Provide ecs keyword}")"
+    then
+        aliyun ecs UnassociateEipAddress --AllocationId "$eip_id" --InstanceId "$ecs_id"
+    fi
+}
+
+
+
+ali_eip_quick(){
+    ali_quicker2 eip
+}
+

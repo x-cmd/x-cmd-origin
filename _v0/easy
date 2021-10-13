@@ -1,0 +1,64 @@
+# shellcheck shell=sh disable=SC3043
+
+ali_easy(){
+    param:dsl <<A
+subcommand:
+    switchip          "switch ip"
+A
+    param:run
+
+    if [ -z "$PARAM_SUBCMD" ]; then
+        ali_easy_quick "$@"
+        return
+    fi
+
+    "ali_easy_$PARAM_SUBCMD" "$@"
+}
+
+ali_easy_switchip(){
+    :
+
+    local ip="${1:?ip}"
+    local dns=""
+    if ! ali_is_ip "$ip"; then
+        dns="$ip"
+        ip="$(ali dns ls "$ip" | x jq -r .[0].Value 2>/dev/null)"
+    fi
+
+    if ! ali_is_ip "$ip"; then
+        ali_log error "Not an ip. $ip. Receive $1"
+        return 1
+    fi
+
+    local instance_id
+    if ! instance_id="$(ali eip ls "$ip" | x jq -r .[0].InstanceId)"; then
+        ali_log error "Cannot find instance by $ips"
+        return 1
+    fi
+
+    local newip
+    if ! newip="$(ali eip allocate --bandwidth 200 | x jq -r .EipAddress)"; then
+        ali_log error "Cannot allocate new ip"
+        return 1
+    fi
+
+    if ! ali_is_ip "$newip"; then
+        ali_log error "Not an ip: $newip"
+        return 1
+    fi
+
+    if ali eip unassociate "$ip" "$instance_id"; then
+        ali_log info "Waiting 5s to associate to new ip"
+        sleep 5s
+        if ! ali eip associate "$newip" "$instance_id"; then
+            ali_log error "Fail to assoicate to new ip after allocate $newip and ali eip unassociate $ip $instance_id"
+            return 1
+        fi
+
+        ali eip release "$ip"
+        if [ -n "$dns" ]; then
+            ali dns "$dns" "$newip"
+        fi
+    fi
+
+}

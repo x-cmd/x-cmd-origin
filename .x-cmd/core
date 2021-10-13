@@ -33,20 +33,24 @@ core_ls()(
 )
 
 core_wc()(
-    cd "$WSROOT/mod" && \
+    cd "$WSROOT/mod" &&
         core_ls | xargs wc
 )
 
 core_tar()(
-    mkdir -p "$WSROOT/dist" \
-    eval "tar -C $WSROOT/mod cvf $WSROOT/dist/core.tar $(core_ls | tr '\n' ' ')" 2>/dev/null \
-    ls -alh dist/core.tar
+    cd "$WSROOT/mod" &&
+    mkdir -p "$WSROOT/dist" &&
+        eval "tar cvf core.tar $(core_ls | tr '\n' ' ')" &&
+        mv core.tar "$WSROOT/dist/core.tar" &&
+        ls -alh "$WSROOT/dist/core.tar"
 )
 
 core_tgz()(
-    mkdir -p "$WSROOT/dist" \
-    eval "tar -C $WSROOT/mod czvf $WSROOT/dist/core.tgz $(core_ls | tr '\n' ' ')" 2>/dev/null \
-    ls -alh dist/core.tgz
+    cd "$WSROOT/mod" &&
+    mkdir -p "$WSROOT/dist" &&
+        eval "tar czvf core.tgz $(core_ls | tr '\n' ' ')" &&
+        mv core.tgz "$WSROOT/dist/core.tgz" &&
+        ls -alh "$WSROOT/dist/core.tgz"
 )
 
 # core_7z(){

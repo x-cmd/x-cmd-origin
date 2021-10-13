@@ -1,0 +1,36 @@
+# shellcheck shell=bash
+
+# bind 'set show-all-if-ambiguous on'
+# # bind '"\e[A":history-search-backward'
+# # bind '"\e[B":history-search-forward'
+# # bind '"\e[5~": menu-complete-backward'
+# bind 'TAB:menu-complete'
+bind 'set completion-display-width 0'
+
+stty eof '^T'
+PS11=$PS1
+PS1='haha> '
+_complete() { PS1=${PS11}; echo "+q"; }
+bind '"\C-d": "\C-x\C-t\C-x\C-d"'
+bind -x '"\C-x\C-t": _complete'
+bind '"\C-x\C-d": "\n"'
+
+_telnet() {
+  COMPREPLY=()
+  local cur
+  cur=$(_get_cword)
+  local completions="10.10.10.10 - routerA
+10.10.10.11 - routerB
+10.20.1.3 - routerC"
+
+  local OLDIFS="$IFS"
+  local IFS=$'\n'
+  COMPREPLY=( $( compgen -W "$completions" -- "$cur" ) )
+  IFS="$OLDIFS"
+  if [[ ${#COMPREPLY[*]} -eq 1 ]]; then #Only one completion
+    COMPREPLY=( ${COMPREPLY[0]%% - *} ) #Remove ' - ' and everything after
+  fi
+  return 0
+}
+
+complete -F _telnet telnet

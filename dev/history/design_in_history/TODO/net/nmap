@@ -1,0 +1,14 @@
+# shellcheck shell=bash
+# Provide basic facilities
+
+nmap.scan(){
+    :
+}
+
+nmap.scan.ips(){
+    :
+}
+
+nmap.scan.all.work(){
+    :
+}

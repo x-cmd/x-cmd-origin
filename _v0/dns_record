@@ -1,0 +1,229 @@
+# shellcheck shell=sh disable=SC3043
+
+ali_dns_record(){
+    param:dsl <<A
+subcommand:
+    ls          "list all records"
+    put         "put record"
+    del         "del record"
+A
+    param:run
+
+    if [ -z "$PARAM_SUBCMD" ]; then
+        ali_dns_record_quick "$@"
+        return
+    fi
+
+    ali_dns_record_"$PARAM_SUBCMD" "$@"
+}
+
+ali_dns_record_add(){
+    local DomainName=${1}
+    local RR=${2}
+    local Value=${3}
+    local Type=${4}
+    if [ -z "$Type" ]; then
+        if ali_is_ip "$Value"; then
+            Type="A"
+        else
+            Type="CNAME"
+        fi
+    fi
+
+    aliyun alidns AddDomainRecord \
+        --DomainName "$DomainName" \
+        --RR "$RR" \
+        --Type "$Type" \
+        --Value "$Value"
+}
+
+_ali_dns_record_ls_format(){
+    ali_table_json \
+        .RecordId .Status .DomainName .RR .Type .Value .Weight  # .Line .Locked
+}
+
+ali_dns_record_ls(){
+#     param <<A
+# options:
+#     #1              "Domain Name, like x-cmd.com. Or domain name with RR keyword, like w.x-cmd.com"             =~      "[^\.]+\.[^\.]+"
+# A
+
+    if [ ! -t 1 ]; then
+        _ali_dns_record_ls "$@"
+    else
+        _ali_dns_record_ls "$@" | _ali_dns_record_ls_format
+    fi
+}
+
+_ali_dns_record_ls(){
+    param:void
+    case $# in
+        0)  ali dns domain ls | x jq -r .[].DomainName | while read -r line; do
+                _ali_dns_record_ls "$line"
+            done
+            ;;
+        1)  local name=${1}
+            local rr=${name%.*.*}
+            local domain=${name#"${rr}".}
+            if [ "$rr" = "$name" ]; then
+                _ali_dns_record_ls1 "$name"
+            else
+                _ali_dns_record_ls2 "$domain" "^$rr$"
+            fi
+            ;;
+        *)  _ali_dns_record_ls2 "$@"
+            ;;
+    esac    
+}
+
+ali_dns_record_cache_invalidate(){
+    ccmd invalidate aliyun alidns DescribeDomainRecords --DomainName "${1:?Provide domain name}"
+}
+
+_ali_dns_record_ls1(){
+    ccmd 1s -- aliyun alidns DescribeDomainRecords --DomainName "${1:?Provide domain name}" | x jq -r '.DomainRecords.Record'
+}
+
+_ali_dns_record_ls2(){
+    ali_log info "_ali_dns_record_ls   ${1:?Provide domain name}   ${2:-Provide regex pattern}"
+    local regex="${2}"
+    _ali_dns_record_ls1 "${1}" | x jq -r "
+        .[] | 
+        if .RR | test(\"$regex\")           then .
+        elif .Value | test(\"$regex\")      then .
+        elif .RecordId | test(\"$regex\")   then .
+        else empty end
+    " | x jq -s .
+}
+
+ali_exactor_declare ali_dns_record \
+    "No such ip found." \
+    "Multiple ip found." \
+    RecordId
+
+ali_dns_record_update(){
+    local RecordId=${1:?"Provide RecordId"}
+    local RR=${2:?"Provide RR"}
+    local Value=${3:?"Provide Work"}
+    local Type=${4:?"Provide Type"}
+    aliyun alidns UpdateDomainRecord \
+        --RecordId "$RecordId" \
+        --RR "$RR" \
+        --Type "$Type" \
+        --Value "$Value"
+}
+
+ali_dns_record_del(){
+    param:void
+
+    if [ "$#" -eq 1 ]; then
+        case "$1" in
+            *\.*)
+                local name=${1}
+                local rr=${name%.*.*}
+                local DomainName=${name#${rr}.}
+                ali_dns_record_del "$DomainName" "$rr"
+                ;;
+            *) 
+                if aliyun alidns DeleteDomainRecord --RecordId "$1"; then
+                    ali_log info "ali_dns_record_del success."
+                fi
+                ;;
+        esac
+    else
+        local DomainName=${1:?"Domain Name"}
+        local RR=${2:?"Provide RR"}
+        local RID
+        RID=$(ali_dns_record_exact_id "$DomainName" "$RR") && \
+        if aliyun alidns DeleteDomainRecord --RecordId "$RID"; then
+            ali_log info "ali_dns_record_del success."
+        fi
+    fi
+
+    # Disable all of the cache ?
+    ali_dns_record_cache_invalidate "$DomainName"
+}
+
+ali_dns_record_put(){
+#     param <<A
+# options:
+#     #1              "Domain Name."                                                                              <DomainName>   =~ [^\.]\.[^\.]
+#     #2              "Value like IP, or txt name"                                                                <Value>
+#     #3              "record type, if not provided, type default is A when value is an ip, otherwise CNAME"      <Type>=A       =  A   CNAME    NS TXT  MX AAAA SRV
+# A
+    param:void
+
+    local name=${1}
+    # TODO
+    # This is wrong. What if we own a domain like like x-cmd.com.cn ?
+    # We should check the dns name. Find out which record do we match.
+    local rr=${name%.*.*}
+    local domain=${name#${rr}.}
+
+    local rec=${2}
+    local type=${3}
+    if [ -z "$type" ]; then
+        if ali_is_ip "$rec"; then
+            type=A
+        else
+            type=CNAME
+        fi
+    fi
+
+    ali_dns_record_put_raw "$domain" "$rr" "$rec" "$type"
+}
+
+ali_dns_record_put_raw(){
+    local DomainName=${1:?"Domain Name"}
+    local RR=${2:?"Provide RR"}
+    local Value=${3:?"Provide IP"}
+    local Type=${4:?"Provide Type"}
+
+    local item
+    item="$(_ali_dns_record_ls "$DomainName" "^$RR$")"
+    local len
+    len="$(printf "%s" "$item" | x jq '. | length' 2>/dev/null)"
+
+    if [ "$len" -eq 0 ]; then
+        ali_log info "Add New Record\n: $DomainName $RR $Value $Type"
+        ali_dns_record_add "$DomainName" "$RR" "$Value" "$Type" 
+    elif [ "$len" -eq 1 ]; then
+        local v
+        v=$(printf "%s" "$item" | x jq -r .[0].Value)
+        if [ "$Value" = "$v" ]; then
+            ali_log warn "Item already existed."
+        else
+            RID=$(printf "%s" "$item" | x jq -r .[0].RecordId)
+            ali_log info "Already Register. Try to update: $RID $RR $Value $Type"
+            ali_dns_record_update "$RID" "$RR" "$Value" "$Type"
+        fi
+    else
+        ali_log error "Found More than 1 item."
+        return 1
+    fi && ali_dns_record_cache_invalidate "$DomainName"
+}
+
+# ali_dns_record_quick(){
+#     if [ "$#" -eq 0 ]; then
+#         ali_log warn "Please provide keyword"
+#         return 1
+#     fi
+
+#     ali dns record ls "$@" && {
+#         ps1env init "ali dns record>"
+#         ps1env alias + "ali dns record ls"
+#         ps1env alias :h "ali dns record help"
+#         local IFS
+#         local subcmd
+#         while read -r subcmd; do
+#             ps1env alias "+$subcmd" "ali dns record $subcmd"
+#         done <<A
+# $(ali dns record _param_list_subcmd)
+# A
+#     }
+    
+# }
+
+ali_dns_record_quick(){
+    ali_quicker2 "dns record" "$@"
+}

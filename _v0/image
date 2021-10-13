@@ -1,0 +1,122 @@
+# shellcheck shell=sh disable=SC3043
+
+
+ali_image(){
+    param:dsl <<A
+subcommand:
+    ls              "list"
+    exact           "eaxct"
+    exactid         "exactid"
+A
+    param:run
+
+    if [ -z "$PARAM_SUBCMD" ]; then
+        ali_image_quick "$@"
+        return
+    fi
+
+    "ali_image_$PARAM_SUBCMD" "$@"
+}
+
+# --OSType
+# --PageSize
+
+ali_image_ls_format(){
+    ali_table_json .ImageId .OSName  .CreationTime # arch=.Architecture  .OSType  .Platform
+}
+
+ali_image_ls(){
+#     param <<A
+# subcommand:
+#     linux           "Linux"
+#     debian          "debian"
+#     ubuntu          "ubuntu"
+#     aliyun          "Aliyun"
+#     centos          "CentOS"
+#     win             "Windows Server 2019"
+#     fedora          "Fedora"
+#     suse            "suse"
+#     coreos          "coreos"
+# A
+
+    local ARGS="--OSType linux"
+
+    local platform="$1"
+    ARGS=""
+    # case "$PARAM_SUBCMD" in
+    #     win)        ARGS="--OSType windows" ;;
+    #     linux)      ARGS="--OSType linux"  ;;
+    #     debian)     platform=Debian ;;
+    #     ubuntu)     platform=Ubuntu ;;
+    #     aliyun)     platform=Aliyun ;;
+    #     centos)     platform=CentOS ;;
+    #     fedora)     platform=Fedora ;;
+    #     suse)       platform=SUSE ;;
+    #     coreos)     platform=CoreOS ;;
+    #     gentoo)     platform=Gentoo ;;
+    #     *)          ARGS=""
+    #                 platform="$1"
+    #                 ;;
+    # esac
+
+    platform="$(printf "%s" "$platform" | tr "[:upper:]" "[:lower:]")"
+
+    eval ccmd 3h -- aliyun ecs DescribeImages "$ARGS" --PageSize 100 | x jq .Images.Image[] | {
+        if [ -z "$platform" ]; then
+            cat
+        else
+            x jq ". | 
+                if .Platform | ascii_downcase | test(\"$platform\") then . 
+                elif .ImageId | ascii_downcase | test(\"$platform\") then .
+                else empty end"
+            # cat
+        fi
+    } | x jq -s . | {
+        if [ -t 1 ]; then
+            x jq ".[] |= . + { 
+                CreationTime: .CreationTime[0:10],
+                OSName: .OSName[0:30]
+            }" | ali_image_ls_format
+        else
+            cat
+        fi
+    }
+}
+
+ali_exactor_declare ali_image "No such image found." "Multiple images found." ImageId
+
+# ali_image_exact(){
+#     local ret
+#     ret="$(ali_image_ls "$@")"
+#     local len
+#     len="$(printf "%s" "$ret" | x jq '. | length')"
+
+#     case "$len" in
+#         0)  ali_log warn "No such image found.";;
+#         1)  printf "%s" "$ret";;
+#         *)  ali_log warn "Multiple images found.";;
+#     esac
+# }
+
+# ali_image_exact_id(){
+#     ali_image_exact "$@" | x jq -r .[0].ImageId
+# }
+
+# Create Image from an Instance
+
+# 1. Take Snapshot
+# 2. Save snapshot to image
+
+
+# ali_image_quick(){
+#     ali_quicker "ali_image" \
+#         "\033[1;33mali image >\033[0m " \
+#         "create|del|import" "$@"
+# }
+
+
+ali_image_quick(){
+    ali_quicker2 image "$@"
+}
+
+

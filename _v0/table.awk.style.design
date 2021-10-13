@@ -1,0 +1,72 @@
+______________________________________+
+| Rule    | Route    | Method | Name  |
+| think    | <Cloure> | get   | work  |
+| think    | <Cloure> | get   | work  |
+| think    | <Cloure> | get   | work  |
+| think    | <Cloure> | get   | work  |
+______________________________________+
+
+---------------------------------
+ Rule    Route      Method  Name 
+---------------------------------
+ think   <Cloure>   get     work 
+ think   <Cloure>   get     work 
+ think   <Cloure>   get     work 
+ think   <Cloure>   get     work 
+---------------------------------
+
++---------------------------------+
+| Rule    Route      Method  Name |
++---------------------------------+
+| think   <Cloure>   get     work |
+| think   <Cloure>   get     work |
+| think   <Cloure>   get     work |
+| think   <Cloure>   get     work |
++---------------------------------+
+
++--------+----------+--------+-----+
+| Rule     Route      Method  Name |
++--------+----------+--------+-----+
+| think    <Cloure>   get     work |
+| think    <Cloure>   get     work |
+| think    <Cloure>   get     work |
+| think    <Cloure>   get     work |
++----------------------------------+
+
+
+
++-----------------------------------+
+| Rule   | Route    | Method | Name |
++--------+----------+---------------+
+| think  | <Cloure> | get   | work  |
+| think  | <Cloure> | get   | work  |
+| think  | <Cloure> | get   | work  |
+| think  | <Cloure> | get   | work  |
++-----------------------------------+
+
+
++-----------------------------------+
+| Rule  | Route    | Method | Name  |
++-----------------------------------+
+| think | <Cloure> | get    | work  |
+| think | <Cloure> | get    | work  |
+| think | <Cloure> | get    | work  |
+| think | <Cloure> | get    | work  |
++-----------------------------------+
+
+
+
+
+
+
+
+
+
+Rule     Route      Method  Name
+______________________________________
+think    <Cloure>   get     work
+think    <Cloure>   get     work
+think    <Cloure>   get     work
+think    <Cloure>   get     work
+
+

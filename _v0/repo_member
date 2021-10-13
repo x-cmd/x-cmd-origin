@@ -1,0 +1,87 @@
+# shellcheck shell=sh
+# shellcheck disable=SC2039,3043
+
+# Should be like this.
+# gt repo member add el:admin
+# gt repo member remove user-a
+# gt repo member add user-b
+
+# gt repo member +el:admin -user-a +user-b
+gt_repo_member(){
+    param:dsl       '
+subcommands:
+    ls              "list member"
+    add             "add member"
+    del|remove      "Remove member"
+'
+    param:run
+
+    if [ -z "$PARAM_SUBCMD" ]; then
+        gt_log error "subcommand not found. show help."
+        return 0
+    fi
+    
+    "gt_repo_member_$PARAM_SUBCMD" "$@"
+}
+
+gt_repo_member_ls() {
+    param:scope     "gitee/$O"
+    param:dsl       '
+options:
+    #1|--repo          "Repo name"         <>:repo
+'
+    param:run
+
+    gt_param_init_owner_repo
+    gt_get "/v5/repos/${owner_repo}/collaborators" page per_page | json_color
+}
+
+gt_repo_member_add() {
+    param:scope     "gitee/$O"
+    param:dsl       '
+options:
+    --repo|-r           "Repo name"             <>:repo
+    --permission|-p     "permission"            <>:permission
+    #n                  "Username list"         <>
+'
+    param:run
+
+    gt_param_init_owner_repo
+    if [ -z "$1" ];then
+        echo "At least one user’s spatial address is needed"
+        return 1
+    fi
+    local username
+    for username in "$@"; do
+        {
+            gt_put_json "/v5/repos/$owner_repo/collaborators/${username##*/}" permission
+            local code=$?
+            if [ $code -ne 0 ]; then
+                gt_log error "Creating repo failure: $name. Code is $code. "
+                # gt_resp_header "" >&2
+                return $code
+            fi
+        } | json_color
+    done
+}
+
+# https://gitee.com/api/v5/swagger#/deleteV5ReposOwnerRepoCollaboratorsUsername
+gt_repo_member_del() {
+    param:scope     "gitee/$O"
+    param:dsl       '
+options:
+    --repo|-r       "Repo name"            <>:repo
+    #n              "Username list"
+'
+    param:run
+    if [ -z "$1" ];then
+        gt_log error "At least one user’s spatial address is needed"
+        return 1
+    fi
+
+    gt_param_init_owner_repo
+    local username
+    for username in "$@"; do
+        gt_delete "/v5/repos/$owner_repo/collaborators/${username##*/}"
+    done
+}

@@ -1,0 +1,27 @@
+json_table(){
+    local IFS=$'\002' # IFS="$(printf "\002")"
+    {
+        printf "%s\034" "$*"
+        cat
+    } | {
+        awk -f json_table.awk
+    }
+}
+
+echo '[
+    { "a": 1, "b": 2, "c": 9 },
+    { "b": 1, "a": 2, "c": 10 },
+    { "b": 1, "a": 3, "c": 11 }
+]' | json_table a b c
+
+
+echo '[
+    { "user": "el", "id": 12123321321, "idea": "ccc" },
+    { "user": "test-user", "id": 12123321312, "idea": "fff" },
+    { "user": "tzw", "id": 12123321343, "idea": "fff" },
+    { "user": "lth", "id": 12123321343, "idea": "fff" },
+    { "user": "zlx", "id": 12123321343, "idea": "fff" },
+]' | json_table user idea id
+
+
+time json_table Created Architecture Os RepoTags < docker-images.json

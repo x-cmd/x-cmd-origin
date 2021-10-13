@@ -1,0 +1,30 @@
+#! /usr/bin/env bash
+
+# Using awk to parse ...
+# jo b                  == json_color b
+# jo b=[1,2,3]          == json_var b [1,2,3]
+# jo b.hi.c=5           == json_putkv
+# jo b.append(3)        == json_append b 3
+# jo b.push(3)          == json_push b 3
+# jo b.prepend(3)       == json_prepend b 3
+# jo b.shift()          == json_shift b
+# jo b.pop()            == json_pop b
+# jo b.values()         == json_values b
+
+
+# This kind of code should be placed in to the 
+jo(){
+    :
+    case $# in
+    0)  echo "show help";;
+    1)  
+        [[ "$1" =~ ^[A-Za-z_0-9]$ ]] && json_color "$1" && break;
+        # TODO
+        [[ "$1" =~ ^[A-Za-z_0-9]= ]] && json_var "${1%%=*}" "${1#*=}" && break;
+        [[ "$1" =~ ^[A-Za-z_0-9.\[\]\*]= ]] && json_putkv "${1%%=*}" "${1#*=}" && break;
+
+        jo.query "$1" ;;
+    2)  json_var "$1" "$2";;
+    *);;
+    esac
+}

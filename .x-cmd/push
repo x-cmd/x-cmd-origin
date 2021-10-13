@@ -7,3 +7,5 @@ git push gitee
 git remote remove github 2>/dev/null
 git remote add github git@github.com:x-cmd/x-cmd.git
 git push github
+
+git push gitee main

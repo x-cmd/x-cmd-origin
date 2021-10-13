@@ -1,0 +1,82 @@
+debug_list(){
+    # declare -f | grep "()" | grep "\.debug" | cut -d ' ' -f 1
+    local i
+    for i in "${!XRC_DBG_@}"; do
+        echo "${i:8}" | tr "[:lower:]" "[:upper:]"
+    done
+}
+
+debug_init(){
+    local i var
+    for i in "$@"; do
+        var="$(echo "XRC_DBG_$i" | tr "[:lower:]" "[:upper:]")"
+        eval "$var=\${$var:-\$$var}"
+        eval "${i}_debug(){ [ \$$var ] && O=$i LEVEL=DBG _debug_logger \"\$@\"; }"
+        alias "${i}.debug"="${i}_debug"
+        # alias $i_debug="[ \$$var ] && O=$i LEVEL=DBG _debug_logger"
+        # alias $i_debug_enable="$var=true"
+        # alias $i_debug_disable="$var=;"
+        # alias $i_debug_is_enable="[ \$$var ]"
+        [ ! $X_BASH_SRC_SHELL = "sh" ] && {
+            eval "export $var" 2>/dev/null
+            eval "export -f ${i}_debug 2>/dev/null"  # "$i_debug_enable $i.debug_disable"
+        }
+    done
+    
+}
+
+debug_enable(){
+    local i var
+    for i in "$@"; do
+        var="$(echo "XRC_DBG_$i" | tr "[:lower:]" "[:upper:]")"
+        eval "$var=true"
+    done
+}
+
+debug_disable(){
+    local i var
+    for i in "$@"; do
+        var="$(echo "XRC_DBG_$i" | tr "[:lower:]" "[:upper:]")"
+        eval "$var="
+    done
+}
+
+debug_is_enable(){
+    local var
+    var="$(echo "XRC_DBG_${0:?Module}" | tr "[:lower:]" "[:upper:]")"
+    eval "[ \$var ]"
+}
+
+export XRC_COLOR_LOG=1
+_debug_logger(){
+    local logger=${O:-DEFAULT} level=${LEVEL:-DBG} IFS=
+    # eval "[ \$$var ] && return 0"
+
+    if [ $# -eq 0 ]; then
+        if [ -n "$XRC_COLOR_LOG" ]; then
+            # printf "\e[31m%s[%s]: " "$logger" "$level" 
+            printf "\e[;2m%s[%s]: " "$logger" "$level"
+            cat
+            printf "\e[0m\n"
+        else
+            printf "%s[%s]: " "$logger" "$level"
+            cat
+            printf "\n"
+        fi
+    else
+        if [ -n "$XRC_COLOR_LOG" ]; then
+            printf "\e[;2m%s[%s]: %s\e[0m\n" "$logger" "$level" "$*"
+        else
+            printf "%s[%s]: %s\n" "$logger" "$level" "$*"
+        fi
+    fi >&2
+    return 0
+}
+
+debug_init boot xrc
+debug_enable boot
+
+# debug +enable -xrc ?xrc # Too many functions.
+alias debug.disable=debug_disable
+alias debug.enable=debug_enable
+alias debug.init=debug_init

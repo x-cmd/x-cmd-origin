@@ -1,7 +1,5 @@
 # shellcheck shell=sh disable=SC3043
 
-xrc x-cmd/_v0/initrc
-
 ___x_cmd_readlink_recursive(){
     if [ -L "${1:?Provide link}" ]; then
         local next_link
@@ -242,7 +240,6 @@ A
 # EndSection
 
 # Section : utilties in static-build
-xrc static-build
 
 # _x_xrc_static_run(){
 #     local name=$1;  shift
@@ -252,34 +249,33 @@ xrc static-build
 # }
 
 ___x_cmd_jq(){
-    static_build_init jq jq ___x_cmd_jq && ___x_cmd_jq          "$@"
+    xrc static-build && static_build_init jq jq ___x_cmd_jq && ___x_cmd_jq          "$@"
 }
 
 ___x_cmd_bw(){
-    static_build_init bandwhich bandwhich ___x_cmd_bw && ___x_cmd_bw          "$@"
+    xrc static-build && static_build_init bandwhich bandwhich ___x_cmd_bw && ___x_cmd_bw          "$@"
 }
 
 ___x_cmd_exa(){
-    static_build_init exa exa ___x_cmd_exa && ___x_cmd_exa      "$@"
+    xrc static-build && static_build_init exa exa ___x_cmd_exa && ___x_cmd_exa      "$@"
 }
 
 ___x_cmd_dust(){
-    static_build_init dust dust ___x_cmd_dust && ___x_cmd_dust  "$@"
+    xrc static-build && static_build_init dust dust ___x_cmd_dust && ___x_cmd_dust  "$@"
 }
 
 ___x_cmd_procs(){
-    static_build_init procs procs ___x_cmd_procs && ___x_cmd_procs  "$@"
+    xrc static-build && static_build_init procs procs ___x_cmd_procs && ___x_cmd_procs  "$@"
 }
 
 ___x_cmd_bat(){
-    static_build_init bat bat ___x_cmd_bat && ___x_cmd_bat      "$@"
+    xrc static-build && static_build_init bat bat ___x_cmd_bat && ___x_cmd_bat      "$@"
 }
 
 # EndSection
 
 # Section : Runtime, future using xenv module
-xrc x-cmd/_v0/node
-xrc x-cmd/_v0/python
+
 # . _v0/node
 # . _v0/python
 
@@ -345,7 +341,7 @@ ___x_cmd_main(){
         token)                                  ( xrc hub/v0 && ___x_cmd_hub token "$@" ) ;;
         hub)                                    ( xrc hub/v0 && ___x_cmd_hub "$@" ) ;;
 
-        log)                                    ( xrc x-cmd/_v0/log && ___x_cmd_log "$@"; ) ;;
+        log)                                    xrc x-cmd/_v0/log && ___x_cmd_log "$@" ;;
 
         upgrade)    eval "$(curl https://get.x-cmd.com/script)" ;;
         clear)      if ! grep "___x_cmd_http_get()" "$___X_CMD_ROOT/xrc/v0" >/dev/null 2>&1; then
@@ -365,13 +361,13 @@ ___x_cmd_main(){
         jar)                                    java -jar "$@" ;;
         java)                                   java "$@" ;;
 
-        pip|pip3)                               ___x_cmd_pip3 "$@" ;;
-        python|py|python3|py3)                  ___x_cmd_python3 "$@" ;;
+        pip|pip3)                               xrc x-cmd/_v0/python && ___x_cmd_pip3 "$@" ;;
+        python|py|python3|py3)                  xrc x-cmd/_v0/python && ___x_cmd_python3 "$@" ;;
 
         nvm)                                    xrc nvm/v0;     nvm "$@" ;;
-        javascript|js|node)                     ___x_cmd_node "$@" ;;
-        npm)                                    ___x_cmd_npm "$@" ;;
-        npx)                                    ___x_cmd_npx "$@" ;;
+        javascript|js|node)                     xrc x-cmd/_v0/node && ___x_cmd_node "$@" ;;
+        npm)                                    xrc x-cmd/_v0/node && ___x_cmd_npm "$@" ;;
+        npx)                                    xrc x-cmd/_v0/node && ___x_cmd_npx "$@" ;;
         ts)         local arg
                     local argstr
                     while [ $# -ge 0 ]; do
@@ -412,10 +408,13 @@ ___x_cmd_main(){
                     done
                     ;;
         _x_cmd_advise_json)                     ___x_cmd_x_cmd_advise_json "$@" ;;
-        *)          local p
+        *)
+                    local p
                     if p="$(___x_cmd_which_one "$subcmd" 2>/dev/null)"; then
-                        ___x_cmd_run_by_file "$p" "$@" 2>/dev/null
+                        ___x_cmd_run_by_file "$p" "$@" # 2>/dev/null
                         return
+                    else
+                        printf "%s" "Error" >&2
                     fi
                     printf "%s" "$p"
     esac

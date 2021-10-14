@@ -8,6 +8,7 @@ str
 list
 dict
 json
+os
 
 # basic modules: dependencies
 param

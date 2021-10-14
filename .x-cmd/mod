@@ -29,6 +29,7 @@ list
 assert
 dict
 json
+os
 
 # basic modules: dependencies
 param

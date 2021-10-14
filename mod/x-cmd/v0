@@ -310,9 +310,11 @@ ___x_cmd_shell_exec(){
     local shell="${1:?Provide shell}"
     shift
     if [ -x "/bin/$shell" ]; then
-        "/bin/$shell" $X_CMD_SRC_PATH/boot && . "$@"
+        # "/bin/$shell" $X_CMD_SRC_PATH/boot && . "$@"
+        "/bin/$shell" "$@"
     elif [ -x "/usr/bin/$shell" ]; then
-        "/usr/bin/$shell" $X_CMD_SRC_PATH/boot && . "$@"
+        # "/usr/bin/$shell" $X_CMD_SRC_PATH/boot && . "$@"
+        "/usr/bin/$shell" "$@"
     else
         command "$shell" "$@"
     fi
@@ -332,6 +334,7 @@ ___x_cmd_ls(){
 ___x_cmd_main(){
     local subcmd=$1;    shift 2>/dev/null
     case "$subcmd" in
+        ""|help)                                printf "%s" "Show help" >&2; return 1 ;;
         boot)                                   ( xrc x-cmd/_v0/boot && ___x_cmd_boot "$@"; ) ;;
         *=)                                     ___x_cmd_var "$subcmd" "$@" ;;
         i|install)                              xrc install/v0 && ___x_cmd_install "$@" ;;
@@ -410,7 +413,7 @@ ___x_cmd_main(){
         _x_cmd_advise_json)                     ___x_cmd_x_cmd_advise_json "$@" ;;
         *)
                     local p
-                    if p="$(___x_cmd_which_one "$subcmd" 2>/dev/null)"; then
+                    if p="$(___x_cmd_which_one "$subcmd")"; then
                         ___x_cmd_run_by_file "$p" "$@" # 2>/dev/null
                         return
                     else

@@ -51,7 +51,7 @@ core_tar()(
 core_tgz()(
     cd "$WSROOT/mod" &&
     mkdir -p "$WSROOT/dist" &&
-        eval "tar czvf core.tgz $(core_ls | tr '\n' ' ')" &&
+        eval "tar czvf core.tgz SEP $(core_ls | tr '\n' ' ')" &&
         mv core.tgz "$WSROOT/dist/core.tgz" &&
         ls -alh "$WSROOT/dist/core.tgz"
 )

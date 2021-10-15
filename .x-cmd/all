@@ -39,10 +39,10 @@ all_wc(){
     all_ls | xargs wc
 }
 
-all_targz(){
+all_tgz(){
     mkdir -p dist
-    eval "tar czvf dist/all.tar.gz $(all_ls | tr '\n' ' ')" 2>/dev/null
-    ls -alh dist/all.tar.gz
+    eval "tar czvf dist/all.tgz $(all_ls | tr '\n' ' ')" # 2>/dev/null
+    ls -alh dist/all.tgz
 }
 
 all_tar(){

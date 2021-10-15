@@ -44,7 +44,9 @@ ccmd
 
 # web clients
 ali
+aws
 gitee
+github
 
 "
     while read -r mod; do

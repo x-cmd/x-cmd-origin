@@ -3,6 +3,7 @@
 mod_list="
 xrc
 x-cmd
+hub
 
 # basic modules: non dependency
 str

@@ -11,15 +11,13 @@ ___x_cmd_boot(){
 
 if command -v xrc >dev/null 2>&1; then
     return 0
-elif [ -f "$HOME/.x-cmd/.tgz/core.tgz" ]; then
-    ___X_CMD_CORE_TGZ="$___X_CMD_ROOT/.tgz/core.tgz"
-    eval "$(tar Oxf "$___X_CMD_CORE_TGZ" xrc/latest)"
 elif [ -f "$HOME/.x-cmd/xrc/latest" ]; then
     . "$HOME/.x-cmd/xrc/latest"
 else
-    printf "%s\n  %s" 'core.tgz or xrc/latest not found. You can reinstall using:' 'eval "$(curl https://get.x-cmd.com/exp)"'
+    printf "%s\n  %s" 'xrc/latest not found. You can reinstall using:' 'eval "$(curl https://get.x-cmd.com/all)"'
     return 1
 fi
+
 [ -f "$___X_CMD_ROOT/.boot/mod" ] && x boot mod load
 A
             (
@@ -30,7 +28,7 @@ A
                 else                                CAN="$HOME/.shinit"
                 fi
 
-                X_STR="[ -f \"\$HOME/.x-cmd/.boot/boot\" ]. \"\$HOME/.x-cmd/.boot/boot\""
+                X_STR="[ -f \"\$HOME/.x-cmd/.boot/boot\" ] && . \"\$HOME/.x-cmd/.boot\""
                 IFS=" "
                 for i in $CAN; do
                     if grep -F "$X_STR" "$i" >/dev/null; then
@@ -43,10 +41,13 @@ A
             )
             ;;
         mod)    shift
+
+                local ___X_CMD_ROOT_MOD="$___X_CMD_ROOT/.boot.mod"
                 case "$1" in
+                    path)       printf "%s" "$___X_CMD_ROOT_MOD" ;;
                     add|+)      shift
                                 (
-                                    s="$(cat "$___X_CMD_ROOT/mod")"
+                                    s="$(cat "$___X_CMD_ROOT_MOD")"
                                     for mod in "$@"; do
                                         if [ "$s" != "${s#|$mod|}" ]; then
                                             printf "%s\n" "$s"
@@ -55,19 +56,19 @@ A
                                 ) ;;
                     del|-)      shift
                                 (
-                                    s="$(cat "$___X_CMD_ROOT/mod")"
+                                    s="$(cat "$___X_CMD_ROOT_MOD")"
                                     d="$s"
                                     for mod in "$@"; do
                                         d="${d#*|$mod|
 *}"
                                     done
                                     if [ "$d" != "$s" ]; then
-                                        printf "%s" "$s" > "$___X_CMD_ROOT/mod"
+                                        printf "%s" "$s" > "$___X_CMD_ROOT_MOD"
                                     fi
                                 )
                                 ;;
-                    ls|*)       cat "$___X_CMD_ROOT/mod" ;;
-                    load)       eval xrc "$(tr '\n' ' ' <"$___X_CMD_ROOT/mod" | tr -d '|')"
+                    load)       eval xrc "$(tr '\n' ' ' <"$___X_CMD_ROOT_MOD" | tr -d '|')" ;;
+                    ls|*)       cat "$___X_CMD_ROOT_MOD" ;;
                 esac
                 ;;
         # which)  printf "%s\n" "$X_CMD_SRC_PATH/.init.rc"    ;;

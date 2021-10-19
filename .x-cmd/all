@@ -47,24 +47,24 @@ all_wc()(
 all_tar()(
     cd "$WSROOT/mod" &&
     mkdir -p "$WSROOT/dist" &&
-        eval "tar cvf core.tar $(all_ls | tr '\n' ' ')" &&
-        mv core.tar "$WSROOT/dist/core.tar" &&
-        ls -alh "$WSROOT/dist/core.tar"
+        eval "tar cvf all.tar $(all_ls | tr '\n' ' ')" &&
+        mv all.tar "$WSROOT/dist/all.tar" &&
+        ls -alh "$WSROOT/dist/all.tar"
 )
 
 all_tgz()(
     cd "$WSROOT/mod" &&
     mkdir -p "$WSROOT/dist" &&
-        eval "tar czvf core.tgz $(all_ls | tr '\n' ' ')" &&
-        mv core.tgz "$WSROOT/dist/core.tgz" &&
-        ls -alh "$WSROOT/dist/core.tgz"
+        eval "tar czvf all.tgz $(all_ls | tr '\n' ' ')" &&
+        mv all.tgz "$WSROOT/dist/all.tgz" &&
+        ls -alh "$WSROOT/dist/all.tgz"
 )
 
 # all_7z(){
 #     cd "$WSROOT/mod" && \
 #         mkdir -p dist \
-#         eval "7z a $WSROOT/dist/core.tar.7z $(all_ls | tr '\n' ' ')" \
-#         ls -alh dist/core.tar.7z
+#         eval "7z a $WSROOT/dist/all.tar.7z $(all_ls | tr '\n' ' ')" \
+#         ls -alh dist/all.tar.7z
 # }
 
 if [ "$#" -gt 0 ]; then

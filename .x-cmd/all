@@ -20,6 +20,7 @@ ui
 # modules
 static-build
 ccmd
+xdk
 
 # web clients
 ali

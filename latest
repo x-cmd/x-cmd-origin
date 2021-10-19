@@ -1,0 +1,6 @@
+# shellcheck shell=sh
+
+# author:       Li Junhao           l@x-cmd.com    edwinjhlee.github.io
+# maintainer:   Li Junhao
+
+xrc xdk/v0

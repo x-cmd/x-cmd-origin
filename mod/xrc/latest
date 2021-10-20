@@ -14,7 +14,7 @@ ___x_cmd_http_getfile(){
 
     local code=$?
     local http_code
-    http_code="$(printf "%s" "$___X_CMD_HTTP_GET_INNER_HEADER" | head -n 1)"
+    http_code="$(printf "%s" "$___X_CMD_HTTP_GET_INNER_HEADER" | awk 'NR==1{ printf("%s", $2); }')"
 
     case "$http_code" in
         20*)   return 0 ;;

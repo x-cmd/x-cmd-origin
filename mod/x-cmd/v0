@@ -338,6 +338,13 @@ ___x_cmd_main(){
         *=)                                     ___x_cmd_var "$subcmd" "$@" ;;
         i|install)                              xrc install/v0 && ___x_cmd_install "$@" ;;
 
+        config)     ;;
+        man)        ;;
+        adviser)    ;;
+        proxy)      ;;
+        theme)      ;;
+        env)        ;;
+
         login)                                  ( xrc hub/v0 && ___x_cmd_hub login "$@" ) ;;
         register)                               ( xrc hub/v0 && ___x_cmd_hub register "$@" ) ;;
         token)                                  ( xrc hub/v0 && ___x_cmd_hub token "$@" ) ;;

@@ -1,0 +1,62 @@
+# shellcheck shell=sh disable=SC3043
+
+# author:       Li Junhao           l@x-cmd.com    edwinjhlee.github.io
+# maintainer:   Li Junhao
+
+if command -v 7z 1>/dev/null 2>&1; then
+    _7zd_which(){
+        command -v 7z
+    }
+
+else
+
+x log init p7zr
+_7zd_which(){
+    local target="$HOME/.x-cmd/.bin/7zd"
+    mkdir -p "$target"
+
+    xrc os/v0       # In need
+    local arch
+    arch="$(os arch)"
+    local osname
+    osname="$(os name)"
+
+    p7zr_log debug "detect osname/arch: $osname/$arch"
+
+    if [ "$osname" = "win" ]; then
+        p7zr_log debug "Downloading: https://gitee.com/static-build/p7zip/raw/master/bin/7za.$arch.exe"
+        if CACHE="$target/7za.exe" ___xcmd_curl "https://gitee.com/static-build/p7zip/raw/master/bin/7za.$arch.exe"; then   
+            chmod +x "$target/7za.exe" && printf "%s" "$target/7za.exe"
+        else
+            p7zr_log error "Fail to download."
+            return 1
+        fi
+    else
+        case "$osname" in
+            linux|darwin)
+                p7zr_log debug "Downloading: https://gitee.com/static-build/p7zip/raw/master/bin/7zd.$osname.$arch"
+                if  CACHE="$target/7zd" ___xcmd_curl "https://gitee.com/static-build/p7zip/raw/master/bin/7zd.$osname.$arch"
+                then
+                    chmod +x "$target/7zd" && printf "%s" "$target/7zd"
+                else
+                    p7zr_log error "Fail to download."
+                    return 1
+                fi
+            ;;
+            *)  p7zr_log error "Unsupported [arch=$arch] [os=$osname]!" >&2; return 1 ;;
+        esac
+    fi
+}
+
+fi
+
+p7zr(){
+    local path
+    path=$(_7zd_which)
+    eval "
+        p7zr(){
+            $path \${1:+\"\$@\"}
+        }
+    "
+    p7zr ${1:+"$@"}
+}

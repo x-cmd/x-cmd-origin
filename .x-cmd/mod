@@ -48,6 +48,14 @@ el
 # web clients
 ali
 gitee
+
+# static-build
+# ls
+# du
+# ps
+# cat
+# bw
+# p7z
 "
     while read -r mod; do
         case "$mod" in

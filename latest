@@ -7,10 +7,10 @@ if curl --version 1>/dev/null 2>&1; then
 ___x_cmd_http_getfile(){
     local url="${1:?Provide url}"
     local cache="${2:?Provide local cache}"
-    ___xrc_log debug curl --dump /dev/stdout --output "$cache" --max-time "${XRC_MAX_TIME:-3}" "$url"
+    ___xrc_log debug curl --dump /dev/stdout --output "$cache" --speed-time 5 --speed-limit 10 "$url"
 
     # Other solution: --speed-time 5 --speed-limit 10, disconnect if less than 10kb, and last for 5 seconds.
-    ___X_CMD_HTTP_GET_INNER_HEADER="$(curl --dump /dev/stdout --output "$cache" --max-time "${XRC_MAX_TIME:-3}" "$url")"
+    ___X_CMD_HTTP_GET_INNER_HEADER="$(curl --dump /dev/stdout --output "$cache" --speed-time 5 --speed-limit 10 "$url")"
 
     local code=$?
     local http_code

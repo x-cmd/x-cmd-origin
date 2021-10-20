@@ -30,8 +30,7 @@ _7zd_which(){
 
     if [ "$osname" = "win" ]; then
         p7zr_log debug "Downloading: $url/7za.$arch.exe"
-        # if CACHE="$target/7za.exe" ___x_cmd_curl "$url/7za.$arch.exe"; then   
-        if curl "$url/7za.$arch.exe" >"$target/7za.exe"; then
+        if CACHE="$target/7za.exe" ___x_cmd_curl "$url/7za.$arch.exe"; then
             chmod +x "$target/7za.exe" && printf "%s" "$target/7za.exe"
         else
             p7zr_log error "Fail to download: $url/7za.$arch.exe"
@@ -41,8 +40,7 @@ _7zd_which(){
         case "$osname" in
             linux|darwin)
                 p7zr_log debug "Downloading: $url/7zd.$osname.$arch"
-                # if  CACHE="$target/7zd" ___x_cmd_curl "$url/7zd.$osname.$arch"
-                if curl "$url/7zd.$osname.$arch" >"$target/7zd"; then
+                if CACHE="$target/7zd" ___x_cmd_curl "$url/7zd.$osname.$arch"; then
                     chmod +x "$target/7zd" && printf "%s" "$target/7zd"
                 else
                     p7zr_log error "Fail to download: $url/7zd.$osname.$arch"

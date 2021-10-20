@@ -2,49 +2,19 @@
 
 if curl --version 1>/dev/null 2>&1; then
 # Section: Requirement & Initialize
-    [ -n "$KSH_VERSION" ] && alias local=typeset
+[ -n "$KSH_VERSION" ] && alias local=typeset
 
-___x_cmd_http_get_inner(){
-    local ___X_CMD_CURL_RETURN
-    ___X_CMD_CURL_RETURN="$(printf "\r")"
+___x_cmd_http_getfile(){
+    local url="${1:?Provide url}"
+    local cache="${2:?Provide local cache}"
+    ___xrc_log debug curl --dump /dev/stdout --output "$cache" --max-time "${XRC_MAX_TIME:-3}" "$url"
 
-    ___X_CMD_HTTP_GET_INNER_HEADER=""
-
-    {
-        while read -r line; do
-            [ "$line" = "$___X_CMD_CURL_RETURN" ] && break
-            ___X_CMD_HTTP_GET_INNER_HEADER="$___X_CMD_HTTP_GET_INNER_HEADER
-$line"
-        done
-        cat
-    } <<A
-$(curl -i "$@")
-A
-}
-
-___x_cmd_http_get_response_header(){
-    printf "%s" "$___X_CMD_HTTP_GET_INNER_HEADER"
-}
-
-___x_cmd_http_get_response_header_code(){
-    ___x_cmd_http_get_response_header | awk 'NR==2{ printf($2); }'
-}
-
-___x_cmd_http_get(){
-    ___xrc_log debug "curl -i ${XRC_MAX_TIME+--max-time $XRC_MAX_TIME} ${1:?Provide target URL}"
-
-    # local XRC_MAX_TIME=3        # Consider one file is less than 100KB, bandwidth at least 35KB/s.
-    if [ -z "$XRC_MAX_TIME" ]; then
-        ___x_cmd_http_get_inner "$1" 2>/dev/null
-    else
-        # Other solution: --speed-time 5 --speed-limit 10, disconnect if less than 10kb, and last for 5 seconds.
-        # eval curl ${XRC_MAX_TIME+--max-time $XRC_MAX_TIME} --fail "\"\${1}\"" 2>/dev/null
-        ___x_cmd_http_get_inner --max-time $XRC_MAX_TIME "$1" 2>/dev/null
-    fi
+    # Other solution: --speed-time 5 --speed-limit 10, disconnect if less than 10kb, and last for 5 seconds.
+    ___X_CMD_HTTP_GET_INNER_HEADER="$(curl --dump /dev/stdout --output "$cache" --max-time "${XRC_MAX_TIME:-3}" "$url")"
 
     local code=$?
     local http_code
-    http_code="$(___x_cmd_http_get_response_header_code)"
+    http_code="$(printf "%s" "$___X_CMD_HTTP_GET_INNER_HEADER" | head -n 1)"
 
     case "$http_code" in
         20*)   return 0 ;;
@@ -59,7 +29,7 @@ ___x_cmd_http_get(){
 
 ___xrc_log(){
     local level="$1"; shift
-    # [ "$level" = debug ] && return
+    [ "$level" = debug ] && return
     printf "[%s]: %s\n" "$level" "$@" 1>&2
 }
 
@@ -72,8 +42,8 @@ fi
 TMPDIR=${TMPDIR:-$(dirname "$(mktemp -u)")/}    # It is posix standard. BUT NOT set in some cases.
 
 if [ -z "$___X_CMD_ROOT" ]; then
-    ___xrc_log debug "Setting env ___X_CMD_ROOT: $___X_CMD_ROOT"
     ___X_CMD_ROOT="$HOME/.x-cmd"           # boot will be placed in "$HOME/.x-cmd/boot"
+    ___xrc_log debug "Setting env ___X_CMD_ROOT: $___X_CMD_ROOT"
     mkdir -p "$___X_CMD_ROOT" || return 1 || exit 1
     PATH="$___X_CMD_ROOT/.bin:$PATH"
 fi
@@ -93,7 +63,8 @@ ___x_cmd_curl() {
         REDIRECT="$TMPDIR/x-bash-temp-download.$RANDOM"
     fi
 
-    if ___x_cmd_http_get "$1" 1>"$REDIRECT"; then
+    printf "URL is %s\n" "$1" >&2
+    if ___x_cmd_http_getfile "$1" "$REDIRECT"; then
         if [ -n "$CACHE" ]; then
             ___xrc_log debug "Copy the temp file to CACHE file: $CACHE"
             mv "$REDIRECT" "$CACHE"
@@ -118,19 +89,19 @@ ___x_cmd_mirror(){
     fi
     if [ ! -f "$fp" ]; then
         ___x_cmd_mirror \
-            "https://raw.githubusercontent.com/x-cmd/x-cmd/$___X_CMD_BRANCH/%s" \
-            "https://gitee.com/x-cmd/x-cmd/raw/$___X_CMD_BRANCH/%s"
+            "https://raw.githubusercontent.com/x-cmd/x-cmd/$___X_CMD_BRANCH/mod/%s" \
+            "https://gitee.com/x-cmd/x-cmd/raw/$___X_CMD_BRANCH/mod/%s"
     fi
     cat "$fp"
 }
 
 if [ "$___X_CMD_IN_CHINA_NET" = 1 ]; then
     ___x_cmd_mirror \
-            "https://gitee.com/x-cmd/x-cmd/raw/$___X_CMD_BRANCH/%s" \
-            "https://raw.githubusercontent.com/x-cmd/x-cmd/$___X_CMD_BRANCH/%s"
+            "https://gitee.com/x-cmd/x-cmd/raw/$___X_CMD_BRANCH/mod/%s" \
+            "https://raw.githubusercontent.com/x-cmd/x-cmd/$___X_CMD_BRANCH/mod/%s"
 fi
 
-case "$(xrc mirror|head -n1)" in
+case "$(___x_cmd_mirror | head -n1)" in
     *gitee*)    ___X_CMD_IN_CHINA_NET=1 ;;
     *)          ___X_CMD_IN_CHINA_NET=
 esac
@@ -192,7 +163,7 @@ A
             rm "$CACHE"
             ;;
         log)
-            printf "WARN: xrc log deprecated, you should using 'x log' instead\n"
+            printf "WARN: xrc log deprecated, you should using 'x log' instead\n" >&2
             x log "$@" ;;
         ls)
             ls "$___X_CMD_ROOT" ;;  # If tar.gz, using tar ls. If folder, ls $folder
@@ -281,7 +252,7 @@ ___x_cmd_curl_gitx(){   # Simple strategy
     local IFS
 
     local mirror_list
-    mirror_list="$(xrc mirror)"
+    mirror_list="$(___x_cmd_mirror)"
 
     local mirror
     local lineno=1
@@ -294,7 +265,7 @@ ___x_cmd_curl_gitx(){   # Simple strategy
         case $? in
             0)  if [ "$lineno" -ne 1 ]; then
                     ___xrc_log debug "Current default mirror is $mirror"
-                    xrc mirror "$mirror" "$(echo "$mirror_list" | awk "NR!=$lineno{ print \$0 }" )"
+                    ___x_cmd_mirror "$mirror" "$(echo "$mirror_list" | awk "NR!=$lineno{ print \$0 }" )"
 
                     # Set CHINA_NET FLAG
                     case "$mirror" in
@@ -395,10 +366,10 @@ ___x_cmd_which_one(){
             # ___xrc_log debug "Module not found: $module"
             # return 1
 
-            xrc_log info "Dowloading resource=$RESOURCE_NAME to local cache: $TGT"
-            CACHE="$TGT" ___x_cmd_curl_gitx "x-bash" "$module" && printf "%s" "$TGT" && return 0
+            ___xrc_log info "Downloading resource=$RESOURCE_NAME to local cache: $TGT"
+            CACHE="$TGT" ___x_cmd_curl_gitx "$module" && printf "%s" "$TGT" && return 0
 
-            xrc_log warn "ERROR: Fail to load module due to network error or other: $RESOURCE_NAME"
+            ___xrc_log warn "ERROR: Fail to load module due to network error or other: $RESOURCE_NAME"
             return 1
     esac
 }
@@ -410,8 +381,7 @@ x(){    unset -f x; xrc reload x-cmd/v0 && x ${1:+"$@"};    }
 
 if [ -z "$XRC_NO_ADVISE" ] && [ -n "${BASH_VERSION}${ZSH_VERSION}" ] && [ "${-#*i}" != "$-" ]; then
     ___xrc_log debug "Using module advise for completion."
-    xrc advise/v0
-    advise init xrc - <<A
+    xrc advise/v0 && advise init xrc - <<A
 {
     "cat|c": {
         "#n": "ls $___X_CMD_ROOT | grep -v BASE64"

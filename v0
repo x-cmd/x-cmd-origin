@@ -37,7 +37,7 @@ static_build_which(){
         fi
 
         # if ! CACHE="$target/$exe.7z" ___x_cmd_curl "$url"; then
-        if curl "$url" >"$target/$exe.7z"; then
+        if ! curl "$url" >"$target/$exe.7z"; then
             static_build_log warn "Download failure: $url"
             static_build_log warn "File Not Found. Perhaps the platform is NOT supported: $exe"
             return 1
@@ -63,10 +63,11 @@ static_build_which(){
                     for i in $(seq "$size"); do
                         # suffix="$(printf "%03s" "$i")" # Not work in gnu bash
                         suffix="$(printf "%3s" "$i" | tr " " 0)"
-                        CACHE="$exe.7z.$suffix" ___x_cmd_curl "$url.$suffix" || {
+                        # CACHE="$exe.7z.$suffix" ___x_cmd_curl "$url.$suffix" || {
+                        if ! curl "$url.$suffix" >"$exe.7z.$suffix"; then
                             static_build_log warn "Download failure in $exe.7z.$suffix" >&2
                             return 1
-                        }
+                        fi
                     done
 
                     static_build_log info "Using p7zr to decompress: $target/$exe.7z.001"

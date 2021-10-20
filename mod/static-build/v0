@@ -36,7 +36,8 @@ static_build_which(){
             url="https://raw.githubusercontent.com/static-build/${repo}/master/bin/$exe.7z"
         fi
 
-        if ! CACHE="$target/$exe.7z" ___x_cmd_curl "$url"; then
+        # if ! CACHE="$target/$exe.7z" ___x_cmd_curl "$url"; then
+        if curl "$url" >"$target/$exe.7z"; then
             static_build_log warn "Download failure: $url"
             static_build_log warn "File Not Found. Perhaps the platform is NOT supported: $exe"
             return 1

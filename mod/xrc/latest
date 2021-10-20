@@ -59,7 +59,7 @@ ___x_cmd_http_get(){
 
 ___xrc_log(){
     local level="$1"; shift
-    [ "$level" = debug ] && return
+    # [ "$level" = debug ] && return
     printf "[%s]: %s\n" "$level" "$@" 1>&2
 }
 
@@ -216,8 +216,8 @@ ___x_cmd_xrc_cat(){
     while [ $# -ne 0 ]; do
         local xrcpath=$1;   shift
 
-        if file="$(___x_cmd_which_one "$xrcpath")"; then
-            printf "Interrupted because resource not found." >&2
+        if ! file="$(___x_cmd_which_one "$xrcpath")"; then
+            printf "ERROR: Interrupted because resource not found. %s \n" "$xrcpath" >&2
             return 1
         fi
 
@@ -231,11 +231,10 @@ ___x_cmd_xrc_source_file(){
     while [ $# -ne 0 ]; do
         local xrcpath=$1;   shift
 
-        if file="$(___x_cmd_which_one "$xrcpath")"; then
-            printf "Interrupted because resource not found.\n" >&2
+        if ! file="$(___x_cmd_which_one "$xrcpath")"; then
+            printf "ERROR: Interrupted because resource not found. %s \n" "$xrcpath" >&2
             return 1
         fi
-        local code=$?
 
         # Ask whether using http or outside resource.
         if [ "$___X_CMD_UNTRUSTED_RESOURCE" = 1 ] && [ -z "$NOWARN" ]; then
@@ -267,7 +266,7 @@ $file
             fi
         fi
 
-        printf "eval '%s'\n" "$file"
+        printf ". '%s'\n" "$file"
         printf "%s" "
 ___X_CMD_XRC_MODULE_IMPORTED=\"\$___X_CMD_XRC_MODULE_IMPORTED
 $file

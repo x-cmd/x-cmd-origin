@@ -9,7 +9,7 @@
 
 # TODO: key of
 # TODO: value of
-xrc log init dict
+x log init dict
 
 # example of dict
 #   dict put key1 value1

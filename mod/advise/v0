@@ -8,7 +8,7 @@ elif ! ___ADVISE_AWK_PATH="$(xrc which advise/v0.awk)"; then
     xrc_log error "Cannot introduce advise"
 else
 
-xrc log init advise
+x log init advise
 
 # Section : advise entrance
 

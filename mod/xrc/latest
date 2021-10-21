@@ -9,7 +9,7 @@ ___x_cmd_http_getfile(){
     local cache="${2:?Provide local cache}"
     ___xrc_log debug curl --dump /dev/stdout --output "$cache" --speed-time 5 --speed-limit 10 "$url"
 
-    # Other solution: --speed-time 5 --speed-limit 10, disconnect if less than 10kb, and last for 5 seconds.
+    # TODO: --speed-time 3
     ___X_CMD_HTTP_GET_INNER_HEADER="$(curl --dump /dev/stdout --output "$cache" --speed-time 5 --speed-limit 10 "$url")"
 
     local code=$?
@@ -232,7 +232,7 @@ A
             if [ "${___X_CMD_XRC_MODULE_IMPORTED#
 $file
 }" != "${___X_CMD_XRC_MODULE_IMPORTED}" ]; then
-                shift
+                shift 2>/dev/null
                 continue    # exixted already. skip
             fi
         fi

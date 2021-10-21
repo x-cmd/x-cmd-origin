@@ -4,6 +4,7 @@ mod_list="
 xrc
 x-cmd
 hub
+install
 
 # basic modules: non dependency
 str

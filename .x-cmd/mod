@@ -23,6 +23,7 @@ ls(){
 xrc
 x-cmd
 hub
+install
 
 # basic modules: non dependency
 str

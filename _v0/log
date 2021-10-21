@@ -1,6 +1,7 @@
 # shellcheck shell=sh disable=SC3043
 
 # Section: log
+# TODO: To move xrc_log
 XRC_LOG_COLOR=1
 XRC_LOG_TIMESTAMP=      # "+%H:%M:%S"      # Enable Timestamp.
 ___x_cmd_logger(){
@@ -48,10 +49,10 @@ ___x_cmd_logger(){
 ___x_cmd_log() {
     if [ $# -eq 0 ]; then
         cat >&2 <<A
-xrc log     log control facility
+x log     log control facility
     Usage:
-        xrc log init [ module ]
-        xrc log [... +module | -module | module/log-level ]
+        x log init [ module ]
+        x log [... +module | -module | module/log-level ]
 Subcommand:
     init <module>:                  Generate function '<module>_log'
     timestamp < on | off | <format> >:
@@ -60,12 +61,12 @@ Subcommand:
                                     <format>, customized timestamp format like "+%H:%M:%S", "+%m/%d-%H:%M:%S"
 Example:
     Enable debug log for module json:
-            xrc log +json          or   xrc log json
-            xrc log json/verbose   or   xrc log json/v
-            xrc log json/debug     or   xrc log json/d
+            x log +json          or   x log json
+            x log json/verbose   or   x log json/v
+            x log json/debug     or   x log json/d
     Dsiable debug log for module json:
-            xrc log -json
-            xrc log json/info
+            x log -json
+            x log json/info
 A
                     return 1
     fi
@@ -98,10 +99,10 @@ A
         case "$1" in
             -*) var="$(echo "XRC_LOG_LEVEL_${1#-}" | tr "[:lower:]" "[:upper:]")"
                 eval "$var=1"
-                xrc_log info "Level of logger [${1#-} is set to [info]" ;;
+                O=$i FLAG_NAME=$var ___x_cmd_logger info "Level of logger [${1#-} is set to [info]" ;;
             +*) var="$(echo "XRC_LOG_LEVEL_${1#+}" | tr "[:lower:]" "[:upper:]")"
                 eval "$var=0"
-                xrc_log info "Level of logger [${1#+}] is set to [debug]" ;;
+                O=$i FLAG_NAME=$var ___x_cmd_logger info "Level of logger [${1#+}] is set to [debug]" ;;
             *)
                 level="${1#*/}"
                 var="${1%/*}"
@@ -113,7 +114,7 @@ A
                     none|n|no)                  level=none;     level_code=4 ;;
                     *)                          level=debug;    level_code=0 ;;
                 esac
-                xrc_log info "Level of logger [$var] is set to [$level]"
+                O=$i FLAG_NAME=$var ___x_cmd_logger info "Level of logger [$var] is set to [$level]"
                 var="$(echo "XRC_LOG_LEVEL_${var}" | tr "[:lower:]" "[:upper:]")"
                 eval "$var=$level_code" ;;
         esac

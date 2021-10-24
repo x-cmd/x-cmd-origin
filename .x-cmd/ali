@@ -1,0 +1,42 @@
+#! /usr/bin/env bash
+
+mod_list="
+ali
+"
+
+ali_ls(){
+    while read -r line; do
+        [ "${line#\#}" != "$line" ] && continue
+        [ "$line" = "" ] && continue
+        ls lib/$line/latest lib/$line/v* lib/$line/_v*/* | grep -v _test
+    done 2>/dev/null <<<"$mod_list"
+}
+
+ali_wc(){
+    ali_ls | xargs wc
+}
+
+ali_targz(){
+    mkdir -p dist
+    eval "tar czvf dist/ali.tar.gz $(ali_ls | tr '\n' ' ')" 2>/dev/null
+    ls -alh dist/ali.tar.gz
+}
+
+ali_tar(){
+    mkdir -p dist
+    eval "tar cvf dist/ali.tar $(ali_ls | tr '\n' ' ')" 2>/dev/null
+    ls -alh dist/ali.tar
+}
+
+ali_7z(){
+    mkdir -p dist
+    eval "7z a dist/ali.tar.7z $(ali_ls | tr '\n' ' ')"
+    ls -alh dist/ali.tar.7z
+}
+
+if [ "$#" -gt 0 ]; then
+    op="$1"
+    shift
+    "ali_$op" "$@"
+fi
+

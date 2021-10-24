@@ -1,0 +1,93 @@
+#! /usr/bin/env bash
+
+add(){
+    local name="${1:?Provide module name}"
+    # local position="${2:-"git@gitee.com/x-bash/$name.git"}"
+    local position="${2:-"https://gitee.com/x-bash/$name.git"}"
+    local branch="${3:-main}"
+    git subtree add --prefix="mod/$name" "$position" "$branch" --squash
+}
+
+pull(){
+    local name="${1:?Provide module name}"
+    # local position="${2:-"git@gitee.com/x-bash/$name.git"}"
+    local position="${2:-"https://gitee.com/x-bash/$name.git"}"
+    local branch="${3:-main}"
+    git subtree pull --prefix="mod/$name" "$position" "$branch" --squash
+}
+
+ls(){
+
+    # TODO: add modules: xrc xcmd adviser
+    local mod_list="
+xrc
+x-cmd
+hub
+install
+
+# basic modules: non dependency
+str
+list
+assert
+dict
+json
+os
+
+# basic modules: dependencies
+param
+http
+advise
+ui
+
+# modules
+static-build
+ccmd
+xdk
+p7zr
+p7z
+zuz
+el
+
+# web clients
+ali
+gitee
+
+# static-build
+# ls
+# du
+# ps
+# cat
+# bw
+# p7z
+"
+    while read -r mod; do
+        case "$mod" in
+            *#*)    continue ;;
+            "")     continue ;;
+            *)      printf "%s\n" "$mod"
+        esac
+    done <<A
+$(printf "%s" "$mod_list")
+A
+
+}
+
+all(){
+    local IFS
+    local mod
+    while read -r mod; do
+        if [ -e "mod/$mod" ]; then
+            pull "$mod"
+        else
+            add "$mod"
+        fi
+    done <<A
+$(ls)
+A
+}
+
+if [ "$#" -gt 0 ]; then
+    op="$1"
+    shift
+    "$op" "$@"
+fi

@@ -1,0 +1,9 @@
+# shellcheck shell=sh disable=SC3043
+
+# author:       Li Junhao           l@x-cmd.com    edwinjhlee.github.io
+# maintainer:   Li Junhao
+
+xrc static-build/v0
+# . ../static-build/v0
+
+static_build_init p7zip 7za p7z 

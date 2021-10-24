@@ -1,0 +1,70 @@
+#! /usr/bin/env bash
+
+mod_list="
+xrc
+x-cmd
+hub
+
+# basic modules: non dependency
+str
+list
+dict
+json
+os
+
+# basic modules: dependencies
+param
+http
+advise
+ui
+
+# modules
+static-build
+ccmd
+"
+
+WSROOT="$(pwd)/${BASH_SOURCE[0]}"
+WSROOT="${WSROOT%/.x-cmd/*}"
+
+core_ls()(
+    cd "$WSROOT/mod" && \
+    while read -r line; do
+        [ "${line#\#}" != "$line" ] && continue
+        [ "$line" = "" ] && continue
+        ls $line/latest $line/v* $line/_v*/* | grep -v _test
+    done 2>/dev/null <<<"$mod_list"
+)
+
+core_wc()(
+    cd "$WSROOT/mod" &&
+        core_ls | xargs wc
+)
+
+core_tar()(
+    cd "$WSROOT/mod" &&
+    mkdir -p "$WSROOT/dist" &&
+        eval "tar cvf core.tar $(core_ls | tr '\n' ' ')" &&
+        mv core.tar "$WSROOT/dist/core.tar" &&
+        ls -alh "$WSROOT/dist/core.tar"
+)
+
+core_tgz()(
+    cd "$WSROOT/mod" &&
+    mkdir -p "$WSROOT/dist" &&
+        eval "tar czvf core.tgz $(core_ls | tr '\n' ' ')" &&
+        mv core.tgz "$WSROOT/dist/core.tgz" &&
+        ls -alh "$WSROOT/dist/core.tgz"
+)
+
+# core_7z(){
+#     cd "$WSROOT/mod" && \
+#         mkdir -p dist \
+#         eval "7z a $WSROOT/dist/core.tar.7z $(core_ls | tr '\n' ' ')" \
+#         ls -alh dist/core.tar.7z
+# }
+
+if [ "$#" -gt 0 ]; then
+    op="$1"
+    shift
+    "core_$op" "$@"
+fi

@@ -16,7 +16,7 @@ xrc ali/_v0/disk
 xrc ali/_v0/keypair
 xrc ali/_v0/easy
 
-xrc log init ali
+x log init ali
 
 xrc ps1env/v0
 

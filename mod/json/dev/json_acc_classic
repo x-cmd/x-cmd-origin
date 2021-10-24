@@ -1,0 +1,227 @@
+BEGIN{
+    false = 0;      true = 1
+
+    out_color = false
+    out_format = true;  # Using compilation switch to enable or disable code
+    out_indent_step = 2
+    out_indent_space = "  "
+
+    if (out_color_key == 0)     out_color_key = "\033[0;35m"
+    if (out_color_string == 0)  out_color_string = "\033[0;34m"
+    if (out_color_number == 0)  out_color_number = "\033[0;32m"
+    if (out_color_null == 0)    out_color_null = "\033[0;33m"   # "\033[0;31m"
+    if (out_color_true == 0)    out_color_true = "\033[7;32m"
+    if (out_color_false == 0)   out_color_false = "\033[7;31m"
+
+    RS="\034"
+}
+
+function debug(msg){
+	print "idx[" s_idx "]  DEBUG:" msg > "/dev/stderr"
+}
+
+function json_walk_panic(msg,       start){
+    start = s_idx - 10
+    if (start <= 0) start = 1
+    print (msg " [index=" s_idx "]:\n-------------------\n" JSON_TOKENS[s_idx -2] "\n" JSON_TOKENS[s_idx -1] "\n" s "\n" JSON_TOKENS[s_idx + 1] "\n-------------------") > "/dev/stderr"
+    exit 1
+}
+
+function json_walk_dict(    ret, nth, cur_indent, bak_indent, bak_keypath){
+    if (s != "{") {
+        # debug("json_walk_dict() fails" )
+        return false
+    }
+    
+    JSON_WALK_KP_IDX ++;    nth = -1
+    ret = "{"
+    s = JSON_TOKENS[++s_idx]
+
+    bak_indent = JSON_INDENT
+    JSON_INDENT = JSON_INDENT out_indent_space
+    cur_indent = JSON_INDENT
+
+    bak_keypath = JSON_KEY
+    
+    while (1) {
+        nth ++
+
+        if (s == "}") {
+            JSON_WALK_KP_IDX --
+            if (out_format == true) {
+                if (nth == 0) {
+                    ret = ret "}"
+                } else {
+                    ret = ret "\n" bak_indent "}"
+                }
+            } else {
+                ret = ret "}"
+            }
+            s = JSON_TOKENS[++s_idx];  break
+        }
+
+        # if (s == ":") { json_walk_panic("json_walk_dict() Expect A value NOT :") }
+        result = s
+        # debug("json_walk_dict() key: " s)
+        
+        s = JSON_TOKENS[++s_idx]
+        JSON_WALK_KP[JSON_WALK_KP_IDX] = result
+
+        # if.def color
+        if (out_color == true) result = out_color_key result "\033[0m"
+        # end.if[]
+
+        if (out_format == true) {
+            ret = ret "\n" cur_indent result
+        } else {
+            ret = ret result
+        }
+
+        if (s != ":") json_walk_panic("json_walk_dict() Expect :")
+        if (out_format == true) {
+            ret = ret ": "
+        } else {
+            ret = ret ":"
+        }
+        s = JSON_TOKENS[++s_idx]
+
+        # Value
+        json_walk_value()
+        ret = ret result
+
+        if (s == ",") {
+            ret = ret ","
+            s = JSON_TOKENS[++s_idx];
+        }
+    }
+
+    # debug("json_walk_dict: " JSON_WALK_DICT_TOKEN)
+    result = ret
+
+    keypath = bak_keypath
+    JSON_INDENT = bak_indent
+    return true
+}
+
+function json_walk_array(       ret, nth, cur_indent, bak_indent){
+    # debug("json_walk_array start() ")
+    if (s != "[")   return false
+
+    JSON_WALK_KP_IDX ++;    nth = -1
+    ret = "["
+    s = JSON_TOKENS[++s_idx]
+
+    bak_indent = JSON_INDENT
+    JSON_INDENT = JSON_INDENT out_indent_space
+    cur_indent = JSON_INDENT
+    
+    while (1) {
+        nth++;
+        if (s == "]") {
+            JSON_WALK_KP_IDX --
+            if (out_format == true) {
+                if (nth == 0) {
+                    ret = ret "]"
+                } else {
+                    ret = ret "\n" bak_indent "]"
+                }
+            } else {
+                ret = ret "]"
+            }
+            s = JSON_TOKENS[++s_idx];   break
+        }
+
+        JSON_WALK_KP[JSON_WALK_KP_IDX] = nth
+
+        # if (s == ",")  json_walk_panic("json_walk_array() Expect a value but get " s)
+        json_walk_value()
+        # debug("json_walk_array() value: " result)
+
+        if (out_format == true) {   # value
+            ret = ret "\n" cur_indent result
+        } else {
+            ret = ret result
+        }
+
+        if (s == ",") {
+            ret = ret ","
+            s = JSON_TOKENS[++s_idx]
+        }
+    }
+    # debug("json_walk_array end(): " JSON_WALK_ARRAY_TOKEN)
+    result = ret
+
+    JSON_INDENT = bak_indent
+    return true
+}
+
+function json_walk_value(){
+    if (json_walk_dict() == true) {
+        return true
+    }
+
+    if (json_walk_array() == true) {
+        return true
+    }
+
+   # debug("json_walk_value():   " s)
+
+    # if.def format
+    if (out_color == true) {
+        if (match(s, "^\"")) result = out_color_string s "\033[0m"
+        else if (s == "true")   result = out_color_true s "\033[0m"
+        else if (s == "false")  result = out_color_false s "\033[0m"
+        else if (s == "null")  result = out_color_null s "\033[0m"
+        else result = out_color_number s "\033[0m"
+    } else {
+        result = s
+    }
+    # end.if
+    s = JSON_TOKENS[++s_idx]
+    return true
+}
+
+function _json_walk(    final, idx, nth){
+    if (s == "")  s = JSON_TOKENS[++s_idx]
+
+    # print(s_idx " " s_len)
+    while (s_idx <= s_len) {
+        JSON_WALK_KP_IDX = 1
+        if (json_walk_value() == false) {
+           json_walk_panic("json_walk() Expect a value")
+        }
+        final = final "\n" result
+        print result
+    }
+
+    return final
+}
+
+# global variable: text, s, s_idx, s_len
+function json_walk(text,   final, b_s, b_result, b_s_idx, b_s_len){
+    b_result = result;
+    b_s = s;    b_s_idx = s_idx;    b_s_len = s_len;
+    
+    result = "";
+
+    gsub(/^\357\273\277|^\377\376|^\376\377|"[^"\\\001-\037]*((\\[^u\001-\037]|\\u[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F])[^"\\\001-\037]*)*"|-?(0|[1-9][0-9]*)([.][0-9]+)?([eE][+-]?[0-9]+)?|null|false|true|[ \t\n\r]+|./, "\n&", text)
+    # gsub(/^\357\273\277|^\377\376|^\376\377|"[^"\\\000-\037]*((\\[^u\000-\037]|\\u[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F])[^"\\\000-\037]*)*"|-?(0|[1-9][0-9]*)([.][0-9]+)?([eE][+-]?[0-9]+)?|null|false|true|[ \t\n\r]+|./, "\n&", text)
+	gsub("\n" "[ \t\n\r]+", "\n", text)
+
+
+    s_len = split(text, JSON_TOKENS, /\n/)
+    s = JSON_TOKENS[s_idx];     s_idx = 1;
+
+    JSON_WALK_KP_IDX = 0
+    JSON_INDENT = "";   out_indent_space=sprintf("%" out_indent_step "s", "")
+
+    final = _json_walk()
+
+    result = b_result;  
+    s = b_s;    s_idx = b_s_idx;    s_len = b_s_len;
+    return final
+}
+
+{
+    print json_walk($0)
+}

@@ -1,0 +1,86 @@
+# shellcheck shell=sh disable=SC3043
+
+# author:       Li Junhao           l@x-cmd.com    edwinjhlee.github.io
+# maintainer:   Li Junhao
+
+xrc os/v0
+
+if ! command -v 7z; then
+
+xrc log init p7z
+
+_p7z_zip_init(){
+    local target="$HOME/.x-cmd/.bin/7z"
+    mkdir -p "$target"
+
+    local arch="$(os arch)"
+
+    local osname="$(os name)"
+
+    p7z_log debug "detect osname/arch: $osname/$aarch"
+
+    if [ "$osname" = "win" ]; then
+        p7z_log debug Downloading: "https://gitee.com/static-build/p7zip/raw/master/bin/7za.exe"
+        if CACHE="$target/7za.exe" xrc_curl "https://gitee.com/static-build/p7zip/raw/master/bin/7za.exe"; then   
+            chmod +x "$target/7za.exe"
+            eval "
+                _zip_bin() { $target/7za.exe \${1:+\"\$@\"}; }
+            "
+        else
+            echo "Failed!" >&2
+            return 1
+        fi
+    else
+        case "$osname" in
+            linux|darwin)
+                p7z_log debug "Downloading: https://gitee.com/static-build/p7zip/raw/master/bin/7za.exe"
+                if  CACHE="$target/7zr" xrc_curl "https://gitee.com/static-build/p7zip/raw/master/bin/7zr.$osname.$arch" && \
+                    CACHE="$target/7za.7z" xrc_curl "https://gitee.com/static-build/p7zip/raw/master/bin/7za.$osname.$arch.7z";
+                then
+                    chmod +x "$target/7zr"
+                    (
+                        cd "$target" && {
+                            [ ! -f ./7za ] && ./7zr x -y 7za.7z 1>/dev/null 2>&1 && mv "7za.$osname.$arch" 7za
+                        }
+                    )
+                    chmod +x "$target/7za"
+                else
+                    echo "Failed!" >&2
+                fi
+            ;;
+            *)  echo "Unsupported!" >&2; return 1 ;;
+        esac
+        eval "
+            _zip_bin() { $target/7za \${1:+\"\$@\"}; }
+        "
+    fi
+}
+
+_p7z_zip_init || return 1 >&2
+
+p7z(){
+    _zip_bin ${1:+"$@"}
+}
+
+alias 7z=p7z
+
+fi
+
+# shellcheck disable=SC2139
+# zipx() {
+#     local op="${1}"
+#     shift
+#     case "$op" in
+#         *.zip|*.7z)
+#             _zip_bin x "$op"
+#             ;;
+#         *.tar)
+#             local dest=${op%.tar}
+#             _zip_bin x "$op" "-o$dest"
+#             ;;
+#         *.tar.gz) ;;
+#         *.tar.bz2) ;;
+
+#     esac
+
+# }

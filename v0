@@ -227,6 +227,14 @@ A
         fi
     fi
 
+     # workspace
+    ___X_CMD_WSROOT="$filepath"
+    ___X_CMD_WSROOT="$(dirname "$___X_CMD_WSROOT")"
+    ___X_CMD_WSROOT="$(cd "$___X_CMD_WSROOT" && pwd)/"
+    ___X_CMD_WSROOT="${___X_CMD_WSROOT%/.x-cmd/*}"
+
+    export ___X_CMD_WSROOT
+
     ___x_cmd_run_by_file "$filepath" "$@"
     if [ $? = 126 ]; then
         cat >&2 <<A
@@ -329,6 +337,50 @@ ___x_cmd_ls(){
     ___x_cmd_exa        "$@"
 }
 
+___x_cmd_workspace_root(){
+    local cur="${1:-.}"
+
+    cur="$(cd "$cur" 1>/dev/null 2>&1 && pwd)"
+
+    while [ ! "$cur" = "" ]; do
+        if [ -d "$cur/.x-cmd" ]; then
+            printf "%s" "$cur"
+            return 0
+        fi
+        cur=${cur%/*}
+    done
+    return 1
+}
+
+___x_cmd_main_otherwise(){
+    local subcmd="$1"; shift
+
+    # static build
+    # update the static-build files
+    local p
+    if p="$(___x_cmd_which_one "$subcmd")"; then
+        if [ "$___X_CMD_UNTRUSTED_RESOURCE" -eq 2 ]; then
+            ___x_cmd_exe_workspace "$@"
+        else
+            ___x_cmd_run_by_file "$p" "$@" # 2>/dev/null
+        fi
+        return
+    else
+        printf "%s" "Error" >&2
+    fi
+    printf "%s" "$p"
+}
+
+___x_cmd_ws(){
+    local RESOURCE_NAME="$1"; shift
+    if TGT="$(___x_cmd_search_path . ".x-cmd/$RESOURCE_NAME")"; then
+        ___x_cmd_exe_workspace "$TGT/.x-cmd/$RESOURCE_NAME" "$@"
+        return
+    else
+        printf "Workspace Resource Not found: %s" "$RESOURCE_NAME" >&2
+        return 1
+    fi
+}
 
 ___x_cmd_main(){
     local subcmd=$1;    shift 2>/dev/null
@@ -336,7 +388,7 @@ ___x_cmd_main(){
         ""|help)                                printf "%s\n" "Show help" >&2; return 1 ;;
         boot)                                   ( xrc x-cmd/_v0/boot && ___x_cmd_boot "$@"; ) ;;
         *=)                                     ___x_cmd_var "$subcmd" "$@" ;;
-        i|install)                              xrc install/v0 && ___x_cmd_install "$@" ;;
+        install)                                xrc install/v0 && ___x_cmd_install "$@" ;;
 
         config)     ;;
         man)        ;;
@@ -352,13 +404,13 @@ ___x_cmd_main(){
 
         log)                                    xrc x-cmd/_v0/log && ___x_cmd_log "$@" ;;
 
-        upgrade)    eval "$(curl https://get.x-cmd.com/all)" ;;
-        clear)      if ! grep "___x_cmd_http_get()" "$___X_CMD_ROOT/xrc/latest" >/dev/null 2>&1; then
-                        ___xrc_log debug "'$___X_CMD_ROOT/xrc/latest' NOT found. Please manually clear cache folder: $___X_CMD_ROOT"
-                        return 1
-                    fi
-                    rm -rf "$___X_CMD_ROOT" ;;
-        reinstall)  x clear && RELOAD=1 x upgrade ;;
+        upgrade)                                eval "$(curl https://get.x-cmd.com/all)" ;;
+        clear)                                  if ! grep "___x_cmd_http_get()" "$___X_CMD_ROOT/xrc/latest" >/dev/null 2>&1; then
+                                                    ___xrc_log debug "'$___X_CMD_ROOT/xrc/latest' NOT found. Please manually clear cache folder: $___X_CMD_ROOT"
+                                                    return 1
+                                                fi
+                                                rm -rf "$___X_CMD_ROOT" ;;
+        reinstall)                              x clear && RELOAD=1 x upgrade ;;
 
         z)                                      (   xrc zuz && zuz z "$@"   ) ;;
         uz)                                     (   xrc zuz && zuz uz "$@"  ) ;;
@@ -377,20 +429,20 @@ ___x_cmd_main(){
         javascript|js|node)                     xrc x-cmd/_v0/node && ___x_cmd_node "$@" ;;
         npm)                                    xrc x-cmd/_v0/node && ___x_cmd_npm "$@" ;;
         npx)                                    xrc x-cmd/_v0/node && ___x_cmd_npx "$@" ;;
-        ts)         local arg
-                    local argstr
-                    while [ $# -ge 0 ]; do
-                        case "$arg" in
-                            -*)     argstr="$argstr $arg"   ;;
-                            *)      break
-                        esac
-                    done
-                    local script
-                    # script="$(___x_cmd_official_which "$1")"
-                    script="$1"
-                    shift
-                    x npx @typeshell/exec "$argstr" "$script" "$@"
-                    ;;
+        ts)                                     local arg
+                                                local argstr
+                                                while [ $# -ge 0 ]; do
+                                                    case "$arg" in
+                                                        -*)     argstr="$argstr $arg"   ;;
+                                                        *)      break
+                                                    esac
+                                                done
+                                                local script
+                                                # script="$(___x_cmd_official_which "$1")"
+                                                script="$1"
+                                                shift
+                                                x npx @typeshell/exec "$argstr" "$script" "$@"
+                                                ;;
         ruby|rb)                                ruby "$(___x_cmd_official_which "$2")" "$@"      ;;
         lua)            ;;
 
@@ -406,26 +458,21 @@ ___x_cmd_main(){
 
         run)                                    ___x_cmd_run_by_file "$@"            ;;
         search_path)                            ___x_cmd_search_path "$@"            ;;
-        which|w)    local p
-                    for p in "$@"; do
-                        if ! p=$(___x_cmd_which_one "$p"); then
-                            printf "%s\n" "Fail to find path for $p" >&2
-                            return
-                        else
-                            printf "%s\n" "$p"
-                        fi
-                    done
-                    ;;
+        which|w)                                local p
+                                                for p in "$@"; do
+                                                    if ! p=$(___x_cmd_which_one "$p"); then
+                                                        printf "%s\n" "Fail to find path for $p" >&2
+                                                        return
+                                                    else
+                                                        printf "%s\n" "$p"
+                                                    fi
+                                                done
+                                                ;;
         _x_cmd_advise_json)                     ___x_cmd_x_cmd_advise_json "$@" ;;
-        *)
-                    local p
-                    if p="$(___x_cmd_which_one "$subcmd")"; then
-                        ___x_cmd_run_by_file "$p" "$@" # 2>/dev/null
-                        return
-                    else
-                        printf "%s" "Error" >&2
-                    fi
-                    printf "%s" "$p"
+        ws)                                     ___x_cmd_ws "$@" ;;
+        wsroot)                                 ___x_cmd_workspace_root "$@" ;;
+        *)                                      ___x_cmd_main_otherwise "$subcmd" "$@" ;;
+
     esac
 }
 
@@ -434,11 +481,7 @@ ___x_cmd_main(){
 ___x_cmd_x_cmd_advise_json(){
     cat <<A
 {
-    "update|u": {},
-    "upgrade": {},
-    "reinstall": {},
-
-    "initrc": {
+    "boot": {
         "cat": null
         "which|w": null,
         "mod": {
@@ -447,6 +490,27 @@ ___x_cmd_x_cmd_advise_json(){
             "ls": null
         }
     },
+
+    "install": {
+        "ls": null,
+        "get": "x install ls",
+        "#1": "x install ls"
+    },
+
+    "config": {
+
+    },
+
+    "man": {},
+    "adviser": {},
+    "proxy": {},
+    "theme": {},
+    "env": {},
+
+    "login": {},
+    "register": {},
+    "token": {},
+    "hub": {},
 
     "log": {
         "init": {},
@@ -457,27 +521,41 @@ ___x_cmd_x_cmd_advise_json(){
         "#n": "___x_cmd_log_completer"
     },
 
+    "upgrade": {},
+    "clear": {},
+    "reinstall": {},
+
     "z": null,
     "uz": null,
+
     "ubu|alp|deb|cen|bus": null,
     "docker|dk|xdk": null,
-    "nvm": null,
+    "sh|bash|zsh|fish|ksh|dash|ash": {},
+    "jar": {},
+    "java": {},
+
     "pip|pip3": null,
     "python|py|python3|py3": null,
+
+    "nvm": null,
     "javascript|js|node": null,
     "npm":  null,
+    "npx":  null,
+
     "ts": null,
     "ruby|rb": null,
     "lua": null,
-    "ruby|rb": null,
+
     "jq": null,
     "ls|ll": null,
     "ps|procs": null,
-    "install": {
-        "ls": null,
-        "get": "x install ls",
-        "#1": "x install ls"
-    },
+
+
+    "run": {},
+    "search_path": {},
+    "which": {},
+    "wsroot": {},
+
     "#1": "___x_cmd_list_resource",
     "#n": "___advise_get_result '' 1"
 }

@@ -1,0 +1,16 @@
+# shellcheck shell=sh disable=SC3043
+
+ali_config_ak(){
+    local PROFILE=${1:?"Provide Profile"}
+    local ID=${1:?"Provide AccessKey ID"}
+    local KEY=${2:?"Provide AccessKey Secret"}
+    local REGION=${3:?"cn-shenzhen"}
+
+    aliyun configure set \
+        --profile "$PROFILE" \
+        --language en \
+        --region "$REGION" \
+        --mode AK \
+        --access-key-id "$ID" \
+        --access-key-secret "$KEY"
+}

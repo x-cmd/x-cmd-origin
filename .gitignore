@@ -1,1 +1,4 @@
-test
+!dist/core.tgz
+dist
+build
+bin

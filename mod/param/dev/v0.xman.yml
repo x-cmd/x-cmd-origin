@@ -1,0 +1,12 @@
+tags:
+  - gitee
+  - work
+kv:
+  - desc: List all repos
+    eg: |
+      gitee new user 
+      user repo list
+  - esc: List all repos using default
+    eg: |
+      gitee token ""
+      gitee repo list

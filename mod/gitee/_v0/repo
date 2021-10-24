@@ -1,0 +1,302 @@
+# shellcheck shell=sh
+# shellcheck disable=SC2039,3043
+
+gt_repo(){
+    param:scope     "gitee/$O"
+    param:dsl       '
+subcommands:
+    new             "new repo client"
+    create          "create repo"
+    ls              "list repo of owner"
+    info            "Show detailed information of repo"
+    del             "Remove repo"
+    clear           "clear repo"
+    issue           "get repo issue"
+'
+    param:run
+
+    if [ -z "$PARAM_SUBCMD" ]; then
+        gt_log error "Command Not Found. Show help."
+        return 0
+    fi
+    
+    "gt_repo_${PARAM_SUBCMD}" "$@"
+}
+
+_gt_repo()(
+    gt_current_repo "${1:-repo}"
+    shift
+    gt_repo ${1:+"$@"}
+)
+
+gt_repo_new() {
+    local reponame="${1:?Provide object name}"
+    local aliasname="${2:-$reponame}"
+    # shellcheck disable=SC2139
+    alias "$aliasname=\"O=$O _gt_repo $reponame\""
+}
+
+# arguments NAME
+gt_repo_create() {
+    local O="${O:-GITEE_DEFAULT}"
+
+    param:scope     "gitee/$O"
+    param:dsl       '
+option:
+    --access                "private,public,innerSource"    <>=private          =   private public
+    --description           "description"                   <>=""
+    --homepage              "homepage"                      <>=""
+    --no_issues             "Provide issue"
+    --no_wiki               "Provide wiki"
+    --no_comment            "Provide can_comment"
+    --no_auto_init          "auto init README"
+    --gitignore_template    "Git Ignore"                    <>=""
+    --license_template      "license"                       <>=""
+    --path                  "repo path"                     <>=""
+    #n                      "repo names"
+'
+    param:run
+
+    local private
+    case "$access" in
+        public)     private=false ;;
+        private)    private=true ;;
+    esac
+
+    local has_issues=true
+    local has_wiki=true
+    local can_comment=true
+    local auto_init=true
+    [ -n "$no_issues" ] && has_issues=false
+    [ -n "$no_wiki" ] && has_wiki=false
+    [ -n "$no_comment" ] && can_comment=false
+    [ -n "$no_auto_init" ] && auto_init=false
+
+    [ $# -eq 0 ] && gt_log info "repo create name is null" && return
+    local name
+    for name in "$@"; do
+        {
+            # gt_post_json "/v5/user/repos" name has_issues has_wiki private 2>/dev/null
+            gt_post_json "/v5/user/repos" name description homepage has_issues has_wiki can_comment auto_init \
+                gitignore_template license_template path private 2>/dev/null
+            code=$?
+            if [ $code -ne 0 ]; then
+                gt_log error "Creating repo failure: $name. Code is $code. "
+                # gt_resp_header "" >&2
+                return $code
+            fi
+        } | json_color
+    done
+}
+
+# ORGANIZATION NAME
+# shellcheck disable=SC2154,SC2034
+
+# https://gitee.com/api/v5/swagger#/postV5OrgsOrgRepos
+gt_org_repo_create() {
+    # TODO: I don't know what does path means for an organization repo
+    # path is null default repo name as path
+    param:scope     "gitee/$O"
+    param:dsl       '
+option:
+    --org                   "organization create repo"      <>:name
+    --description           "description"                   <>=""
+    --access                "private,public,innerSource"    <>=private          =   private public innerSource
+    --homepage              "homepage"                      <>=""
+    --no_issues             "Provide issue"
+    --no_wiki               "Provide wiki"
+    --no_comment            "Provide can_comment"
+    --no_auto_init          "auto init README"
+    --gitignore_template    "Git Ignore"                    <>=""
+    --license_template      "license"                       <>=""
+    --path                  "repo path"                     <>=""
+    #n                      "repo names"
+'
+    param:run
+
+
+    case "$access" in
+        private)        private=0 ;;
+        public)         private=1 ;;
+        innerSource)    private=2 ;;
+    esac
+
+    local has_issues=true
+    local has_wiki=true
+    local can_comment=true
+    local auto_init=true
+    [ -n "$no_issues" ] && has_issues=false
+    [ -n "$no_wiki" ] && has_wiki=false
+    [ -n "$no_comment" ] && can_comment=false
+    [ -n "$no_auto_init" ] && auto_init=false
+    # TODO:owner may be personal
+    local name
+    for name in "$@"; do
+        # name="$(gt_param_normalize_repo "$name")"
+        # owner="$(echo "$name" | cut -d / -f 1)"
+        # name="$(echo "$name" | cut -d / -f 2)"
+        local resp
+        {
+            gt_post_json "/v5/orgs/$org/repos" name description homepage has_issues has_wiki can_comment auto_init \
+             gitignore_template license_template path public
+            code=$?
+            if [ $code -ne 0 ]; then
+                gt_log error "Creating repo failure: $name. Code is $code. "
+                # gt_resp_header "" >&2
+                return $code
+            fi
+        } | json_color
+    done
+}
+
+# https://gitee.com/api/v5/swagger#/postV5EnterprisesEnterpriseRepos
+# shellcheck disable=SC2154
+gt_enterprise_repo_create() {
+    param:scope     "gitee/$O"
+    param:dsl       '
+option:
+    --enterprise            "enterprise space address"          <>
+    --access                "private,public,innerSource"        <>=private          =   private public innerSource
+    --description           "description"                       <>=""
+    --homepage              "homepage"                          <>=""
+    --path                  "repo path"                         <>=""
+    --no_issues             "Provide issue"
+    --no_wiki               "Provide wiki"
+    --no_comment            "Provide can_comment"
+    --no_auto_init          "auto init README"
+    --outsourced            "Provide outsourced"
+    --gitignore_template    "Git Ignore"                        <>=""
+    --license_template      "license"                           <>=""
+    --project_creator       "Provide project_creator"           <>=""
+    --members               "Provide members(name or email)"    <>=""
+'
+    param:run
+
+    case "$access" in
+        private)        private=0 ;;
+        public)         private=1 ;;
+        innerSource)    private=2 ;;
+    esac
+    local has_issues=true
+    local has_wiki=true
+    local can_comment=true
+    local auto_init=true
+    [ -n "$no_issues" ] && has_issues=false
+    [ -n "$no_wiki" ] && has_wiki=false
+    [ -n "$no_comment" ] && can_comment=false
+    [ -n "$no_auto_init" ] && auto_init=false
+
+    outsourced=${outsourced:-false}
+
+    # TODO
+    local name
+    for name in "$@"; do
+    {
+        gt_post_json "/v5/enterprises/${enterprise##*/}/repos" \
+            name description homepage has_issues can_comment auto_init \
+            gitignore_template license_template path private enterprise outsourced project_creator members
+            code=$?
+            if [ $code -ne 0 ]; then
+                gt_log error "Creating repo failure: $name. Code is $code. "
+                return $code
+            fi
+        } | json_color
+    done
+    return 0
+}
+
+
+############################
+# Section 5: List Repos TODO:
+############################
+
+# gt repo list --access inner-source <owner>
+# gt enterprise repo list
+gt_repo_ls() {
+    param:scope     "gitee/$O"
+    param:dsl       '
+options:
+    #1              "Provide owner"
+'
+    param:run
+
+    local owner
+    owner="$1"
+    if [ -z "$owner" ]; then
+        gt_user_repo "$@"
+        return
+    fi
+
+    local owner_type
+    owner_type="$(___gt_owner_type_query "$owner")"
+    if [ -n "$owner_type" ] && [ -n "$owner" ]; then
+        "gt_${owner_type}_repo" "$@"
+        return
+    fi
+
+    gt_log error "Please provide owner and owner_type\n"
+    return 1
+    # param_help.show
+}
+
+
+
+############################
+# Section 7: Repo - Deletion & Info & Creation
+############################
+gt_repo_info() {
+    param:scope     "gitee/$O"
+    param:dsl       '
+options:
+    #1|--repo          "Repo name"         <>:repo
+'
+    param:run
+
+    gt_param_init_owner_repo
+    gt_get "/v5/repos/${owner_repo}"
+    # gt_get "/v5/repos/${owner}/${repo}"
+}
+
+# https://gitee.com/api/v5/swagger#/deleteV5ReposOwnerRepo
+gt_repo_del() {
+    param:scope     "gitee/$O"
+    param:dsl       '
+options:
+    #n      "Provide repo list"    <>
+'
+    param:run
+    local i
+    for i in "$@"; do
+        gt_param_normalize_repo "$i"
+        gt_log info "Deleting repo: $owner_repo"
+        gt_delete "/v5/repos/$owner_repo" >/dev/null ||
+            gt_log error "Code is $?. Deleting repo failure: $i. Probably because it desn't exists."
+    done
+}
+
+gt_repo_clear() {
+    param:scope     "gitee/$O"
+    param:dsl       '
+options:
+    #1|--repo          "Repo name"             <>
+'
+    param:run
+
+    gt_param_init_owner_repo
+    gt_put_json "/v5/repos/${owner_repo}/clear"
+}
+
+gt_repo_review(){
+    param:scope     "gitee/$O"
+    param:dsl       '
+options:
+    #1|--repo             "Repo name"                   <>:repo
+    --assignees           "assignees username"          <>:name
+    --testers             "testers usrename"            <>:name
+    --assignees_number    "number of reviewers"         <>:number="1"
+    --testers_number      "number of people tested"     <>:number="1"
+'
+    param:run
+    gt_param_init_owner_repo
+    gt_put_json "/v5/repos/${owner_repo}/reviewer" assignees testers assignees_number testers_number
+}

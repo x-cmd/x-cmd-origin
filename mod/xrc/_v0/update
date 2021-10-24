@@ -1,0 +1,9 @@
+# shellcheck shell=sh disable=SC2039,SC1090,SC3043,SC2263
+
+___x_cmd_xrc_update()(
+    local CACHE="$___X_CMD_PATH/mod/all.tgz"
+    rm -rf "$___X_CMD_PATH/mod"
+    ___x_cmd_curl_gitx "dist/all.tgz"
+    tar xvf "$CACHE"
+)
+

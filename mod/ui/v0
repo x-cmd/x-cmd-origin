@@ -1,0 +1,488 @@
+# shellcheck shell=sh disable=SC3043
+
+# author:       Li Junhao           l@x-cmd.com    edwinjhlee.github.io
+# maintainer:   Li Junhao
+
+# For some advancing usage. Refer to http://linuxcommand.org/lc3_adv_tput.php
+
+# tput: https://www.gnu.org/software/termutils/manual/termutils-2.0/html_chapter/tput_1.html
+
+# Section : ui major function and facilities and init
+ui(){
+    local f=$1
+    case "$f" in
+        http://* | https://* | ftp://* |ftps://* | git://* ) 
+                                                                ui_url "$f"         ;;
+        :)                                                      ui_print_var "$@"   ;; # TODO
+        progressbar|probar)     shift;                          ui_progressbar "$@" ;; 
+        cmd|cmdline)            shift;                          ui_cmdline "$@"     ;;
+        table)                  shift; xrc ui/_v0/table;        ___ui_table  "$@" ;;
+        prompt)                 shift; xrc ui/_v0/prompt;       ___ui_prompt "$@" ;;
+        md|markdown)            shift; xrc ui/_v0/markdown;     ___ui_markdown "$@" ;;
+        *)                                                      ui_style "$@"       ;;
+    esac
+}
+
+# EndSection
+
+# Section : init
+
+x log init ui
+
+# Thank ryenus, iRaS and Mekcki for answers in https://stackoverflow.com/questions/263890/how-do-i-find-the-width-height-of-a-terminal-window
+ui_init_lines_columns(){
+    if [ -z "${BASH_VERSION}${ZSH_VERSION}" ]; then
+        local IFS
+        read -r LINES COLUMNS <<A
+$(stty size)
+A
+    fi
+}
+ui_init_lines_columns
+
+if read -p " " -e ___UI_TMP_TEST 1>/dev/null 2>/dev/null <<A
+hi
+A
+then
+
+___ui_read(){
+    local varname="${1:?Provide varname}"
+    read -p " " -e -r "$varname"
+}
+
+else
+
+___ui_read(){
+    local varname="${1:?Provide varname}"
+    printf "%s" " "
+    read -r "$varname"
+}
+fi
+
+___UI_TMP_TEST=
+
+# EndSection
+
+# Section : ui style
+ui_style(){
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            dim|debug)              printf "\033[2m"            ;; # tput dim;;
+            underline|under)        printf "\033[4m"            ;; # tput dim;;
+            info)                   tput setaf 6; tput bold     ;;
+            error)                  tput bold; tput setaf 1     ;;
+            warn)                   tput bold; tput setaf 3     ;;
+            normal)                 printf "\033[0m"            ;;  # tput bold
+            bold)                   printf "\033[1m"            ;;  # tput bold
+            black)                  tput setaf 0                ;;
+            red)                    tput setaf 1                ;;
+            green)                  tput setaf 2                ;;
+            yellow)                 tput setaf 3                ;;
+            blue)                   tput setaf 4                ;;
+            purple|magneta)         tput setaf 5                ;;
+            lightblue|cyan)         tput setaf 6                ;;
+            white)                  tput setaf 7                ;;
+            rev)                    printf "\033[7m"            ;;
+            end)                    printf "\033[0m"            ;;
+            reset)                  tput reset                  ;;
+            --) 
+                shift; 
+                echo -n "$@"
+                tput sgr0;
+                return 0
+        esac
+        shift
+    done
+}
+
+# EndSection
+
+# Section : cmdline URL, seperator, seperator2
+
+ui_cmdline(){
+    local prompt=${1:-">"}
+    if [ $# -gt 1 ]; then
+        shift;
+        printf "$(ui bold yellow)${prompt} $(ui normal white)%s$(ui end)\n" "$*"
+    else
+        local line
+        while read line; do
+            printf "$(ui bold yellow)${prompt} $(ui normal white)%s$(ui end)\n" "$line"
+        done
+    fi
+}
+
+ui_url(){
+    echo "$(tput smul)${1:?Provide URL}$(tput rmul)"
+}
+
+ui_seperator(){
+    local sep 
+    local maxw
+    maxw="$(tput cols)"
+    sep="$(seq -f "${1:-—}" -s '' "$maxw")"
+    echo "$sep"
+}
+
+ui_seperator2(){
+    local sep 
+    local maxw
+    maxw=$(( $(tput cols) / 2 ))
+    sep="$(seq -f "${1:-—}" -s '' "$maxw")"
+    echo "$sep"
+}
+
+ui_seperator3(){
+    local sep 
+    local maxw
+    maxw=$(( $(tput cols) / 3 ))
+    sep="$(seq -f "${1:-—}" -s '' "$maxw")"
+    echo "$sep"
+}
+
+# EndSection
+
+# Section : progress
+ui_progress_white(){
+    local maxw 
+    local number=80 
+    local stars 
+    local space
+    local percent="$1"
+    local color
+    color="$(ui green)"
+    if [ "$percent" -lt 0 ]; then
+        percent=${percent#-}
+        color=$(ui red)
+    fi
+
+    maxw="$(tput cols)"
+    [ "$maxw" -lt $number ] && number=$maxw
+    stars="$(seq -f "${2:-$(printf " ")}" -s '' "$number")"
+    space="$(seq -f " " -s '' "$number")"
+    local v=$(( ${#stars} * percent / 100 ))
+    local v100=$((100 - v))
+
+    if [ "$percent" -eq 100 ]; then
+        printf "${color}( DONE )|%s%s|" "$(ui rev)${stars:0:$v}$(ui end)" "${space:v:$v100}"
+    else
+        printf "${color}(%3d %% )|%s%s|" "$percent" "$(ui rev)${stars:0:$v}$(ui end)" "${space:v:$v100}"
+    fi
+}
+
+# shellcheck disable=SC2120
+ui_progressbar(){
+    local maxw=80
+    [ "$COLUMNS" -lt "$maxw" ] && maxw=$COLUMNS
+
+    if [ -n "$2" ]; then    printf "%s\n" "$2"
+    else                    cat;         
+    fi | awk -v ch="${1:-\*}" -v maxw="$COLUMNS" '
+function str_rep(char, number, _i, _s) {
+    for (   _i=1; _i<=number; ++_i  ) _s = _s char
+    return _s
+}
+
+function print_progressbar(percent,         _width, _space, _stars, _s){
+    _width = maxw - 30
+    _stars = _width
+    _stars = int(_stars * percent / 100)
+    _space = _width - _stars
+
+    s = str_rep(ch, _stars) str_rep(" ", _space)
+    
+    if (percent == 100)     printf("( DONE! )|%s|\r", s)
+    else                    printf("( %3d %% )|%s|\r", percent, s)
+    fflush()
+}
+
+{   print_progressbar($0);  }
+'
+}
+
+ui_progressbar_test(){
+    for i in $(seq 0 10 100); do
+        printf "%s\n" "$i"
+        sleep 0.1s
+    done | ui_progressbar
+}
+
+# EndSection
+
+# Section : tput facility: cursor
+ui_cursor_hide(){
+    tput civis
+}
+
+ui_cursor_show(){
+    tput cvvis
+}
+
+ui_cursor_save(){
+    tput sc # save the cursor postition
+}
+
+ui_cursor_restore(){ 
+    tput.rc
+}
+
+# reference: https://unix.stackexchange.com/questions/88296/get-vertical-cursor-position/183121#183121
+ui_cursor_read(){
+    local cv 
+    local ch 
+    local IFS
+    # tput u7                  # Inquire for cursor position
+    # read -sdR CURPOS         # Read cursor position
+    # IFS=\; read cv ch <<<"${CURPOS#$'\e['}" # split $CURPOS
+
+    # TODO: Use something better
+    IFS=';' read -sdR -p $'\E[6n' cv ch
+    cv="${cv#*[}"
+
+    case $# in
+        0) echo "$cv $ch";;
+        1) eval "$1=$cv";;
+        *) 
+            eval "$1=$cv"; 
+            eval "$2=$ch";;
+    esac
+}
+
+# EndSection
+
+# Section : tput facility: region
+
+ui_region_init(){
+    ui_cursor_save
+}
+
+ui_region_clear(){
+    tput rc # restore to the last cursor position
+    # tput ed # clr_eos: clear the characters until the end of screen
+}
+
+_ui_tput_clear_from_cursor_to_eol(){
+    tput el
+}
+
+_ui_tput_clear_from_cursor_to_beginging_of_line(){
+    tput el1
+}
+
+_ui_tput_cursor_very_visable(){
+    tput cvvis
+}
+
+_ui_tput_cursor_invisable(){
+    tput civis
+}
+
+_ui_tput_cursor_moveup(){
+    tput cuu "${1:?move up line number}"
+}
+
+
+# # BUG: Only work for zsh and bash
+# # TODO: What if the text lines is more than the screen lines?
+# # Preserve Top N lines? -- This is out choice.
+# # Provide the scroll design?
+# # Using the screen design. Clear the screen. Put the codes in the screen. Refresh, then output the final snapshot.
+# ui_region_update(){
+#     _ui_tput_cursor_invisable # hide cursor
+
+#     local maxw 
+#     local maxr 
+#     local end1_row 
+#     local end2_row 
+#     local str 
+#     local linenum=0 
+#     local IFS
+
+#     ui_init_lines_columns
+#     maxw="$COLUMNS"
+#     maxr="$LINES" # rows is wrong.
+
+#     str="$(eval "$@")"
+#     while read -r n; do
+#         (( linenum+=$(( ( ${#n} + maxw - 1 ) / maxw )) ))
+#     done <<<"$str"
+
+#     # Cut down the lines
+#     if [ "$linenum" -ge "$maxr" ]; then
+#         ui_log debug linenum!!! "$linenum"
+#         linenum=$(( maxr - 1 )) # Important Parameter Adjustment
+#     fi
+
+#     ui_region_clear
+#     ui_cursor_read end1_row
+
+#     ui_log debug end1_row "$end1_row"
+#     ui_log debug linenum "$linenum"
+#     ui_log debug maxr "$maxr"
+
+#     if (( end1_row + linenum > maxr )); then
+#         ui_log debug "Go up"
+#         ui_region_clear
+#         local diff=$((linenum)) # Important Parameter Adjustment
+#         for i in $(seq $diff); do
+#             ui_cursor_read end1_row
+#             printf "\n"
+#         done
+
+#         # tput cud $diff
+#         _ui_tput_cursor_moveup $diff
+#         ui_cursor_save
+
+#         ui_cursor_read end1_row
+#         # ui_region_clear
+#     fi
+
+#     IFS='' # Important
+#     local l=0
+#     echo "$str" |  while read -r n; do
+#         # Important Parameter Adjustment
+#         if (( l++ < "$linenum" )); then
+#             printf "%s\n" "$n"
+#             _ui_tput_clear_from_cursor_to_eol
+#         fi
+        
+#     done
+
+#     ui_cursor_read end2_row
+
+#     # Make it into whole space
+#     if [ "$end2_row" -lt "$end1_row" ]; then
+#         for i in $( seq $(( end1_row - end2_row )) ); do
+#             printf "%${maxw}s\n" " "
+#         done
+#     fi
+
+#     _ui_tput_cursor_very_visable
+# }
+
+# EndSection
+
+# Section : screen design -- tput screen facility
+
+ui_save_screen() { tput smcup; }
+ui_restore_screen() { tput rmcup; }
+ui_screen() {
+    ui_save_screen
+    eval "$@"
+    ui_restore_screen
+}
+
+# @screen() { ui_screen "$@"; }
+
+ui_banner() {
+    # echo -n ${BG:-$UI_BG_BLUE}${FG:-$UI_FG_WHITE}
+    local FG
+    local BG
+    FG=$(tput setaf "${1:-$UI_WHITE}")
+    BG=$(tput setab "${2:-$UI_BLUE}")
+    echo "$FG$BG"
+    clear
+    cat
+}
+
+RUN_CMD_WITH_INFO() {
+    local INFO=$1
+    shift 1
+    INFO "======================\n"
+    INFO "$INFO\n"
+    INFO "======================\n"
+    eval "$@"
+}
+
+RUN_CMD_WITH_STEP() {
+    local STEP=$1
+    local INFO="STEP $STEP: $2"
+    shift 2
+    RUN_CMD_WITH_INFO "$INFO" "$@"
+}
+
+# EndSection
+
+# Section : interactive component
+_ui_check_cmd_run(){
+    local msg="${1:?Please Provide message}"; shift
+
+    # TODO: Consider using trap or other method to interrupt the par animation
+    local filepath
+    filepath="$TMPDIR/_ui_check_cmd_run.$$.$(date +%s).txt"
+    {
+        eval "$@"
+        printf "%s" "$?" > "$filepath"
+    } | {
+        local i="-"
+        local FMT="\r$(ui blue)$(ui bold)%s       $(ui end)$(ui yellow)%s$(ui end)"
+        printf "$FMT" "$i" "$msg"
+        while [ ! -f "$filepath" ]; do
+            sleep 0.1
+            case "$i" in
+                -)  i="\\"  ;;
+                \\) i="|"   ;;
+                \|) i="/"   ;;
+                /)  i="-"   ;;
+            esac
+            printf "$FMT" "$i" "$msg"
+        done
+        return "$(cat "$filepath"; rm "$filepath" 2>/dev/null)"
+    }
+}
+
+ui_check_cmd(){
+    local msg="${1:?Please Provide message}";    
+    if _ui_check_cmd_run "$@"; then
+        printf "\r$(ui green)$(ui bold)%s       %s$(ui end)"  "√" "$msg"
+    else
+        local code=$?
+        printf "\r$(ui red)$(ui bold)%s       %s$(ui end)"    "X" "$msg"
+        return "$code"
+    fi
+}
+# EndSection
+
+# Section other unused
+# Maybe not useful
+___ui_yesno() {
+    local p
+    while true; do
+        printf "%s" "$1 (Input 'y' for yes or 'n' for no):"
+        ___ui_read p
+        # remove space
+        case $p in
+            y)          return 0 ;;
+            n)          return 1 ;;
+        esac
+    done
+}
+
+___ui_yesno_enter() {
+    local p
+    while true; do
+        printf "%s" "$1 (Press Enter or y for yes, otherwise no):"
+        ___ui_read p
+        # remove space
+        case $p in
+            y|"")           return 0    ;;
+            *)              return 1    ;;
+        esac
+    done
+}
+
+___ui_readint() {
+    local min=${1:?Provide min}
+    local max=${2:?Provide max}
+
+    local choice
+    while true; do
+        printf "%s" "${3:-Read integer: }" 
+        ___ui_read choice
+        if [ "$choice" -ge "$min" ] && [ "$choice" -le "$max" ]; then
+            printf "%s" "$choice"
+            return 0
+        fi 2>/dev/null
+    done
+}
+# EndSection

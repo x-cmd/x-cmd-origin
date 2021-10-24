@@ -1,1 +1,0 @@
-cd .. && tar czf advise/advise.tgz advise/v0 advise/v0.awk advise/latest && cd -

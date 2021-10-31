@@ -22,7 +22,7 @@ A
 # NOTICE: tar czf - "$@" | split -b "$size" -a 3 - "$target_file."
 # NOTICE: In some environments, split doesnot have -d option. Thus we are using 7zip to compress
 
-xrc log init zuz
+x log init zuz
 
 ___zuz_run(){
     local IFS

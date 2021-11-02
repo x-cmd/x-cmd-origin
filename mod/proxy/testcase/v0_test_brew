@@ -1,0 +1,42 @@
+# shellcheck shell=sh disable=SC3043
+
+##################
+## Init env
+##################
+
+## if have deno command, then remove deno
+if command -v deno >/dev/null 2>&1; then
+    deno --version | grep "deno"
+    brew uninstall deno && brew cleanup -s
+else
+    proxy_log "no deno command"
+fi
+
+##################
+## Test functions
+##################
+
+test_proxy_brew_set() {
+    proxy brew set 
+    time brew install deno
+}
+
+test_proxy_brew_unset() {
+    export all_proxy=socks5://127.0.0.1:1080
+    proxy brew unset
+    brew uninstall deno && brew cleanup -s
+    time brew install deno
+}
+
+##################
+## Run test
+##################
+
+test_proxy_brew_set
+test_proxy_brew_unset
+
+##################
+## Clean env
+##################
+
+brew uninstall deno && brew cleanup -s

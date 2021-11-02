@@ -1,0 +1,16 @@
+# shellcheck shell=sh disable=SC3043
+
+##################
+## Test functions
+##################
+
+test_proxy_apt_set() {
+    # How to build? 
+    echo "Testing debian dash mawk run: $*"
+    docker run -it -v "$(pwd)":/pd xcmd/ubuntu sh -c ". ~/.x-cmd/.boot/boot && cd pd && $*"
+}
+
+##################
+## Run test
+##################
+test_proxy_apt_set "echo 'Hello world'"

@@ -1,0 +1,87 @@
+# shellcheck shell=sh disable=SC3043
+
+xrc param/v0
+
+___x_cmd_theme_control(){
+    param:dsl <<A
+subcommands:
+    ls          "list all theme"
+    use         "use theme"
+    rollback    "use last theme"
+A
+    param:run
+
+    if [ -z "$PARAM_SUBCMD" ]; then
+        ___x_cmd_theme_control _param_help_doc
+        return 0
+    fi
+
+    "___x_cmd_theme_control_${PARAM_SUBCMD}" "$@"
+}
+
+___x_cmd_theme_which(){
+    local name="${1:?Provide name}"
+
+    local ___X_CMD_CURL_UPDATE="${___X_CMD_CURL_UPDATE}"
+
+    local CACHE="$___X_CMD_ROOT/.tmp/theme/$name"
+    if find "$CACHE" -mmin 60 2>/dev/null 1>&2; then
+        ___X_CMD_CURL_UPDATE=1
+    fi
+
+    local url="https://gitee.com/x-cmd/theme/raw/main/$name"
+    if [ "$___X_CMD_IN_CHINA_NET" != 1 ]; then
+        url="https://raw.githubusercontent.com/x-cmd/theme/main/$name"
+    fi
+
+    ___x_cmd_curl "$url" && printf "%s" "$CACHE"
+}
+
+
+___x_cmd_theme_control_ls() {
+    local fp
+    if fp="$(___x_cmd_theme_which index.yml)"; then
+        awk '{ print $2; }' <"$fp"
+    fi
+}
+
+xrc theme/_v0/lib
+xrc theme/_v0/style
+
+___x_cmd_theme_control_use(){
+    local name="${1}"
+
+    case "$name" in
+        ice|"")
+            ___x_cmd_theme_load_format "$(xrc which theme/_v0/ice)"
+            return
+            ;;
+        */*)
+            ___x_cmd_theme_load_format "$(xrc which "$name")"
+            return
+            ;;
+    esac
+
+    ___x_cmd_theme_control_ls | awk -v name="$name" '
+$1=name{ code=1; exit 0; };
+END{
+    if (code==1) exit 0
+    else exit 1
+}'
+
+    local code=$?
+    if [ "$code" != 0 ]; then
+        return $code
+    fi
+
+    local fp
+    if fp="$(___x_cmd_theme_which "$name")"; then
+        ___x_cmd_theme_load_format "$fp"
+    fi
+    return 1
+}
+
+___x_cmd_theme_control_rollback(){
+    :
+}
+

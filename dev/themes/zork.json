@@ -1,0 +1,5 @@
+{
+    "PS1":["${TITLEBAR}┌─$(chroot)[${my_ps_host_time}][$my_ps_host_root][$(modern_scm_prompt)]"],
+    "PS2":[],
+    "Background":""
+}

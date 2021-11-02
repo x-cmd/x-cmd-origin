@@ -1,0 +1,13 @@
+# shellcheck shell=sh
+
+# 引入优先词，会导致在输入上有偏见
+no_other_words="
+skgj 整理
+gjsh 理想
+vcen 努力
+dluf 奋斗
+wadc 代码
+dtbu 故障
+ygyw 评论
+wymq 偏见
+"

@@ -1,0 +1,88 @@
+# shellcheck shell=sh disable=SC3043
+
+xrc ali/_v0/dns_record
+xrc ali/_v0/dns_domain
+
+
+# ali dns lteam.top =lteamtop
+# ali dns www.lteam.top =www_record   # Using variable
+
+# ali dns www.lteam.top 48.1.1.1
+
+# ali dns domain ls
+# ali dns domain ls 
+# ali dns --domain www.lteam.top --record 48.1.1.1
+
+
+# help doc: 'ali dns' is alias for 'ali dns quick'
+ali_dns(){
+    param:dsl <<A
+subcommand:
+    domain          "handle_domains"
+    record|rec      "handling record"
+    ls              "list"
+A
+    param:run
+
+    if [ -z "$PARAM_SUBCMD" ]; then
+        ali_dns_quick "$@"
+        return
+    fi
+
+    "ali_dns_$PARAM_SUBCMD" "$@"
+}
+
+ali_dns_ls(){
+    param:void
+
+    if [ $# = 0 ]; then
+        # ali_dns_domain_list
+        ali_dns_record_ls
+        return
+    fi
+
+    local name=$1
+    if [ "$name" = "${name%.*.*.}" ]; then
+        ali_dns_record_ls "$name"
+    else
+        ali_dns_domain_ls "$name"
+    fi
+}
+
+
+# ali dns a.lteam.top 192.168.1.1
+# ali dns b.lteam.top b.lteam.top
+
+# ali dns lteam.top             > show information of domain
+# ali dns a.lteam.top           > show information of this record
+
+ali_dns_quick(){
+    param:void
+
+    if [ "$1" = _x_cmd_advise_json ]; then
+        cat <<A
+{}
+A
+        return 126
+    fi
+
+    case $# in
+        0)  ali dns domain
+            return 0
+            ;;
+        1)  case "$1" in
+                :*)     ali_dns_record_del "${1#:}" ;;
+                # *)    ali_dns_ls "$1"      ;;
+                *)      ali_dns_record "$1" ;;
+            esac
+            return
+            ;;
+        2)
+            local name=$1
+            ali_dns_record_put "$name" "$2"
+            ali dns record "$name"
+            ;;
+        *)  ali dns record "$@"
+            ;;
+    esac
+}

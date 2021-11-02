@@ -69,7 +69,7 @@ static_build_which(){
                     done
 
                     static_build_log info "Using p7zr to decompress: $target/$exe.7z.001"
-                    cat "$target/$exe.7z.0*" > $exe.7z
+                    cat $target/$exe.7z.0* > $exe.7z
                     p7zr x "$exe.7z" 1>/dev/null 2>/dev/null
                 fi && chmod +x "$exe" \
                     && static_build_log info "Finish file decompress and chmod."

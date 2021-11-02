@@ -223,7 +223,7 @@ test_dict_pdrop(){
     assert_f dict @b has 5
 }
 
-< ./testcases/v0_test awk '$0~/^test_[^\(]+\(\)/{ gsub(/\(\)\{/, "", $0); print $0 }' | while read -r line; do
+< ./testcase/v0_test awk '$0~/^test_[^\(]+\(\)/{ gsub(/\(\)\{/, "", $0); print $0 }' | while read -r line; do
     echo "Testing Function: $line"
     if ! $line; then
         echo "======= fail at function: $line" >&2

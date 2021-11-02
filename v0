@@ -125,7 +125,7 @@ ___tldr_current_or_update(){
         if ! ___tldr_update; then
             return 1
         fi
-        ___tldr_cureent
+        ___tldr_current
         return
     else
         printf "%s" "$version"

@@ -1,0 +1,2 @@
+mkdir -p ~/.x-cmd/tldr/
+cp v0* ~/.x-cmd/tldr/

@@ -1,0 +1,227 @@
+# shellcheck shell=bash disable=SC2039,3043
+
+# author:       Li Junhao           l@x-cmd.com    edwinjhlee.github.io
+
+# Section: main
+
+xrc param/v0
+
+______X_CMD_TLDR_AWK="$(xrc which tldr/v0.awk)"
+
+______X_CMD_TLDR_LANG="
+en
+bs
+da
+de
+es
+fa
+fr
+hbs
+hi
+id
+it
+ja
+ko
+ml
+nl
+no
+pl
+pt_BR
+pt_PT
+ru
+sv
+ta
+th
+tr
+zh
+zh_TW
+"
+
+tldr(){
+    param:dsl <<A
+subcommands:
+    update      "Update"
+    ls          "list all possible commands"
+    use         "Prefered language"
+    cat         "cat"
+A
+    param:run
+
+    if [ -z "${PARAM_SUBCMD}" ]; then
+        case "$1" in
+            :*)     tldr cat "${1#:}" ;;
+            *)      tldr cat "$@" ;;
+        esac
+        return
+    fi
+
+    "___tldr_$PARAM_SUBCMD" "$@"
+}
+
+_______X_CMD_TLDR_ROOT="$___X_CMD_ROOT/.tmp/tldr"
+
+_______tldr_download(){
+    local src="${1:?src}"
+    local dst="${2:-$1}"
+
+    local CACHE="$_______X_CMD_TLDR_ROOT/$dst"
+
+    local url="https://gitee.com/x-cmd/tldr/raw/main/dist/$src"
+    if [ "$___X_CMD_IN_CHINA_NET" != 1 ]; then
+        url="https://raw.githubusercontent.com/x-cmd/tldr/main/dist/$src"
+    fi
+
+    ___x_cmd_curl "$url" 2>/dev/null
+}
+
+___tldr_current(){
+    if [ ! -f "$_______X_CMD_TLDR_ROOT/index.yml" ]; then
+        return 1
+    fi
+
+    local version="$(cat "$_______X_CMD_TLDR_ROOT/index.yml")"
+    version="${version%%
+*}"
+    version="${version#* }"
+    printf "%s" "$version"
+}
+
+_______tldr_download_pages()(
+    local version="${1:?Provide version}"
+    local page_lang="${2:?pages}"
+    if [ -d "$_______X_CMD_TLDR_ROOT/$version/$page_lang" ]; then
+        printf "pages already exists.\n" >&2
+        return
+    fi
+
+    mkdir -p "$_______X_CMD_TLDR_ROOT/$version/$page_lang"
+    if ! _______tldr_download "$version/$page_lang.tgz" "$version/$page_lang/$page_lang.tgz"; then
+        printf "%s\n" "Fail to update $page_lang." >&2
+        return 1
+    fi
+
+    if cd "$_______X_CMD_TLDR_ROOT/$version/$page_lang" && tar xvf "$page_lang.tgz" 2>/dev/null; then
+        printf "Version already UPDATED to %s.\n" "$version" >&2
+    fi
+)
+
+___tldr_update()(
+    if ! ___X_CMD_CURL_UPDATE=1 _______tldr_download index.yml; then
+        printf "%s\n" "Fail to update index.yml." >&2
+        return 1
+    fi
+
+    local version="$(___tldr_current)"
+    version="${version%%
+*}"
+    version="${version#* }"
+
+    _______tldr_download_pages "$version" "pages"
+)
+
+___tldr_current_or_update(){
+    local version
+    if ! version="$(___tldr_current)"; then
+        if ! ___tldr_update; then
+            return 1
+        fi
+        ___tldr_cureent
+        return
+    else
+        printf "%s" "$version"
+    fi
+}
+
+___tldr_ls_lang(){
+    printf "%s" "$______X_CMD_TLDR_LANG"
+}
+
+______X_CMD_TLDR_LANG_PREFERED="${______X_CMD_TLDR_LANG_PREFERED:-en}"
+___tldr_use(){
+    local lang="${1:?Provide langauge}"
+    if [ "$lang" != "en" ]; then
+        local version
+        version="$(___tldr_current_or_update)" || return
+        _______tldr_download_pages "$version" "pages.$lang" || return
+    fi
+    ______X_CMD_TLDR_LANG_PREFERED="$lang"
+}
+
+___tldr_getfile(){
+    local cand="${1:?Provide command}"
+    if [ "$______X_CMD_TLDR_LANG_PREFERED" != en ]; then
+        local fp
+        fp="$_______X_CMD_TLDR_ROOT/$(___tldr_current)/pages.$______X_CMD_TLDR_LANG_PREFERED/$cand"
+        [ -f "$fp" ] && printf "%s" "$fp" && return
+    fi
+
+    printf "%s" "$_______X_CMD_TLDR_ROOT/$(___tldr_current)/pages/$cand"
+}
+
+___tldr_lsname(){
+    ___tldr_ls | awk -v FS=/ '{ print substr($2, 1, length($2)-3); }' | sort | uniq
+}
+
+___tldr_ls()(
+    local version
+    version="$(___tldr_current_or_update)" || return
+
+    if cd "$_______X_CMD_TLDR_ROOT/$version/pages/"; then
+        local cmd="${1}"
+        case "$cmd" in
+            "")     ls */* ;;
+            */*)    ls */* | grep "$cmd" ;;
+            *)      ls */* | grep "\/$cmd" ;;
+        esac
+    fi
+)
+
+___tldr_exact()(
+    local version
+    version="$(___tldr_current_or_update)" || return
+
+    if cd "$_______X_CMD_TLDR_ROOT/$version/pages/"; then
+        local cmd="${1}"
+        case "$cmd" in
+            "")     ls */* ;;
+            */*)    ls */* | grep "$cmd" ;;
+            *)      ls */* | grep "\/$cmd.md" ;;
+        esac
+    fi
+)
+
+___tldr_cat(){
+    cand="$( ___tldr_exact "$@" )"
+    local num
+    num="$(printf "%s" "$cand" | awk 'END{ print NR; }')"
+
+    case $num in
+        0)  printf "Not found.\n" >&2;
+            ___tldr_ls "$@" >&2
+            return 1 ;;
+        1)
+            if [ -t 1 ]; then
+                awk -f "$______X_CMD_TLDR_AWK" <"$(___tldr_getfile "$cand")"
+            else
+                cat "$(___tldr_getfile "$cand")"
+            fi
+                ;;
+        *)  printf "Found %s:\n---------\n%s\n" "$num" "$cand"; >&2 return 1 ;;
+    esac
+}
+
+# EndSection
+
+if [ -n "$BASH_VERSION$ZSH_VERSION" ] && [ "${-#*i}" != "$-" ]; then
+    xrc advise
+    advise tldr <<A
+{
+    "update": null,
+    "ls": "___tldr_lsname",
+    "use": "___tldr_ls_lang",
+    "cat": "___tldr_lsname"
+}
+A
+
+fi
+

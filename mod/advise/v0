@@ -3,9 +3,9 @@
 # author:       Li Junhao           l@x-cmd.com    edwinjhlee.github.io
 
 if [ -z "${ZSH_VERSION}${BASH_VERSION}" ]; then
-    xrc_log info "advise is only available in 'bash' or 'zsh'."
+    x log info "advise is only available in 'bash' or 'zsh'."
 elif ! ___ADVISE_AWK_PATH="$(xrc which advise/v0.awk)"; then
-    xrc_log error "Cannot introduce advise"
+    x log error "Cannot introduce advise"
 else
 
 x log init advise
@@ -48,6 +48,8 @@ advise(){
 A
             return 126
             ;;
+        man)
+            ___advise_man "$@" ;;
         init|new)
             ___advise_main "$@" ;;
         del)
@@ -89,12 +91,15 @@ A
 # Section : adviser helper function: ls lsd seq
 
 ___advise_lsd(){
-    local localdir="${1:-${cur:-.}}"
-
     local l
+    # local localdir="${1:-${cur:-.}}"
+    # ls -d "${localdir}"*/ 2>/dev/null | while read -r l; do
+    #     printf "%s\n" "${l%/}"
+    # done
 
-    ls -d "${localdir}"*/ 2>/dev/null | while read -r l; do
-        printf "%s\n" "${l%/}"
+    local localdir="${1:-${cur:-""}}"
+    compgen -d "${localdir}" 2>dev/null | while read -r l; do
+        printf "%s/\n" "${l%/}"
     done
 }
 
@@ -122,6 +127,7 @@ ___advise_ls(){
             print folder "/" $0
         }
     }' 2>/dev/null
+    # ls "${folder:-.}" | grep -E "${pattern:-""}" 2>/dev/null
 
     # local l
     # ls "${localdir}" | while read -r l; do
@@ -275,11 +281,21 @@ ___advise_run(){
     local offset="${2:-0}"
     local resname="${1:-${COMP_WORDS[0]}}"
 
+    if [ -z "$___ADVISE_RUN_CMD_FOLDER" ]; then
+        ___ADVISE_RUN_CMD_FOLDER="${TMPDIR%/}/.x-cmd/advise_auto_json"
+    fi
+
     local filepath
     case "$resname" in
         /*) filepath="$resname" ;;
         -)  filepath=/dev/stdin ;;
-        *)  filepath="${TMPDIR%/}/.x-cmd/advise_auto_json/$resname" ;;
+        *)
+            if [ -d "$___ADVISE_RUN_CMD_FOLDER/$resname" ]; then
+                filepath="$___ADVISE_RUN_CMD_FOLDER/$resname/advise.json"
+            else
+                filepath="$___ADVISE_RUN_CMD_FOLDER/$resname"
+            fi
+            ;;
     esac
 
     shift 2>/dev/null
@@ -363,15 +379,18 @@ $cmd_result" -- "$cur"
 
     __ltrim_completions "$cur" "@"
     __ltrim_completions "$cur" ":"
+    __ltrim_completions "$cur" "="
+
 }
 
 __ltrim_completions()
 {
+
     local i=${#COMPREPLY[*]}
     ((i == 0)) && return 0
     if [[ $1 == *$2* && $COMP_WORDBREAKS == *$2* ]]; then
         # Remove colon-word prefix from COMPREPLY items
-        local colon_word=${1%"${1##*:}"}
+        local colon_word=${1%"${1##*$2}"}
         COMPREPLY=("${COMPREPLY[@]}")
         while ((i-- > 0)); do
             COMPREPLY[i]=${COMPREPLY[i]#"$colon_word"}
@@ -381,7 +400,7 @@ __ltrim_completions()
 
 ___advise_completer() {
     # Interesting ... Passing
-    ___advise_run ""
+    ___ADVISE_RUN_CMD_FOLDER= ___advise_run ""
 }
 
 # EndSection
@@ -393,3 +412,88 @@ fi
 advise init advise
 
 fi
+
+# Section: man
+
+___advise_man_exists(){
+    [ -d "$___X_CMD_ROOT/.tmp/advise/src" ]
+}
+
+___advise_man_update(){
+    local CACHE="$___X_CMD_ROOT/.tmp/advise/all.tar.gz"
+    local srcfolder="$___X_CMD_ROOT/.tmp/advise/src"
+
+    local url="https://gitee.com/x-cmd/advise/raw/main/dist/all.tgz"
+    if [ "$___X_CMD_IN_CHINA_NET" != 1 ]; then
+        url="https://raw.githubusercontent.com/x-cmd/advise/main/dist/all.tgz"
+    fi
+
+    if ___x_cmd_curl "$url"; then
+        [ -d "$srcfolder" ] && rm -rf "$srcfolder"
+        mkdir -p "$srcfolder"
+        tar xvf "$CACHE" -C "$srcfolder"
+    fi
+}
+
+___advise_man_ls(){
+    if ___advise_man_exists || ___advise_man_update; then
+        ls "$___X_CMD_ROOT/.tmp/advise/src"
+    fi
+}
+
+___advise_man_which(){
+    local name="${1:?Provide name}"
+    if ___advise_man_exists || ___advise_man_update; then
+        local p="$___X_CMD_ROOT/.tmp/advise/src/$name/advise.json"
+        [ -f "$p" ] && printf "%s" "$p"
+    fi
+
+    return 1
+}
+
+# ___advise_man_load(){
+#     local cmd="${1:?Provide cmd}"
+#     local p="$(___advise_man_which "$cmd")"
+#     if [ ! -f "$p" ]; then
+#         printf "%s\n" "$cmd.json Not found. You could try 'advise man update' for updates." >&2
+#         return 1
+#     fi
+#     compgen "___advise_man_completer" "$cmd"
+# }
+
+___advise_man_load(){
+    local i
+    for i in $(___advise_man_ls); do
+        if s=$(complete -p "$i" 1>/dev/null 2>&1); then
+            [[ "$s" == *___advise_completer* ]] && continue
+        fi
+        complete -F "___advise_man_completer" "$i"
+    done
+}
+
+___advise_man_rm(){
+    local srcfolder="$___X_CMD_ROOT/.tmp/advise/src"
+    local CACHE="$___X_CMD_ROOT/.tmp/advise/all.tar.gz"
+    if ___advise_man_exists; then
+        rm -rf "$srcfolder"
+    fi
+}
+
+___advise_man_completer() {
+    # Interesting ... Passing
+    ___ADVISE_RUN_CMD_FOLDER="$___X_CMD_ROOT/.tmp/advise/src/" ___advise_run ""
+}
+
+___advise_man(){
+    local op="${1:?Provide subcommand}"; shift
+    case "$op" in
+        ls)         ___advise_man_ls ;;
+        update)     ___advise_man_update ;;
+        which)      ___advise_man_which "$@" ;;
+        load)       ___advise_man_load "$@" ;;
+        rm)         ___advise_man_rm ;;
+        *)          ___advise_man_load "$op" "$@" ;;
+    esac
+}
+
+# EndSection

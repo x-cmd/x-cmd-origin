@@ -1,6 +1,6 @@
 # shellcheck shell=bash
 
-xrc log advise xrc
+x log advise xrc
 xrc assert
 
 # Section: Testcase for advise awk code
@@ -21,6 +21,65 @@ A
     assert_stdout "test123 option @a ''" <<A
 atcmd
 @
+A
+}
+
+test_ssh(){
+    assert_stdout "test123 ssh -o AddKeysToAgent=" <<A
+AddKeysToAgent=yes
+AddKeysToAgent=ask
+AddKeysToAgent=confirm
+AddKeysToAgent=no
+A
+    assert_stdout "test123 ssh -o A" <<A
+AddKeysToAgent=
+AddressFamily=
+A
+}
+
+test_xsxs(){
+    assert_stdout "test123 subcommand create"<<A
+create1
+create2
+create3
+create4
+A
+    assert_stdout "test123 cs -a ''"<<A
+test1
+test2
+cscs
+A
+    assert_stdout "test123 cs -a="<<A
+-a=test1
+-a=test2
+-a=cscs
+A
+    assert_stdout "test123 cs -a=t"<<A
+-a=test1
+-a=test2
+-a=cscs
+A
+
+    assert_stdout "test123 cs -b test -"<<A
+-seq
+-a
+-c
+-d
+-e
+A
+    assert_stdout "test123 cs -a=cscs -"<<A
+-seq
+-b
+-a
+-c
+-d
+-e
+A
+    assert_stdout "test123 cs -b test -a cscs -e ''"<<A
+#> ___advise_lsd
+A
+    assert_stdout "test123 cs -b test -a=cscs -e ''"<<A
+#> ___advise_lsd
 A
 }
 
@@ -98,6 +157,7 @@ A
     assert_stdout "test123 option -d ''" <<A
 e
 c:
+a
 A
 
     assert_stdout "test123 option -d e" <<A
@@ -124,7 +184,7 @@ abt
 A
 
     assert_stdout "test123 rarg s s ''"<<A
-#> ___advise_ls
+#> ___advise_ls_grep ^t
 A
 
     assert_stdout "test123 rarg s s s ''"<<A
@@ -135,12 +195,6 @@ A
 }
 
 test_subcmd(){
-    assert_stdout "test123 s"<<A
-subcmd
-subcommand
-#> advise ls
-A
-
     assert_stdout "test123 subcmd create"<<A
 create1
 create2
@@ -211,7 +265,7 @@ A
 # Section: utilities
 
 test123(){
-    local fp="./testcases/test.json"
+    local fp="./testcase/test.json"
     local IFS=$'\002' # IFS="$(printf "\002")"
     # echo "Before awk: $*" > /dev/stderr
 
@@ -238,10 +292,10 @@ start_test() {
     done
 }
 
-start_test ./testcases/v0_test
+start_test ./testcase/v0_test
 
 # Section: for the interactive ui
 rm -rf test.out
 . ./v0
 ___ADVISE_AWK_PATH="./v0.awk"
-advise compt "./testcases/test.json"
+advise compt "./testcase/test.json"

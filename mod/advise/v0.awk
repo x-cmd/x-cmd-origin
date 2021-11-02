@@ -376,6 +376,9 @@ NR==2{
         argval = ""
 
         if (arg ~ /^-/) {
+            if(match(arg,/=/)){
+                continue
+            }
             if (match(arg, /^--?[A-Za-z0-9_+-]+=/)){
                 argval = substr(arg, RLENGTH+1)
                 arg = substr(arg, 1, RLENGTH)
@@ -495,6 +498,10 @@ NR==2{
             candidates = RULE_ID_CANDIDATES[ option_id ]
         }
         print_list_candidate(candidates, cur)
+    } else if (match(cur,/^-.*=/)){
+        current_keypath = current_keypath KEYPATH_SEP substr(cur,1,RLENGTH-1)
+        candidates = RULE_ID_CANDIDATES[ current_keypath ]
+        print_list_candidate(candidates, substr(cur,1,RLENGTH))
     } else {
         # list subcmd or options or postional arguments
         show_candidates( current_keypath, cur )
@@ -538,6 +545,17 @@ function is_all_required_provided(      arr, arrlen, i, elem){
 function print_list_candidate(candidates, cur,
     can, i, can_arr_len, can_arr, _key ){
 
+    if(match(cur,/^-.*=$/)){
+        if (candidates !~ "^" KV_SEP) {
+            can_arr_len = split( candidates, can_arr, "\n" )
+            for (i=2; i<=can_arr_len; ++i) {
+                can = cur can_arr[i]
+                print can
+            }
+            return
+        }
+    }
+
     if ( str_startswith( candidates, "#> " ) ) {
         # print command line
         print candidates
@@ -548,7 +566,12 @@ function print_list_candidate(candidates, cur,
         can_arr_len = split( candidates, can_arr, "\n" )
         for (i=2; i<=can_arr_len; ++i) {
             can = can_arr[i]
-            if (str_startswith( can, cur )) print can
+            if (str_startswith( can, cur )) {
+                if (cur !~ /=/ && match(can, /=/)){
+                    can=substr(can,1,RSTART)
+                }
+                if (!a[can]++) print can
+            }
         }
         return
     }
@@ -576,7 +599,11 @@ function show_positional_candidates(final_keypath, cur, rest_argv_len,
     if ( all_required == false ) return
     # debug("show_positional_candidates()  all_required=true")
 
-    RULE_ID = RULE_ALIAS_TO_ID[ final_keypath KEYPATH_SEP "#" rest_argv_len ]
+    if(match(cur,/.*=$/)){
+        RULE_ID = RULE_ALIAS_TO_ID[ final_keypath KEYPATH_SEP cur ]
+    }else{
+        RULE_ID = RULE_ALIAS_TO_ID[ final_keypath KEYPATH_SEP "#" rest_argv_len ]
+    }
 
     candidates = RULE_ID_CANDIDATES[ RULE_ID ]
     # debug("show_positional_candidates(): CANDIDATES\n" candidates)
@@ -663,7 +690,7 @@ function print_candidate_with_optionid( option_id, cur,
 
     for (i=1; i<=can_arr_len; ++i) {
         can = can_arr[i]
-        if (str_startswith( can, cur ) && can != "--@") {
+        if (str_startswith( can, cur ) && can != "--@" && cur !~ /^-.*=$/) {
             print can
         }
     }

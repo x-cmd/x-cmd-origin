@@ -1,0 +1,232 @@
+# shellcheck shell=sh
+# shellcheck disable=SC2089
+
+. ./v0
+# . "${IMPLMENTATION:-_v0/str}"
+xrc assert
+
+if [ -n "${BASH_VERSION}" ]; then
+    case "${BASH_VERSION}" in
+        3*|4.0*|4.1*)
+            . ./_v0/str
+            ;;
+        *)
+            . ./_v0/bash4
+            ;;
+    esac
+elif [ -n "${ZSH_VERSION}" ]; then
+    . ./_v0/zsh
+else
+    . ./_v0/str
+fi
+
+test_dict_setup(){
+    dict @b free
+    dict @b make
+    dict @b put 1 a
+    dict @b put 2 b
+    dict @b put "2 \" 3 " b
+    dict @b put 3 c
+}
+
+test_dict_has(){
+    test_dict_setup
+    assert_t dict @b has 2
+    assert_f dict @b has 4
+}
+
+test_dict_size(){
+    test_dict_setup
+    dict_log "___X_BASH_DICT_b: ${___X_BASH_DICT_b[*]}"
+    assert "$(dict @b size)" = 4
+}
+
+test_dict_is_empty(){
+    dict @b free
+    dict @b make
+    assert_t dict @b is_empty
+    dict @b put 1 a
+    assert_f dict @b is_empty
+}
+
+test_dict_pget(){
+    test_dict_setup
+    assert "$(dict @b get 2)" = b
+}
+
+test_dict_pscope(){
+    dict @b del 2>/dev/null
+    dict_log "Testcase 's object-name \"$(command -v b 2>&1)\""
+    dict @b new
+    dict_log "Testcase 's object-name $(command -v b)"
+    b put el user edwinjhlee
+    b put lt user lteam
+    b put el password goforit
+    b put lt password 2008
+
+    if [ -n "${BASH_VERSION}" ]; then
+        case "${BASH_VERSION}" in
+            3*|4.0*|4.1*)
+                assert_stdout "dict @b scope el | ___dict_pprint" <<A
+user=edwinjhlee
+password=goforit
+A
+                ;;
+            *)
+                assert_stdout "dict @b scope el | ___dict_pprint" <<A
+password=goforit
+user=edwinjhlee
+A
+                ;;
+        esac
+    elif [ -n "${ZSH_VERSION}" ]; then
+        assert_stdout "dict @b scope el | ___dict_pprint" <<A
+password=goforit
+user=edwinjhlee
+A
+    else
+        assert_stdout "dict @b scope el | ___dict_pprint" <<A
+password=goforit
+user=edwinjhlee
+A
+    fi
+
+
+    assert_stdout "dict @b scope lt | ___dict_pjson" <<A
+{
+  "user": "lteam",
+  "password": "2008"
+}
+A
+}
+
+test_dict_dump_json(){
+    test_dict_setup
+
+    if [ -n "${BASH_VERSION}" ]; then
+        case "${BASH_VERSION}" in
+            3*|4.0*|4.1*)
+                assert_stdout "dict @b json" <<A
+{
+  "1": "a",
+  "2": "b",
+  "2 \" 3 ": "b",
+  "3": "c"
+}
+A
+                ;;
+            *)
+                assert_stdout "dict @b json" <<A
+{
+  "3": "c",
+  "2": "b",
+  "1": "a",
+  "2 \" 3 ": "b"
+}
+A
+                ;;
+        esac
+    elif [ -n "${ZSH_VERSION}" ]; then
+        assert_stdout "dict @b json" <<A
+{
+  "3": "c",
+  "2 \" 3 ": "b",
+  "1": "a",
+  "2": "b"
+}
+A
+    else
+        assert_stdout "dict @b json" <<A
+{
+  "3": "c",
+  "2": "b",
+  "1": "a",
+  "2 \" 3 ": "b"
+}
+A
+    fi
+}
+
+test_dict_load_json(){
+    dict @b free
+    dict_log "test1: ___X_BASH_DICT_b:${___X_BASH_DICT_b}"
+    dict @b make
+
+    local test_json='{
+  "3": "c",
+  "2 \" 3 ": "b",
+  "1": "a",
+  "2": "b"
+}'
+
+    # BUG: dict_load_json does not work in zsh with spaces in keys
+    dict @b load_json "${test_json}"
+    dict_log "test2: ___X_BASH_DICT_b:${___X_BASH_DICT_b}"
+    dict_log "test2: ___X_BASH_DICT_b:$(dict @b dump)"
+
+    if [ -n "${BASH_VERSION}" ]; then
+        case "${BASH_VERSION}" in
+            3*|4.0*|4.1*)
+                assert_stdout "dict @b json" <<A
+{
+  "3": "c",
+  "2 \" 3 ": "b",
+  "1": "a",
+  "2": "b"
+}
+A
+                ;;
+            *)
+                assert_stdout "dict @b json" <<A
+{
+  "3": "c",
+  "2": "b",
+  "1": "a",
+  "2 \\\" 3": "b"
+}
+A
+                ;;
+        esac
+    elif [ -n "${ZSH_VERSION}" ]; then
+        assert_stdout "dict @b json" <<A
+{
+  "3": "c",
+  "2 \\\" 3": "b",
+  "1": "a",
+  "2": "b"
+}
+A
+    else
+        assert_stdout "dict @b json" <<A
+{
+  "3": "c",
+  "2 \" 3": "b",
+  "1": "a",
+  "2": "b"
+}
+A
+    fi
+}
+
+test_dict_premove(){
+    test_dict_setup
+    assert_f dict @b remove 4
+    assert_t dict @b has 2
+    dict @b drop 2
+    assert_f dict @b has 2
+}
+
+test_dict_pdrop(){
+    test_dict_setup
+    assert_t dict @b drop "\"[1-3]+"\"
+    assert_f dict @b has 1
+    assert_f dict @b has 5
+}
+
+< ./testcase/v0_test awk '$0~/^test_[^\(]+\(\)/{ gsub(/\(\)\{/, "", $0); print $0 }' | while read -r line; do
+    echo "Testing Function: $line"
+    if ! $line; then
+        echo "======= fail at function: $line" >&2
+        break
+    fi
+done

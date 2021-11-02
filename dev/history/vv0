@@ -1,0 +1,165 @@
+
+
+# 
+param "
+--version -v ""     =FLAG
+--url -u ""         =~      [A-Za-z0-9]+
+" _send_dingtalk
+
+subcmd proxy "
+"
+
+_send_dingtalk(){
+
+
+    curl "${url}" "${tags}" ""
+    
+    [ -n "$help" ] && proxy_subcmd help
+    [ -n "$version" ] && proxy_subcmd version
+
+    proxy_subcmd "$@"
+}
+
+proxy(){
+    param_desc ""
+    param example \
+        "" \
+        ""
+    
+    param:dsl <<A
+--version   -v      ""  =FLAG
+A
+
+    [ -n "$help" ] && proxy_subcmd help
+    [ -n "$version" ] && proxy_subcmd version
+
+    # Inside AWK
+    param help(){
+        echo "$param_desc"
+        echo "$(param symposis)" # ...
+        echo "$PARAM_OPTIONS"
+        echo "$(proxy_subcmd --help-subcmd)" # After invoke.
+    }
+
+
+    proxy_subcmd "$@"
+}
+
+proxy_subcmd help(){
+    proxy --help
+}
+
+proxy(){
+    param desc ""
+    param example \
+    "" \
+    ""
+    param arg --help,-h   ""  =FLAG
+    param arg --help,-h   ""  =regex /[A-Za-z0-9]/
+    param arg --help,-h     ""  
+    param parse
+
+    [ -n "$help" ] && proxy_subcmd help
+    [ -n "$version" ] && proxy_subcmd version
+
+    proxy_subcmd "$@"
+}
+
+
+proxy(){
+    param:dsl <<A
+config:
+    config "$@"
+
+description:
+
+options:
+    --help      -h      ""  =FLAG
+    --version   -v      ""  =FLAG
+
+subcommands:
+    :brew|homebrew          Setting the brew mirros
+    :pip|python|py          Setting the pip mirrors
+    :npm|nodejs|node        Setting the npm mirrors  
+A
+
+    if [ "$help" ]; then
+        proxy_subcmd help
+        return
+    fi
+
+    if [ "$version" ]; then
+        proxy_subcmd version
+        return
+    fi
+
+    proxy_subcmd "$@"
+}
+
+########################
+
+subcmd proxy <<A
+config:
+    config "$@"
+
+description:
+    
+
+options:
+    --help|-h           ""      =FLAG
+    --version|-v        ""      =FLAG
+
+subcommands:
+    brew|homebrew          Setting the brew mirros
+    pip|python|py          Setting the pip mirrors
+    npm|nodejs|node        Setting the npm mirrors
+A
+
+
+proxy --help brew 
+=> proxy --help
+=> proxy brew
+
+proxy_root(){
+    :
+}
+
+proxy_brew(){
+    :
+}
+
+
+proxy(){
+    param:dsl <<A
+config:
+    config "$@"
+
+description:
+
+options:
+    --help      -h      ""  =FLAG
+    --version   -v      ""  =FLAG
+
+subcommands:
+    :brew|homebrew          Setting the brew mirros
+    :pip|python|py          Setting the pip mirrors
+    :npm|nodejs|node        Setting the npm mirrors  
+A
+
+
+    if [ "$#" -eq 0 ]; then
+        : proxy --host asaa --port aaa
+    else
+        : proxy npm
+    fi
+
+    if [ "$help" ]; then
+        proxy_subcmd help
+        return
+    fi
+
+    if [ "$version" ]; then
+        proxy_subcmd version
+        return
+    fi
+}

@@ -1,0 +1,113 @@
+# shellcheck shell=sh
+
+. ./testcase/v0_test_base
+. ./testcase/v0_test_brew
+# . ./testcase/v0_test_apt
+
+##################
+## Test functions
+##################
+
+test_proxy_advise_json() {
+  assert_stdout "advise cat proxy" <<A
+{
+  "set": {
+  },
+  "unset": {
+  },
+  "version": {
+  },
+  "pip": {
+    "url": {
+      "qinghua|qh|tsinghua|tuna": null,
+      "ustc": null,
+      "aliyun": null,
+      "huazhong": null,
+      "douban": null,
+      "tencent|qq|weixin": null
+    },
+    "set": {
+      "qinghua|qh|tsinghua|tuna": null,
+      "ustc": null,
+      "aliyun": null,
+      "huazhong": null,
+      "douban": null,
+      "tencent|qq|weixin": null
+    },
+    "unset": {
+    }
+  },
+  "npm": {
+    "url": {
+      "aliyun|ali": null,
+      "official": null
+    },
+    "set": {
+      "aliyun|ali": null,
+      "official": null
+    },
+    "get": {
+    },
+    "unset": {
+    }
+  },
+  "maven": null,
+  "go": {
+    "auto|autoset": {
+    },
+    "reset|reset": null,
+    "gosumdb|sumdb|sum|gosum": {
+      "set": {
+      },
+      "unset|reset|clear": {
+      }
+    },
+    "set": {
+      "aliyun|ali": null,
+      "goproxy|goproxy": null,
+      "qiniu|io|goproxy": null,
+      "official": null
+    },
+    "service": {
+    },
+    "version": null,
+    "tutorial|xman": {
+    },
+    "help": null
+  },
+  "gem": null,
+  "cargo": null,
+  "apt": null,
+  "yum": null,
+  "brew": {
+    "url": {
+      "tuna|tsinghua|qh": null,
+      "aliyun|ali": null,
+      "tencent": null,
+      "bfsu": null,
+      "ustc": null,
+      "custom": null
+    },
+    "get": {
+    },
+    "set": {
+      "bfsu": null,
+      "tuna|tsinghua|qh": null,
+      "tencent": null,
+      "aliyun|ali": null,
+      "ustc": null,
+      "custom": null
+    },
+    "unset": {
+    }
+  },
+  "apk": null
+}
+A
+}
+
+##################
+## Run test
+##################
+
+test_proxy_advise_json

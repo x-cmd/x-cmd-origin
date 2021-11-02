@@ -1,0 +1,69 @@
+# shellcheck shell=sh disable=SC3043
+
+# gem sources --add https://gems.ruby-china.com/ --remove https://rubygems.org/
+
+proxy_gem(){
+    param:dsl <<A
+subcommand:
+    url        Provide url of mirror candidates
+    set        Setting the mirror
+    unset      Reset the source to the original official
+A
+
+    # if ! brew --version >/dev/null; then
+    if ! command -v npm >/dev/null; then
+        printf "gem NOT exists."
+        return 1
+    elif [ -n "$PARAM_SUBCMD" ]; then
+        "proxy_gem_${PARAM_SUBCMD}" "$@"
+    else
+        proxy_gem _param_help_doc  >&2
+    fi
+
+}
+
+proxy_gem_url(){
+    param:dsl <<A
+subcommand:
+    ruby-china              "ruby china"
+    official                "Official"
+A
+    case "$PARAM_SUBCMD" in
+        # https://gems.ruby-china.com
+        ruby-china|cn)          printf https://gems.ruby-china.com                  ;;
+        official)               printf https://rubygems.org                         ;;
+        *)                      proxy_gem_url _param_help_doc >&2                   ;;
+    esac
+}
+
+
+_proxy_gem_url_custom(){
+    param:dsl <<A
+option:
+    #1          "URL"      =~       https?://.+
+A
+    printf "%s" "${1:?Impossible}"
+}
+
+
+proxy_gem_set() {
+    param:dsl <<A
+subcommand:
+    ruby-china              "ruby china"
+    official                "Official"
+A
+    local url
+    
+    if url="$(proxy_gem_url "${PARAM_SUBCMD:-ruby-china}")"; then
+        printf "Setting proxy_gem mirror:\n    %s" "$url" >&2
+        gem sources --add "$url" --remove https://rubygems.org/
+    fi
+}
+
+proxy_gem_unset() {
+    param:void
+    proxy_gem_set   official
+}
+
+# reference https://zhuanlan.zhihu.com/p/90508170
+

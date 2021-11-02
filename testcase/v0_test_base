@@ -1,0 +1,11 @@
+# shellcheck shell=sh disable=SC3043
+
+cp -r ./_v0/ ~/.x-cmd/proxy/_v0/
+cp  ./v0 ~/.x-cmd/proxy/v0
+cp  ./latest ~/.x-cmd/proxy/latest
+
+advise rm proxy
+
+xrc assert
+x log proxy
+xrc proxy

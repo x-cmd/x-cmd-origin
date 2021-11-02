@@ -1,0 +1,1 @@
+docker run -v $(pwd):/pwd -it "${1:-debian}" bash

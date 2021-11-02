@@ -1,0 +1,82 @@
+# shellcheck shell=sh disable=SC3043
+
+
+
+proxy_npm(){
+    param:dsl <<A
+subcommand:
+    url         Provide url of mirror candidates
+    set         Setting the mirror
+    get         Get current mirror
+    unset       Reset the source to the original official
+A
+    param:run
+
+    # if ! brew --version >/dev/null; then
+    if ! command -v npm >/dev/null; then
+        printf "npm NOT existed."
+        return 1
+    elif [ -n "$PARAM_SUBCMD" ]; then
+        "proxy_npm_${PARAM_SUBCMD}" "$@"
+    else
+        printf "Current Registry is:    "
+        proxy_npm get
+        printf "\n%s" "------------------"
+        proxy_npm _param_help_doc  >&2
+    fi
+
+}
+
+proxy_npm_url(){
+    param:dsl <<A
+subcommand:
+    aliyun|ali              "Ali"
+    official                "Official"
+A
+    param:run
+
+    case "$PARAM_SUBCMD" in
+        aliyun|ali)             printf https://registry.npm.taobao.org/             ;;
+        official)               printf https://registry.npmjs.org/                  ;;
+        *)                      proxy_npm_url _param_help_doc >&2                   ;;
+    esac
+}
+
+
+_proxy_npm_url_custom(){
+    param:dsl <<A
+option:
+    #1          "URL"      =~       https?://.+
+A
+    param:run
+
+    printf "%s" "${1:?Impossible}"
+}
+
+
+proxy_npm_get(){
+    param:void
+    npm config get registry
+}
+
+proxy_npm_set() {
+    param:dsl <<A
+subcommand:
+    aliyun|ali              "Ali"
+    official                "Official"
+A
+    param:run
+
+    local url
+    url="$(proxy_npm_url "${PARAM_SUBCMD:-aliyun}")"
+    printf "Setting proxy_npm mirror:\n    %s\n\n" "$url" >&2
+    npm config set registry "$url"
+}
+
+proxy_npm_unset() {
+    param:void
+    proxy_npm_set   official
+}
+
+# reference https://zhuanlan.zhihu.com/p/90508170
+

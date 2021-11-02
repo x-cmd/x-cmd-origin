@@ -1,0 +1,2 @@
+mkdir -p ~/.x-cmd/proxy
+cp -rf v0 _v0 ~/.x-cmd/proxy

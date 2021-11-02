@@ -25,12 +25,15 @@ ccmd
 xdk
 zuz
 el
+
+# Apps
+tldr
+proxy
 theme
 
 # web clients
 ali
 gitee
-proxy
 "
 
 WSROOT="${BASH_SOURCE[0]}"

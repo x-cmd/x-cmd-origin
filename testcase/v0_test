@@ -1,4 +1,3 @@
-. "$HOME/.x-cmd/boot" 2>/dev/null || eval "$(curl https://get.x-cmd.com/script)"
 
 . ./v0
 

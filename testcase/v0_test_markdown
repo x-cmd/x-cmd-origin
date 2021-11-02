@@ -49,5 +49,5 @@ ___ui_run_nawk(){
     fi | nawk -v COLUMNS="$COLUMNS" "$(cat ./_v0/wcwidth.awk)$(cat "$___X_BASH_UI_MARKDOWN_AWK")"
 }
 
-___ui_markdown ./testcases/test_all.md
-___ui_markdown ./testcases/test_table.md
+___ui_markdown ./testcase/test_all.md
+___ui_markdown ./testcase/test_table.md

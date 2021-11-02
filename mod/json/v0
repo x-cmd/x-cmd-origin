@@ -42,7 +42,9 @@ Subcommand:
         shift|sh            json shift <variable-name.<pattern>>. 
                             Shift the values of the specified list in variable 
         pop|po              json pop <variable-name.<pattern>>. 
-                            Pop the values of the specified list in variable 
+                            Pop the values of the specified list in variable
+        del|d               json del <variable-name.<pattern>>. 
+                            delete the values of the specified list in variable
         length|len          json len <variable-name.<pattern>>. 
                             Print the length of the specified list or object in variable 
         unescape            
@@ -50,31 +52,29 @@ Subcommand:
 A
         ;;
         var)                json_var        "$@" ;;
-        c|color)            json_color      "$@" ;;
+        color|col|c)        json_color      "$@" ;;
         push|append)        json_push       "$@" ;;
         unshift|prepend)    json_prepend    "$@" ;;
         put)                json_put        "$@" ;;
-        k|keys)             json_keys       "$@" ;;
-        v|values)           json_values     "$@" ;;
-        q|query)            json_query      "$@" ;;
-        d|del)              json_del        "$@" ;;
-        sh|shift)           json_shift      "$@" ;;
-        pop)                json_pop        "$@" ;;
-        len|length)         json_length     "$@" ;;
+        keys|key|k)         json_keys       "$@" ;;
+        values|val|v)       json_values     "$@" ;;
+        query|q)            json_query      "$@" ;;
+        del|d)              json_del        "$@" ;;
+        shift|sh)           json_shift      "$@" ;;
+        pop|po)             json_pop        "$@" ;;
+        length|len)         json_length     "$@" ;;
         unescape)           json_unescape   "$@" ;;
         *)                  json q          "$op" "$@" ;;
     esac
 }
 
-# JSON_AWK_PATH="./json_walk.awk"
 json_var(){
     local varname="${1:?Provide variable name}"
     shift
-
     local s
     if [ $# -ne 0 ]; then
         s="$(awk -f "$JSON_AWK_PATH" <<A
-"$@"
+$(eval echo $(printf "%s" \"$@\"))
 A
 )"
     else
@@ -124,6 +124,7 @@ A
 }
 
 # aaa.prepend("value")
+json_unshift(){ json_prepend "$@"; }
 json_prepend(){
     local keypath=${1:?Provide variable name} 
     local opv2="${2:?Provide value}"
@@ -287,11 +288,11 @@ A
 )";     then
             local t=""
             while read -r s; do
-                [ -n "$t" ] && printf "%s\n" "$t"
-                t="$s"
+                t+="$s"
             done <<A
 $s
 A
+            [ -n "$t" ] && printf "%s\n" "$t"
             eval "$varname=\"\$t\""
         else return 1;  fi
     else
@@ -321,11 +322,11 @@ A
 )";     then
             local t=""
             while read -r s; do
-                [ -n "$t" ] && printf "%s\n" "$t"
-                t="$s"
+                t+="$s"
             done <<A
 $s
 A
+            printf "%s\n" "$t"
             eval "$varname=\"\$t\""
         else return 1;  fi
     else
@@ -380,11 +381,11 @@ A
 )";     then
             local t=""
             while read -r s; do
-                [ -n "$t" ] && printf "%s\n" "$t"
-                t="$s"
+                t+="$s"
             done <<A
 $s
 A
+            printf "%s\n" "$t"
             eval "$varname=\"\$t\""
         else return 1;  fi
     else

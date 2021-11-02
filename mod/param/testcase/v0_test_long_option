@@ -1,6 +1,6 @@
 # shellcheck shell=sh disable=SC2039,SC2142,SC3043
 
-. ./testcases/v0_test_base
+. ./testcase/v0_test_base
 
 test_long_option(){
     param:scope     "paramtest/$O"
@@ -17,9 +17,14 @@ option:
     --regex_arg2            "Test an argument with regex 2"          <>=20    =~  ([1-9]?[0-9]|100)
     --flag1|-f              "Flag1 that you can use \\\$\{flag1:-false} to get the bool value Flag1 that you can use \\\$\{flag1:-false} to get the bool value Flag1 that you can use \\\$\{flag1:-false} to get the bool value Flag1 that you can use \\\$\{flag1:-false} to get the bool value"
     --flag1222|-g           "Flag1222 that you can use \\\$\{flag1222:-false} to get the bool value"
+    --candi_null    "Test null option to use candidate"  <candi_null>:candis="abc"        =  abc  cde     def
+    --name          "Provide name"      <name>=""
+    --description   "Description"       <desc>="a b"
+    --cidr          "Subnet of 172.16.0.0/12, 10.0.0.0/8, 192.168.0.0/16"    <cidr>=3
     #1                      "Test rest argument #1 when exist option and flag Test rest argument #1 when exist option and flag Test rest argument #1 when exist option and flag Test rest argument #1 when exist option and flag Test rest argument #1 when exist option and flag"
     #222222                 "Provide number #2"
     #3                      "Provide number #3"
+
 A
     param:run
     echo "regex_arg1: $regex_arg1"

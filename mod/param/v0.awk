@@ -101,6 +101,7 @@ function str_trim(astr){
 
 function str_trim_left(astr){
     gsub(/^[ \t\b\v\n]+/, "", astr)
+    gsub("\005", " ",         astr)
     return astr
 }
 
@@ -188,6 +189,7 @@ function tokenize_argument_into_TOKEN_ARRAY(astr,
 
             if ( match(astr, /^\003[^\003]*\003/) ) {
                 _tmp = substr(astr, 1, RLENGTH)
+                gsub(" ", "\005",   _tmp)
                 gsub("\004", " ",   _tmp)      # Unwrap
                 gsub("\003", "",    _tmp)      # Unwrap
                 gsub("\002", "\"",  _tmp)
@@ -943,7 +945,7 @@ function generate_option_help(         _option_help, i, j, k, option_list, flag_
                 _op = option_arr[ oparr_keyprefix KSEP 1 ]
                 _regex = ""
                 _candidate = ""
-
+                gsub("\005", " ", _default)
                 if (_default != "" && _default != OPTARG_DEFAULT_REQUIRED_VALUE) {
                     _default = " [default: " _default "]"
                 }

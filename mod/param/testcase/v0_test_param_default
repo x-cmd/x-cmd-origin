@@ -56,7 +56,7 @@ test_param_default_load(){
   \"e${arg_sep}arg2\": \"11\",
   \"e${arg_sep}arg3\": \"111\"
 }"
-    local json_path="testcases/test_json"
+    local json_path="testcase/test_json"
     echo "$test_json" > "$json_path"
 
     param_default clear cc/e

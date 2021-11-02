@@ -1,0 +1,74 @@
+# shellcheck shell=sh disable=SC3043
+
+# author:       Li Junhao           l@x-cmd.com    edwinjhlee.github.io
+# maintainer:   Li Junhao
+
+___ui_table(){
+    local O="${O:-___X_BASH_UI_TABLE_DEFAULT}"
+    case "${1}" in   
+        json)   shift; ___ui_table_json      "$@"      ;;
+        -)      ___ui_table_clear                      ;;
+        +)      shift; ___ui_table_read      "$@"      ;;
+        *)      shift; ___ui_table_out       "$@"      ;;
+    esac
+}
+
+___ui_table_read(){
+    local O="${O:-___X_BASH_UI_TABLE_DEFAULT}"
+    local s
+    local IFS
+    IFS=$(printf "\003")
+    local NR
+    NR=$(printf "\002")
+    s="$(eval echo \"\$"{$O}$NR$*"\")"
+    # s="$(eval echo \"\$"{$O}$NR"\")"
+    # local i
+    # for i in "$@"; do
+    #     s="$s$IFS$i$IFS${#i}"
+    # done
+    eval "$O=\"\$s\""
+}
+
+___ui_table_out(){
+    local out="${1:-1}"
+
+    eval "printf \"%s\" \"\${$O}\"" | \
+        LC_ALL=en_US.UTF-8  awk -v out="$out" "$(xrc cat ui/_v0/wcwidth.awk)$(xrc cat ui/_v0/table.awk)"
+        # LC_ALL=en_US.UTF-8  awk -v HIGHCOL=3,6 -v HIGHROW=6 -v out="$out" "$(xrc cat ui/_v0/wcwidth.awk)$(xrc cat ui/_v0/table.awk)"
+        # awk '{ print $0; }'
+}
+
+___ui_table_clear(){
+    local O="${O:-___X_BASH_UI_TABLE_DEFAULT}"
+    eval "$O="
+}
+
+___ui_table_json(){
+    echo "atable"
+    local arg
+    local args
+    local title
+    for arg in "$@"; do
+        case "$arg" in
+            .*)     args="$args,$arg"      
+                    title="$title ${arg#.}"      
+                    ;;
+            *=.*)   args="$args,${arg#*=}"
+                    title="$title ${arg%%=.*}"
+                    ;;
+            *)      printf "%s" "Argument Wrong." >&2
+        esac
+    done
+    args="${args#,}"
+
+    local line
+    ui table -
+    IFS="
+"
+    eval ui table + "$title"
+    for line in $(jq -r ".[] | [ $args ] | map( . | @json) | join(\" \") "); do
+        eval ui table + "$line"
+    done
+    ui table out 6
+}
+

@@ -359,8 +359,8 @@ ___x_cmd_main_otherwise(){
     # update the static-build files
     local p
     if p="$(___x_cmd_which_one "$subcmd")"; then
-        if [ "$___X_CMD_UNTRUSTED_RESOURCE" -eq 2 ]; then
-            ___x_cmd_exe_workspace "$@"
+        if [ "$___X_CMD_UNTRUSTED_RESOURCE" = "workspace" ]; then
+            ___x_cmd_exe_workspace "$p" "$@"
         else
             ___x_cmd_run_by_file "$p" "$@" # 2>/dev/null
         fi
@@ -390,11 +390,10 @@ ___x_cmd_main(){
         *=)                                     ___x_cmd_var "$subcmd" "$@" ;;
         install)                                xrc install/v0 && ___x_cmd_install "$@" ;;
 
-        config)     ;;
         man)        ;;
         adviser)    ;;
-        proxy)      ;;
-        theme)      ;;
+        proxy)                                  xrc proxy/latest && proxy "$@" ;;
+        theme)                                  xrc theme/latest && ___x_cmd_theme_control "$@" ;;
         env)        ;;
 
         login)                                  ( xrc hub/v0 && ___x_cmd_hub login "$@" ) ;;

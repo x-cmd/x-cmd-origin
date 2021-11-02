@@ -1,0 +1,91 @@
+# shellcheck shell=sh disable=SC3043
+
+# author:       Li Junhao           l@x-cmd.com    edwinjhlee.github.io
+# maintainer:   Li Junhao
+
+___ui_prompt(){
+    local op="${1:?Provide op}";    shift
+    case "$op" in   
+        question|q)     ___ui_prompt_question "$@"      ;;
+        select|s)       ___ui_prompt_select "$@"        ;;
+        main)           ___ui_prompt_main "$@"          ;;
+        *)              ___ui_prompt_main "$op" "$@"    ;;
+    esac
+}
+
+___ui_prompt_main(){
+    local op="${3}"
+    if [ "$op" = "=" ]; then
+        ___ui_prompt_select "$@"
+    else
+        ___ui_prompt_question "$@"
+    fi
+}
+
+# ui prompt question "Input value" val = "abc" "cde" "def"
+# ui prompt question "Input value" val =~ "[a-c]{1,3}"
+___ui_prompt_question(){
+    local question="${1:?Question}"
+    local answer="${2:?Answer variable}"
+    shift 2
+
+    xrc assert/v0
+    while :; do
+        printf "\033[31;1m? %s >\033[34;1m" "$question"
+        if ! ___ui_read "$answer"; then
+            printf "%s\n" "Received Exit Signal." >&2
+            return 1
+        fi
+        if eval assert "\"\$$answer\"" "\"\$@\"" 2>/dev/null; then
+            break
+        else
+            # echo continue
+            eval printf "\"Value[%s] doesn't match rule: %s\"" "\"\$$answer\"" "\"\$*\""
+            printf "\n"
+        fi
+    done
+}
+
+___ui_prompt_select(){
+    local question="${1:?Question}"
+    local answer="${2:?Answer variable}"
+    local op="${3:?Must be}"
+    if [ "$op" != "=" ]; then
+        printf "%s" "#3 be = but get $op" >&2
+        return 1
+    fi
+
+    shift 3
+
+    printf "\033[31;1m? %s\n" "$question." >/dev/stderr
+
+    local number
+
+    local can
+    local i=1
+    for can in "$@"; do
+        printf "  \033[33;1m%s:  \033[32;1m%s\n" "$i" "$can" >/dev/stderr
+        i=$((i+1))
+    done
+    printf "\n"
+
+    while true; do
+        # printf "\033[31;1m? %s >\033[34;1m" "Please input number 1 to $#. Or 0 to quit"
+        # printf "\033[31;1m%s\033[30;2m%s\r\033[31;0m>" "> " "Please Input number from 1 to $#. Press 0 to quit"
+        printf "\033[31;1m%s\033[30;2m%s\r\033[0m\033[34;1m>" "> " "_ Please input number 1 to $#. Or 0 to quit." >/dev/stderr
+        if ! ___ui_read number >/dev/stderr; then
+            printf "%s\n" "Receive exit signal." >&2
+            break
+        fi
+        if [ "$number" -eq 0 ]; then
+            printf "\033[0m"
+            return 1
+        fi 2>/dev/null
+
+        if [ "$number" -ge 1 ] && [ "$number" -le $# ]; then
+            eval "$answer=\"\$$number\""
+            printf "\033[0m"
+            return 0
+        fi 2>/dev/null
+    done
+}

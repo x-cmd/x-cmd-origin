@@ -363,7 +363,7 @@ ___x_cmd_which_one(){
             fi
 
             TGT="$___X_CMD_ROOT/$module"
-            # [ -f "$TGT" ] && printf "%s" "$TGT" && return 0
+            [ -f "$TGT" ] && printf "%s" "$TGT" && return 0
             # ___xrc_log debug "Module not found: $module"
             # return 1
 

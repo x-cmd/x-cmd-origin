@@ -1,0 +1,249 @@
+# shellcheck shell=sh disable=SC2039,SC2142,SC3043
+
+# author:       Li Junhao           l@x-cmd.com    edwinjhlee.github.io
+# maintainer:   Li Junhao
+
+############################
+# Section 1: Global definitions
+# Section 2: param_marg -- Helper for param user: Handle param marg
+# Section 3: param type definition
+# Section 4: param default management
+# Section 5: param main
+# Section 6: param subcmd
+############################
+
+xrc dict
+
+# Section 1: Global definitions
+############################
+PARAM_AWK_PATH="$(xrc which param/v0.awk)"
+# PARAM_AWK_PATH="./v0.awk"
+PARAM_DEFAULT_VAR_PREFIX=___X_CMD_X_BASH_PARAM_DEFAULT___
+PARAM_TYPE_VAR_PREFIX=___X_CMD_X_BASH_PARAM_TYPE___
+PARAM_SUBCMD_VAR_PREFIX=___X_CMD_X_BASH_PARAM_SUBCMD___
+
+# DICT_KEYS_SEP conflict. But it is OK.
+PARAM_ARG_SEP="$(printf "\005")"          # ARG_SEP in awk script
+# PARAM_ARG_SEP="$(printf "\n")"          # ARG_SEP in awk script
+# PARAM_RS_SEP
+PARAM_RS_SEP="${DICT_SEP}"
+# EndSection
+
+# Section 2: param_marg -- Helper for param user: Handle param marg
+# Example:
+# for idx in $(param_marg optname); do
+#     param_marg optname "$idx"
+# done
+
+param_marg() {
+    local a=${1:?Provide option name}
+    if [ -n "$2" ]; then
+        param_marg_get "$@"
+    else
+        param_marg_seq "$@"
+    fi
+}
+
+param_marg_get() {
+    local a=${1:?Provide option name}
+    local n=${2:?Provide option argument index}
+    if [ -z "$3" ]; then
+        eval "echo \"\$${a}_${n}\""
+    else
+        eval "echo \"\$${a}_${n}_${3}\""
+    fi
+}
+
+param_marg_len() {
+    local a=${1:?Provide option name}
+    eval "echo \"\$${a}_n\""
+}
+
+param_marg_seq() {
+    local a=${1:?Provide option name}
+    seq "$(param_marg_len "$a")"
+}
+
+# EndSections
+
+# Section 3: param type definition
+# Example:
+# param_type    gitee     repo
+# param_type    gitee     user    =~  [A-Za-z0-9_]+
+# param_type    gitee     access  =   private         public          inner-public
+
+param_type(){
+    local app_name="${1:?Provide app name}"
+    shift
+    local result="$*"
+    local varname="${PARAM_TYPE_VAR_PREFIX}${app_name}"
+    eval "$varname=\"\${$varname}\${PARAM_ARG_SEP}\${result}\""
+    # eval echo "fuck: \"\$$varname\""
+}
+
+param_type_unset(){
+    local app_name="${1:?Provide app name}"
+    local varname="${PARAM_TYPE_VAR_PREFIX}${app_name}"
+    eval "$varname="
+}
+
+param_type_pprint(){
+    _param_type_print "$@" | tr "$PARAM_ARG_SEP" "\n"
+}
+
+_param_type_print() {
+    local app_name="${1:?Provide app name}"
+    local varname="${PARAM_TYPE_VAR_PREFIX}${app_name}"
+    eval echo "\"\$$varname\""
+}
+
+# EndSections
+
+# Section 4: param default management
+# param_default put <scope> <key> <value>
+# eg. param_default put gitee/$O repo x-bash
+# eg. param_default put gitee/$O user edwinjhlee
+# eg. param_default put gitee/$O access public
+
+param_default() {
+    local op="$1"
+    local app_name=${2:?Provide Object}
+    shift 2
+
+    local object_name=${app_name#*/}
+    if [ "$object_name" = "$app_name" ]; then
+        object_name=
+    fi
+    app_name=${app_name%%/*}
+
+    local O="${PARAM_DEFAULT_VAR_PREFIX}${app_name}"
+
+    case "$op" in # yml seemed to be a better
+        load)       dict :"${O}" load_json "${1:?Provide path in function param_default}" ;;
+        dump)       if [ -n "$object_name" ]; then
+                        dict :"${O}" scope "${object_name}" | _dict_pjson
+                    else
+                        dict :"${O}" json
+                    fi ;;
+        dump_raw)   if [ -n "$object_name" ]; then
+                        dict :"${O}" scope "${object_name}" | dict :"${O}" dump
+                    else
+                        dict :"${O}" dump
+                    fi ;;
+        clear)      dict :"${O}" free ;;
+        get)        dict :"${O}" get ${object_name:+"${object_name}"} "${1:?Provide [key] name in function 'param_default get'}" ;;
+        # FIXME: Have BUG in dict_put, It was not working in bash5.
+        put | set )
+                    dict :"${O}" put ${object_name:+"${object_name}"} "${1:?Provide key name in function param_default}" "${2:?Provide [value] in function 'param_default put'}" ;;
+                    # ;;
+        export)     export "${O?}" ;;
+        *)
+        ;;
+    esac
+}
+# EndSections
+
+# Section 5: param scope
+
+___param_scope(){
+    local current_scope="${1:?Please provide scope}"
+    if [ "$___X_BASH_PARAM_SCOPE" = "$current_scope" ]; then
+        echo "Using cache !!!" >>a.txt
+        return 0
+    fi
+    ___X_BASH_PARAM_SCOPE="$current_scope"
+    ___X_BASH_PARAM_VALUE=
+    # time ___X_BASH_PARAM_VALUE="$(param_default dump_raw "$___X_BASH_PARAM_SCOPE")"
+}
+alias param:scope='
+    local ___X_BASH_PARAM_SCOPE="${___X_BASH_PARAM_SCOPE}";
+    echo "Here $___X_BASH_PARAM_VALUE" >>a.txt
+    local ___X_BASH_PARAM_VALUE="${___X_BASH_PARAM_VALUE}";
+    ___param_scope'
+
+___param_plugin(){
+    ___X_BASH_PARAM_PLUGIN="${1:?Please provide scope}"
+}
+alias param:plugin="local ___X_BASH_PARAM_PLUGIN; ___param_plugin"
+
+# Section 5: param main
+
+alias param='local IFS=; { eval "$(_param_main "$@")"; }'
+
+# TODO: our goal, 6ms
+_param_main() {
+    local s
+    s="$({
+        local IFS
+        if [ -z "$___X_BASH_PARAM_SCOPE" ]; then
+            # line 1: global types and subcmds are null
+            printf "$PARAM_RS_SEP$PARAM_RS_SEP"
+        else
+            # line 1: global types and subcmds
+            _param_type_print "${___X_BASH_PARAM_SCOPE%%/*}"
+            printf "$PARAM_RS_SEP"
+            _param_subcmd_print "${___X_BASH_PARAM_PLUGIN}"
+            printf "$PARAM_RS_SEP"
+        fi
+
+        cat
+        # line 3: running argument lines
+        IFS="$PARAM_ARG_SEP"                    # ARG_SEP in awk script
+        printf "$PARAM_RS_SEP%s$PARAM_RS_SEP" "$*"
+
+        # printf "%s" "$___X_BASH_PARAM_VALUE"
+        # line 4: default dict
+        if [ -n "$___X_BASH_PARAM_SCOPE" ]; then
+            # if [ -z "$___X_BASH_PARAM_VALUE" ]; then
+            #     echo "Not Using cache " >>a.txt
+            #     ___X_BASH_PARAM_VALUE="$(param_default dump_raw "$___X_BASH_PARAM_SCOPE")"
+            # else
+            #     echo "Using cache " >>a.txt
+            # fi
+            # printf "%s" "$___X_BASH_PARAM_VALUE"
+            param_default dump_raw "$___X_BASH_PARAM_SCOPE"
+        fi
+    }   
+)"
+    time awk \
+            -v ARG_SEP="$PARAM_ARG_SEP" \
+            -v RS="$PARAM_RS_SEP" \
+            -f "$PARAM_AWK_PATH" <<A
+$s
+A
+
+    ___X_BASH_PARAM_SCOPE=
+}
+
+# EndSections
+
+# Section 6: param subcmd
+
+param_subcmd() {
+    # FIXME: To use no app name to add the subcmd plugin.
+    local app_name="${1:?Provide app_name}"
+    local subcmd="${2:?Provide subcmd}"
+    local desc="${3:?Provide description}"
+
+    local varname="${PARAM_SUBCMD_VAR_PREFIX}${app_name}"
+    local result="$subcmd $desc"
+    eval "$varname=\"\${$varname}\${PARAM_ARG_SEP}\${result}\""
+}
+
+param_subcmd_unset() {
+    local app_name="${1:?Provide app_name}"
+    local varname="${PARAM_SUBCMD_VAR_PREFIX}${app_name}"
+    eval "$varname="
+}
+
+param_subcmd_pprint() {
+    _param_subcmd_print "$@" | tr "$PARAM_ARG_SEP" "\n"
+}
+
+_param_subcmd_print() {
+    local app_name="${1:?Provide app name}"
+    local varname="${PARAM_SUBCMD_VAR_PREFIX}${app_name}"
+    eval echo "\"\$$varname\""
+}
+
+# EndSection

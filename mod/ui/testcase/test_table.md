@@ -1,2 +1,0 @@
-Markdown is a `lightweight` and easy-to-use syntax for styling all forms of writing on the `GitHub` platform.
-You can create tables by assembling a list of words and dividing them with hyphens `-` (for the first row), and then separating each column with a pipe `|`:

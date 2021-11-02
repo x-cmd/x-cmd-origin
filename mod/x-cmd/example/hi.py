@@ -1,1 +1,0 @@
-print("Hello\nThis is python file hosted in the remote service.")

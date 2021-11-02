@@ -33,10 +33,10 @@ BEGIN{
     out_indent_step = 2
     out_indent_space = "  "
 
-    if (out_color_key == 0)     out_color_key = "\033[0;35m"
-    if (out_color_string == 0)  out_color_string = "\033[0;34m"
-    if (out_color_number == 0)  out_color_number = "\033[0;32m"
-    if (out_color_null == 0)    out_color_null = "\033[0;33m"   # "\033[0;31m"
+    if (out_color_key == 0)     out_color_key = "\033[0;33m"
+    if (out_color_string == 0)  out_color_string = "\033[0;36m"
+    if (out_color_number == 0)  out_color_number = "\033[1;32m"
+    if (out_color_null == 0)    out_color_null = "\033[1;35m"   # "\033[0;31m"
     if (out_color_true == 0)    out_color_true = "\033[7;32m"
     if (out_color_false == 0)   out_color_false = "\033[7;31m"
 
@@ -445,7 +445,7 @@ function json_walk_array(keypath, indent,       cur_indent, data, nth, count, cu
         print nth
     } else if ((op == OP_DEL) && (match(keypath, opv1)) && (match(opv2, /^\[[0-9]+\]$/))) {
         tmp = int(substr(opv2, 2, length(opv2) - 2))
-        print data[tmp]
+        # print data[tmp]
         for (; tmp < count; tmp ++ ){
             data[tmp] = data[tmp+1]
         }
@@ -457,7 +457,7 @@ function json_walk_array(keypath, indent,       cur_indent, data, nth, count, cu
         nth ++
         count ++
     } else if ((op == OP_POP) && (match(keypath, opv1)) ) {
-        print data[nth-1]
+        # print data[nth-1]
         data[--nth] = ""
         count --
     } else if ((op == OP_PUTVAL) && (match(keypath, opv1)) ) {
@@ -612,6 +612,7 @@ function json_walk_value_(keypath, indent,     o_idx, tmp){
 
     o_idx = s_idx
     # Must before the json_walk_string in case of pseudostring enable
+    # NOTE: Number Boolean null parse
     if (json_walk_primitive() == true) {
         return true
     }

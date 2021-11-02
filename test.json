@@ -1,0 +1,13 @@
+{
+    "name": "Edwin.Junhao.Lee",
+    "email": "edwin.jh.lee@gmail.com",
+    "email1": "909xxxxxx@qq.com",
+    "email2": 11111,
+    "isMe": false,
+    "isYou": true,
+    "isHer": null,
+    "you": [
+        "111",
+        22222
+    ]
+  }

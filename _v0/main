@@ -31,8 +31,6 @@ A
     if [ -z "$PARAM_SUBCMD" ]; then
         proxy help
         return
-        # command -v "proxy_$PARAM_SUBCMD" || xrc "proxy/_v0/$subcmd"
-        # command -v "proxy_$PARAM_SUBCMD" || . "./_v0/$PARAM_SUBCMD"
     fi
 
     proxy_exec "${PARAM_SUBCMD}" "$@"

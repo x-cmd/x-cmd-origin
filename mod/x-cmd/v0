@@ -391,6 +391,7 @@ ___x_cmd_main(){
         install)                                xrc install/v0 && ___x_cmd_install "$@" ;;
 
         man)        ;;
+        tldr)                                   xrc tldr/v0 && tldr "$@" ;;
         adviser)    ;;
         proxy)                                  xrc proxy/latest && proxy "$@" ;;
         theme)                                  xrc theme/latest && ___x_cmd_theme_control "$@" ;;

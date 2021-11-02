@@ -1,0 +1,11 @@
+#! /usr/bin/env bash
+
+(
+    git remote remove gitee 2>/dev/null
+    git remote add gitee git@gitee.com:x-bash/theme.git
+    git pull gitee "$(git rev-parse --abbrev-ref HEAD)" # "$(git branch | awk '$1="*"{ print $2 }')"
+) || (
+    git remote remove github 2>/dev/null
+    git remote add github git@github.com:x-bash/theme
+    git pull github "$(git rev-parse --abbrev-ref HEAD)"
+)

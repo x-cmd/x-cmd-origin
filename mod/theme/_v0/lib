@@ -1,0 +1,137 @@
+# shellcheck shell=sh disable=SC3043
+
+
+# Section: scm-git
+
+###
+  # @description: set up folder info variables
+###
+## Set up git help func
+ ___x_cmd_theme_git_get_friendly_ref() {
+    ___x_cmd_theme_git_get_branch || ___x_cmd_theme_git_get_tag || ___x_cmd_theme_git_get_short_sha
+}
+
+___x_cmd_theme_git_get_branch() {
+    git symbolic-ref -q --short HEAD 2> /dev/null || return 1
+}
+
+___x_cmd_theme_git_get_tag() {
+    git describe --tags --exact-match 2> /dev/null || return 1
+}
+
+___x_cmd_theme_git_get_short_sha() {
+    git rev-parse --short HEAD 2> /dev/null
+}
+# EndSection
+
+
+# Section: scm-main
+___x_cmd_theme_scm_git_bin(){
+    printf "%s" "${___X_CMD_THEME_SCM_GIT_BIN:=$(command -v git)}"
+}
+
+___x_cmd_theme_scm_hg_bin(){
+    printf "%s" "${___X_CMD_THEME_SCM_GIT_BIN:=$(command -v hg)}"
+}
+
+___x_cmd_theme_scm_p4_bin(){
+    printf "%s" "${___X_CMD_THEME_SCM_GIT_BIN:=$(command -v p4)}"
+}
+
+___x_cmd_theme_scm_svn_bin(){
+    printf "%s" "${___X_CMD_THEME_SCM_GIT_BIN:=$(command -v svn)}"
+}
+
+## Set up common folder info variables
+___x_cmd_theme_git_get_prompt_info_exe() {
+    if [ -n "$___X_CMD_THEME_NO_CHECK_EXE" ] && [ "$___X_CMD_THEME_NO_CHECK_EXE" = true ]; then
+        printf "NONE"
+        return
+    fi
+
+    if [ -n "$(___x_cmd_theme_scm_git_bin)" ]; then
+        if [ -f .git/HEAD ] || [ -n "$(git rev-parse --is-inside-work-tree 2>/dev/null)" ]; then
+            printf "git"
+            return
+        fi
+    fi
+
+    if [ -n "$(___x_cmd_theme_scm_svn_bin)" ]; then
+        if [ -d .svn ] || [ -n "$(svn info --show-item wc-root 2>/dev/null)" ]; then
+            printf "svn"
+            return
+        fi
+    fi
+
+    if [ -n "$(___x_cmd_theme_scm_p4_bin)" ] && [ -n "$(p4 set P4CLIENT 2>/dev/null)" ]; then
+        printf "p4"
+        return
+    fi
+
+    if [ -n "$(___x_cmd_theme_scm_hg_bin)" ]; then
+        if [ -d .hg ] || [ -n "$(hg root 2>/dev/null)" ]; then
+            printf "svn"
+            return
+        fi
+    fi
+
+    printf "NONE"
+}
+
+___x_cmd_theme_scm() {
+    ___X_CMD_THEME_SCM_TYPE="$(___x_cmd_theme_git_get_prompt_info_exe 2>/dev/null)"
+
+    case "$___X_CMD_THEME_SCM_TYPE" in
+        git)       ___X_CMD_THEME_SCM_INFO="$(___x_cmd_theme_git_get_friendly_ref)";;
+        p4)         ___X_CMD_THEME_SCM_INFO="$(p4_prompt_info)" ;;
+        hg)         ___X_CMD_THEME_SCM_INFO="$(hg_prompt_info)" ;;
+        svn)        ___X_CMD_THEME_SCM_INFO="$(svn_prompt_info)" ;;
+        *)          ___X_CMD_THEME_SCM_TYPE= ;;
+    esac
+}
+# EndSection
+
+
+# Section: loader main function
+# shellcheck disable=SC2034
+______x_cmd_theme_prompt_format_wrapper(){
+    ___X_CMD_THEME_USER="$1"
+    # Path
+    ___X_CMD_THEME_PATH="$2"
+    ___X_CMD_THEME_FULL_PATH="$3"
+
+    # Date
+    ___X_CMD_THEME_DATE="$4"
+    ___X_CMD_THEME_TIME_H_M_S="$5"
+    ___X_CMD_THEME_TIME_H12_M_S="$6"
+    ___X_CMD_THEME_TIME_H_M="$7"
+    ___X_CMD_THEME_TIME_H12_M="$8"
+
+    # Host
+    ___X_CMD_THEME_HOST="$9"
+    ___X_CMD_THEME_FULL_HOST="${10}"
+
+    ___x_cmd_theme_prompt_format
+}
+
+# load theme file
+___x_cmd_theme_load_format() {
+    if [ -z "${___X_CMD_THEME_NAME}" ]; then
+        ___X_CMD_THEME_NAME='ice'
+    fi
+
+    . "${1:?Provide theme file}"
+    # TODO: config which envrinonments to pass
+
+    if [ -n "$ZSH_VERSION" ]; then
+        setopt PROMPT_SUBST
+        # PROMPT interprete %n... after evaluation.
+        PROMPT="$(___x_cmd_theme_prompt_format)"
+    else
+        # PS1 interprete \u before evaluation.
+        PS1="\$(______x_cmd_theme_prompt_format_wrapper \"\u\" \"\W\" \"\w\" \"\d\" \"\t\" \"\T\" \"\A\" \"\@\" \"\h\" \"\H\")"
+    fi
+}
+# EndSection
+
+

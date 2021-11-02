@@ -51,7 +51,7 @@ ___ui_prompt_select(){
     local answer="${2:?Answer variable}"
     local op="${3:?Must be}"
     if [ "$op" != "=" ]; then
-        printf "%s" "#3 be =" >&2
+        printf "%s" "#3 be = but get $op" >&2
         return 1
     fi
 

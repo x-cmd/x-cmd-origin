@@ -1,8 +1,6 @@
 # shellcheck shell=sh
 
 . ./testcase/v0_test_base
-. ./testcase/v0_test_brew
-# . ./testcase/v0_test_apt
 
 ##################
 ## Test functions
@@ -91,6 +89,7 @@ test_proxy_advise_json() {
     "get": {
     },
     "set": {
+      "--verbose|-v": null,
       "bfsu": null,
       "tuna|tsinghua|qh": null,
       "tencent": null,
@@ -99,6 +98,7 @@ test_proxy_advise_json() {
       "custom": null
     },
     "unset": {
+      "--verbose|-v": null
     }
   },
   "apk": null
@@ -111,3 +111,5 @@ A
 ##################
 
 test_proxy_advise_json
+. ./testcase/v0_test_brew
+# . ./testcase/v0_test_apt

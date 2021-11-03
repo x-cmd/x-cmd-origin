@@ -17,13 +17,14 @@ fi
 ##################
 
 test_proxy_brew_set() {
-    proxy brew set 
+    proxy brew set -v
     time brew install deno
 }
 
 test_proxy_brew_unset() {
-    export all_proxy=socks5://127.0.0.1:1080
-    proxy brew unset
+    # If you were slow to brew unset, you can use your own proxy
+    # export all_proxy=socks5://127.0.0.1:1080
+    proxy brew unset -v
     brew uninstall deno && brew cleanup -s
     time brew install deno
 }

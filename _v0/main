@@ -3,8 +3,6 @@
 # author:       Li Junhao           l@x-cmd.com    edwinjhlee.github.io
 # maintainer:   Li Junhao
 
-# D="$HOME/.x-cmd/boot" eval '[ -f "$D" ] &&  . "$D"' || eval "$(curl https://get.x-cmd.com)"
-
 xrc param/v0
 
 proxy(){
@@ -33,19 +31,28 @@ A
         return
     fi
 
-    proxy_exec "${PARAM_SUBCMD}" "$@"
+    case "$PARAM_SUBCMD" in
+        set)        ___proxy_set "$@" ;;
+        unset)      ___proxy_unset "$@" ;;
+        version)    ___proxy_version ;;
+        *)          ___proxy_exec "${PARAM_SUBCMD}" "$@" ;;
+    esac
+    
 }
 
+# Section: plugins
+
+# Load in need.
 for i in brew pip npm go; do #  yum maven
     xrc "proxy/_v0/$i"
 done
 
-proxy_version(){
+___proxy_version(){
     param:void
     printf "%s" v0
 }
 
-proxy_exec(){
+___proxy_exec(){
     param:void
     local subcmd="${1:?Subcmd}"
     # Consider loading everytime ?
@@ -60,40 +67,127 @@ proxy_exec(){
     fi
 }
 
-proxy_set(){
-    param:void
-    local proxy="${1:?"
-Provide proxy address like 
-    'https://<address>[:<port>]' or 
-    'http://<address>[:<port>]' or 
-    'socks5://<address>[:<port>]'"
-}"
+# EndSection
+
+# Section: proxy setting
+
+# proxy set 127.0.0.1:7070
+# proxy set 127.0.0.1:7070 ftp=ftp://127.0.0.1:7070
+
+______proxy_inner_set(){
+    local proxy="$2"
 
     case $proxy in
-        https://|http://|socks*://)     ;;
+        https://*|http://*|socks*://*|ftp*://*)     ;;
         *)          
-            printf "%s" "Considered as http://$proxy"
+            proxy="http://$proxy"
+            printf "%s\n" "Considered as $proxy" >&2
             ;;
     esac
-
-    export http_proxy="$proxy"
-    export HTTP_PROXY="$proxy"
-    export https_proxy="$proxy"
-    export HTTPS_PROXY="$proxy"
-    export ftp_proxy="$proxy"
-    export FTP_PROXY="$proxy"
-    export ALL_PROXY="$proxy"
+    case "$1" in
+        http)
+                export http_proxy="$proxy"
+                export HTTP_PROXY="$proxy"
+                printf "  SET http_proxy=%s\n" "$proxy"
+                printf "  SET HTTP_PROXY=%s\n" "$proxy"
+                ;;
+        https)
+                export https_proxy="$proxy"
+                export HTTPS_PROXY="$proxy"
+                printf "  SET https_proxy=%s\n" "$proxy"
+                printf "  SET HTTPS_PROXY=%s\n" "$proxy"
+                ;;    
+        ftp)
+                export ftp_proxy="$proxy"
+                export FTP_PROXY="$proxy"
+                printf "  SET ftp_proxy=%s\n" "$proxy"
+                printf "  SET FTP_PROXY=%s\n" "$proxy"
+                ;;
+        all)
+                export all_proxy="$proxy"
+                export ALL_PROXY="$proxy"
+                printf "  SET all_proxy=%s\n" "$proxy"
+                printf "  SET ALL_PROXY=%s\n" "$proxy"
+    esac
 }
 
-proxy_unset(){
+___proxy_set(){
     param:void
-    export http_proxy=
-    export HTTP_PROXY=
-    export https_proxy=
-    export HTTPS_PROXY=
-    export ftp_proxy=
-    export FTP_PROXY=
-    export ALL_PROXY=
+
+    if [ "$#" -eq 0 ]; then
+        printf "Current proxy setting:\n"
+        printf "  http_proxy=%s\n" "$http_proxy"
+        printf "  HTTP_PROXY=%s\n" "$HTTP_PROXY"
+        printf "  https_proxy=%s\n" "$http_proxy"
+        printf "  HTTPS_PROXY=%s\n" "$HTTPS_PROXY"
+        printf "  ftp_proxy=%s\n" "$ftp_proxy"
+        printf "  FTP_PROXY=%s\n" "$FTP_PROXY"
+        printf "  all_proxy=%s\n" "$all_proxy"
+        printf "  ALL_PROXY=%s\n" "$ALL_PROXY"
+        return
+    fi
+
+    local i
+    while [ "$#" -gt 0 ]; do
+        case "$1" in
+            http=*)         ______proxy_inner_set http "${1#http=}"  ;;
+            https=*)        ______proxy_inner_set https "${1#https=}" ;;
+            ftp=*)          ______proxy_inner_set ftp "${1#ftp=}"  ;;
+            all=*)          ______proxy_inner_set all "${1#all=}"  ;;
+            *)              
+                            local proxy="$1"
+                            case $proxy in
+                                https://*|http://*|socks*://*|ftp*://*)     ;;
+                                *)          
+                                    proxy="http://$proxy"
+                                    printf "%s\n" "Considered as $proxy" >&2
+                                    ;;
+                            esac
+                            local i
+                            for i in http https ftp all; do
+                                ______proxy_inner_set http "$proxy"
+                            done
+        esac
+        shift
+    done
 }
 
-# [ $# -gt 0 ] && proxy "$@" 
+___proxy_unset(){
+    param:void
+
+    if [ "$#" -eq 0 ]; then
+        ___proxy_unset http https ftp all
+        return
+    fi
+
+    while true; do
+        case "$1" in
+            http)         
+                printf "  UNSET http_proxy\n"
+                printf "  UNSET HTTP_PROXY\n"
+                export http_proxy=
+                export HTTP_PROXY= ;;
+            https)        
+                printf "  UNSET https_proxy\n"
+                printf "  UNSET HTTPS_PROXY\n"
+                export https_proxy=
+                export HTTPS_PROXY= ;;
+            ftp)          
+                printf "  UNSET ftp_proxy\n"
+                printf "  UNSET FTP_PROXY\n"
+                export ftp_proxy=
+                export FTP_PROXY= ;;
+            all)          
+                printf "  UNSET all_proxy\n"
+                printf "  UNSET ALL_PROXY\n"
+                export all_proxy=
+                export ALL_PROXY= ;;
+            *)             
+                break
+        esac
+        shift
+    done
+    
+}
+
+# EndSection

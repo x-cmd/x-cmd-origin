@@ -12,6 +12,8 @@ list
 dict
 assert
 json
+os
+cowsay
 
 # basic modules: dependencies
 param

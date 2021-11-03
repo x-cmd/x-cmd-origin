@@ -42,7 +42,7 @@ tldr(){
 subcommands:
     update      "Update"
     ls          "list all possible commands"
-    use         "Prefered language"
+    lang        "Set Prefered language or show languange candidates"
     cat         "cat"
 A
     param:run
@@ -132,12 +132,14 @@ ___tldr_current_or_update(){
     fi
 }
 
-___tldr_ls_lang(){
-    printf "%s" "$______X_CMD_TLDR_LANG"
-}
 
 ______X_CMD_TLDR_LANG_PREFERED="${______X_CMD_TLDR_LANG_PREFERED:-en}"
-___tldr_use(){
+___tldr_lang(){
+    if [ "$#" -eq 0 ]; then
+        printf "%s" "$______X_CMD_TLDR_LANG"
+        return
+    fi
+
     local lang="${1:?Provide langauge}"
     if [ "$lang" != "en" ]; then
         local version
@@ -145,6 +147,7 @@ ___tldr_use(){
         _______tldr_download_pages "$version" "pages.$lang" || return
     fi
     ______X_CMD_TLDR_LANG_PREFERED="$lang"
+    printf "Already setting prefered languange to %s\n" "$______X_CMD_TLDR_LANG_PREFERED" >&2
 }
 
 ___tldr_getfile(){
@@ -218,7 +221,7 @@ if [ -n "$BASH_VERSION$ZSH_VERSION" ] && [ "${-#*i}" != "$-" ]; then
 {
     "update": null,
     "ls": "___tldr_lsname",
-    "use": "___tldr_ls_lang",
+    "lang": "___tldr_lang",
     "cat": "___tldr_lsname"
 }
 A

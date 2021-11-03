@@ -81,6 +81,7 @@ A
 all(){
     local IFS
     local mod
+    git prune
     while read -r mod; do
         if [ -e "mod/$mod" ]; then
             pull "$mod"

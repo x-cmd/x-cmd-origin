@@ -45,7 +45,7 @@ ___x_cmd_theme_style(){
     done
 
     if [ "$#" -ge 1 ]; then
-        printf "%s" "$@%{\$reset_color%}"
+        printf "%s" "$*%{\$reset_color%}"
     fi
 }
 

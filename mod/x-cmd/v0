@@ -15,7 +15,7 @@ ___x_cmd_readlink_recursive(){
 }
 
 ___x_cmd_list_resource(){
-    :
+    printf "%s" "proxy"
 }
 
 # Section : Unfinished ___x_cmd_official_which
@@ -503,7 +503,6 @@ ___x_cmd_x_cmd_advise_json(){
 
     "man": {},
     "adviser": {},
-    "proxy": {},
     "theme": {},
     "env": {},
 
@@ -571,4 +570,3 @@ if [ -z "$XRC_NO_ADVISE" ] && [ -n "${BASH_VERSION}${ZSH_VERSION}" ] && [ "${-#*
     xrc advise/v0
     advise x
 fi
-

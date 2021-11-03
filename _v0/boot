@@ -22,7 +22,7 @@ else
     return 1
 fi
 
-[ -f "$HOME/.x-cmd/.boot/mod" ] && x boot mod load
+[ -f "$HOME/.x-cmd/.boot/mod" ] && x boot mod load || true
 A
             (
                 if [ "$BASH_VERSION" ]; then        CAN="$HOME/.bashrc"

@@ -1,18 +1,10 @@
 # shellcheck shell=bash disable=SC3043
 
-CONATINER_ARM_LIST=(
-    debian:10-slim
-    debian centos ubuntu fedora 
-    opensuse/tumbleweed agners/archlinuxarm 
-    gentoo/stage3 alpine 
-)
+cp -r ./_v0/ ~/.x-cmd/x-cmd/_v0/
+cp  ./v0 ~/.x-cmd/x-cmd/v0
+cp  ./latest ~/.x-cmd/x-cmd/latest
 
-CONATINER_AMD_LIST=( 
-    debian:10-slim
-    debian centos ubuntu fedora 
-    opensuse/tumbleweed archlinux 
-    gentoo/stage3 alpine 
-)
+advise rm x
 
 debug() {
     echo -e "\033[1;34mDEBUG: \033[1;30m" "$@" "\033[0m" > /dev/stderr
@@ -23,6 +15,20 @@ panic() {
 }
 
 test_x_py(){
+    CONATINER_ARM_LIST=(
+        debian:10-slim
+        debian centos ubuntu fedora
+        opensuse/tumbleweed agners/archlinuxarm
+        gentoo/stage3 alpine
+    )
+
+    CONATINER_AMD_LIST=(
+        debian:10-slim
+        debian centos ubuntu fedora
+        opensuse/tumbleweed archlinux
+        gentoo/stage3 alpine
+    )
+
     DOCKER_PLATFORM=linux/arm64
 
     for container in "${CONATINER_ARM_LIST[@]}"; do
@@ -46,4 +52,4 @@ test_x_py(){
     done
 }
 
-test_x_py
+# test_x_py

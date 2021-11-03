@@ -11,6 +11,7 @@ list
 dict
 json
 os
+cowsay
 
 # basic modules: dependencies
 param

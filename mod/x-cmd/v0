@@ -263,6 +263,14 @@ ___x_cmd_nmap(){
     xrc static-build && static_build_init nmap nmap ___x_cmd_nmap && ___x_cmd_nmap  "$@"
 }
 
+___x_cmd_ncat(){
+    xrc static-build && static_build_init nmap ncat ___x_cmd_ncat && ___x_cmd_ncat  "$@"
+}
+
+___x_cmd_nping(){
+    xrc static-build && static_build_init nmap nping ___x_cmd_nping && ___x_cmd_nping  "$@"
+}
+
 ___x_cmd_bw(){
     xrc static-build && static_build_init bandwhich bandwhich ___x_cmd_bw && ___x_cmd_bw          "$@"
 }
@@ -460,6 +468,8 @@ ___x_cmd_main(){
         bw)                                     ___x_cmd_bw         "$@"             ;;
         jq)                                     ___x_cmd_jq         "$@"             ;;
         nmap)                                   ___x_cmd_nmap       "$@"             ;;
+        ncat)                                   ___x_cmd_ncat       "$@"             ;;
+        nping)                                  ___x_cmd_nping      "$@"             ;;
 
         run)                                    ___x_cmd_run_by_file "$@"            ;;
         search_path)                            ___x_cmd_search_path "$@"            ;;
@@ -555,6 +565,8 @@ ___x_cmd_x_cmd_advise_json(){
     "ps|procs": null,
 
     "nmap":null,
+    "ncat":null,
+    "nping":null,
 
 
     "run": {},

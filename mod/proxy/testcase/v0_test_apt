@@ -4,13 +4,20 @@
 ## Test functions
 ##################
 
-test_proxy_apt_set() {
-    # How to build? 
-    echo "Testing debian dash mawk run: $*"
-    docker run -it -v "$(pwd)":/pd xcmd/ubuntu sh -c ". ~/.x-cmd/.boot/boot && cd pd && $*"
+test_proxy_apt() {
+    # How to build?
+    proxy_log "Testing debian dash mawk run: $*"
+    docker run -it -v "$(pwd)":/pd xcmd/ubuntu sh -c ". ~/.x-cmd/.boot/boot || true && cd pd && $*"
 }
 
-##################
-## Run test
-##################
-test_proxy_apt_set "echo 'Hello world'"
+test_proxy_apt_set() {
+    proxy_log "Testing proxy apt set"
+    proxy apt set
+    apt install -y vim
+}
+
+test_proxy_apt_all() {
+    . ./testcase/v0_test_base
+    echo 'hello world'
+    test_proxy_apt_set
+}

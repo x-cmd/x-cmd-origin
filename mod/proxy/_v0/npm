@@ -5,10 +5,10 @@
 proxy_npm(){
     param:dsl <<A
 subcommand:
-    url         Provide url of mirror candidates
-    set         Setting the mirror
-    get         Get current mirror
-    unset       Reset the source to the original official
+    url         "Provide url of mirror candidates"
+    set         "Setting the mirror"
+    get         "Get current mirror"
+    unset       "Reset the source to the original official"
 A
     param:run
 

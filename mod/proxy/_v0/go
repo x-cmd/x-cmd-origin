@@ -5,14 +5,14 @@
 proxy_go(){
     param:dsl <<A
 subcommands:
-    auto|autoset                       Set the goproxy and gosumdb to recommended mirror
-    reset|reset                        Reet the download mirror
-    gosumdb|sumdb|sum|gosum            operations for gosumdb
-    set                                Set the download mirror
-    service                            Provide mirror service in docker or native binary
-    version                            Show version
-    tutorial|xman                      Tutorial for setting goproxy                       
-    help                               Show help
+    auto|autoset                       "Set the goproxy and gosumdb to recommended mirror"
+    reset|reset                        "Reet the download mirror"
+    gosumdb|sumdb|sum|gosum            "operations for gosumdb"
+    set                                "Set the download mirror"
+    service                            "Provide mirror service in docker or native binary"
+    version                            "Show version"
+    tutorial|xman                      "Tutorial for setting goproxy "                      
+    help                               "Show help"
 A
     param:run
 
@@ -82,8 +82,8 @@ A
 proxy_go_gosumdb(){
     param:dsl <<A
 subcommands:
-    set                                Set the download mirror
-    unset|reset|clear                  Reset the download mirror
+    set                                "Set the download mirror"
+    unset|reset|clear                  "Reset the download mirror"
 A
     param:run
 

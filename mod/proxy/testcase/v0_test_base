@@ -1,10 +1,15 @@
 # shellcheck shell=sh disable=SC3043
 
+rm -rf ~/.x-cmd/proxy
+mkdir -p ~/.x-cmd/proxy
 cp -r ./_v0/ ~/.x-cmd/proxy/_v0/
-cp  ./v0 ~/.x-cmd/proxy/v0
-cp  ./latest ~/.x-cmd/proxy/latest
+cp ./v0 ~/.x-cmd/proxy/v0
+cp ./latest ~/.x-cmd/proxy/latest
 
-advise rm proxy
+if [ -z "$XRC_NO_ADVISE" ] && [ -n "${BASH_VERSION}${ZSH_VERSION}" ] && [ "${-#*i}" != "$-" ]; then
+    xrc advise/v0
+    advise rm proxy
+fi
 
 xrc assert
 x log proxy

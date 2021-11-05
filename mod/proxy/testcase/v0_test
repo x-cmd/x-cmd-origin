@@ -9,12 +9,9 @@
 test_proxy_advise_json() {
   assert_stdout "advise cat proxy" <<A
 {
-  "set": {
-  },
-  "unset": {
-  },
-  "version": {
-  },
+  "set": null,
+  "unset": null,
+  "version": null,
   "pip": {
     "url": {
       "qinghua|qh|tsinghua|tuna": null,
@@ -75,7 +72,18 @@ test_proxy_advise_json() {
   },
   "gem": null,
   "cargo": null,
-  "apt": null,
+  "apt": {
+    "url": {
+      "ali": null,
+      "tuna": null
+    },
+    "set": {
+      "ali": null,
+      "tuna": null
+    },
+    "unset": {
+    }
+  },
   "yum": null,
   "brew": {
     "url": {
@@ -110,6 +118,11 @@ A
 ## Run test
 ##################
 
-test_proxy_advise_json
-. ./testcase/v0_test_brew
-# . ./testcase/v0_test_apt
+if [ -z "$XRC_NO_ADVISE" ] && [ -n "${BASH_VERSION}${ZSH_VERSION}" ] && [ "${-#*i}" != "$-" ]; then
+    test_proxy_advise_json
+fi
+
+# . ./testcase/v0_test_brew
+. ./testcase/v0_test_apt
+test_proxy_apt ". ./testcase/v0_test_apt && test_proxy_apt_all "
+

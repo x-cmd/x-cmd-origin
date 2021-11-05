@@ -43,7 +43,7 @@ A
 # Section: plugins
 
 # Load in need.
-for i in brew pip npm go; do #  yum maven
+for i in brew pip npm go apt; do #  yum maven
     xrc "proxy/_v0/$i"
 done
 
@@ -53,14 +53,16 @@ ___proxy_version(){
 }
 
 ___proxy_exec(){
-    param:void
     local subcmd="${1:?Subcmd}"
+    # FIXME: There is a shift here?
+    param:void
+
     # Consider loading everytime ?
     # Cache only for 12 hours
+    proxy_log "Loading $subcmd"
 
     if xrc "proxy/_v0/$subcmd"; then
-        shift
-        "proxy_$subcmd" "$@"
+        proxy_"$subcmd" "$@"
     else
         proxy_log error "Module not found. Autoloading failure."
         return 1

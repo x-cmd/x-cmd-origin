@@ -18,7 +18,7 @@ function str_rep(char, number, _i, _s) {
 }
 
 
-function len_without_color(text){
+function strlen_without_color(text){
     # gsub(/\033\[[0-9]+m/, "", text)
     gsub(/\033\[([0-9]+;)*[0-9]+m/, "", text)
     return length(text)
@@ -47,7 +47,7 @@ function output(text, width,
     OUTPUT_LINE_COUNT = 0
     for (i=1; i<=line_arr_len; i++) {
         line = line_arr[i]
-        line_len = len_without_color(line)
+        line_len = strlen_without_color(line)
         if (line_len == 0) {
             OUTPUT_LINE_COUNT = OUTPUT_LINE_COUNT + 1
             return_text = return_text str_rep(" ", width) "\n"

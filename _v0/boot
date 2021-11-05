@@ -48,6 +48,7 @@ A
         rc)
             subcmd="$1"; shift
             local ___X_CMD_ROOT_RC="$HOME/.x-cmd/.boot/rc"
+            local IFS=' '
             case "$subcmd" in
                 add|+)
                         local keyword="${1:?Provide keyword}"; shift

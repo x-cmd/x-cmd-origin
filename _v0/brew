@@ -9,10 +9,10 @@
 proxy_brew(){
     param:dsl <<A
 subcommand:
-    url         Provide url of mirror candidates
-    get         Get the mirror
-    set         Setting the mirror
-    unset       Reset the source to the original official
+    url         "Provide url of mirror candidates"
+    get         "Get the mirror"
+    set         "Setting the mirror"
+    unset       "Reset the source to the original official"
 A
     param:run
 

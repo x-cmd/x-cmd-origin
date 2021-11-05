@@ -3,18 +3,17 @@
 proxy_apt(){
     param:dsl <<A
 subcommand:
-    url        Provide url of mirror candidates
-    set        Setting the mirror
-    unset      Reset the source to the original official
+    url        "Provide url of mirror candidates"
+    set        "Setting the mirror"
+    unset      "Reset the source to the original official"
 A
     param:run
 
-    # if ! brew --version >/dev/null; then
     if ! command -v apt >/dev/null; then
         printf "apt NOT exists."
         return 1
     elif [ -n "$PARAM_SUBCMD" ]; then
-        "proxy_apt_${PARAM_SUBCMD}" "$@"
+        proxy_apt_"${PARAM_SUBCMD}" "$@"
     else
         proxy_apt _param_help_doc  >&2
     fi
@@ -31,10 +30,10 @@ A
 
     case "$PARAM_SUBCMD" in
         # https://gems.ruby-china.com
-        ali)                    printf http://mirrors.aliyun.com/                   ;;
-        tuna)                   printf https://mirrors.tuna.tsinghua.edu.cn/        ;;
-        # official)               printf http://snapshot.debian.org                   ;;
-        *)                      proxy_apt_url _param_help_doc >&2                   ;;
+        ali)                    printf http://mirrors.aliyun.com                   ;;
+        tuna)                   printf https://mirrors.tuna.tsinghua.edu.cn        ;;
+        # official)               printf http://snapshot.debian.org                ;;
+        *)                      proxy_apt_url _param_help_doc >&2                  ;;
     esac
 }
 
@@ -52,11 +51,11 @@ A
     if url="$(proxy_apt_url "${PARAM_SUBCMD:-ali}")"; then
         proxy_log info "Setting proxy_apt mirror:
     $url"
-        proxy_apt_generate ""
+        proxy_apt_generate "$url"
     fi
 }
 
-# 公司内网
+# Company Intranet
 _proxy_apt_url_custom(){
     param:dsl <<A
 option:

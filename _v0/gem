@@ -5,9 +5,9 @@
 proxy_gem(){
     param:dsl <<A
 subcommand:
-    url        Provide url of mirror candidates
-    set        Setting the mirror
-    unset      Reset the source to the original official
+    url        "Provide url of mirror candidates"
+    set        "Setting the mirror"
+    unset      "Reset the source to the original official"
 A
 
     # if ! brew --version >/dev/null; then

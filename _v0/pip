@@ -10,9 +10,9 @@
 proxy_pip(){
     param:dsl <<A
 subcommands:
-    url        Provide url of mirror candidates
-    set        Setting the mirror
-    unset      Reset the source to the original official
+    url        "Provide url of mirror candidates"
+    set        "Setting the mirror"
+    unset      "Reset the source to the original official"
 A
     param:run
 

@@ -19,21 +19,22 @@ static_build_which(){
     arch="$(os arch)"
     local osname
     osname="$(os name)"
+    local release
+    release="$(uname -r)"
 
     local exe
-    case "$osname" in
-        win)    exe=$app.x64.exe        ;;
+    case "$osname-$release" in
+        *win* | *WSL*)    exe=$app.x64.exe        ;;
         *)      exe=$app.${osname}.${arch}  ;;
     esac
-
     # Rely
     if [ ! -f "$target/$exe" ]; then
 
         static_build_log info "Downloading: ${repo}/bin/$exe.7z"
 
-        local url="https://gitee.com/static-build/${repo}/raw/master/bin/$exe.7z"
+        local url="https://gitee.com/static-build/${repo}/raw/main/bin/$exe.7z"
         if [ "$___X_CMD_IN_CHINA_NET" != 1 ]; then
-            url="https://raw.githubusercontent.com/static-build/${repo}/master/bin/$exe.7z"
+            url="https://raw.githubusercontent.com/static-build/${repo}/main/bin/$exe.7z"
         fi
 
         if ! CACHE="$target/$exe.7z" ___x_cmd_curl "$url"; then

@@ -1,0 +1,225 @@
+# shellcheck shell=sh disable=SC3043
+
+# author:       Li Junhao           l@x-cmd.com    edwinjhlee.github.io
+# maintainer:   Li Junhao
+
+
+# Section: region update
+
+___UI_REGION_AWK="$(xrc which ui/_v0/region.awk)"
+# ___UI_REGION_AWK=./region.awk
+
+# shellcheck disable=SC2120
+region_send(){
+    if [ "$#" -eq 0 ]; then
+        awk -v RS="$(printf "\001")" '{
+            gsub("\n", "\001", $0)
+            print($0)
+        }'
+        # printf "\n"
+    else
+        printf "%s" "$*" | awk -v RS="$(printf "\001")" '{
+            gsub("\n", "\001", $0)
+            print($0)
+        }'
+        # printf "\n"
+    fi
+}
+
+region_update(){
+    {
+        local line
+        while read -r line; do
+            printf "%s %s\n%s\n" UPDATE "$COLUMNS" "$line"
+        done | {
+            awk -f "$___UI_REGION_AWK"
+        }
+    }>&2
+}
+
+region_run(){
+    exec 3>&1
+    eval "$@" 2>&1 >&3 3>&- | region_update
+    exec 3>&-
+}
+
+# EndSection
+
+# Section: readchar
+
+if [ -n "$KSH_VERSION" ]; then
+
+region_read_char(){
+    stty -echo
+    read -s -n 1 "$@"
+    stty echo
+}
+
+else
+
+region_read_char(){
+    read -s -n 1 "$@"
+}
+
+fi
+
+___X_CMD_UI_REGION_E="$(printf "\033")"
+
+# Not worked in ksh. Using stty -echo
+_region_getchar(){
+    read -rsn1 ch
+
+    [ "${#ch}" -eq 0 ] && printf "%s\n" ENTER
+    if [ "$ch" = "$___X_CMD_UI_REGION_E" ]; then
+        read -rsn1 ch # read 2 more chars
+
+        case "$ch" in
+            \[) 
+                read -rsn1 ch # read 2 more chars
+                case "$ch" in
+                    'A')       printf "%s\n" UP  ;;
+                    'B')       printf "%s\n" DN  ;;
+                    'D')       printf "%s\n" LEFT ;;
+                    'C')       printf "%s\n" RIGHT ;;
+                    *)         printf "%s\n" "[$ch" ;;
+                esac
+                ;;
+            q)  
+                printf "%s\n" QUITTING
+                return 1
+                ;;
+            *)
+                printf "%s\n" "$ch"
+
+        esac
+        return
+    fi
+
+    printf "%s\n" "$ch"
+}
+
+# shellcheck disable=SC2120
+region_getchar(){
+    if [ "$#" -eq 0 ]; then
+        _region_getchar
+    else
+        local s
+        s="$(_region_getchar)" || return
+        eval "$1=\$s"
+    fi
+}
+
+region_read_ch_loop(){
+    while _region_getchar 2>/dev/null; do
+        :
+    done
+}
+
+# EndSection
+
+# Section: select app
+___ui_region_select_draw(){
+    local select="$1"
+    local prompt="$2"; shift 2
+    {
+        local l=0
+        local arg
+        printf "%s\n" "$prompt"
+        for arg in "$@"; do
+            l=$((l+1))
+            if [ "$l" -eq "$select" ]; then
+                printf "  $l. \033[7m%s\033[0m\n" "$arg"
+            else
+                printf "  $l. \033[32m%s\033[0m\n" "$arg"
+            fi
+        done
+        printf "\n\033[2m%s\033[0m" "Use arrow up/down to select. Press ENTER to confirm."
+    } | region_send
+}
+
+___ui_region_select_main(){
+    exec 3>&1
+    state=2
+    {
+        ___ui_region_select_draw "$state" "$@"
+        while region_getchar char; do
+            case "$char" in
+                UP)         state="$((state-1))" ;;
+                DN)         state=$((state+1)) ;;
+                ENTER)      break ;;
+                *)          continue ;;
+            esac
+            [ "$state" -lt 1 ] && state=$((state+$#))
+            [ "$state" -gt $# ] && state=$((state-$#))
+            ___ui_region_select_draw "$state" "$@"
+        done
+
+        case "$___UI_REGION_OUTPUT" in
+            text)           eval printf "\"%s\"" "\"\$$state\"" ;;
+            numtext)        eval printf "\"%s\n%s\"" "\"$state\"" "\"\$$state\"" ;;
+            ""|*)           printf "%s" "$state" ;;
+        esac >&3
+        
+    } | region_update
+    exec 3>&-
+}
+
+___ui_region_select(){
+    printf "%s" "$(___ui_region_select_main "$@")"
+}
+
+___ui_region_select_text(){
+    printf "%s" "$(___UI_REGION_OUTPUT=text ___ui_region_select_main "$@")"
+}
+
+___ui_region_select_numtext(){
+    printf "%s" "$(___UI_REGION_OUTPUT=numtext ___ui_region_select_main "$@")"
+}
+
+# EndSection
+
+# Section: annimation
+
+# Example code ...
+___ui_region_demo0(){
+    for percentage in $(seq 1 60); do
+
+        case $(( percentage / 10 % 2 )) in
+            0) 
+            style=warn
+            text="Important to say: Percentage is even.
+1
+2"
+;;
+            1) 
+            style=error
+            text="Hia hia. Percentage is odd.
+hi";;
+        esac
+
+        # region send to stderr
+        region_send "
+$(ui_seperator)
+$(ui_style $style -- Initializing the storage)
+$(ui_style info -- Prepare the UI "$percentage")
+
+$(ui_style bold black -- Initializing the storage)
+$(cowsay "$(ui_style warn -- "Hi Good work" "$percentage")" )
+$(cowsay Hi Good work)
+$(ui_style info -- "$text")
+$(ui_seperator)    
+"
+        sleep 0.1
+    done | region_update
+    printf "\033[34h\033[?25h" 
+}
+
+# EndSection
+
+# ___ui_region_select_text \
+#     "Please select the app you want to install:" \
+#     "Install docker" \
+#     "Install k8s" \
+#     "Install minikube" \
+#     "Install jvm" \
+#     "Install nvm"

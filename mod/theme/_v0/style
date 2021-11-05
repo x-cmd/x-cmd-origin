@@ -4,11 +4,12 @@
 # variables setup
 ###
     # @description: set up color
-    # @param: fg $color | bg $color | bfg $color | ibg $color | blod | underline | reset
-    # @param: $color => black | red | green | yellow | bule | magenta | cyan | white
-    # @example1: ___x_cmd_theme_style fg bule
-    # @example2: ___x_cmd_theme_style blod
-    # @example3: ___x_cmd_theme_style => ___x_cmd_theme_style reset
+    # @param: fg-$color | bg-$color | bfg $color | ibg $color | bold | underline | reset
+    # @param: $color => black | red | green | yellow | blue | magenta | cyan | white
+    # @example1: ___x_cmd_theme_style fg-red hello
+    # @example2: ___x_cmd_theme_style fg-red -- hello
+    # @example3: ___x_cmd_theme_style bold red hello
+    # @example4: ___x_cmd_theme_style bold rgbfg-199 hello
 ###
 ## Enable our easy to read Colour Flags as long as --no-colors hasn't been passed or the NO_COLOR Env Variable is set.
 ## NOTE: the NO_COLOR env variable is from: https://no-color.org/
@@ -16,42 +17,49 @@
 # Section: ___x_cmd_theme_style
 # zsh https://zsh.sourceforge.io/Doc/Release/Prompt-Expansion.html#Visual-effects
 # TODO: here
-if [[ ! "$*" = *--no-color* ]] && [ -z "${NO_COLOR}" ]; then
+if [ -z "${NO_COLOR}" ]; then
 
 if [ -n "$ZSH_VERSION" ]; then
+autoload -U colors && colors
+
+______x_cmd_theme_setup_zsh_color(){
+    typeset -AHg FG BG
+    for color in {000..255}; do
+        FG[$color]="%{[38;5;${color}m%}"
+        BG[$color]="%{[48;5;${color}m%}"
+    done
+}
+
+# sheckcheck disable=SC2144
+if [ -z $FG[100] ];then
+    ______x_cmd_theme_setup_zsh_color
+fi
 
 ___x_cmd_theme_style(){
-    local subcmd="$1"; shift
-    local s="$subcmd"
-    local cur
-    while true; do
-        cur="${s%%,*}"
-        [ "$cur" = "" ] && break
-
-        case "$cur" in
-            black|red|green|yellow|blue|magenta|cyan|white)         printf "%s" "%{\$fg[$cur]%}" ;;
-            fg-*)                                                   printf "%s" "%{\$fg[$cur]%}" ;;
-            bfg-*)                                                  printf "%s" "%{\$fg_bold[${cur#bfg-}]%}" ;;
-            bg-*)                                                   printf "%s" "%{\$bg[${cur#bg-}]%}" ;;
-            ibg-*)                                                  printf "%s" "%{\$bg_no_bold[${cur#ibg-}]%}" ;;
-            bold)                                                   printf "%s" "%B" ;;
-            underline)                                              printf "%s" "%U" ;;
-            reset)                                                  printf "%s" "%{\$reset_color%}" ;;
-            *)                                                      printf "%s" "%{\$reset_color%}" ;;
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            bold)                                                   printf "%s" "%B"                                           ;;
+            underline)                                              printf "%s" "%U"                                           ;;
+            black|red|green|yellow|blue|magenta|cyan|white)         printf "%s" "%{$fg[$1]%}"                                  ;;
+            fg-*)                                                   printf "%s" "%{$fg[${1#fg-}]%}"                            ;;
+            bfg-*)                                                  printf "%s" "%{$fg_bold[${1#bfg-}]%}"                      ;;
+            ifg-*)                                                  printf "%s" "%{$fg_no_bold[${1#ifg-}]%}"                   ;;
+            rgbfg-*)                                                printf "%s" "%{$FG[${1#rgbfg-}]%}"                         ;;
+            bg-*)                                                   printf "%s" "%{$bg[${1#bg-}]%}"                            ;;
+            bbg-*)                                                  printf "%s" "%{$bg_bold[${1#bbg-}]%}"                      ;;
+            ibg-*)                                                  printf "%s" "%{$bg_no_bold[${1#ibg-}]%}"                   ;;
+            rgbbg-*)                                                printf "%s" "%{$BG[${1#rgbbg-}]%}"                         ;;
+            reset)                                                  printf "%s" "%{$reset_color%}"                             ;;
+            --)                                                     shift; printf "%s" "$*%{$reset_color%}%b%u"; return ;;
+            *)                                                      printf "%s" "$*%{$reset_color%}%b%u"; return
         esac
-
-        [ "$cur" = "$s" ] && break
-        s="${s#*,}"
+        shift
     done
-
-    if [ "$#" -ge 1 ]; then
-        printf "%s" "$*%{\$reset_color%}"
-    fi
 }
 
 else
 
-___x_cmd_theme_colorcode(){
+______x_cmd_theme_colorcode(){
     case "$1" in
         black)      printf 0 ;;
         red)        printf 1 ;;
@@ -64,33 +72,26 @@ ___x_cmd_theme_colorcode(){
     esac
 }
 
-
 ___x_cmd_theme_style(){
-    local subcmd="$1"; shift
-    local s="$subcmd"
-    local cur
-    while true; do
-        cur="${s%%,*}"
-        [ "$cur" = "" ] && break
-
-        case "$cur" in
-            black|red|green|yellow|blue|magenta|cyan|white)         printf "\033[3$(___x_cmd_theme_colorcode "$cur")m" ;;
-            bfg-*)                                                  printf "\033[1;3$(___x_cmd_theme_colorcode "${cur#bfg-}")m" ;;
-            bg-*)                                                   printf "\033[4$(___x_cmd_theme_colorcode "${cur#bg-}")m" ;;
-            ibg-*)                                                  printf "\033[10$(___x_cmd_theme_colorcode "${cur#ibg-}")m" ;;
-            bold)                                                   printf "\033[1m" ;;
-            underline)                                              printf "\033[4m" ;;
-            reset)                                                  printf "\033[0m" ;;
-            *)                                                      printf "\033[0m" ;;
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            bold)                                                   printf "\033[1m"                                             ;;
+            underline)                                              printf "\033[4m"                                             ;;
+            black|red|green|yellow|blue|magenta|cyan|white)         printf "\033[3$(______x_cmd_theme_colorcode "$1")m"          ;;
+            fg-*)                                                   printf "\033[3$(______x_cmd_theme_colorcode "${1#fg-}")m"    ;;
+            bfg-*)                                                  printf "\033[1;3$(______x_cmd_theme_colorcode "${1#bfg-}")m" ;;
+            ifg-*)                                                  printf "\033[1;9$(______x_cmd_theme_colorcode "${1#ifg-}")m" ;;
+            rgbfg-*)                                                printf "\033[38;5;"${1#rgbfg-}"m"                            ;;
+            bg-*)                                                   printf "\033[4$(______x_cmd_theme_colorcode "${1#bg-}")m"    ;;
+            bbg-*)                                                  printf "\033[1;4$(______x_cmd_theme_colorcode "${1#bbg-}")m" ;;
+            ibg-*)                                                  printf "\033[10$(______x_cmd_theme_colorcode "${1#ibg-}")m"  ;;
+            rgbbg-*)                                                printf "\033[48;5;"${1#rgbfg-}"m"                            ;;
+            reset)                                                  printf "\033[0m"                                             ;;
+            --)                                                     shift; printf "%s\033[0m" "$*"; return ;;
+            *)                                                      printf "%s\033[0m" "$*"; return
         esac
-
-        [ "$cur" = "$s" ] && break
-        s="${s#*,}"
+        shift
     done
-
-    if [ "$#" -ge 1 ]; then
-        printf "%s\033[0m" "$@"
-    fi
 }
 
 fi
@@ -102,7 +103,8 @@ fi
 ###
 # @description: set up color
 ###
-___X_CMD_THEME_NEWLINE=$'\n'
+___X_CMD_THEME_NEWLINE="
+"
 
 if [ -n "$ZSH_VERSION" ]; then
 

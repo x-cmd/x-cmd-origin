@@ -1,0 +1,56 @@
+# shellcheck shell=sh
+# shellcheck disable=SC2039
+
+______x_cmd_theme_prompt_set_username() {
+    local _username
+    if [ -n "$SSH_CONNECTION" ]; then
+        _username="${___X_CMD_THEME_USER}@${___X_CMD_THEME_HOST}"
+    else
+        _username="${___X_CMD_THEME_USER}"
+    fi
+    if [ -n _username ]; then
+        printf "%s" "$(___x_cmd_theme_style cyan "${_username}")"
+    fi
+}
+
+______x_cmd_theme_prompt_get_info(){
+    ___x_cmd_theme_scm && case "${___X_CMD_THEME_SCM_TYPE}" in
+        git)
+            printf "%s" "${PREFIX:-on} git:$(___x_cmd_theme_style cyan "$___X_CMD_THEME_SCM_INFO ")"
+            if [ -n "$(___x_cmd_theme_is_git_dirty)" ];then
+                printf "%s" "$(___x_cmd_theme_style yellow 'x ')"
+            else
+                printf "%s" "$(___x_cmd_theme_style green 'o ')"
+            fi
+        ;;
+        *)
+            return
+        ;;
+    esac
+}
+
+______x_cmd_theme_prompt_set_symbol(){
+    if [ "${___X_CMD_THEME_EXIT_STATUS}" -ne 0 ];then
+        printf "%s" "$(___x_cmd_theme_style bold red '$')"
+        return
+    fi
+    if [ "$(id -u)" -eq 0 ];then
+        printf "%s" "$(___x_cmd_theme_style bold yellow '$')"
+    else
+        printf "%s" "$(___x_cmd_theme_style bold green '$')"
+    fi
+}
+
+# Prompt format:
+___x_cmd_theme_prompt_format(){
+    local cwd
+    cwd="$(___x_cmd_theme_style bold yellow "${___X_CMD_THEME_FULL_PATH}")"
+    local time
+    time="[${___X_CMD_THEME_TIME_H_M_S}]"
+
+
+    printf "%s" "
+$(___x_cmd_theme_style bold blue '#') $(______x_cmd_theme_prompt_set_username) ${cwd} $(______x_cmd_theme_prompt_get_info)${time}
+$(______x_cmd_theme_prompt_set_symbol ) "
+
+}

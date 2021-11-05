@@ -23,6 +23,8 @@ SUBCOMMANDS:
 A
         ;;
         ls)             ___x_cmd_install_ls "$@" ;;
+        get)            ___x_cmd_install_get "$@" ;;
+        run)            ___x_cmd_install_run "$@" ;;
         *)              ___x_cmd_install_run "$subcmd" "$@" ;;
     esac
 }

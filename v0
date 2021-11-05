@@ -204,7 +204,12 @@ ___tldr_cat(){
             return 1 ;;
         1)
             if [ -t 1 ]; then
-                awk -f "$______X_CMD_TLDR_AWK" <"$(___tldr_getfile "$cand")"
+                # awk -f "$______X_CMD_TLDR_AWK" <"$(___tldr_getfile "$cand")"
+                if [ "${-#*i}" != "$-" ] && command -v less 2>/dev/null; then
+                    awk -f "$______X_CMD_TLDR_AWK" <"$(___tldr_getfile "$cand")" | less -R
+                else
+                    awk -f "$______X_CMD_TLDR_AWK" <"$(___tldr_getfile "$cand")"
+                fi
             else
                 cat "$(___tldr_getfile "$cand")"
             fi

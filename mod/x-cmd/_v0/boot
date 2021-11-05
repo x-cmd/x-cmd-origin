@@ -18,11 +18,12 @@ if command -v xrc >/dev/null 2>&1; then
 elif [ -f "$HOME/.x-cmd/xrc/latest" ]; then
     . "$HOME/.x-cmd/xrc/latest"
 else
-    printf "%s\n  %s" 'xrc/latest not found. You can reinstall using:' 'eval "$(curl https://get.x-cmd.com/all)"'
+    printf "%s\n  %s" 'xrc/latest not found. You can reinstall using:' 'eval "\$(curl https://get.x-cmd.com)"'
     return 1
 fi
 
-[ -f "$HOME/.x-cmd/.boot/mod" ] && x boot mod load || true
+[ -f "$HOME/.x-cmd/.boot/mod" ] && x boot mod load
+[ -f "$HOME/.x-cmd/.boot/rc" ] && . "$HOME/.x-cmd/.boot/rc"
 A
             (
                 if [ "$BASH_VERSION" ]; then        CAN="$HOME/.bashrc"
@@ -43,6 +44,70 @@ A
                     fi
                 done
             )
+            ;;
+        rc)
+            subcmd="$1"; shift
+            local ___X_CMD_ROOT_RC="$HOME/.x-cmd/.boot/rc"
+            case "$subcmd" in
+                add|+)
+                        local keyword="${1:?Provide keyword}"; shift
+                        local text
+                        [ -f "$___X_CMD_ROOT_RC" ] && text="$(cat "$___X_CMD_ROOT_RC")"
+
+                        printf "%s" "$text" | awk -v code="$*" -v keyword="$keyword" '
+                            BEGIN {
+                                COMMENT = "# auto generated: " keyword
+                                COMMENT_LEN = length(COMMENT)
+                            }
+                            {
+                                len = length($0)
+                                s = index($0, COMMENT)
+
+                                if ( (s <= 0) || (s+COMMENT_LEN-1)!=len ) {
+                                    print $0
+                                } else {
+                                    print code " " COMMENT
+                                    done = 1
+                                }
+                            }
+                            END {
+                                if (done != 1) {
+                                    print code " " COMMENT
+                                }
+                            }
+                            ' >"$___X_CMD_ROOT_RC"
+                        ;;
+                del|-)
+                        local keyword="${1:?Provide keyword}"; shift
+                        local text
+                        [ -f "$___X_CMD_ROOT_RC" ] && text="$(cat "$___X_CMD_ROOT_RC")"
+
+                        printf "%s" "$text" | awk -v code="$*" -v keyword="$keyword" '
+                            BEGIN {
+                                COMMENT = "# auto generated: " keyword
+                                COMMENT_LEN = length(COMMENT)
+                            }
+                            {
+                                len = length($0)
+                                s = index($0, COMMENT)
+
+                                if ( (s <= 0) || (s+COMMENT_LEN-1)!=len ) {
+                                    print $0
+                                } else {
+                                    done = 1
+                                }
+                            }
+                            END {
+                                if (done == 1) {
+                                    exit(0)
+                                } else {
+                                    exit(1)
+                                }
+                            }
+                            ' >"$___X_CMD_ROOT_RC"
+                        ;;
+                ls|*)   cat "$___X_CMD_ROOT_RC" ;;
+            esac
             ;;
         mod)
                 subcmd="$1"; shift

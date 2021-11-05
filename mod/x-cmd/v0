@@ -398,6 +398,7 @@ ___x_cmd_main(){
     local subcmd=$1;    shift 2>/dev/null
     case "$subcmd" in
         ""|help)                                printf "%s\n" "Show help" >&2; return 1 ;;
+        # boot)                                   ( xrc x-cmd/_v0/boot && ___x_cmd_boot "$@"; ) ;;
         boot)                                   ( xrc x-cmd/_v0/boot && ___x_cmd_boot "$@"; ) ;;
         *=)                                     ___x_cmd_var "$subcmd" "$@" ;;
         install)                                xrc install/v0 && ___x_cmd_install "$@" ;;
@@ -416,7 +417,7 @@ ___x_cmd_main(){
 
         log)                                    xrc x-cmd/_v0/log && ___x_cmd_log "$@" ;;
 
-        upgrade)                                eval "$(curl https://get.x-cmd.com/all)" ;;
+        upgrade)                                eval "$(curl https://get.x-cmd.com)" ;;
         clear)                                  if ! grep "___x_cmd_http_get()" "$___X_CMD_ROOT/xrc/latest" >/dev/null 2>&1; then
                                                     ___xrc_log debug "'$___X_CMD_ROOT/xrc/latest' NOT found. Please manually clear cache folder: $___X_CMD_ROOT"
                                                     return 1

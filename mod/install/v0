@@ -20,11 +20,13 @@ SYMPOSIS:
 SUBCOMMANDS:
     ls          list all software
     get         get software installation command
+    update      update
 A
         ;;
         ls)             ___x_cmd_install_ls "$@" ;;
         get)            ___x_cmd_install_get "$@" ;;
         run)            ___x_cmd_install_run "$@" ;;
+        update)         ___x_cmd_install_update "$@" ;;
         *)              ___x_cmd_install_run "$subcmd" "$@" ;;
     esac
 }

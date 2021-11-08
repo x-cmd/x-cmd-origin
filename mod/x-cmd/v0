@@ -518,6 +518,7 @@ ___x_cmd_x_cmd_advise_json(){
     },
 
     "man": {},
+    "tldr": {},
     "adviser": {},
     "theme": {},
     "env": {},

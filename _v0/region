@@ -64,18 +64,49 @@ region_read_char(){
 fi
 
 ___X_CMD_UI_REGION_E="$(printf "\033")"
+___X_CMD_UI_REGION_ENTER="$(printf "\015")"
+
+
+if [ -n "$BASH_VERSION" ]; then
+_region_getchar_read1(){
+    read -rsn 1 ch
+}
+
+elif [ -n "$ZSH_VERSION" ]; then
+
+_region_getchar_read1(){
+    read -rsk 1 ch
+}
+
+else
+
+echo "Using stty for read1" >&2
+_region_getchar_read1(){
+    stty raw
+    ch="$(dd bs=1 count=1 2> /dev/null)"
+    stty -raw
+}
+
+fi
 
 # Not worked in ksh. Using stty -echo
 _region_getchar(){
-    read -rsn1 ch
+    # read -rsn1 ch
+    _region_getchar_read1
 
-    [ "${#ch}" -eq 0 ] && printf "%s\n" ENTER
+    [ "${#ch}" -eq 0 ] && printf "%s\n" ENTER && return
+    [ "${ch}" = "$___X_CMD_UI_REGION_ENTER" ] && printf "%s\n" ENTER && return
+    [ "${ch}" = "$(printf "\012")" ] && printf "%s\n" ENTER && return
+    [ "${ch}" = "$(printf "\n")" ] && printf "%s\n" ENTER && return
+    [ "${ch}" = "
+" ] && printf "%s\n" ENTER && return
+
     if [ "$ch" = "$___X_CMD_UI_REGION_E" ]; then
-        read -rsn1 ch # read 2 more chars
+        _region_getchar_read1 # read 2 more chars
 
         case "$ch" in
             \[) 
-                read -rsn1 ch # read 2 more chars
+                _region_getchar_read1 # read 2 more chars
                 case "$ch" in
                     'A')       printf "%s\n" UP  ;;
                     'B')       printf "%s\n" DN  ;;

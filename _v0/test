@@ -34,3 +34,10 @@ region_read_ch_loop(){
         printf "%s" "${#ch}"
     done
 }
+
+
+read1(){
+    stty raw
+    REPLY="$(dd bs=1 count=1 2> /dev/null)"
+    stty -raw
+}

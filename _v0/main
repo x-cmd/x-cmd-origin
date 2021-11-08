@@ -42,11 +42,6 @@ A
 
 # Section: plugins
 
-# Load in need.
-for i in brew pip npm go apt; do #  yum maven
-    xrc "proxy/_v0/$i"
-done
-
 ___proxy_version(){
     param:void
     printf "%s" v0
@@ -54,12 +49,11 @@ ___proxy_version(){
 
 ___proxy_exec(){
     local subcmd="${1:?Subcmd}"
-    # FIXME: There is a shift here?
-    param:void
 
     # Consider loading everytime ?
     # Cache only for 12 hours
     proxy_log "Loading $subcmd"
+    shift
 
     if xrc "proxy/_v0/$subcmd"; then
         proxy_"$subcmd" "$@"

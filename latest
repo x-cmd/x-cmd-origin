@@ -1,6 +1,6 @@
 # shellcheck shell=sh disable=SC2039,SC1090,SC3043,SC2263
 
-if curl --version 1>/dev/null 2>&1; then
+# if curl --version 1>/dev/null 2>&1; then
 # Section: Requirement & Initialize
 [ -n "$KSH_VERSION" ] && alias local=typeset
 
@@ -54,7 +54,7 @@ fi
 ___x_cmd_curl() {
     local REDIRECT=/dev/stdout
     if [ -n "$CACHE" ]; then
-        if [ -z "$___XRC_UPDATE" ] && [ -f "$CACHE" ]; then
+        if [ -z "$___X_CMD_CURL_UPDATE" ] && [ -f "$CACHE" ]; then
             ___xrc_log debug "Function ___x_cmd_curl() terminated. Because local cache existed with update flag unset: $CACHE"
             return 0
         fi
@@ -411,9 +411,9 @@ A
 fi
 # EndSection
 
-else
-    printf "boot[ERR]: Cannot found curl or wget for web resource downloader." >&2
-    return 1 2>/dev/null
-    ( return 1 )                # Provide error code 1
-    # return 1 || exit 1
-fi
+# else
+#     printf "boot[ERR]: Cannot found curl or wget for web resource downloader." >&2
+#     return 1 2>/dev/null
+#     ( return 1 )                # Provide error code 1
+#     # return 1 || exit 1
+# fi

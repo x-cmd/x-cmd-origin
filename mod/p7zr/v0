@@ -55,11 +55,11 @@ _7zd_which(){
 fi
 
 p7zr(){
-    local path
-    path=$(_7zd_which)
+    local p7z_path
+    p7z_path="$(_7zd_which)"
     eval "
         p7zr(){
-            $path \${1:+\"\$@\"}
+            $p7z_path \${1:+\"\$@\"}
         }
     "
     p7zr ${1:+"$@"}

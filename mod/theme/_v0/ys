@@ -3,13 +3,21 @@
 
 ______x_cmd_theme_prompt_set_username() {
     local _username
-    if [ -n "$SSH_CONNECTION" ]; then
-        _username="${___X_CMD_THEME_USER}@${___X_CMD_THEME_HOST}"
+    local _username_pre
+
+    if [ "$(id -u)" -eq 0 ];then
+        # root user
+        _username_pre='# '
     else
-        _username="${___X_CMD_THEME_USER}"
+        _username_pre=
+    fi
+    if [ -n "$SSH_CONNECTION" ]; then
+        _username+="${___X_CMD_THEME_USER}@${___X_CMD_THEME_HOST}"
+    else
+        _username+="${___X_CMD_THEME_USER}"
     fi
     if [ -n _username ]; then
-        printf "%s" "$(___x_cmd_theme_style cyan "${_username}")"
+        printf "%s" "$(___x_cmd_theme_style bold blue "${_username_pre}")$(___x_cmd_theme_style cyan "${_username}")"
     fi
 }
 
@@ -34,11 +42,7 @@ ______x_cmd_theme_prompt_set_symbol(){
         printf "%s" "$(___x_cmd_theme_style bold red '$')"
         return
     fi
-    if [ "$(id -u)" -eq 0 ];then
-        printf "%s" "$(___x_cmd_theme_style bold yellow '$')"
-    else
-        printf "%s" "$(___x_cmd_theme_style bold green '$')"
-    fi
+    printf "%s" "$(___x_cmd_theme_style bold green '$')"
 }
 
 # Prompt format:
@@ -50,7 +54,7 @@ ___x_cmd_theme_prompt_format(){
 
 
     printf "%s" "
-$(___x_cmd_theme_style bold blue '#') $(______x_cmd_theme_prompt_set_username) ${cwd} $(______x_cmd_theme_prompt_get_info)${time}
+$(______x_cmd_theme_prompt_set_username) ${cwd} $(______x_cmd_theme_prompt_get_info)${time}
 $(______x_cmd_theme_prompt_set_symbol ) "
 
 }

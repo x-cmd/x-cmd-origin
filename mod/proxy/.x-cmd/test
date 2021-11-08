@@ -1,2 +1,8 @@
-mkdir -p ~/.x-cmd/proxy
-cp -rf v0 _v0 ~/.x-cmd/proxy
+#!/bin/bash
+
+[ -f "$HOME/.x-cmd/.boot/boot" ] && . "$HOME/.x-cmd/.boot/boot"
+
+# mkdir -p ~/.x-cmd/proxy
+# cp -rf v0 _v0 ~/.x-cmd/proxy
+
+. ./testcase/v0_test

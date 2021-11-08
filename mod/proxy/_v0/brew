@@ -15,7 +15,7 @@ subcommand:
     unset       "Reset the source to the original official"
 A
     param:run
-
+    
     # if ! brew --version >/dev/null; then
     if ! command -v brew >/dev/null; then
         printf "Brew NOT exists."

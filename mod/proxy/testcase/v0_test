@@ -81,8 +81,7 @@ test_proxy_advise_json() {
       "ali": null,
       "tuna": null
     },
-    "unset": {
-    }
+    "unset": null
   },
   "yum": null,
   "brew": {
@@ -123,6 +122,11 @@ if [ -z "$XRC_NO_ADVISE" ] && [ -n "${BASH_VERSION}${ZSH_VERSION}" ] && [ "${-#*
 fi
 
 # . ./testcase/v0_test_brew
-. ./testcase/v0_test_apt
-test_proxy_apt ". ./testcase/v0_test_apt && test_proxy_apt_all "
 
+. ./testcase/v0_test_apt
+test_different_version_for_ubuntu
+test_different_version_for_debian
+
+# . ./testcase/v0_test_npm
+# . ./testcase/v0_test_pip
+# . ./testcase/v0_test_go

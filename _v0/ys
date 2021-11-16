@@ -12,13 +12,11 @@ ______x_cmd_theme_prompt_set_username() {
         _username_pre=
     fi
     if [ -n "$SSH_CONNECTION" ]; then
-        _username+="${___X_CMD_THEME_USER}@${___X_CMD_THEME_HOST}"
+        _username="${_username}${___X_CMD_THEME_USER}@${___X_CMD_THEME_HOST}"
     else
-        _username+="${___X_CMD_THEME_USER}"
+        _username="${_username}${___X_CMD_THEME_USER}"
     fi
-    if [ -n _username ]; then
-        printf "%s" "$(___x_cmd_theme_style bold blue "${_username_pre}")$(___x_cmd_theme_style cyan "${_username}")"
-    fi
+    printf "%s" "$(___x_cmd_theme_style bold blue "${_username_pre}")$(___x_cmd_theme_style cyan "${_username}")"
 }
 
 ______x_cmd_theme_prompt_get_info(){
@@ -49,12 +47,11 @@ ______x_cmd_theme_prompt_set_symbol(){
 ___x_cmd_theme_prompt_format(){
     local cwd
     cwd="$(___x_cmd_theme_style bold yellow "${___X_CMD_THEME_FULL_PATH}")"
-    local time
-    time="[${___X_CMD_THEME_TIME_H_M_S}]"
+    local _time
+    _time="[${___X_CMD_THEME_TIME_H_M_S}]"
 
 
     printf "%s" "
-$(______x_cmd_theme_prompt_set_username) ${cwd} $(______x_cmd_theme_prompt_get_info)${time}
+$(______x_cmd_theme_prompt_set_username) ${cwd} $(______x_cmd_theme_prompt_get_info)${_time}
 $(______x_cmd_theme_prompt_set_symbol ) "
-
 }

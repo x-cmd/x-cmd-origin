@@ -20,35 +20,34 @@ _7zd_which(){
     arch="$(os arch)"
     local osname
     osname="$(os name)"
+    local release
+    release="$(uname -r)"
 
-    p7zr_log debug "detect osname/arch: $osname/$arch"
+    local exe
+    case "$osname-$release" in
+        win* | *microsoft*)
+            exe=7zd.x64.exe        
+        ;;
+        linux*|darwin*)     
+            exe=7zd.${osname}.${arch}  
+        ;;
+        *)
+            p7zr_log error "Unsupported [arch=$arch] [os=$osname]!" >&2; 
+            return 1 
+        ;;
+    esac
 
-    local url="https://gitee.com/static-build/p7zip/raw/master/bin"
+    local url="https://gitee.com/static-build/p7zip/raw/main/bin"
     if [ "$___X_CMD_IN_CHINA_NET" != 1 ]; then
-        url="https://raw.githubusercontent.com/static-build/p7zip/master/bin"
+        url="https://raw.githubusercontent.com/static-build/p7zip/main/bin"
     fi
 
-    if [ "$osname" = "win" ]; then
-        p7zr_log debug "Downloading: $url/7za.$arch.exe"
-        if CACHE="$target/7za.exe" ___x_cmd_curl "$url/7za.$arch.exe"; then
-            chmod +x "$target/7za.exe" && printf "%s" "$target/7za.exe"
-        else
-            p7zr_log error "Fail to download: $url/7za.$arch.exe"
-            return 1
-        fi
+    p7zr_log debug "Downloading: $url/$exe"
+    if CACHE="$target/$exe" ___x_cmd_curl "$url/$exe"; then
+        chmod +x "$target/$exe" && printf "%s" "$target/$exe"
     else
-        case "$osname" in
-            linux|darwin)
-                p7zr_log debug "Downloading: $url/7zd.$osname.$arch"
-                if CACHE="$target/7zd" ___x_cmd_curl "$url/7zd.$osname.$arch"; then
-                    chmod +x "$target/7zd" && printf "%s" "$target/7zd"
-                else
-                    p7zr_log error "Fail to download: $url/7zd.$osname.$arch"
-                    return 1
-                fi
-            ;;
-            *)  p7zr_log error "Unsupported [arch=$arch] [os=$osname]!" >&2; return 1 ;;
-        esac
+        p7zr_log error "Fail to download: $url/$exe"
+        return 1
     fi
 }
 

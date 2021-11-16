@@ -9,6 +9,7 @@ subcommands:
     use         "use theme when starting the shell"
     try         "try theme"
     rollback    "use last theme"
+    unset       "unset the theme"
 A
     param:run
 
@@ -27,7 +28,7 @@ ___x_cmd_theme_which(){
 
     local CACHE="$___X_CMD_ROOT/.tmp/theme/$name"
     if find "$CACHE" -mmin 60 2>/dev/null 1>&2; then
-        ___X_CMD_CURL_UPDATE=1
+        ___X_CMD_CURL_UPDATE=
     fi
 
     local url="https://gitee.com/x-cmd/theme/raw/main/$name"
@@ -53,6 +54,16 @@ ___x_cmd_theme_control_use(){
     local name="${1:-ys}"
     ___x_cmd_theme_control_try "$name"
     x boot rc add x-theme x theme try "$name"
+}
+
+___x_cmd_theme_control_unset(){
+    local ___X_CMD_ROOT_RC="$HOME/.x-cmd/.boot/rc"
+    if [ ! -f "$___X_CMD_ROOT_RC" ]; then
+        printf "%s\n" "The configuration file does not exist,unset failed"
+        return 0
+    fi
+    x boot rc del x-theme x theme try
+    printf "\033[32munset the theme successfully! \033[1;33mNow you can restart your terminal.\033[0m \n"
 }
 
 ___x_cmd_theme_control_try(){

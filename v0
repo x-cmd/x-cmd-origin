@@ -15,7 +15,7 @@ ___x_cmd_readlink_recursive(){
 }
 
 ___x_cmd_list_resource(){
-    printf "%s" "proxy"
+    printf "%s" "proxy tldr"
 }
 
 # Section : Unfinished ___x_cmd_official_which
@@ -259,6 +259,10 @@ ___x_cmd_jq(){
     xrc static-build && static_build_init jq jq ___x_cmd_jq && ___x_cmd_jq          "$@"
 }
 
+___x_cmd_yq(){
+    xrc static-build && static_build_init yq yq ___x_cmd_yq && ___x_cmd_yq          "$@"
+}
+
 ___x_cmd_nmap(){
     xrc static-build && static_build_init nmap nmap ___x_cmd_nmap && ___x_cmd_nmap  "$@"
 }
@@ -271,6 +275,10 @@ ___x_cmd_nping(){
     xrc static-build && static_build_init nmap nping ___x_cmd_nping && ___x_cmd_nping  "$@"
 }
 
+___x_cmd_traceroute(){
+    xrc static-build && static_build_init nmap traceroute ___x_cmd_traceroute && ___x_cmd_traceroute  "$@"
+}
+
 ___x_cmd_bw(){
     xrc static-build && static_build_init bandwhich bandwhich ___x_cmd_bw && ___x_cmd_bw          "$@"
 }
@@ -281,6 +289,10 @@ ___x_cmd_exa(){
 
 ___x_cmd_dust(){
     xrc static-build && static_build_init dust dust ___x_cmd_dust && ___x_cmd_dust  "$@"
+}
+
+___x_cmd_sqlite3(){
+    xrc static-build && static_build_init sqlite3 sqlite3 ___x_cmd_sqlite3 && ___x_cmd_sqlite3  "$@"
 }
 
 ___x_cmd_procs(){
@@ -302,6 +314,30 @@ ___x_cmd_bat(){
 # python: v3.6 and above, python using v14
 
 # EndSection
+
+# Section : multiple
+
+___x_cmd_eval_concurrent_single(){
+    local s="$(eval "$1")"
+    cat
+    printf "%s\n" "$s"
+}
+
+___x_cmd_eval_concurrent(){
+    case "$#" in
+        0)      return 0 ;;
+        1)      eval "$1" ;;
+        2)      eval "$1" | ___x_cmd_eval_concurrent_single "$2" ;;
+        3)      eval "$1" | ___x_cmd_eval_concurrent_single "$2" | ___x_cmd_eval_concurrent_single "$3" ;;
+        *)
+                s='eval "$1"'
+                local i
+                for i in $(seq 2 $#); do
+                    s="$s | ___x_cmd_eval_concurrent_single \"\$$i\""
+                done
+                eval "$s"
+    esac
+}
 
 # Section : xaas
 
@@ -401,11 +437,12 @@ ___x_cmd_main(){
         # boot)                                   ( xrc x-cmd/_v0/boot && ___x_cmd_boot "$@"; ) ;;
         boot)                                   ( xrc x-cmd/_v0/boot && ___x_cmd_boot "$@"; ) ;;
         *=)                                     ___x_cmd_var "$subcmd" "$@" ;;
+        con)                                    ___x_cmd_eval_concurrent "$@" ;;
         install)                                xrc install/v0 && ___x_cmd_install "$@" ;;
 
         man)        ;;
         tldr)                                   xrc tldr/v0 && tldr "$@" ;;
-        adviser)    ;;
+        advise)                                 xrc advise/v0 && advise "$@" ;;
         proxy)                                  xrc proxy/latest && proxy "$@" ;;
         theme)                                  xrc theme/latest && ___x_cmd_theme_control "$@" ;;
         env)        ;;
@@ -428,8 +465,8 @@ ___x_cmd_main(){
         z)                                      (   xrc zuz && zuz z "$@"   ) ;;
         uz)                                     (   xrc zuz && zuz uz "$@"  ) ;;
 
-        ubu|alp|deb|cen|bus)                    (   xrc xdk && xdk "$subcmd" "$@" ) ;;
-        docker|dk|xdk)                          (   xrc xdk && xdk "$@" )   ;;
+        ubu|alp|deb|cen|bus)                    (   xrc xdk/v0 && xdk "$subcmd" "$@" ) ;;
+        docker|dk|xdk)                          (   xrc xdk/v0 && xdk "$@" )   ;;
         sh|bash|zsh|fish|ksh|dash|ash)          ___x_cmd_shell_exec "$subcmd" "$@" ;;
 
         jar)                                    java -jar "$@" ;;
@@ -465,13 +502,21 @@ ___x_cmd_main(){
         ll)                                     ___x_cmd_exa  -l    "$@"             ;;
         ps)                                     ___x_cmd_procs      "$@"             ;;
         du)                                     ___x_cmd_dust       "$@"             ;;
-        cat)                                    ___x_cmd_bat        "$@"             ;;
+        sqlite3)                                ___x_cmd_sqlite3    "$@"             ;;
+        cat)
+                                                if [ "$#" -ne 0 ]; then
+                                                    ___x_cmd_bat "$@"
+                                                else
+                                                    ___x_cmd_bat "--help"
+                                                fi
+                                                ;;
         bw)                                     ___x_cmd_bw         "$@"             ;;
         jq)                                     ___x_cmd_jq         "$@"             ;;
+        yq)                                     ___x_cmd_yq         "$@"             ;;
         nmap)                                   ___x_cmd_nmap       "$@"             ;;
         ncat)                                   ___x_cmd_ncat       "$@"             ;;
         nping)                                  ___x_cmd_nping      "$@"             ;;
-
+        traceroute)                             ___x_cmd_traceroute "$@"             ;;
         run)                                    ___x_cmd_run_by_file "$@"            ;;
         search_path)                            ___x_cmd_search_path "$@"            ;;
         which|w)                                local p
@@ -498,7 +543,7 @@ ___x_cmd_x_cmd_advise_json(){
     cat <<A
 {
     "boot": {
-        "cat": null
+        "cat": null,
         "which|w": null,
         "mod": {
             "add|+": null,
@@ -509,24 +554,57 @@ ___x_cmd_x_cmd_advise_json(){
 
     "install": {
         "ls": null,
-        "get": "x install ls",
-        "#1": "x install ls"
+        "get": "x install name",
+        "update": null,
+        "run": "x install name",
+        "#1": "x install name"
     },
-
     "config": {
-
+        "tab":null,
+        "ssh":null,
+        "sshd":null
     },
 
     "man": {},
-    "tldr": {},
-    "adviser": {},
-    "theme": {},
+    "advise": {
+        "ls": null,
+        "rm": "x advise ls",
+        "which|cat|init|new": "ls ${TMPDIR%/}/.x-cmd/advise_auto_json/",
+        "man": {
+            "ls": null,
+            "update": null,
+            "rm": null,
+            "which": "x advise man ls",
+            "load": null
+        },
+        "del":null,
+        "obj-new":null,
+        "obj-del": null
+    },
+    "theme": {
+        "ls": null,
+        "use": "xrc theme/latest && ___x_cmd_theme_control_ls",
+        "try": "xrc theme/latest && ___x_cmd_theme_control_ls",
+        "rollback": null,
+        "unset": null
+    },
     "env": {},
 
     "login": {},
     "register": {},
     "token": {},
-    "hub": {},
+    "hub": {
+        "file": {
+            "ls": null,
+            "which": "x hub file ls",
+            "upload": "x hub file ls",
+            "share": "x hub file ls",
+            "private": "x hub file ls",
+        },
+        "login": null,
+        "register": null,
+        "token": null
+    },
 
     "log": {
         "init": {},
@@ -544,17 +622,45 @@ ___x_cmd_x_cmd_advise_json(){
     "z": null,
     "uz": null,
 
-    "ubu|alp|deb|cen|bus": null,
-    "docker|dk|xdk": null,
-    "sh|bash|zsh|fish|ksh|dash|ash": {},
-    "jar": {},
-    "java": {},
+    "ubu|alp|deb|cen|bus": {
+        "alias": {},
+        "run":  {
+            "centos": {},
+            "ubuntu": {},
+            "alpine": {},
+            "busybox": {}
+        },
+        "exec": {},
+        "empower": {},
+        "centos": {},
+        "ubuntu": {},
+        "alpine": {},
+        "busybox": {}
+    },
+    "docker|dk|xdk": {
+        "alias": {},
+        "run":  {
+            "centos": {},
+            "ubuntu": {},
+            "alpine": {},
+            "busybox": {}
+        },
+        "exec": {},
+        "empower": {},
+        "centos": {},
+        "ubuntu": {},
+        "alpine": {},
+        "busybox": {}
+    },
+    "sh|bash|zsh|fish|ksh|dash|ash": "___advise_ls",
+    "jar": "___advise_ls",
+    "java": "___advise_ls",
 
-    "pip|pip3": null,
-    "python|py|python3|py3": null,
+    "pip|pip3": "___advise_ls",
+    "python|py|python3|py3": "___advise_ls",
 
     "nvm": null,
-    "javascript|js|node": null,
+    "javascript|js|node": "___advise_ls",
     "npm":  null,
     "npx":  null,
 
@@ -563,13 +669,15 @@ ___x_cmd_x_cmd_advise_json(){
     "lua": null,
 
     "jq": null,
+    "yq": null,
     "ls|ll": null,
     "ps|procs": null,
 
     "nmap":null,
     "ncat":null,
     "nping":null,
-
+    "traceroute":null,
+    "sqlite3":null,
 
     "run": {},
     "search_path": {},

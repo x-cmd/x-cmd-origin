@@ -1,4 +1,4 @@
-# shellcheck shell=bash disable=SC2039,3043
+# shellcheck shell=sh disable=SC2039,3043
 
 # author:       Li Junhao           l@x-cmd.com    edwinjhlee.github.io
 
@@ -7,6 +7,7 @@
 xrc param/v0
 
 ______X_CMD_TLDR_AWK="$(xrc which tldr/v0.awk)"
+______X_CMD_TLDR_WCWIDTH_AWK="$(xrc which ui/_v0/wcwidth.awk)"
 
 ______X_CMD_TLDR_LANG="
 en
@@ -37,6 +38,9 @@ zh
 zh_TW
 "
 
+xrc ui/v0
+
+
 tldr(){
     param:dsl <<A
 subcommands:
@@ -62,7 +66,8 @@ _______X_CMD_TLDR_ROOT="$___X_CMD_ROOT/.tmp/tldr"
 
 _______tldr_download(){
     local src="${1:?src}"
-    local dst="${2:-$1}"
+    local dst
+    dst="${2:-$1}"
 
     local CACHE="$_______X_CMD_TLDR_ROOT/$dst"
 
@@ -79,7 +84,8 @@ ___tldr_current(){
         return 1
     fi
 
-    local version="$(cat "$_______X_CMD_TLDR_ROOT/index.yml")"
+    local version
+    version="$(cat "$_______X_CMD_TLDR_ROOT/index.yml")"
     version="${version%%
 *}"
     version="${version#* }"
@@ -111,7 +117,8 @@ ___tldr_update()(
         return 1
     fi
 
-    local version="$(___tldr_current)"
+    local version
+    version="$(___tldr_current)"
     version="${version%%
 *}"
     version="${version#* }"
@@ -194,6 +201,7 @@ ___tldr_exact()(
 )
 
 ___tldr_cat(){
+
     cand="$( ___tldr_exact "$@" )"
     local num
     num="$(printf "%s" "$cand" | awk 'END{ print NR; }')"
@@ -204,12 +212,7 @@ ___tldr_cat(){
             return 1 ;;
         1)
             if [ -t 1 ]; then
-                # awk -f "$______X_CMD_TLDR_AWK" <"$(___tldr_getfile "$cand")"
-                if [ "${-#*i}" != "$-" ] && command -v less 2>/dev/null; then
-                    awk -f "$______X_CMD_TLDR_AWK" <"$(___tldr_getfile "$cand")" | less -R
-                else
-                    awk -f "$______X_CMD_TLDR_AWK" <"$(___tldr_getfile "$cand")"
-                fi
+                awk -v COLUMNS="$COLUMNS" "$(xrc cat $______X_CMD_TLDR_WCWIDTH_AWK)$(cat "$______X_CMD_TLDR_AWK")" < "$(___tldr_getfile "$cand")"
             else
                 cat "$(___tldr_getfile "$cand")"
             fi
@@ -220,6 +223,7 @@ ___tldr_cat(){
 
 # EndSection
 
+# TODO: Maybe x-cmd can use this advise json. And then we can remove this from x-cmd.
 if [ -n "$BASH_VERSION$ZSH_VERSION" ] && [ "${-#*i}" != "$-" ]; then
     xrc advise
     advise tldr <<A

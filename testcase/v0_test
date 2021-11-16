@@ -1,0 +1,24 @@
+# shellcheck shell=sh disable=SC3043
+
+test_tldr() {
+    xrc tldr
+    x log init tldr
+
+    echo "test 7z:"
+    tldr testcase/7z.md
+    echo "test 7z-zh:"
+    tldr testcase/7z-zh.md
+    echo "test ag-ko:"
+    tldr testcase/ag-ko.md
+    echo "test java:"
+    tldr testcase/java.md
+    echo "test ldapsearch:"
+    tldr testcase/ldapsearch.md
+}
+
+test_cross_env() {
+    for i in debian alpine centos; do
+        tldr_log info "Testing : " "$i"
+        docker run -it -v  ~/.x-cmd/:/root/.x-cmd/ -v "$(pwd)":/pd "${i}" sh -c " . ~/.x-cmd/xrc/latest && cd pd && . ./testcase/v0_test && test_tldr"
+    done
+}

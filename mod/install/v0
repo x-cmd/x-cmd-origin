@@ -16,17 +16,21 @@ SYMPOSIS:
     x install <software>
     x install ls
     x install run <software>
+    x install name
 
 SUBCOMMANDS:
     ls          list all software
     get         get software installation command
+    run         run software installation command
     update      update
+    name        get software name list
 A
         ;;
         ls)             ___x_cmd_install_ls "$@" ;;
         get)            ___x_cmd_install_get "$@" ;;
         run)            ___x_cmd_install_run "$@" ;;
         update)         ___x_cmd_install_update "$@" ;;
+        name)           ___x_cmd_install_name "$@" ;;
         *)              ___x_cmd_install_run "$subcmd" "$@" ;;
     esac
 }
@@ -100,8 +104,8 @@ function handle(name){
     }
 }
 
-$0!~/^[\ ]*#/{
-    leading_space = match($0, /^[\ ]+/)
+$0!~/^[ ]*#/{
+    leading_space = match($0, /^[ ]+/)
     leading_space_len = RLENGTH
 
     if (leading_space_len == -1) {
@@ -110,8 +114,8 @@ $0!~/^[\ ]*#/{
         }
         NAME = $0
         gsub(/:$/, "", NAME)
-        gsub(/[\ ]+$/, "", NAME)
-        gsub(/^[\ ]+/, "", NAME)
+        gsub(/[ ]+$/, "", NAME)
+        gsub(/^[ ]+/, "", NAME)
     } else if (leading_space_len == 4) {
         kw = $1
         if (kw ~ /:$/) {
@@ -120,8 +124,8 @@ $0!~/^[\ ]*#/{
 
         $1 = ""
         s = $0
-        gsub(/[\ ]+$/, "", s)
-        gsub(/^[\ ]+/, "", s)
+        gsub(/[ ]+$/, "", s)
+        gsub(/^[ ]+/, "", s)
         data[NAME SEP kw] = s
     }
 }
@@ -146,6 +150,19 @@ ___x_cmd_install_update(){
     ___X_CMD_CURL_UPDATE=1 ___x_cmd_install_which 1>/dev/null && printf "Update success.\n" >&2
 }
 
+___x_cmd_install_name(){
+    local CACHE
+    if ! CACHE="$(___x_cmd_install_which)"; then
+        printf "Cannot download file." >&2
+        return 1
+    fi
+    awk '
+$0!~/^[ #]/{
+    printf "%s ", substr($0,1,length($0)-1)
+}
+' <"$CACHE"
+}
+
 ___x_cmd_install_get(){
     local CACHE
     if ! CACHE="$(___x_cmd_install_which)"; then
@@ -164,8 +181,8 @@ ___x_cmd_install_get(){
     }
     END{
         if (count == 1) {
-            gsub(/^[\ ]+/, "", cmd)
-            gsub(/[\ ]+$/, "", cmd)
+            gsub(/^[ ]+/, "", cmd)
+            gsub(/[ ]+$/, "", cmd)
             print cmd
             exit(0)
         } else {
@@ -181,7 +198,6 @@ ___x_cmd_install_get(){
         printf "%s" "$data" >&2
         return 1
     fi
-
 }
 
 # EndSection

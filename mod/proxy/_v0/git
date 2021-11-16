@@ -11,6 +11,4 @@ proxy_github(){
 Host github.com
     ProxyCommand=nc -X 5 -x localhost:7070 %h %p
 A
-
 }
-

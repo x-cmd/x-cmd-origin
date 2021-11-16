@@ -1,12 +1,11 @@
 # shellcheck shell=sh disable=SC3043
-
-
+# Reference: https://cloud.tencent.com/developer/article/1773630
 
 proxy_go(){
     param:dsl <<A
 subcommands:
     auto|autoset                       "Set the goproxy and gosumdb to recommended mirror"
-    reset|reset                        "Reet the download mirror"
+    unset|reset                        "Reet the download mirror"
     gosumdb|sumdb|sum|gosum            "operations for gosumdb"
     set                                "Set the download mirror"
     service                            "Provide mirror service in docker or native binary"
@@ -34,28 +33,23 @@ proxy_go_auto(){
     proxy_go gosumdb set qiniu
 }
 
-_proxy_go_set(){
-    local url="${1:?URL}"
+___proxy_go_set(){
+    local url
     local code
 
-    case $(go version | awk '{ print substr($3, 3) }') in
-        1.13*);;
-        1.14*);;
-        1.15*);;
-        *) 
-            code="
+    url="${1:?URL}"
+
+    if [ "$(go version | awk '{ a=substr($3, 3); if(a<1.13) print 1; else print 0 }')" = 1 ]; then
+        code="
     export GOPROXY=$url
     export GO111MODULE=on
 "
-            eval "$code"
-            printf "%s\n%s" "Seting the GORPOXY and GO111MODULE env with following code:" "$code" >&2
-            return 0 ;;
-    esac
-
-    code="
+    else
+        code="
     go env -w GO111MODULE=on
     go env -w GOPROXY="$url,direct"
 "
+    fi
 
     eval "$code"
     printf "%s\n%s" "Seting the GORPOXY and GO111MODULE env with following code:" "$code" >&2
@@ -71,10 +65,10 @@ subcommand:
 A
     param:run
 
-    case "${PARAM_SUBCMD:-aliyun}" in
-        ali|aliyun)            _proxy_go_set    https://mirrors.aliyun.com/goproxy/ ;;
-        goproxy|goproxy.cn)    _proxy_go_set    https://goproxy.io/zh/ ;;
-        qiniu|io|goproxy.io)   _proxy_go_set    https://goproxy.cn ;;
+    case "${PARAM_SUBCMD:-qiniu}" in
+        ali|aliyun)            ___proxy_go_set    https://mirrors.aliyun.com/goproxy/ ;;
+        goproxy|goproxy.cn)    ___proxy_go_set    https://goproxy.io/zh/ ;;
+        qiniu|io|goproxy.io)   ___proxy_go_set    https://goproxy.cn ;;
         *) ;;
     esac
 }
@@ -93,7 +87,7 @@ A
 proxy_go_gosumdb_set(){
     param:void
     case "${1:-qiniu}" in
-        qiniu|io|goproxoy.io)   _proxy_go_set    https://goproxy.cn ;;
+        qiniu|io|goproxoy.io)   ___proxy_go_set    https://goproxy.cn ;;
         *)                      export GOSUMDB=gosum.io+ce6e7565+AY5qEHUk/qmHc5btzW45JVoENfazw8LielDsaI+lEbq6 ;;
     esac
 }
@@ -103,30 +97,22 @@ proxy_go_gosumdb_unset(){
     export GOSUMDB=
 }
 
-# TODO: 
 proxy_go_unset(){
     param:void
-    local url="${1:?URL}"
+    local code
 
-    case $(go version | awk '{ print substr($3, 3) }') in
-        1.13*);;
-        1.14*);;
-        1.15*);;
-        *) 
-            code="
+    if [ "$(go version | awk '{ a=substr($3, 3); if(a<1.13) print 1; else print 0 }')" = 1 ]; then
+        code="
     export GOPROXY=
 "
-            eval "$code"
-            printf "Unset the GOPROXY env." >&2
-            return 0 ;;
-    esac
-
-    code="
+    else
+        code="
     go env -u GOPROXY
 "
+    fi
 
     eval "$code"
-    printf "Unset the GOPROXY env." >&2
+    printf "Unset the GOPROXY env.\n" >&2
 }
 
 # help doc: https://goproxy.io/zh/docs/enterprise.html
@@ -144,7 +130,7 @@ proxy_go_service(){
 
 proxy_go_tutorial(){
     param:void
-    cat <<AAA
+    cat <<A
 Windows Powershell:
 
 Format: \$env:GOPROXY = <url>
@@ -159,12 +145,5 @@ Windows:
 3. 在 “变量名” 输入框并新增 “GOPROXY”
 4. 在对应的 “变量值” 输入框中新增 “https://goproxy.io,direct”
 5. 最后点击 “确定” 按钮保存设置    
-AAA
-
+A
 }
-
-if [ -n "${BASH_VERSION}${ZSH_VERSION}" ] && [ "${-#*i}" != "$-" ]; then
-    xrc advise/v0
-    advise proxy_go
-fi
-

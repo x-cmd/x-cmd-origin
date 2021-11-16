@@ -21,6 +21,8 @@ test_proxy_advise_json() {
       "douban": null,
       "tencent|qq|weixin": null
     },
+    "get": {
+    },
     "set": {
       "qinghua|qh|tsinghua|tuna": null,
       "ustc": null,
@@ -50,7 +52,8 @@ test_proxy_advise_json() {
   "go": {
     "auto|autoset": {
     },
-    "reset|reset": null,
+    "unset|reset": {
+    },
     "gosumdb|sumdb|sum|gosum": {
       "set": {
       },
@@ -71,19 +74,44 @@ test_proxy_advise_json() {
     "help": null
   },
   "gem": null,
-  "cargo": null,
+  "cargo": {
+    "url": {
+      "ustc": null,
+      "official": null
+    },
+    "get": null,
+    "replace": {
+      "ustc": null,
+      "official": null
+    },
+    "rollback": {
+    }
+  },
   "apt": {
     "url": {
       "ali": null,
       "tuna": null
     },
-    "set": {
+    "replace": {
       "ali": null,
       "tuna": null
     },
-    "unset": null
+    "rollback": {
+    }
   },
-  "yum": null,
+  "yum": {
+    "url": {
+      "ustc": null,
+      "official": null
+    },
+    "get": null,
+    "rollback": {
+    },
+    "replace": {
+      "ustc": null,
+      "official": null
+    }
+  },
   "brew": {
     "url": {
       "tuna|tsinghua|qh": null,
@@ -108,7 +136,19 @@ test_proxy_advise_json() {
       "--verbose|-v": null
     }
   },
-  "apk": null
+  "apk": {
+    "url": {
+      "ustc": null,
+      "official": null
+    },
+    "get": null,
+    "replace": {
+      "ustc": null,
+      "official": null
+    },
+    "rollback": {
+    }
+  }
 }
 A
 }
@@ -117,16 +157,23 @@ A
 ## Run test
 ##################
 
-if [ -z "$XRC_NO_ADVISE" ] && [ -n "${BASH_VERSION}${ZSH_VERSION}" ] && [ "${-#*i}" != "$-" ]; then
+if [ -n "${BASH_VERSION}${ZSH_VERSION}" ]; then
     test_proxy_advise_json
 fi
 
-# . ./testcase/v0_test_brew
-
-. ./testcase/v0_test_apt
-test_different_version_for_ubuntu
-test_different_version_for_debian
-
-# . ./testcase/v0_test_npm
-# . ./testcase/v0_test_pip
-# . ./testcase/v0_test_go
+case $1 in
+    apt|apk|yum)
+        . ./testcase/v0_test_"${1}"
+        test_cross_env
+        ;;
+    go|brew|gem|cargo|npm|pip|maven)
+        . ./testcase/v0_test_"${1}"
+        ;;  
+    base)
+        . ./testcase/v0_test_base
+        ;;
+    *)
+        echo "Usage: x test {brew|apt|yum|apk|npm|pip|gem|cargo|go|maven|base}"
+        exit 1
+        ;;
+esac

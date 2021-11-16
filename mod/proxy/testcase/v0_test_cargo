@@ -1,0 +1,23 @@
+#! /bin/bash
+
+test_proxy_cargo(){
+    . ~/.x-cmd/xrc/latest
+    . ./testcase/v0_test_base
+    
+    proxy_log info "Testing proxy cargo set to install curl"
+    x proxy cargo set
+    cargo install mdbook
+
+    proxy_log info "Testing proxy cargo unset to install vim"
+    x proxy cargo unset
+    cargo install mdbook
+}
+
+cross_alpine_test() {
+    for i in $(seq 11 14) ; do
+        proxy_log info "Testing : 3.$i"
+        docker run -it -v ~/.x-cmd/:/root/.x-cmd/ -v "$(pwd)":/pd alpine:3."${i}" \
+            sh -c "cd pd && . ./testcase/v0_test_cargo && \
+            test_proxy_cargo"
+    done
+}

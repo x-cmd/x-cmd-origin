@@ -6,9 +6,11 @@ cp -r ./_v0/ ~/.x-cmd/proxy/_v0/
 cp ./v0 ~/.x-cmd/proxy/v0
 cp ./latest ~/.x-cmd/proxy/latest
 
-if [ -z "$XRC_NO_ADVISE" ] && [ -n "${BASH_VERSION}${ZSH_VERSION}" ] && [ "${-#*i}" != "$-" ]; then
+if [ -n "${BASH_VERSION}${ZSH_VERSION}" ]; then
     xrc advise/v0
     advise rm proxy
+    xrc proxy
+    advise proxy
 fi
 
 xrc assert

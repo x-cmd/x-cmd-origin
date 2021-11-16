@@ -1,16 +1,17 @@
 # shellcheck shell=sh disable=SC3043
+# Reference: 
 
 proxy_apt(){
     param:dsl <<A
 subcommand:
     url        "Provide url of mirror candidates"
-    set        "Setting the mirror"
-    unset      "Reset the source to the original official"
+    replace    "Setting the mirror"
+    rollback   "Reset the source to the original official"
 A
     param:run
 
-    if ! command -v apt >/dev/null; then
-        printf "apt NOT exists."
+    if ! command -v apt >/dev/null || ! command -v apt-get >/dev/null ; then
+        proxy_log error "command not found: apt or apt-get "
         return 1
     elif [ -n "$PARAM_SUBCMD" ]; then
         proxy_apt_"${PARAM_SUBCMD}" "$@"
@@ -28,16 +29,14 @@ A
     param:run
 
     case "$PARAM_SUBCMD" in
-        # https://gems.ruby-china.com
         ali)                    printf mirrors.aliyun.com                   ;;
         tuna)                   printf mirrors.tuna.tsinghua.edu.cn        ;;
-        # official)               printf http://snapshot.debian.org                ;;
         *)                      proxy_apt_url _param_help_doc >&2                  ;;
     esac
 }
 
-# Just replace the original text
-proxy_apt_set() {
+# TODO: Just replace the original text, maybe not the best way.
+proxy_apt_replace() {
     param:dsl <<A
 subcommand:
     ali                 "aliyun"
@@ -51,37 +50,32 @@ A
         proxy_log info "Setting proxy_apt mirror :
     $url"
 
-        local bak_dir
-        bak_dir="$HOME/.x-cmd/proxy/.backup"
-        mkdir -p "$bak_dir"
+        local src_path
+        src_path="/etc/apt/sources.list"
+        ___proxy_backup /etc/apt/sources.list apt
 
-        local src_fp 
-        local bak_fp
-        src_fp=/etc/apt/sources.list
-        bak_fp="$bak_dir/sources.list.$(date +%Y%M%d_%0H%m%S).bak"
-
-        proxy_log info "Backing up $src_fp to $bak_fp"
-        cp $src_fp "$bak_fp"
+        local tmp
+        tmp="$(cat $src_path)"
         
-        awk -v url="$url" -F '\n' '{ gsub("[a-z]+\\.(ubuntu\\.com|debian\\.org)", url, $1); print $1 }' < "$bak_fp" > "$src_fp"
+        # If there is no root permission, use sudo
+        if [ "$(id -u)" -ne 0 ]; then
+            proxy_log info "using sudo"
+            printf "%s" "$tmp" | sudo awk -v url="$url" -F '\n' '{ gsub("[\\.a-z]+\\.(ubuntu\\.com|debian\\.org)", url, $1); print $1 }' | sudo tee "$src_path"
+        else
+            printf "%s" "$tmp" | awk -v url="$url" -F '\n' '{ gsub("[\\.a-z]+\\.(ubuntu\\.com|debian\\.org)", url, $1); print $1 }' > "$src_path"
+        fi
     fi
 }
 
-# Rollback from the last backup file
-proxy_apt_unset() {
-    local src_fp
-    src_fp=/etc/apt/sources.list
-
-    # get the last backup file from the backup directory
-    local bak_dir
-    bak_dir="$HOME/.x-cmd/proxy/.backup"
-    local bak_fp
-    bak_fp="$bak_dir/$(ls -t "$bak_dir" | head -n 1)"
-
-    if [ -f "$bak_fp" ]; then
-        proxy_log info "Rollback from $bak_fp"
-        cp "$bak_fp" "$src_fp"
+# Rollback from the last backup file.
+# Get the last backup file from the backup directory.
+proxy_apt_rollback() {
+    param:void
+    
+    if [ "$(id -u)" -ne 0 ]; then
+        proxy_log info "using sudo"
+        sudo ___proxy_rollback /etc/apt/sources.list apt
     else
-        proxy_log info "No backup file found in $bak_dir"
+        ___proxy_rollback /etc/apt/sources.list apt
     fi
 }

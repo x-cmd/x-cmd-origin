@@ -2,4 +2,91 @@
 
 # https://cargo.budshome.com/reference/source-replacement.html#:~:text=目前国内%20cargo,镜像源有：中国科学技术大学源、上海交通大学源、清华大学源，以及%20rustcc%20社区源%E3%80%82
 
+proxy_cargo(){
+    param:dsl <<A
+subcommands:
+    url             "Provide url of mirror candidates"
+    get             "Get the mirror"
+    replace         "Reet the download mirror"
+    rollback        "Set the download mirror"
+A
+    param:run
+    
+    if ! command -v cargo >/dev/null; then
+        proxy_log error "command not found: cargo"
+        return 1
+        elif [ -n "$PARAM_SUBCMD" ]; then
+        "proxy_cargo_${PARAM_SUBCMD}" "$@"
+    else
+        proxy_cargo _param_help_doc  >&2
+    fi
+}
 
+proxy_cargo_url(){
+    param:dsl <<A
+subcommands:
+    ustc           "USTC mirror"
+    official       "Official mirror"
+A
+    param:run
+    
+    case "$PARAM_SUBCMD" in
+        ustc)       printf "mirrors.ustc.edu.cn" ;;
+        official)   printf "dl-cdn.alpinelinux.org" ;;
+        *)
+            printf "Unknown mirror: %s" "$PARAM_SUBCMD" >&2
+            proxy_cargo_url _param_help_doc  >&2
+        ;;
+    esac
+}
+
+proxy_cargo_replace() {
+    param:dsl <<A
+subcommands:
+    ustc           "USTC mirror"
+    official       "Official mirror"
+A
+    param:run
+    
+    local bak_dir
+    bak_dir="$HOME/.x-cmd/proxy/.backup/cargo"
+    mkdir -p "$bak_dir"
+    
+    local src_fp
+    local bak_fp
+    src_fp="$HOME/.cargo/config"
+    bak_fp="$bak_dir/config.$(date +%Y%M%d_%0H%m%S).bak"
+    
+    proxy_log info "Backing up $src_fp to $bak_fp"
+    if [ -f "$src_fp" ]; then
+        cp "$src_fp" "$bak_fp"
+    else
+        proxy_log warn "No $src_fp found"
+        touch "$bak_fp"
+    fi
+    
+    printf "[source.crates-io]
+replace-with = 'tuna'
+[source.tuna]
+registry = \"https://mirrors.tuna.tsinghua.edu.cn/git/crates.io-index.git\"
+    " > "$src_fp"
+}
+
+proxy_cargo_rollback() {
+    param:void
+    
+    local src_fp
+    src_fp="$HOME/.cargo/config"
+    
+    local bak_dir
+    local bak_fp
+    bak_dir="$HOME/.x-cmd/proxy/.backup/cargo"
+    bak_fp="$bak_dir/$(ls -t "$bak_dir" | head -n 1)"
+    
+    if [ -f "$bak_fp" ]; then
+        proxy_log info "Rollback from $bak_fp"
+        cp "$bak_fp" "$src_fp"
+    else
+        proxy_log info "No backup file found in $bak_dir"
+    fi
+}

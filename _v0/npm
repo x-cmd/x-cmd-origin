@@ -1,6 +1,5 @@
 # shellcheck shell=sh disable=SC3043
-
-
+# Reference: https://www.jianshu.com/p/0deb70e6f395
 
 proxy_npm(){
     param:dsl <<A
@@ -14,7 +13,7 @@ A
 
     # if ! brew --version >/dev/null; then
     if ! command -v npm >/dev/null; then
-        printf "npm NOT existed."
+        proxy_log error "command not found: npm"
         return 1
     elif [ -n "$PARAM_SUBCMD" ]; then
         "proxy_npm_${PARAM_SUBCMD}" "$@"
@@ -42,18 +41,6 @@ A
     esac
 }
 
-
-_proxy_npm_url_custom(){
-    param:dsl <<A
-option:
-    #1          "URL"      =~       https?://.+
-A
-    param:run
-
-    printf "%s" "${1:?Impossible}"
-}
-
-
 proxy_npm_get(){
     param:void
     npm config get registry
@@ -77,6 +64,3 @@ proxy_npm_unset() {
     param:void
     proxy_npm_set   official
 }
-
-# reference https://zhuanlan.zhihu.com/p/90508170
-

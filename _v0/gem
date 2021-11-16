@@ -1,5 +1,5 @@
 # shellcheck shell=sh disable=SC3043
-
+# reference https://zhuanlan.zhihu.com/p/90508170
 # gem sources --add https://gems.ruby-china.com/ --remove https://rubygems.org/
 
 proxy_gem(){
@@ -11,8 +11,8 @@ subcommand:
 A
 
     # if ! brew --version >/dev/null; then
-    if ! command -v npm >/dev/null; then
-        printf "gem NOT exists."
+    if ! command -v gem >/dev/null; then
+        proxy_log error "command not found: gem"
         return 1
     elif [ -n "$PARAM_SUBCMD" ]; then
         "proxy_gem_${PARAM_SUBCMD}" "$@"
@@ -64,6 +64,3 @@ proxy_gem_unset() {
     param:void
     proxy_gem_set   official
 }
-
-# reference https://zhuanlan.zhihu.com/p/90508170
-

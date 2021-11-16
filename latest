@@ -4,8 +4,3 @@
 # maintainer:   Li Junhao
 
 xrc proxy/v0
-
-# bash <<A
-# xrc proxy/v0
-# proxy $@
-# A

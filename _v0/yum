@@ -1,1 +1,78 @@
 # shellcheck shell=sh disable=SC3043
+
+# For alpine users
+# Reference: https://blog.csdn.net/qq_33657251/article/details/107526842
+
+proxy_yum(){
+    param:dsl <<A
+subcommands:
+    url             "Provide url of mirror candidates"
+    get             "Get the mirror"
+    rollback        "Reet the download mirror"
+    replace         "Set the download mirror"
+A
+    param:run
+    
+    if ! command -v yum >/dev/null; then
+        proxy_log error "command not found: yum"
+        return 1
+    elif [ -n "$PARAM_SUBCMD" ]; then
+        proxy_yum_"${PARAM_SUBCMD}" "$@"
+    else
+        proxy_yum _param_help_doc  >&2
+    fi
+}
+
+proxy_yum_url(){
+    param:dsl <<A
+subcommands:
+    ustc           "USTC mirror"
+    official       "Official mirror"
+A
+    param:run
+    
+    case "$PARAM_SUBCMD" in
+        ustc)       printf "https://mirrors.tuna.tsinghua.edu.cn" ;;
+        official)   printf "http://mirror.centos.org" ;;
+        *)          
+                    printf "Unknown mirror: %s" "$PARAM_SUBCMD" >&2
+                    proxy_yum_url _param_help_doc  >&2
+                    ;;
+    esac
+}
+
+proxy_yum_replace() {
+    param:dsl <<A
+subcommands:
+    ustc           "USTC mirror"
+    official       "Official mirror"
+A
+    param:run
+
+    local src_dir
+    src_dir="/etc/yum.repos.d"
+
+    ___proxy_backup $src_dir yum
+
+    proxy_log info "Setting mirror to $PARAM_SUBCMD"
+
+    sed -e 's|^mirrorlist=|#mirrorlist=|g' \
+        -e 's|^#baseurl=http://mirror.centos.org/altarch/|baseurl=https://mirrors.tuna.tsinghua.edu.cn/centos-altarch/|g' \
+        -e 's|^#baseurl=http://mirror.centos.org/$contentdir/|baseurl=https://mirrors.tuna.tsinghua.edu.cn/centos-altarch/|g' \
+        -i.bak \
+        ${src_dir}/CentOS-*.repo
+
+    proxy_log "$(tail -n 5 /etc/yum.repos.d/CentOS-*Base*.repo)"
+
+    proxy_log info "Restarting yum"
+    yum makecache
+
+    proxy_log "$(tail -n 5 /etc/yum.repos.d/CentOS-*Base*.repo)"
+}
+
+proxy_yum_rollback() {
+    param:void
+    ___proxy_rollback /etc/yum.repos.d yum
+    yum makecache
+    proxy_log "$(tail -n 5 /etc/yum.repos.d/CentOS-*Base*.repo)"
+}

@@ -16,7 +16,7 @@ subcommands:
     npm                     "Setting the npm mirrors"
     maven                   "Setting the maven mirrors"
     go                      "Setting the go mirrorss"
-    gem                     "Setting the pip mirrors"
+    gem                     "Setting the ruby mirrors"
     cargo                   "Setting the cargo mirrors for rust development"
 
     apt                     "apt mirrors"
@@ -37,22 +37,24 @@ A
         version)    ___proxy_version ;;
         *)          ___proxy_exec "${PARAM_SUBCMD}" "$@" ;;
     esac
-    
 }
 
 # Section: plugins
+
+# TODO: It is unnecessary to source the plugin file at the first time.
+# Load in need.
+for i in brew apt pip npm go apk yum cargo; do #  yum maven
+    xrc "proxy/_v0/$i"
+done
 
 ___proxy_version(){
     param:void
     printf "%s" v0
 }
 
+# TODO：There is no advise friendly way to use the subcmd.
 ___proxy_exec(){
     local subcmd="${1:?Subcmd}"
-
-    # Consider loading everytime ?
-    # Cache only for 12 hours
-    proxy_log "Loading $subcmd"
     shift
 
     if xrc "proxy/_v0/$subcmd"; then
@@ -184,6 +186,63 @@ ___proxy_unset(){
         shift
     done
     
+}
+
+# EndSection
+
+# Section: utils
+
+# Backup the src_path(file or directory) to the dst_dir.
+# @param1 src_path
+# @param2 app_name
+# example:
+#   ___proxy_backup /etc/apt/sources.list apt
+#   ___proxy_backup /etc/yum.repos.d yum
+___proxy_backup() {
+    local src_path 
+    local app_name
+    local dst_dir
+
+    src_path="${1}"
+    app_name="${2}"
+
+    dst_dir="$___X_CMD_ROOT/proxy/.backup/$app_name/$(date +%Y%M%d_%0H%m%S)"
+    mkdir -p "$dst_dir"
+
+    proxy_log info "Backing up $src_path to $dst_dir"
+
+    if [ -f "$src_path" ]; then
+        cp "$src_path" "$dst_dir"
+    elif [ -d "$src_path" ]; then
+        cp -r "$src_path"/* "$dst_dir"
+    else
+        proxy_log error "Invalid src_path: $src_path"
+    fi
+}
+
+# Rollback from the last backup file.
+# @param1 dst_path
+# @param2 app_name
+# example:
+#   ___proxy_rollback /etc/apt/sources.list apt
+#   ___proxy_rollback /etc/yum.repos.d yum
+___proxy_rollback() {
+    local dst_path
+    local app_name
+
+    dst_path="${1}"
+    app_name="${2}"
+
+    local bak_dir
+    bak_dir="$___X_CMD_ROOT/proxy/.backup/$app_name"
+    bak_dir="$bak_dir/$(ls -t "$bak_dir" | head -n 1)"
+
+    if [ -d "$bak_dir" ]; then
+        proxy_log info "Rollback from $bak_dir"
+        \cp -r "$bak_dir"/* "$dst_path"
+    else
+        proxy_log info "No backup dir found in $bak_dir"
+    fi
 }
 
 # EndSection

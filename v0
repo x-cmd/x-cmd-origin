@@ -43,11 +43,11 @@ ___os_kernal(){
 }
 
 ___os_release_code(){
-    ___os_release | awk -e FS="=" '$1=="DISTRIB_CODENAME"{ print $2; exit 0; }'
+    ___os_release | awk -v FS="=" '$1=="DISTRIB_CODENAME"{ print $2; exit 0; }'
 }
 
 ___os_extract(){
-    awk -e name=${1:-Provide name} -e code=1 -e FS='=' '
+    awk -v name=${1:-Provide name} -v code=1 -v FS='=' '
 $1==name { print $2; code=0 }
 END { exit code }
 '
@@ -59,6 +59,13 @@ ___os_release_name(){
     fi
 
     local s
+
+    if s=$(cat /etc/issue 2>/dev/null); then
+        # Ubuntu 20.04.2 LTS
+        printf  "${s%/*}\n"
+        return 0
+    fi
+
     if s=$(cat /etc/redhat-release 2>/dev/null); then
         # redhat or centos
         # CentOS Linux release 7.6.1810 (Core)
@@ -81,12 +88,6 @@ ___os_release_name(){
     fi
 
     if [ -f /etc/os-release ] && ___os_extract DISTRIB_ID </etc/lsb-release 2>/dev/null | tr "[:upper:]" "[:lower:]"; then
-        return 0
-    fi
-
-    if s=$(cat /etc/issue 2>/dev/null); then
-        # Ubuntu 20.04.2 LTS
-        printf "%s"  ubuntu
         return 0
     fi
 

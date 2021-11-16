@@ -24,6 +24,18 @@ atcmd
 A
 }
 
+test_tldr(){
+    assert_stdout "test123 tldr cat common/7z"<<A
+common/7z.md
+common/7za.md
+common/7zr.md
+A
+    assert_stdout "test123 tldr cat ''" <<A
+common/
+linux/
+A
+}
+
 test_ssh(){
     assert_stdout "test123 ssh -o AddKeysToAgent=" <<A
 AddKeysToAgent=yes

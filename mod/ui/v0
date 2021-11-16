@@ -32,12 +32,11 @@ x log init ui
 
 # Thank ryenus, iRaS and Mekcki for answers in https://stackoverflow.com/questions/263890/how-do-i-find-the-width-height-of-a-terminal-window
 ui_init_lines_columns(){
-    if [ -z "${BASH_VERSION}${ZSH_VERSION}" ]; then
-        local IFS
-        read -r LINES COLUMNS <<A
+    local IFS
+    IFS=" "
+    read -r LINES COLUMNS <<A
 $(stty size)
 A
-    fi
 }
 ui_init_lines_columns
 
@@ -118,8 +117,8 @@ ui_tput(){
         cvvis|cursor_show)          printf "\033[34l" ;;
         civis|cursor_hide)          printf "\033[?25l" ;;
 
-        smcup|screen_save)          tput smcup ;;
-        rmcup|screen_restore)       tput rmcup ;;
+        smcup|screen_save)          printf "\033[?1049h" ;;
+        rmcup|screen_restore)       printf "\033[?1049l" ;;
         
         el)                         printf "\033[K" ;;
         el1)                        printf "\033[1K" ;;

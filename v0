@@ -9,6 +9,7 @@ elif ! ___ADVISE_AWK_PATH="$(xrc which advise/v0.awk)"; then
 else
 
 x log init advise
+______X_CMD_ADVISE_V0_FILEPATH="$(xrc which advise/v0)"
 
 # Section : advise entrance
 
@@ -18,7 +19,12 @@ advise(){
         ls)
             ls "$@" "${TMPDIR%/}/.x-cmd/advise_auto_json" ;;
         rm)
-            rm -rf "${TMPDIR%/}/.x-cmd/advise_auto_json"/*  ;;
+            if [ "$#" -eq 0 ]; then
+                rm -rf "${TMPDIR%/}/.x-cmd/advise_auto_json"/*
+            else
+                rm -rf "${TMPDIR%/}/.x-cmd/advise_auto_json"/"$1"
+            fi
+            ;;
         which)
             if [ "$#" -eq 0 ]; then
                 printf "%s" "${TMPDIR%/}/.x-cmd/advise_auto_json"
@@ -31,22 +37,6 @@ advise(){
             for mod in "$@"; do
                 cat "${TMPDIR%/}/.x-cmd/advise_auto_json/$mod"
             done
-            ;;
-        _x_cmd_advise_json)
-            cat <<A
-{
-    "ls": null,
-    "rm": null,
-    "which": {
-        "#n": "ls ${TMPDIR%/}/.x-cmd/advise_auto_json/"
-    },
-    "cat": {
-        "#n": "ls ${TMPDIR%/}/.x-cmd/advise_auto_json/"
-    }
-    "init": null
-}
-A
-            return 126
             ;;
         man)
             ___advise_man "$@" ;;
@@ -77,7 +67,26 @@ A
                 unset -f "______adviser_of_$op"
             fi
             ;;
-
+         _x_cmd_advise_json)
+            cat <<A
+{
+    "ls": null,
+    "rm": "advise ls",
+    "which|cat|init|new": "ls ${TMPDIR%/}/.x-cmd/advise_auto_json/",
+    "man": {
+        "ls": null,
+        "update": null,
+        "rm": null,
+        "which": "advise man ls",
+        "load": null
+    },
+    "del":null,
+    "obj-new":null,
+    "obj-del": null
+}
+A
+            return 126
+            ;;
         "")
             # TODO: help doc
             ;;
@@ -102,7 +111,10 @@ ___advise_lsd(){
         printf "%s/\n" "${l%/}"
     done
 }
-
+___advise_ls_grep(){
+    local localopt="${1:-${cur:-""}}"
+    ls | grep -E "${localopt}" 2>/dev/null
+}
 ___advise_ls(){
     local localdir="${1:-${cur:-""}}"
 
@@ -127,12 +139,6 @@ ___advise_ls(){
             print folder "/" $0
         }
     }' 2>/dev/null
-    # ls "${folder:-.}" | grep -E "${pattern:-""}" 2>/dev/null
-
-    # local l
-    # ls "${localdir}" | while read -r l; do
-    #     printf "%s%s\n" "$localdir" "$l"
-    # done
 }
 
 # 1-10
@@ -276,6 +282,15 @@ ___advise_main(){
     complete -F "___advise_completer" "$func"
 }
 
+___advise_update__cmd_json(){
+    local func="${1:?Provide function name}"
+    local tmp_filepath=${TMPDIR%/}/.x-cmd/advise_auto_json/$func
+    if [ "$______X_CMD_ADVISE_V0_FILEPATH" -nt "$tmp_filepath" ]; then
+        rm -rf "$tmp_filepath"
+        ___advise_main $func
+    fi
+}
+
 ___advise_run(){
 
     local offset="${2:-0}"
@@ -362,6 +377,14 @@ ___advise_run(){
     )"
     IFS="$OLDIFS"
 
+    if [ -z "$ZSH_VERSION" ];then
+        if [[ "$result" =~ [:=\/]$ ]];then
+            compopt -o nospace
+        else
+            compopt +o nospace
+        fi
+    fi
+
     local cmd="${result##*#> }"
     local cmd_result=""
     if [ "$cmd" != "$result" ]; then
@@ -405,12 +428,14 @@ ___advise_completer() {
 
 # EndSection
 
-if [ -n "$ZSH_VERSION" ]; then
+if [ -n "$ZSH_VERSION" ] && [ "$(autoload | grep bashcompinit)" = "" ]; then
     autoload -U +X bashcompinit compinit && bashcompinit && compinit
 fi
 
 advise init advise
-
+if [ -f ${TMPDIR%/}/.x-cmd/advise_auto_json/advise ]; then
+    ___advise_update__cmd_json advise
+fi
 fi
 
 # Section: man
@@ -490,7 +515,7 @@ ___advise_man(){
         ls)         ___advise_man_ls ;;
         update)     ___advise_man_update ;;
         which)      ___advise_man_which "$@" ;;
-        load)       ___advise_man_load "$@" ;;
+        load)       ___advise_man_load ;;
         rm)         ___advise_man_rm ;;
         *)          ___advise_man_load "$op" "$@" ;;
     esac

@@ -19,7 +19,7 @@ if [ -n "$RELOAD" ] || [ -z "$X_BASH_SRC_PATH" ]; then
     fi
 
     xrc_curl(){
-        local REDIRECT=/dev/stdout
+        local REDIRECT="&1"
         if [ -n "$CACHE" ]; then
             if [ -z "$UPDATE" ] && [ -f "$CACHE" ]; then
                 xrc_log debug "Function xrc_curl() terminated. Because local cache existed with update flag unset: $CACHE"

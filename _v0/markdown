@@ -3,15 +3,6 @@
 ___X_BASH_UI_MARKDOWN_AWK="$(xrc which ui/_v0/markdown.awk)"
 # ___X_BASH_UI_MARKDOWN_AWK="./markdown.awk"
 
-ui_init_lines_columns(){
-    if [ -z "${BASH_VERSION}${ZSH_VERSION}" ]; then
-        local IFS
-        read -r LINES COLUMNS <<A
-$(stty size)
-A
-    fi
-}
-
 # TO_HTML?
 ___ui_markdown(){
     
@@ -21,6 +12,4 @@ ___ui_markdown(){
     else
         cat
     fi | awk -v COLUMNS="$COLUMNS" "$(xrc cat ui/_v0/wcwidth.awk)$(cat "$___X_BASH_UI_MARKDOWN_AWK")"
-    # fi | awk -v COLUMNS="$COLUMNS" "$(cat ./wcwidth.awk)$(cat "$___X_BASH_UI_MARKDOWN_AWK")"
-    # awk -v COLUMNS="$COLUMNS" "$(xrc cat ui/_v0/wcwidth.awk)$(cat "$___X_BASH_UI_MARKDOWN_AWK")"
 }

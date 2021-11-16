@@ -32,10 +32,17 @@ ___ui_table_read(){
 ___ui_table_out(){
     local out="${1:-1}"
 
-    eval "printf \"%s\" \"\${$O}\"" | \
-        LC_ALL=en_US.UTF-8  awk -v out="$out" "$(xrc cat ui/_v0/wcwidth.awk)$(xrc cat ui/_v0/table.awk)"
-        # LC_ALL=en_US.UTF-8  awk -v HIGHCOL=3,6 -v HIGHROW=6 -v out="$out" "$(xrc cat ui/_v0/wcwidth.awk)$(xrc cat ui/_v0/table.awk)"
-        # awk '{ print $0; }'
+    if [ "${-#*i}" != "$-" ]; then
+        eval "printf \"%s\" \"\${$O}\"" | \
+            LC_ALL=en_US.UTF-8  awk -v out="$out" "$(xrc cat ui/_v0/wcwidth.awk)$(xrc cat ui/_v0/table.awk)"
+            # LC_ALL=en_US.UTF-8  awk -v HIGHCOL=3,6 -v HIGHROW=6 -v out="$out" "$(xrc cat ui/_v0/wcwidth.awk)$(xrc cat ui/_v0/table.awk)"
+            # awk '{ print $0; }'
+    else
+        eval "printf \"%s\" \"\${$O}\"" | \
+            LC_ALL=en_US.UTF-8  awk -v out="$out" "$(xrc cat ui/_v0/wcwidth.awk)$(xrc cat ui/_v0/table.awk)"
+            # LC_ALL=en_US.UTF-8  awk -v HIGHCOL=3,6 -v HIGHROW=6 -v out="$out" "$(xrc cat ui/_v0/wcwidth.awk)$(xrc cat ui/_v0/table.awk)"
+            # awk '{ print $0; }'
+    fi
 }
 
 ___ui_table_clear(){
@@ -44,7 +51,6 @@ ___ui_table_clear(){
 }
 
 ___ui_table_json(){
-    echo "atable"
     local arg
     local args
     local title
@@ -66,7 +72,7 @@ ___ui_table_json(){
     IFS="
 "
     eval ui table + "$title"
-    for line in $(jq -r ".[] | [ $args ] | map( . | @json) | join(\" \") "); do
+    for line in $(x jq -r ".[] | [ $args ] | map( . | @json) | join(\" \") "); do
         eval ui table + "$line"
     done
     ui table out 6

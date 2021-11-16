@@ -120,7 +120,7 @@ options:
 A
 
     local keypairname="${1:?Keypair name}"
-    aliyun ecs CreateKeyPair --KeyPairName "${keypairname}" | x jq -r .PrivateKeyBody>"${2:-"/dev/stdout"}"
+    aliyun ecs CreateKeyPair --KeyPairName "${keypairname}" | x jq -r .PrivateKeyBody>"${2:-"&1"}"
 }
 
 ali_keypair_delete(){

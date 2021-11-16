@@ -24,7 +24,7 @@ static_build_which(){
 
     local exe
     case "$osname-$release" in
-        win* | *WSL*)    exe=$app.x64.exe        ;;
+        win* | *microsoft*)    exe=$app.x64.exe        ;;
         *)      exe=$app.${osname}.${arch}  ;;
     esac
     # Rely

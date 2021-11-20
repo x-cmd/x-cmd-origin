@@ -1,0 +1,95 @@
+#! /usr/bin/env bash
+# Section : multiple
+___x_cmd_eval_concurrent_single(){
+    local s
+    s="$(eval "$1")"
+    cat
+    printf "%s" "$s"
+}
+
+___x_cmd_eval_concurrent(){
+    case "$#" in
+        0)      return 0 ;;
+        1)      eval "$1" ;;
+        2)      eval "$1" | ___x_cmd_eval_concurrent_single "$2" ;;
+        3)      eval "$1" | ___x_cmd_eval_concurrent_single "$2" | ___x_cmd_eval_concurrent_single "$3" ;;
+        *)
+                s='eval "$1"'
+                local i
+                for i in $(seq 2 $#); do
+                    s="$s | ___x_cmd_eval_concurrent_single \"\$$i\""
+                done
+                eval "$s"
+    esac
+}
+# EndSection
+
+# Section : git info func
+___x_cmd_theme_is_git_dirty() {
+    local _status
+    _status="$(git status --porcelain --ignore-submodules=dirty 2> /dev/null | tail -1)"
+    if [ -n "$_status" ]; then
+        printf "%s---x-theme- " "true"
+    else
+        printf "%s---x-theme-" " "
+    fi
+}
+___x_cmd_theme_get_git_repo_name() {
+    local repo_path
+    repo_path="$(git rev-parse --show-toplevel 2>/dev/null)"
+    if [ -n "$repo_path" ]; then
+        printf "%s---x-theme-" "${repo_path##*/}"
+    else
+        printf "%s---x-theme-" " "
+    fi
+}
+
+___x_cmd_theme_git_get_friendly() {
+    printf "%s---x-theme-" "$(___x_cmd_theme_git_get_branch || ___x_cmd_theme_git_get_tag || ___x_cmd_theme_git_get_short_sha)"
+}
+# EndSection
+
+# Section : concurrent get git info
+___x_cmd_theme_get_git_scm_info(){
+    local s
+    time s="$(x con ___x_cmd_theme_git_get_friendly  ___x_cmd_theme_get_git_repo_name ___x_cmd_theme_is_git_dirty)"
+    for p in "$@"; do
+        read -r "$p" <<A
+${s%%---x-theme-*}
+A
+s="${s#*---x-theme-}"
+    done
+}
+# EndSection
+
+# Section : main test
+aaa() {
+    echo '-------'
+    local _branch
+    local _repo_name
+    local _is_dirty
+    ___x_cmd_theme_get_git_scm_info _branch _repo_name _is_dirty
+
+    echo "$_branch"
+    echo "$_repo_name"
+    echo "$_is_dirty"
+}
+
+# aaa() {
+#     echo '-------'
+#     local _branch
+#     time _branch="$(___x_cmd_theme_git_get_friendly)"
+#     local _repo_name
+#     time _repo_name="$(___x_cmd_theme_get_git_repo_name)"
+#     local _is_dirty
+#     time _is_dirty="$(___x_cmd_theme_is_git_dirty)"
+
+#     echo 'branch: '"$_branch"
+#     echo 'repo_name: '"$_repo_name"
+#     echo 'isdirty: '"$_is_dirty"
+# }
+
+time aaa
+# EndSection
+
+

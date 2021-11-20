@@ -57,12 +57,35 @@ A
 }
 
 proxy_apk_rollback() {
-    param:void
+    param:dsl <<A
+subcommand:
+    ls                 "list all file you can rollback"
+    use                "use the selected file to rollback"
+A
+    param:run
 
+    if [ -n "$PARAM_SUBCMD" ]; then
+        proxy_apk_rollback_"${PARAM_SUBCMD}" "$@"
+    else
+        proxy_apk_rollback_use ""
+    fi    
+}
+
+proxy_apk_rollback_ls() {
+    param:void
+    ___proxy_rollback_ls apk
+}
+
+proxy_apk_rollback_use() {
+    param:dsl <<A
+options:
+    #1               "file name"
+A
+    param:run
     if [ "$(id -u)" -ne 0 ]; then
         proxy_log info "using sudo"
-        sudo ___proxy_rollback /etc/apk/repositories apk
+        sudo ___proxy_rollback /etc/apk/repositories apk "$1"
     else
-        ___proxy_rollback /etc/apk/repositories apk
+        ___proxy_rollback /etc/apk/repositories apk "$1"
     fi
 }

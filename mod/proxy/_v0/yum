@@ -71,8 +71,37 @@ A
 }
 
 proxy_yum_rollback() {
+    param:dsl <<A
+subcommand:
+    ls                 "list all file you can rollback"
+    use                "use the selected file to rollback"
+A
+    param:run
+
+    if [ -n "$PARAM_SUBCMD" ]; then
+        proxy_yum_rollback_"${PARAM_SUBCMD}" "$@"
+    else
+        proxy_yum_rollback_use ""
+    fi    
+}
+
+proxy_yum_rollback_ls() {
     param:void
-    ___proxy_rollback /etc/yum.repos.d yum
-    yum makecache
-    proxy_log "$(tail -n 5 /etc/yum.repos.d/CentOS-*Base*.repo)"
+    ___proxy_rollback_ls yum
+}
+
+proxy_yum_rollback_use() {
+    param:dsl <<A
+options:
+    #1               "file name"
+A
+    param:run
+    if [ "$(id -u)" -ne 0 ]; then
+        proxy_log info "using sudo"
+        sudo ___proxy_rollback /etc/yum.repos.d yum "$1"
+        sudo yum makecache
+    else
+        ___proxy_rollback /etc/yum.repos.d yum "$1"
+        yum makecache
+    fi
 }

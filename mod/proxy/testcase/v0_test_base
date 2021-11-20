@@ -6,13 +6,13 @@ cp -r ./_v0/ ~/.x-cmd/proxy/_v0/
 cp ./v0 ~/.x-cmd/proxy/v0
 cp ./latest ~/.x-cmd/proxy/latest
 
-if [ -n "${BASH_VERSION}${ZSH_VERSION}" ]; then
-    xrc advise/v0
-    advise rm proxy
-    xrc proxy
-    advise proxy
-fi
-
 xrc assert
 x log proxy
 xrc proxy
+
+if [ -n "${BASH_VERSION}${ZSH_VERSION}" ]; then
+    xrc advise/v0
+    advise rm proxy
+    proxy_log "advise proxy time: "
+    time advise proxy
+fi

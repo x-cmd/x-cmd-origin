@@ -11,7 +11,6 @@ subcommand:
 A
     param:run
 
-    # if ! brew --version >/dev/null; then
     if ! command -v npm >/dev/null; then
         proxy_log error "command not found: npm"
         return 1

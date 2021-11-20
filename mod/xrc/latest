@@ -159,7 +159,7 @@ A
             (
                 local CACHE="$___X_CMD_ROOT/all.tgz"
                 # rm -rf "$___X_CMD_ROOT" # Dangerous.
-                if ___x_cmd_curl_gitx "dist/all.tgz"; then
+                if ___x_cmd_curl_gitx "../dist/all.tgz"; then
                     cd $___X_CMD_ROOT && tar xvf "$CACHE"
                     rm "$CACHE"
                 fi
@@ -180,6 +180,29 @@ A
                 return
             fi
             RELOAD=1 xrc xrc/latest; return ;;
+        _x_cmd_advise_json)
+            cat <<A
+{
+    "cat|c": {
+        "#n": "ls $___X_CMD_ROOT | grep -v BASE64"
+    },
+    "which|w": {
+        "#n": "ls $___X_CMD_ROOT | grep -v BASE64"
+    },
+    "cache": {},
+    "clear": {},
+    "mirror": {
+        "#n": [
+            "https://x-bash.gitee.io",
+            "https://x-bash.github.io",
+            "https://x-bash.gitlab.io",
+            "https://bitbucket.com/x-bash/x-bash"
+        ]
+    }
+}
+A
+            return 126
+            ;;
         *)
             eval "$(___x_cmd_xrc_source_file "$subcmd" "$@")"
             return
@@ -388,26 +411,7 @@ x(){    unset -f x; xrc reload x-cmd/v0 && x ${1:+"$@"};    }
 
 if [ -z "$XRC_NO_ADVISE" ] && [ -n "${BASH_VERSION}${ZSH_VERSION}" ] && [ "${-#*i}" != "$-" ]; then
     ___xrc_log debug "Using module advise for completion."
-    xrc advise/v0 && advise init xrc - <<A
-{
-    "cat|c": {
-        "#n": "ls $___X_CMD_ROOT | grep -v BASE64"
-    },
-    "which|w": {
-        "#n": "ls $___X_CMD_ROOT | grep -v BASE64"
-    },
-    "cache": {},
-    "clear": {},
-    "mirror": {
-        "#n": [
-            "https://x-bash.gitee.io",
-            "https://x-bash.github.io",
-            "https://x-bash.gitlab.io",
-            "https://bitbucket.com/x-bash/x-bash"
-        ]
-    }
-}
-A
+    xrc advise/v0 && advise init xrc
 fi
 # EndSection
 

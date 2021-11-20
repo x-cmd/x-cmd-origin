@@ -97,6 +97,11 @@ test_proxy_advise_json() {
       "tuna": null
     },
     "rollback": {
+      "ls": {
+      },
+      "use": {
+        "#1": [  ]
+      }
     }
   },
   "yum": {
@@ -106,6 +111,11 @@ test_proxy_advise_json() {
     },
     "get": null,
     "rollback": {
+      "ls": {
+      },
+      "use": {
+        "#1": [  ]
+      }
     },
     "replace": {
       "ustc": null,
@@ -147,6 +157,11 @@ test_proxy_advise_json() {
       "official": null
     },
     "rollback": {
+      "ls": {
+      },
+      "use": {
+        "#1": [  ]
+      }
     }
   }
 }
@@ -170,7 +185,6 @@ case $1 in
         . ./testcase/v0_test_"${1}"
         ;;  
     base)
-        . ./testcase/v0_test_base
         ;;
     *)
         echo "Usage: x test {brew|apt|yum|apk|npm|pip|gem|cargo|go|maven|base}"

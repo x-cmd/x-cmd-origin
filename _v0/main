@@ -5,6 +5,8 @@
 
 xrc param/v0
 
+___X_CMD_PROXY_BACKUP_DIR="$___X_CMD_ROOT/proxy/.backup"
+
 proxy(){
     param:dsl <<A
 subcommands:
@@ -128,10 +130,10 @@ ___proxy_set(){
     local i
     while [ "$#" -gt 0 ]; do
         case "$1" in
-            http=*)         ______proxy_inner_set http "${1#http=}"  ;;
+            http=*)         ______proxy_inner_set http "${1#http=}"   ;;
             https=*)        ______proxy_inner_set https "${1#https=}" ;;
-            ftp=*)          ______proxy_inner_set ftp "${1#ftp=}"  ;;
-            all=*)          ______proxy_inner_set all "${1#all=}"  ;;
+            ftp=*)          ______proxy_inner_set ftp "${1#ftp=}"     ;;
+            all=*)          ______proxy_inner_set all "${1#all=}"     ;;
             *)              
                             local proxy="$1"
                             case $proxy in
@@ -206,7 +208,7 @@ ___proxy_backup() {
     src_path="${1}"
     app_name="${2}"
 
-    dst_dir="$___X_CMD_ROOT/proxy/.backup/$app_name/$(date +%Y%M%d_%0H%m%S)"
+    dst_dir="$___X_CMD_PROXY_BACKUP_DIR/$app_name/$(date +%Y%M%d_%0H%m%S)"
     mkdir -p "$dst_dir"
 
     proxy_log info "Backing up $src_path to $dst_dir"
@@ -229,19 +231,43 @@ ___proxy_backup() {
 ___proxy_rollback() {
     local dst_path
     local app_name
+    local bak_dir
 
     dst_path="${1}"
     app_name="${2}"
+    bak_dir="${3}"
 
-    local bak_dir
-    bak_dir="$___X_CMD_ROOT/proxy/.backup/$app_name"
-    bak_dir="$bak_dir/$(ls -t "$bak_dir" | head -n 1)"
+    if [ -n "$bak_dir" ]; then
+        bak_dir="$___X_CMD_PROXY_BACKUP_DIR/$app_name/$bak_dir"
+    else
+        bak_dir="$___X_CMD_PROXY_BACKUP_DIR/$app_name"
+        bak_dir="$bak_dir/$(ls -t "$bak_dir" | head -n 1)"
+    fi
 
     if [ -d "$bak_dir" ]; then
         proxy_log info "Rollback from $bak_dir"
         \cp -r "$bak_dir"/* "$dst_path"
     else
         proxy_log info "No backup dir found in $bak_dir"
+    fi
+}
+
+___proxy_rollback_ls() {
+    local app_name
+    app_name="$1"
+
+    if [ -d "$PROXY_BACKUP_DIR" ]; then
+        local files
+        files="$(ls -t "$PROXY_BACKUP_DIR/$app_name")"
+        if [ -n "$files" ]; then
+            printf "%s" "$files"
+        else
+            proxy_log error "No backup file found."
+            return 1
+        fi
+    else
+        proxy_log error "No backup directory found."
+        return 1
     fi
 }
 

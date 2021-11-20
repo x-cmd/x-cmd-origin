@@ -14,7 +14,7 @@ ______X_CMD_ADVISE_V0_FILEPATH="$(xrc which advise/v0)"
 # Section : advise entrance
 
 advise(){
-    local op="${1:?Provide subcommand}"; shift
+    local op="${1}"; shift 2>/dev/null
     case "$op" in
         ls)
             ls "$@" "${TMPDIR%/}/.x-cmd/advise_auto_json" ;;
@@ -87,8 +87,9 @@ advise(){
 A
             return 126
             ;;
-        "")
+        ""|help)
             # TODO: help doc
+            printf "%s\n" "Show advise help" >&2; return 1
             ;;
         *)
             ___advise_main "$op" "$@" ;;
@@ -256,11 +257,12 @@ ___advise_main(){
     local tmp_filepath=${TMPDIR%/}/.x-cmd/advise_auto_json/$func
     mkdir -p "$(dirname "$tmp_filepath")"
 
-    if [ - = "$filepath" ]; then
+    if [ "-" = "$filepath" ]; then
         filepath=$tmp_filepath
         advise_log "Pipe standard input to $filepath"
         cat >"$filepath"
     elif [ -z "$filepath" ]; then
+        ___advise_update "$func"
         local filepath=$tmp_filepath
         if [ -n "$___XRC_UDPATE" ] || [ ! -f "$filepath" ]; then
             advise_log debug "Pipe the result of \"$func _x_cmd_advise_json\" to $filepath"
@@ -282,10 +284,12 @@ ___advise_main(){
     complete -F "___advise_completer" "$func"
 }
 
-___advise_update__cmd_json(){
+___advise_update(){
     local func="${1:?Provide function name}"
     local tmp_filepath=${TMPDIR%/}/.x-cmd/advise_auto_json/$func
-    if [ "$______X_CMD_ADVISE_V0_FILEPATH" -nt "$tmp_filepath" ]; then
+
+    if [ -f "$tmp_filepath" ] && [ -z "$(find "$tmp_filepath" -mtime -1)" ]; then
+        advise_log info "update: $tmp_filepath"
         rm -rf "$tmp_filepath"
         ___advise_main $func
     fi
@@ -433,9 +437,6 @@ if [ -n "$ZSH_VERSION" ] && [ "$(autoload | grep bashcompinit)" = "" ]; then
 fi
 
 advise init advise
-if [ -f ${TMPDIR%/}/.x-cmd/advise_auto_json/advise ]; then
-    ___advise_update__cmd_json advise
-fi
 fi
 
 # Section: man

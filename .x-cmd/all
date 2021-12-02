@@ -5,6 +5,7 @@ xrc
 x-cmd
 hub
 install
+awk
 
 # basic modules: non dependency
 str

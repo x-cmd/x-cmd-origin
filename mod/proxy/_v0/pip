@@ -17,14 +17,13 @@ A
     param:run
 
     if ! command -v pip >/dev/null; then
-        proxy_log error "command not found: pip"
+        proxy_log error "command not found: pip, you should install pip in your system."
         return 1
     elif [ -n "$PARAM_SUBCMD" ]; then
         "proxy_pip_${PARAM_SUBCMD}" "$@"
     else
-        printf "Current Registry is:    " >&2
+        proxy_log info "Current Registry is:    " >&2
         proxy_pip get 
-        printf "\n%s" "------------------" >&2
         proxy_pip _param_help_doc  >&2
     fi
 }
@@ -37,12 +36,12 @@ proxy_pip_get(){
 proxy_pip_url(){
     param:dsl <<A
 subcommands:
-    qinghua|qh|tsinghua|tuna        "Ali"
-    ustc                            "goproxy.cn"
-    aliyun                          "goproxy.io"
-    huazhong                        "Official"
-    douban                          "Official"
-    tencent|qq|weixin               "Official"
+    qinghua|qh|tsinghua|tuna        "TUNA mirror"
+    ustc                            "USTC mirror"
+    aliyun                          "aliyun mirror"
+    huazhong                        "huazhong mirror"
+    douban                          "douban mirror"
+    tencent|qq|weixin               "tencent mirror"
 A
     param:run
 
@@ -63,12 +62,12 @@ A
 proxy_pip_set(){
     param:dsl <<A
 subcommands:
-    qinghua|qh|tsinghua|tuna        "Ali"
-    ustc                            "goproxy.cn"
-    aliyun                          "goproxy.io"
-    huazhong                        "Official"
-    douban                          "Official"
-    tencent|qq|weixin               "Official"
+    qinghua|qh|tsinghua|tuna        "TUNA mirror"
+    ustc                            "USTC mirror"
+    aliyun                          "aliyun mirror"
+    huazhong                        "huazhong mirror"
+    douban                          "douban mirror"
+    tencent|qq|weixin               "tencent mirror"
 A
     param:run
 
@@ -76,7 +75,7 @@ A
     if url="$(proxy_pip_url "$PARAM_SUBCMD")"; then
         pip config set global.index-url "$url"
     else
-        printf "Unrecognized source name" >&2
+        proxy_log error "Unrecognized source name"
         return 1
     fi
 }
@@ -84,4 +83,10 @@ A
 proxy_pip_unset(){
     param:void
     pip config unset global.index-url
+}
+
+proxy_pip_tutorial(){
+    param:void
+    cat <<A
+A
 }

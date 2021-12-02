@@ -10,26 +10,27 @@ ___X_CMD_PROXY_BACKUP_DIR="$___X_CMD_ROOT/proxy/.backup"
 proxy(){
     param:dsl <<A
 subcommands:
-    set                     "set proxy in local shell environments: http_proxy, https_proxy"
-    unset                   "unset all proxy in the shell environment"
-    version                 "provide version"
+    set                     "Setting proxy in local shell environments: http_proxy, https_proxy"
+    unset                   "Unset all proxy in the shell environment"
+    version                 "Provide version"
 
-    pip                     "Setting the pip mirrors"
-    npm                     "Setting the npm mirrors"
-    maven                   "Setting the maven mirrors"
-    go                      "Setting the go mirrorss"
-    gem                     "Setting the ruby mirrors"
-    cargo                   "Setting the cargo mirrors for rust development"
+    pip                     "Setting the pip mirror for Python development"
+    npm                     "Setting the npm mirror for Javascript/Typescript development"
+    maven                   "Setting the maven mirror for Java development"
+    go                      "Setting the go mirror"
+    gem                     "Setting the gem mirror for Ruby development"
+    cargo                   "Setting the the cargo mirror for Rust development"
 
-    apt                     "apt mirrors"
-    yum                     "Setting the yum mirrors"
-    brew                    "Setting the homebrew mirrors"
-    apk                     "alpine mirrors"
+    apt                     "Setting the apt mirror for debian/ubuntu"
+    yum                     "setting the yum mirror for centos/redhat"
+    brew                    "setting the homebrew mirror"
+    apk                     "setting the apk mirror for alpine"
 A
     param:run
 
     if [ -z "$PARAM_SUBCMD" ]; then
-        proxy help
+        proxy_log error "subcommand required"
+        proxy _param_help_doc  >&2
         return
     fi
 
@@ -44,8 +45,7 @@ A
 # Section: plugins
 
 # TODO: It is unnecessary to source the plugin file at the first time.
-# Load in need.
-for i in brew apt pip npm go apk yum cargo; do #  yum maven
+for i in brew apt pip npm go apk yum cargo gem; do
     xrc "proxy/_v0/$i"
 done
 
@@ -81,7 +81,7 @@ ______proxy_inner_set(){
         https://*|http://*|socks*://*|ftp*://*)     ;;
         *)          
             proxy="http://$proxy"
-            printf "%s\n" "Considered as $proxy" >&2
+            proxy_log info "Considered as $proxy"
             ;;
     esac
     case "$1" in
@@ -127,7 +127,6 @@ ___proxy_set(){
         return
     fi
 
-    local i
     while [ "$#" -gt 0 ]; do
         case "$1" in
             http=*)         ______proxy_inner_set http "${1#http=}"   ;;
@@ -135,18 +134,12 @@ ___proxy_set(){
             ftp=*)          ______proxy_inner_set ftp "${1#ftp=}"     ;;
             all=*)          ______proxy_inner_set all "${1#all=}"     ;;
             *)              
-                            local proxy="$1"
-                            case $proxy in
-                                https://*|http://*|socks*://*|ftp*://*)     ;;
-                                *)          
-                                    proxy="http://$proxy"
-                                    printf "%s\n" "Considered as $proxy" >&2
-                                    ;;
-                            esac
-                            local i
-                            for i in http https ftp all; do
-                                ______proxy_inner_set http "$proxy"
-                            done
+                proxy_log info "Considered as :"
+                ______proxy_inner_set http  "http://$1"
+                ______proxy_inner_set https "https://$1"
+                ______proxy_inner_set ftp   "ftp://$1"
+                ______proxy_inner_set all   "socks5://$1"
+                ;;
         esac
         shift
     done
@@ -192,7 +185,7 @@ ___proxy_unset(){
 
 # EndSection
 
-# Section: utils
+# Section: Backup & Rollback functions
 
 # Backup the src_path(file or directory) to the dst_dir.
 # @param1 src_path
@@ -256,9 +249,9 @@ ___proxy_rollback_ls() {
     local app_name
     app_name="$1"
 
-    if [ -d "$PROXY_BACKUP_DIR" ]; then
+    if [ -d "$___X_CMD_PROXY_BACKUP_DIR" ]; then
         local files
-        files="$(ls -t "$PROXY_BACKUP_DIR/$app_name")"
+        files="$(ls -t "$___X_CMD_PROXY_BACKUP_DIR/$app_name")"
         if [ -n "$files" ]; then
             printf "%s" "$files"
         else

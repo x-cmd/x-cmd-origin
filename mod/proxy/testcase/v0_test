@@ -1,10 +1,19 @@
-# shellcheck shell=sh
+#! /bin/sh
 
-. ./testcase/v0_test_base
+cp -r ./* ~/.x-cmd/proxy/
 
-##################
-## Test functions
-##################
+xrc assert
+x log proxy
+xrc proxy
+
+if [ -n "${BASH_VERSION}${ZSH_VERSION}" ]; then
+    xrc advise/v0
+    advise rm proxy
+    proxy_log "advise proxy time: "
+    time advise proxy
+fi
+
+# Section: Test functions
 
 test_proxy_advise_json() {
   assert_stdout "advise cat proxy" <<A
@@ -50,14 +59,16 @@ test_proxy_advise_json() {
   },
   "maven": null,
   "go": {
-    "auto|autoset": {
+    "get": {
     },
-    "unset|reset": {
+    "auto": {
     },
-    "gosumdb|sumdb|sum|gosum": {
+    "unset": {
+    },
+    "gosumdb": {
       "set": {
       },
-      "unset|reset|clear": {
+      "unset": {
       }
     },
     "set": {
@@ -68,23 +79,39 @@ test_proxy_advise_json() {
     },
     "service": {
     },
-    "version": null,
-    "tutorial|xman": {
-    },
-    "help": null
+    "tutorial": {
+    }
   },
-  "gem": null,
+  "gem": {
+    "url": {
+      "ruby-china|cn": null,
+      "official": null
+    },
+    "set": {
+      "ruby-china|cn": null,
+      "official": null
+    },
+    "get": {
+    },
+    "unset": {
+    }
+  },
   "cargo": {
     "url": {
-      "ustc": null,
-      "official": null
+      "tuna": null,
+      "sjtu": null,
+      "rustcc": null
     },
-    "get": null,
-    "replace": {
-      "ustc": null,
-      "official": null
+    "get": {
+    },
+    "replace|set": {
+      "tuna": null,
+      "sjtu": null
     },
     "rollback": {
+      "#1": "x proxy cargo rollback ls",
+      "ls": {
+      }
     }
   },
   "apt": {
@@ -92,33 +119,29 @@ test_proxy_advise_json() {
       "ali": null,
       "tuna": null
     },
-    "replace": {
+    "replace|set": {
       "ali": null,
       "tuna": null
     },
     "rollback": {
-      "ls": {
-      },
-      "use": {
-        "#1": [  ]
-      }
+      "#1": "x proxy apt rollback ls",
+      "ls": null
     }
   },
   "yum": {
     "url": {
       "ustc": null,
+      "tuna": null,
       "official": null
     },
-    "get": null,
-    "rollback": {
+    "rollback|unset": {
+      "#1": "x proxy yum rollback ls",
       "ls": {
-      },
-      "use": {
-        "#1": [  ]
       }
     },
     "replace": {
       "ustc": null,
+      "tuna": null,
       "official": null
     }
   },
@@ -151,16 +174,13 @@ test_proxy_advise_json() {
       "ustc": null,
       "official": null
     },
-    "get": null,
-    "replace": {
+    "replace|set": {
       "ustc": null,
       "official": null
     },
     "rollback": {
+      "#1": "x proxy apk rollback ls",
       "ls": {
-      },
-      "use": {
-        "#1": [  ]
       }
     }
   }
@@ -168,9 +188,9 @@ test_proxy_advise_json() {
 A
 }
 
-##################
-## Run test
-##################
+# EndSection
+
+# Section: Run test
 
 if [ -n "${BASH_VERSION}${ZSH_VERSION}" ]; then
     test_proxy_advise_json
@@ -187,7 +207,9 @@ case $1 in
     base)
         ;;
     *)
-        echo "Usage: x test {brew|apt|yum|apk|npm|pip|gem|cargo|go|maven|base}"
+        printf "Usage: x test {brew|apt|yum|apk|npm|pip|gem|cargo|go|maven|base}"
         exit 1
         ;;
 esac
+
+# EndSection

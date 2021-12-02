@@ -5,19 +5,21 @@
 proxy_cargo(){
     param:dsl <<A
 subcommands:
-    url             "Provide url of mirror candidates"
-    get             "Get the mirror"
-    replace         "Reet the download mirror"
-    rollback        "Set the download mirror"
+    url               "Provide url of mirror candidates"
+    get               "Get current mirror"
+    replace|set       "Set the download mirror"
+    rollback          "Rollback the download mirror"
 A
     param:run
     
     if ! command -v cargo >/dev/null; then
-        proxy_log error "command not found: cargo"
+        proxy_log error "command not found: cargo, you should install cargo in your system."
         return 1
-        elif [ -n "$PARAM_SUBCMD" ]; then
+    elif [ -n "$PARAM_SUBCMD" ]; then
         "proxy_cargo_${PARAM_SUBCMD}" "$@"
     else
+        proxy_log info "Current cargo mirror: "
+        proxy_cargo get
         proxy_cargo _param_help_doc  >&2
     fi
 }
@@ -25,14 +27,17 @@ A
 proxy_cargo_url(){
     param:dsl <<A
 subcommands:
-    ustc           "USTC mirror"
-    official       "Official mirror"
+    tuna           "TUNA mirror"
+    sjtu           "SJTU mirror"
+    rustcc         "RustCC mirror"
 A
     param:run
     
     case "$PARAM_SUBCMD" in
-        ustc)       printf "mirrors.ustc.edu.cn" ;;
-        official)   printf "dl-cdn.alpinelinux.org" ;;
+        tuna)       printf "https://mirrors.tuna.tsinghua.edu.cn/git/crates.io-index.git" ;;
+        # FIXME: ustc is not working
+        # ustc)       printf "https://mirrors.ustc.edu.cn/crates.io-index"                  ;;
+        sjtu)       printf "https://mirrors.sjtug.sjtu.edu.cn/git/crates.io-index/"       ;;
         *)
             printf "Unknown mirror: %s" "$PARAM_SUBCMD" >&2
             proxy_cargo_url _param_help_doc  >&2
@@ -40,53 +45,69 @@ A
     esac
 }
 
+proxy_cargo_get(){
+    param:void
+    cargo config -Z unstable-options get | grep registry
+}
+
 proxy_cargo_replace() {
     param:dsl <<A
 subcommands:
-    ustc           "USTC mirror"
-    official       "Official mirror"
+    tuna           "TUNA mirror"
+    sjtu           "SJTU mirror"
 A
     param:run
-    
-    local bak_dir
-    bak_dir="$HOME/.x-cmd/proxy/.backup/cargo"
-    mkdir -p "$bak_dir"
-    
-    local src_fp
-    local bak_fp
-    src_fp="$HOME/.cargo/config"
-    bak_fp="$bak_dir/config.$(date +%Y%M%d_%0H%m%S).bak"
-    
-    proxy_log info "Backing up $src_fp to $bak_fp"
-    if [ -f "$src_fp" ]; then
-        cp "$src_fp" "$bak_fp"
-    else
-        proxy_log warn "No $src_fp found"
-        touch "$bak_fp"
+
+    local src_path
+    src_path="$HOME/.cargo/config"
+    if [ ! -f "$src_path" ]; then
+        printf "" > "$src_path"
     fi
-    
-    printf "[source.crates-io]
-replace-with = 'tuna'
-[source.tuna]
-registry = \"https://mirrors.tuna.tsinghua.edu.cn/git/crates.io-index.git\"
-    " > "$src_fp"
+    ___proxy_backup "$src_path" cargo
+
+    local url
+    local src
+    src=${PARAM_SUBCMD:-tuna}
+
+    if url="$(proxy_cargo_url "$src")"; then
+        proxy_log info "Setting proxy_apt mirror :
+    $url"
+        printf %s "[source.crates-io]
+replace-with = '$src'
+[source.$src]
+registry = \"$url\"
+" > "$src_path"
+    else
+        proxy_log error "Failed to get url of mirror: $src"
+    fi
 }
 
 proxy_cargo_rollback() {
-    param:void
-    
-    local src_fp
-    src_fp="$HOME/.cargo/config"
-    
-    local bak_dir
-    local bak_fp
-    bak_dir="$HOME/.x-cmd/proxy/.backup/cargo"
-    bak_fp="$bak_dir/$(ls -t "$bak_dir" | head -n 1)"
-    
-    if [ -f "$bak_fp" ]; then
-        proxy_log info "Rollback from $bak_fp"
-        cp "$bak_fp" "$src_fp"
+    param:dsl <<A
+advise:
+    #1          x proxy cargo rollback ls
+options:
+    #1          "use the selected file to rollback"
+subcommand:
+    ls          "list all file you can rollback"
+A
+    param:run
+
+    if [ -n "$PARAM_SUBCMD" ]; then
+        proxy_cargo_rollback_"${PARAM_SUBCMD}" "$@"
+        return
     else
-        proxy_log info "No backup file found in $bak_dir"
-    fi
+        ___proxy_rollback "$HOME/.cargo/config" cargo "$1"
+    fi    
+}
+
+proxy_cargo_rollback_ls() {
+    param:void
+    ___proxy_rollback_ls cargo
+}
+
+proxy_cargo_tutorial(){
+    param:void
+    cat <<A
+A
 }

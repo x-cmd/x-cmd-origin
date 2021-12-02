@@ -17,11 +17,13 @@ A
     param:run
     
     if ! command -v brew >/dev/null; then
-        proxy_log error "command not found: brew"
+        proxy_log error "command not found: brew, you should install brew in your system."
         return 1
     elif [ -n "$PARAM_SUBCMD" ]; then
         "proxy_brew_${PARAM_SUBCMD}" "$@"
     else
+        proxy_log info "Current mirror is: "
+        proxy_brew get
         proxy_brew _param_help_doc  >&2
     fi
 }
@@ -155,4 +157,10 @@ A
     else
         brew update
     fi
+}
+
+proxy_brew_tutorial(){
+    param:void
+    cat <<A
+A
 }

@@ -1,8 +1,9 @@
 # shellcheck shell=sh
 # shellcheck disable=SC2039
 
-# author:       Li Junhao           edwin.jh.lee@gmail.com    edwinjhlee.github.io
+# author:       Li Junhao           l@x-cmd.com
 # maintainer:   Li Junhao
+# license:      GPLv3
 
 
 list_make(){

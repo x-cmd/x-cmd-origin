@@ -10,6 +10,7 @@ ___x_cmd_awk_lib(){
 "
 
     printf "%s\n" "default,$USE" | tr "," "\n" | while read -r lib; do
+        [ -z "$lib" ] && continue
         xrc which "awk/${lib}.awk"
         # printf "%s\n" "./${lib}.awk"
     done
@@ -28,18 +29,20 @@ BEGIN{
     ${code}
 }"
             ;;
-        file=*)
-            local fp="${op#file=}"
+        file)
+            local fp="$1"; shift
             awk "$@" "$(cat $(___x_cmd_awk_lib) "$fp")"
             ;;
-        code=*)
+        code)
+            local code="$1"; shift
             awk "$@" "$(cat $(___x_cmd_awk_lib))
-${op#code=}"
+${code}"
             ;;
-        try=*)
+        try)
+            local code="$1"; shift
             local USE="$___X_CMD_AWK_ALL_LIB"
             awk "$@" "$(cat $(___x_cmd_awk_lib))
-${op}"
+$code"
             ;;
         *)
             local USE="$___X_CMD_AWK_ALL_LIB"

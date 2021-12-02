@@ -1,0 +1,4 @@
+#! /usr/bin/env bash
+
+mkdir -p ~/.x-cmd/awk
+cp -rf latest *.awk ~/.x-cmd/awk/

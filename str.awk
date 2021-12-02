@@ -12,6 +12,35 @@ function str_escape(s) {
     return "\"" s "\""
 }
 
+# print str_quote1("h'a\\\'")
+function str_quote1(str){
+    # gsub("\\", "\\\\", str) # This is wrong in case: # print str_quote1("h'a\\\'")
+    gsub(/\\/, "\\\\", str)
+    gsub(/'/, "\\'", str)
+    return "'" str "'"
+}
+
+function str_unquote1(str){
+    gsub(/\\\\/, "\001\001", str)
+    gsub(/\\'/, "'", str)
+    gsub("\001\001", "\\\\", str)
+    return substr(str, 2, length(str)-2)
+}
+
+
+function str_quote2(str){
+    gsub(/\\/, "\\\\", str)
+    gsub(/"/, "\\\"", str)
+    return "\"" str "\""
+}
+
+function str_unquote2(str){
+    gsub(/\\\\/, "\001\001", str)
+    gsub(/\\\"/, "\"", str)
+    gsub("\001\001", "\\\\", str)
+    return substr(str, 2, length(str)-2)
+}
+
 function str_rep(char, number, _i, _s) {
     for (   _i=1; _i<=number; ++_i  ) _s = _s char
     return _s

@@ -12,41 +12,45 @@ ___x_cmd_awk_lib(){
     printf "%s\n" "default,$USE" | tr "," "\n" | while read -r lib; do
         [ -z "$lib" ] && continue
         xrc which "awk/${lib}.awk"
+        printf " "
         # printf "%s\n" "./${lib}.awk"
-    done
+    done | tr "\n" " "
 }
 
 ___X_CMD_AWK_ALL_LIB="bit,math,ord,char,str,wcwidth,arr,ui"
 
 ___x_cmd_awk(){
+    local IFS="
+"
+
     local op="$1"; shift
     case "$op" in
         "")
             local code="$(cat)"
             local USE="$___X_CMD_AWK_ALL_LIB"
-            printf "" | awk "$@" "$(cat $(___x_cmd_awk_lib))
+            printf "" | awk "$@" "$(eval cat "$(___x_cmd_awk_lib)")
 BEGIN{
     ${code}
 }"
             ;;
         file)
             local fp="$1"; shift
-            awk "$@" "$(cat $(___x_cmd_awk_lib) "$fp")"
+            awk "$@" "$(eval cat "$(___x_cmd_awk_lib)") "$fp")"
             ;;
         code)
             local code="$1"; shift
-            awk "$@" "$(cat $(___x_cmd_awk_lib))
+            awk "$@" "$(eval cat "$(___x_cmd_awk_lib)")
 ${code}"
             ;;
         try)
             local code="$1"; shift
             local USE="$___X_CMD_AWK_ALL_LIB"
-            awk "$@" "$(cat $(___x_cmd_awk_lib))
+            awk "$@" "$(eval cat "$(___x_cmd_awk_lib)")
 $code"
             ;;
         *)
             local USE="$___X_CMD_AWK_ALL_LIB"
-            printf "" | awk "$@" "$(cat $(___x_cmd_awk_lib))
+            printf "" | awk "$@" "$(eval cat "$(___x_cmd_awk_lib)")
 BEGIN{
     ${op}
 }"

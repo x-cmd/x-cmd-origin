@@ -17,15 +17,12 @@ xrc dict
 # Section 1: Global definitions
 ############################
 PARAM_AWK_PATH="$(xrc which param/v0.awk)"
-# PARAM_AWK_PATH="./v0.awk"
 PARAM_DEFAULT_VAR_PREFIX=___X_CMD_X_BASH_PARAM_DEFAULT___
 PARAM_TYPE_VAR_PREFIX=___X_CMD_X_BASH_PARAM_TYPE___
 PARAM_SUBCMD_VAR_PREFIX=___X_CMD_X_BASH_PARAM_SUBCMD___
 
 # DICT_KEYS_SEP conflict. But it is OK.
 PARAM_ARG_SEP="$(printf "\005")"          # ARG_SEP in awk script
-# PARAM_ARG_SEP="$(printf "\n")"          # ARG_SEP in awk script
-# PARAM_RS_SEP
 PARAM_RS_SEP="${DICT_SEP}"
 # EndSection
 
@@ -305,6 +302,3 @@ ___param_plugin_print() {
 }
 
 # EndSection
-
-# New design
-

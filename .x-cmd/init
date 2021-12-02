@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-code --install-extension zokugun.explicit-folding
+code --install-extension zokugun.explicit-folding --force
 
 # code --list-extensions
 # code --install-extension ms-vscode.cpptools

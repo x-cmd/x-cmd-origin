@@ -1,7 +1,5 @@
 # shellcheck shell=sh disable=SC2039,SC2142,SC3043
 
-. ./testcase/v0_test_base
-
 param_default put paramtest/xxx priviledge public
 
 paramtest_advise_null(){

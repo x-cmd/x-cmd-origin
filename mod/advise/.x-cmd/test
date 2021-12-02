@@ -1,2 +1,1 @@
-# shellcheck shell=sh disable=SC2039,SC2142,SC3043
-. ./testcases/v0_test
+. ./testcase/v0_test

@@ -2,7 +2,7 @@
     "option": {
         "--repo2|-a|m|1": [ "m1-a", "m1-b", "m1-c" ],
         "--repo2|-a|m|2": [ "m2-a", "m2-b", "m2-c" ],
-        "--repo3|-c|m": [ "m3-a", "m3-b", "m3-c" ],
+        "--repo3|-c|m": [ ":m3-a", ":m3-b", ":m3-c", ":c", ":b" ],
         "--priviledge|-p": [ "private", "public" ],
         "--dict|-d": {
             "e":    [ "edwinjhlee", "labve" ],
@@ -69,7 +69,8 @@
         "-O": ["check", "forward", "cancel", "exit stop"],
         "-o": ["AddKeysToAgent=yes", "AddKeysToAgent=ask", "AddKeysToAgent=confirm", "AddKeysToAgent=no", "AddressFamily=any", "AddressFamily=inet", "AddressFamily=inet6", "BatchMode", "BindAddress", "BindInterface", "CanonicalDomains", "CanonicalizeFallbackLocal", "CanonicalizeHostname", "CanonicalizeMaxDots", "CanonicalizePermittedCNAMEs", "CASignatureAlgorithms", "CertificateFile", "ChallengeResponseAuthentication", "CheckHostIP", "Ciphers", "ClearAllForwardings", "Compression", "ConnectionAttempts", "ConnectTimeout", "ControlMaster", "ControlPath", "ControlPersist", "DynamicForward", "EnableSSHKeysign", "EscapeChar", "ExitOnForwardFailure", "FingerprintHash", "ForwardAgent", "ForwardX11", "ForwardX11Timeout", "ForwardX11Trusted", "GatewayPorts", "GlobalKnownHostsFile", "GSSAPIAuthentication", "GSSAPIDelegateCredentials", "HashKnownHosts", "HostbasedAuthentication", "HostbasedKeyTypes", "HostKeyAlgorithms", "HostKeyAlias", "Hostname", "IdentitiesOnly", "IdentityAgent", "IdentityFile", "IgnoreUnknown", "Include", "IPQoS", "KbdInteractiveAuthentication", "KbdInteractiveDevices", "KexAlgorithms", "LocalCommand", "LocalForward", "LogLevel", "MACs", "NoHostAuthenticationForLocalhost", "NumberOfPasswordPrompts", "PasswordAuthentication", "PermitLocalCommand", "PKCS11Provider", "Port", "PreferredAuthentications", "ProxyCommand", "ProxyJump", "ProxyUseFdpass", "PubkeyAcceptedKeyTypes", "PubkeyAuthentication", "RekeyLimit", "RemoteCommand", "RemoteForward", "RequestTTY", "RevokedHostKeys", "SecurityKeyProvider", "SendEnv", "ServerAliveCountMax", "ServerAliveInterval", "SetEnv", "StreamLocalBindMask", "StreamLocalBindUnlink", "StrictHostKeyChecking", "SyslogFacility", "TCPKeepAlive", "Tunnel", "TunnelDevice", "UpdateHostKeys", "User", "UserKnownHostsFile", "VerifyHostKeyDNS", "VisualHostKey", "XAuthLocation", "GSSAPIKeyExchange", "GSSAPIRenewalForcesRekey", "GSSAPIServerIdentity", "GSSAPITrustDns", "SmartcardDevice", "UsePrivilegedPort", "Cipher", "CompressionLevel", "Protocol", "RhostsRSAAuthentication", "RSAAuthentication"],
         "-Q": "ssh -Q help",
-        "-w": null
+        "#1": "advise ls",
+        "#n": "___advise_get_result 2"
     },
     "tldr": {
         "update": null,
@@ -79,4 +80,5 @@
     },
     "#1": "advise ls",
     "#n": "___advise_get_result '' 1"
+
 }

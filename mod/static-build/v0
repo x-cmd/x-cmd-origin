@@ -8,7 +8,8 @@ xrc os/v0
 x log init static_build
 
 static_build_which(){
-    local IFS
+    local IFS='
+    '
     local repo="${1:?Provide repo name, like p7zip}"
     local app="${2:-${repo}}"
 
@@ -19,12 +20,10 @@ static_build_which(){
     arch="$(os arch)"
     local osname
     osname="$(os name)"
-    local release
-    release="$(uname -r)"
 
     local exe
-    case "$osname-$release" in
-        win* | *microsoft*)    exe=$app.x64.exe        ;;
+    case "$osname" in
+        win)    exe=$app.x64.exe        ;;
         *)      exe=$app.${osname}.${arch}  ;;
     esac
     # Rely

@@ -26,7 +26,7 @@ ___x_cmd_python3_path_linux()(
                 "./${MINICONDA_NAME}.sh" -b -u -p "./${MINICONDA_NAME}" 1>&2
             # TODO: remove the file: "${MINICONDA_NAME}.sh"
         else
-            xcmd_log info "Download failure from $url/${MINICONDA_NAME}.sh"
+            ___xrc_log info "Download failure from $url/${MINICONDA_NAME}.sh"
         fi
     fi
 
@@ -59,7 +59,7 @@ ___x_cmd_python3_path_windows()(
                 } 1>&2
             # TODO: remove the file: "${MINICONDA_NAME}.sh"
         else
-            xcmd_log info "Download failure from $url/${MINICONDA_NAME}.exe"
+            ___xrc_log info "Download failure from $url/${MINICONDA_NAME}.exe"
         fi
     fi
 
@@ -138,7 +138,7 @@ _python_arg(){
     local all="$*"
 
     local p
-    p="$(xrc which xcmd/_v0/python_argparse.awk)"
+    p="$(xrc which x-cmd/_v0/python_argparse.awk)"
     # p="$(xrc which ./_v0/python_argparse.awk)"
 
     awk \

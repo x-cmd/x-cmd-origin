@@ -63,7 +63,7 @@ ___x_cmd_tsnode(){
     if ! tspath=$(___x_cmd_nvm_exec_default which ts-node); then
         x npm install -g ts-node typescript @types/node || return
         if ! tspath="$(___x_cmd_nvm_exec_default which ts-node)"; then
-            xcmd_log warn "ts installation failure."
+            ___xrc_log warn "ts installation failure."
             return 0
         fi
     fi
@@ -91,7 +91,7 @@ ___x_cmd_node_arg(){
     local all="$*"
 
     local p
-    p="$(xrc which xcmd/_v0/node_argparse.awk)"
+    p="$(xrc which x-cmd/_v0/node_argparse.awk)"
     # p="$(xrc which ./_v0/node_argparse.awk)"
 
     awk \

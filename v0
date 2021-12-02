@@ -638,7 +638,13 @@ ___x_cmd_main(){
                                                 fi
                                                 ;;
         bw)                                     ___x_cmd_bw         "$@"             ;;
-        jq)                                     ___x_cmd_jq         "$@"             ;;
+        jq)                                     
+                                                if [ "$#" -ne 0 ]; then
+                                                    ___x_cmd_jq "$@"
+                                                else
+                                                    ___x_cmd_jq "--help"
+                                                fi
+                                                ;;
         yq)                                     ___x_cmd_yq         "$@"             ;;
         nmap)                                   ___x_cmd_nmap       "$@"             ;;
         ncat)                                   ___x_cmd_ncat       "$@"             ;;
@@ -812,7 +818,7 @@ ___x_cmd_x_cmd_advise_json(){
     "wsroot": {},
 
     "#1": "___x_cmd_list_resource",
-    "#n": "___advise_get_result '' 1"
+    "#n": "___advise_get_result 1"
 }
 A
     return 126

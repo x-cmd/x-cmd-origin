@@ -24,6 +24,10 @@ BEGIN {
     } 
 }
 
+# TODO: Provide raw data
+# TODO: Provide all information to control to view, i j
+# TODO: Printout the final column and final row
+
 NR > 1{
     line_idx = NR - 1
 

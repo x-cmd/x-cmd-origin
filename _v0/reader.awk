@@ -8,6 +8,9 @@ BEGIN {
     article = ""
     width = 60
     column = 30
+
+    TRUE = 1
+    FALSE = 0
 }
 
 BEGIN{
@@ -62,26 +65,57 @@ function paintOption(){
     }
 }
 
-function painArticle(i, line, lineno){
-    goto_cursor(1, 20)
+BEGIN{
+    article_starting_col = 20
+    article_starting_row = 1
+
+    article_ending_col = 60
+    article_ending_row = 60
+
+    article_line_len = article_ending_row - article_starting_row + 1
+}
+
+function newrow(next_row, col){
+    if (next_row > column) return FALSE
+    goto_cursor(new_row, col)
+    return TRUE
+}
+
+function painArticle(i, line, lineno, width){
+    goto_cursor(article_starting_row, article_starting_col)
     lineno=1
-    newline=0
+    alr_len = 0
     for ( i=1; i<=article_line_list[LEN]; ++i ) {
         line = article_line_list[i]
-        if (line ~ /^\033\[([0-9]+;)*[0-9]+m/) {
-            newline=0
-            printf( line )
-        } else {
-            if (newline==1) {
-                printf("\n")
+        match(line,  /^\033\[([0-9]+;)*[0-9]+m/)
+        if (RLENGTH > 0) {
+            if (lineno < headline_no) {
+                printf( substr(line, 1, RLENGTH) )
+                continue
             }
-            newline=1
+        } else {
+            lineno = lineno + 1
             if (lineno < headline_no) continue
-            printf(headline_no)
+            if ( FALSE == newrow(lineno - headeline_no + article_starting_row, article_starting_col) ) break 
+            alr_len = 0
+        }
+
+        while (alr_len + length(line) > article_line_len) {
+            printf("%s", substr(line, 1, width - rest))
+
+            if ( FALSE == newrow(lineno - headeline_no + article_starting_row, article_starting_col) ) break
+            alr_len = 0
+
+            line = substr(line, article_line_len - alr_len + 1)
+        }
+        
+        if (alr_len + length(line) > 0) {
+            printf("%s", line)
+            alr_len = alr_len + length(line)
         }
     }
 }
 
 {
-    update=
+    # update=
 }

@@ -480,6 +480,10 @@ ___x_cmd_instance_clear(){
 
 # EndSection
 
+___x_cmd_awk(){
+    xrc awk/latest && ___x_cmd_awk "$@"
+}
+
 # Section: other initialization: advise, initrc lazy loading
 # [ -f "$(x initrc which)" ] && . "$(x initrc which)"
 x(){    unset -f x; xrc reload x-cmd/v0 && x ${1:+"$@"};    }

@@ -1,9 +1,9 @@
 # shellcheck shell=sh
 # shellcheck disable=SC2039
 
-# author:       Li Junhao           edwin.jh.lee@gmail.com    edwinjhlee.github.io
+# author:       Li Junhao           l@x-cmd.com
 # maintainer:   Li Junhao
-
+# license:      GPLv3
 
 list_make(){
     local O="${1:?list_name}"
@@ -40,7 +40,7 @@ list_size(){
 
 : <<'DOCTEST'
 > list_make b
-> O=b list_push $(seq 10); 
+> O=b list_push $(seq 10);
 > O=b list_get 1
 2
 > O=b list_get 8

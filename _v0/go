@@ -4,18 +4,31 @@
 proxy_go(){
     param:dsl <<A
 subcommands:
-    auto|autoset                       "Set the goproxy and gosumdb to recommended mirror"
-    unset|reset                        "Reet the download mirror"
-    gosumdb|sumdb|sum|gosum            "operations for gosumdb"
-    set                                "Set the download mirror"
-    service                            "Provide mirror service in docker or native binary"
-    version                            "Show version"
-    tutorial|xman                      "Tutorial for setting goproxy "                      
-    help                               "Show help"
+    get                  "Get current proxy"
+    auto                 "Set the goproxy and gosumdb to recommended mirror"
+    unset                "Set the download mirror"
+    gosumdb              "Operations for gosumdb"
+    set                  "Set the download mirror"
+    service              "Provide mirror service in docker or native binary"
+    tutorial             "Tutorial for setting goproxy "                      
 A
     param:run
 
-    "proxy_go_${PARAM_SUBCMD}" "$@"
+    if ! command -v go >/dev/null; then
+        proxy_log error "command not found: go, you should install go in your system."
+        return 1
+    elif [ -n "$PARAM_SUBCMD" ]; then
+        "proxy_go_${PARAM_SUBCMD}" "$@"
+    else
+        proxy_log info "Current GOPROXY is:    "
+        proxy_go get
+        proxy_go _param_help_doc  >&2
+    fi
+}
+
+proxy_go_get(){
+    param:void
+    go env | grep -i GOPROXY
 }
 
 # Using web to judge instead of dig command
@@ -47,12 +60,12 @@ ___proxy_go_set(){
     else
         code="
     go env -w GO111MODULE=on
-    go env -w GOPROXY="$url,direct"
+    go env -w GOPROXY="${url},direct"
 "
     fi
 
     eval "$code"
-    printf "%s\n%s" "Seting the GORPOXY and GO111MODULE env with following code:" "$code" >&2
+    printf "%s\n    %s\n" "Seting the GORPOXY and GO111MODULE env." "$(proxy_go_get)" >&2
 }
 
 proxy_go_set(){
@@ -67,8 +80,8 @@ A
 
     case "${PARAM_SUBCMD:-qiniu}" in
         ali|aliyun)            ___proxy_go_set    https://mirrors.aliyun.com/goproxy/ ;;
-        goproxy|goproxy.cn)    ___proxy_go_set    https://goproxy.io/zh/ ;;
-        qiniu|io|goproxy.io)   ___proxy_go_set    https://goproxy.cn ;;
+        goproxy|goproxy.cn)    ___proxy_go_set    https://goproxy.io/zh/              ;;
+        qiniu|io|goproxy.io)   ___proxy_go_set    https://goproxy.cn                  ;;
         *) ;;
     esac
 }
@@ -76,8 +89,8 @@ A
 proxy_go_gosumdb(){
     param:dsl <<A
 subcommands:
-    set                                "Set the download mirror"
-    unset|reset|clear                  "Reset the download mirror"
+    set                    "Set the download mirror"
+    unset                  "Unset the download mirror"
 A
     param:run
 
@@ -101,18 +114,15 @@ proxy_go_unset(){
     param:void
     local code
 
+    # TODO: To be optimized.
     if [ "$(go version | awk '{ a=substr($3, 3); if(a<1.13) print 1; else print 0 }')" = 1 ]; then
-        code="
-    export GOPROXY=
-"
+        code="export GOPROXY="
     else
-        code="
-    go env -u GOPROXY
-"
+        code="go env -u GOPROXY"
     fi
 
     eval "$code"
-    printf "Unset the GOPROXY env.\n" >&2
+    printf "Unset the GOPROXY env.\n    %s\n" "$(proxy_go_get)" >&2
 }
 
 # help doc: https://goproxy.io/zh/docs/enterprise.html
@@ -133,17 +143,17 @@ proxy_go_tutorial(){
     cat <<A
 Windows Powershell:
 
-Format: \$env:GOPROXY = <url>
+Format: 
+    \$env:GOPROXY = <url>
 
 Example:
-\$env:GOPROXY = "https://goproxy.cn"
+    \$env:GOPROXY = "https://goproxy.cn"
 
 Windows:
-
-1. 右键 我的电脑 -> 属性 -> 高级系统设置 -> 环境变量
-2. 在 “[你的用户名]的用户变量” 中点击 ”新建“ 按钮
-3. 在 “变量名” 输入框并新增 “GOPROXY”
-4. 在对应的 “变量值” 输入框中新增 “https://goproxy.io,direct”
-5. 最后点击 “确定” 按钮保存设置    
+    1. 右键 我的电脑 -> 属性 -> 高级系统设置 -> 环境变量
+    2. 在 “[你的用户名]的用户变量” 中点击 ”新建“ 按钮
+    3. 在 “变量名” 输入框并新增 “GOPROXY”
+    4. 在对应的 “变量值” 输入框中新增 “https://goproxy.io,direct”
+    5. 最后点击 “确定” 按钮保存设置    
 A
 }

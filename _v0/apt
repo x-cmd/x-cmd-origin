@@ -4,18 +4,19 @@
 proxy_apt(){
     param:dsl <<A
 subcommand:
-    url        "Provide url of mirror candidates"
-    replace    "Setting the mirror"
-    rollback   "Reset the source to the original official"
+    url            "Provide url of mirror candidates"
+    replace|set    "Setting the mirror"
+    rollback       "Rollback the source to the old one configured"
 A
     param:run
 
     if ! command -v apt >/dev/null || ! command -v apt-get >/dev/null ; then
-        proxy_log error "command not found: apt or apt-get "
+        proxy_log error "command not found: apt or apt-get, you should install apt in your system."
         return 1
     elif [ -n "$PARAM_SUBCMD" ]; then
         proxy_apt_"${PARAM_SUBCMD}" "$@"
     else
+        proxy_log error "Unknown subcommand: $PARAM_SUBCMD"
         proxy_apt _param_help_doc  >&2
     fi
 }
@@ -71,34 +72,30 @@ A
 # Get the last backup file from the backup directory.
 proxy_apt_rollback() {
     param:dsl <<A
+advise:
+    #1          x proxy apt rollback ls
+options:
+    #1          "use the selected file to rollback"
 subcommand:
-    ls                 "list all file you can rollback"
-    use                "use the selected file to rollback"
+    ls          "list all file you can rollback"
 A
     param:run
 
     if [ -n "$PARAM_SUBCMD" ]; then
         proxy_apt_rollback_"${PARAM_SUBCMD}" "$@"
-    else
-        proxy_apt_rollback_use ""
-    fi    
-}
+        return
+    fi
 
-proxy_apt_rollback_ls() {
-    param:void
-    ___proxy_rollback_ls apt
-}
-
-proxy_apt_rollback_use() {
-    param:dsl <<A
-options:
-    #1               "file name"
-A
-    param:run
     if [ "$(id -u)" -ne 0 ]; then
         proxy_log info "using sudo"
         sudo ___proxy_rollback /etc/apt/sources.list apt "$1"
     else
         ___proxy_rollback /etc/apt/sources.list apt "$1"
-    fi
+    fi 
+}
+
+proxy_apt_tutorial(){
+    param:void
+    cat <<A
+A
 }

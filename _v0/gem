@@ -7,16 +7,19 @@ proxy_gem(){
 subcommand:
     url        "Provide url of mirror candidates"
     set        "Setting the mirror"
+    get        "Get current mirror"
     unset      "Reset the source to the original official"
 A
+    param:run
 
-    # if ! brew --version >/dev/null; then
     if ! command -v gem >/dev/null; then
-        proxy_log error "command not found: gem"
+        proxy_log error "command not found: gem, you should install gem in your system."
         return 1
     elif [ -n "$PARAM_SUBCMD" ]; then
         "proxy_gem_${PARAM_SUBCMD}" "$@"
     else
+        proxy_log info "Current mirror is: "
+        proxy_gem get
         proxy_gem _param_help_doc  >&2
     fi
 
@@ -25,9 +28,11 @@ A
 proxy_gem_url(){
     param:dsl <<A
 subcommand:
-    ruby-china              "ruby china"
-    official                "Official"
+    ruby-china|cn           "ruby china mirror"
+    official                "Official mirror"
 A
+    param:run
+
     case "$PARAM_SUBCMD" in
         # https://gems.ruby-china.com
         ruby-china|cn)          printf https://gems.ruby-china.com                  ;;
@@ -36,31 +41,37 @@ A
     esac
 }
 
-
-_proxy_gem_url_custom(){
-    param:dsl <<A
-option:
-    #1          "URL"      =~       https?://.+
-A
-    printf "%s" "${1:?Impossible}"
+proxy_gem_get(){
+    param:void
+    gem sources -l | grep "http"
 }
-
 
 proxy_gem_set() {
     param:dsl <<A
 subcommand:
-    ruby-china              "ruby china"
+    ruby-china|cn           "ruby china mirror"
     official                "Official"
 A
+    param:run
+
     local url
-    
     if url="$(proxy_gem_url "${PARAM_SUBCMD:-ruby-china}")"; then
-        printf "Setting proxy_gem mirror:\n    %s" "$url" >&2
-        gem sources --add "$url" --remove https://rubygems.org/
+        printf "Setting proxy_gem mirror:\n    %s\n" "$url" >&2
+
+        for i in $(proxy_gem_get); do
+            gem sources -r "$i"
+        done
+        gem sources --add "$url"
     fi
 }
 
 proxy_gem_unset() {
     param:void
     proxy_gem_set   official
+}
+
+proxy_gem_tutorial(){
+    param:void
+    cat <<A
+A
 }

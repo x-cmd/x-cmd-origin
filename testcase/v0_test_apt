@@ -1,8 +1,4 @@
-# shellcheck shell=sh disable=SC3043
-
-##################
-## Test functions
-##################
+#! /bin/sh
 xrc proxy
 
 test_run() {

@@ -46,6 +46,10 @@ ___ui_prompt_question(){
     done
 }
 
+___ui_prompt_question_advance(){
+    :
+}
+
 ___ui_prompt_select(){
     local question="${1:?Question}"
     local answer="${2:?Answer variable}"
@@ -89,3 +93,5 @@ ___ui_prompt_select(){
         fi 2>/dev/null
     done
 }
+
+

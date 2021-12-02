@@ -3,6 +3,8 @@
 # author:       Li Junhao           l@x-cmd.com    edwinjhlee.github.io
 # maintainer:   Li Junhao
 
+# Section: main
+
 ___ui_table(){
     local O="${O:-___X_BASH_UI_TABLE_DEFAULT}"
     case "${1}" in   
@@ -13,8 +15,20 @@ ___ui_table(){
     esac
 }
 
+
+___X_BASH_UI_TABLE_DEFAULT_SIZE=0
 ___ui_table_read(){
+    
     local O="${O:-___X_BASH_UI_TABLE_DEFAULT}"
+
+    eval "___X_BASH_UI_TABLE_DEFAULT_ROW_$O=\$((___X_BASH_UI_TABLE_DEFAULT_ROW_$O+1))"
+
+    local ttt
+    eval "ttt=\"\${___X_BASH_UI_TABLE_DEFAULT_COL_$O}\""
+    if [ "${ttt:-0}" -lt $# ]; then
+        eval "___X_BASH_UI_TABLE_DEFAULT_COL_$O=\$#"
+    fi
+
     local s
     local IFS
     IFS=$(printf "\003")
@@ -30,25 +44,34 @@ ___ui_table_read(){
 }
 
 ___ui_table_out(){
+    local O="${O:-___X_BASH_UI_TABLE_DEFAULT}"
+
     local out="${1:-1}"
 
     if [ "${-#*i}" != "$-" ]; then
         eval "printf \"%s\" \"\${$O}\"" | \
-            LC_ALL=en_US.UTF-8  awk -v out="$out" "$(xrc cat ui/_v0/wcwidth.awk)$(xrc cat ui/_v0/table.awk)"
+            LC_ALL=en_US.UTF-8  awk -v HIGHCOL="${HIGHCOL:-""}" -v HIGHROW="${HIGHROW:-""}" -v out="$out" "$(xrc cat ui/_v0/wcwidth.awk)$(xrc cat ui/_v0/table.awk)"
             # LC_ALL=en_US.UTF-8  awk -v HIGHCOL=3,6 -v HIGHROW=6 -v out="$out" "$(xrc cat ui/_v0/wcwidth.awk)$(xrc cat ui/_v0/table.awk)"
             # awk '{ print $0; }'
     else
         eval "printf \"%s\" \"\${$O}\"" | \
-            LC_ALL=en_US.UTF-8  awk -v out="$out" "$(xrc cat ui/_v0/wcwidth.awk)$(xrc cat ui/_v0/table.awk)"
+            LC_ALL=en_US.UTF-8  awk -v HIGHCOL="${HIGHCOL:-""}" -v HIGHROW="${HIGHROW:-""}"  -v out="$out" "$(xrc cat ui/_v0/wcwidth.awk)$(xrc cat ui/_v0/table.awk)"
             # LC_ALL=en_US.UTF-8  awk -v HIGHCOL=3,6 -v HIGHROW=6 -v out="$out" "$(xrc cat ui/_v0/wcwidth.awk)$(xrc cat ui/_v0/table.awk)"
             # awk '{ print $0; }'
     fi
 }
 
+
 ___ui_table_clear(){
     local O="${O:-___X_BASH_UI_TABLE_DEFAULT}"
+    eval ___X_BASH_UI_TABLE_DEFAULT_ROW_$O=0
     eval "$O="
 }
+
+
+# EndSection
+
+# Section: rearrange the data
 
 ___ui_table_json(){
     local arg
@@ -77,4 +100,162 @@ ___ui_table_json(){
     done
     ui table out 6
 }
+
+# EndSection
+
+# Section: table app 1: all data
+
+xrc ui/_v0/region
+
+# CRUD
+___ui_table_out2(){
+
+    local O="${O:-___X_BASH_UI_TABLE_DEFAULT}"
+
+    echo hhh
+    stty -echo
+
+    local HIGHCOL=1
+    local HIGHROW=1
+
+    local COL_COUNT
+    eval "COL_COUNT=\"\$___X_BASH_UI_TABLE_DEFAULT_COL_$O\""
+    local ROW_COUNT
+    eval "ROW_COUNT=\"\$___X_BASH_UI_TABLE_DEFAULT_ROW_$O\""
+
+    {
+        ___ui_table_out | ___x_cmd_ui_region_send
+        while region_getchar; do
+            case "$___X_CMD_UI_GETCHAR_CHAR" in
+                UP|DN)
+                    if [ "$___X_CMD_UI_GETCHAR_CHAR" = UP ]; then
+                        HIGHROW="$(___ui_prompt_ui_dec "$HIGHROW" "$ROW_COUNT")"
+                    else
+                        HIGHROW="$(___ui_prompt_ui_inc "$HIGHROW" "$ROW_COUNT")"
+                    fi
+                    ;;
+                LEFT|RIGHT)
+                    if [ "$___X_CMD_UI_GETCHAR_CHAR" = LEFT ]; then
+                        HIGHCOL="$(___ui_prompt_ui_dec "$HIGHCOL" "$COL_COUNT")"
+                    else
+                        HIGHCOL="$(___ui_prompt_ui_inc "$HIGHCOL" "$COL_COUNT")"
+                    fi
+                    ;;
+                c)
+                    printf "CREATE %s %s" "$HIGHCOL" "$HIGHROW" >&3
+                    break
+                    ;;
+                e|u)
+                    printf "UPDATE %s %s" "$HIGHCOL" "$HIGHROW" >&3
+                    break
+                    ;;
+                r)
+                    printf "REFRESH %s %s" "$HIGHCOL" "$HIGHROW" >&3
+                    break
+                    ;;
+                ENTER)
+                    printf "ENTER %s %s" "$HIGHCOL" "$HIGHROW" >&3
+                    break
+                    ;;
+                DELETE)
+                    printf "DELETE %s %s" "$HIGHCOL" "$HIGHROW" >&3
+                    break
+                    ;;
+            esac
+
+            ___ui_table_out | ___x_cmd_ui_region_send
+        done
+        
+        # Notice: Meaningless but important.
+        ___ui_table_out | ___x_cmd_ui_region_send
+
+    } | ___x_cmd_ui_region_update
+
+    exec 3>&-
+
+    tput cvvis
+    stty echo
+}
+
+# EndSection
+
+
+# Section: table app 1: all data
+
+
+# 1. Input data is primitive data
+# 2. Input json, then tranfer as primitive data to awk
+# 3. Using instruction to control table
+
+
+___X_CMD_UI_TABLE_CONTROL_AWK_PATH="./table.control.awk" # ui/_v0/table.control.awk
+# ___X_CMD_UI_TABLE_CONTROL_AWK_PATH="$(x which ui/_v0/table.control.awk)"
+
+___x_cmd_ui_table_control(){
+    :
+    LC_ALL=en_US.UTF-8  awk "$(xrc cat ui/_v0/wcwidth.awk)$(cat $___X_CMD_UI_TABLE_CONTROL_AWK_PATH)"
+    
+    # using awk
+    # counting
+    # calculating the view
+}
+
+___ui_table_out3(){
+    local O="${O:-___X_BASH_UI_TABLE_DEFAULT}"
+
+    stty -echo
+    {
+        ___ui_table_out 
+        printf "VIEW\n" | ___x_cmd_ui_region_send
+
+        while region_getchar; do
+            case "$___X_CMD_UI_GETCHAR_CHAR" in
+                UP|DN|LEFT|RIGHT)
+                    printf "%s\n" "$___X_CMD_UI_GETCHAR_CHAR"
+                    ;;
+                p)
+                    printf "PREV-PAGE" >&3
+                    break
+                    ;;
+                n)
+                    printf "NEXT-PAGE" >&3
+                    break
+                    ;;
+                c)
+                    printf "CREATE\n" >&3
+                    printf "END\n"
+                    break
+                    ;;
+                e|u)
+                    printf "UPDATE\n" >&3
+                    printf "END\n"
+                    break
+                    ;;
+                r)
+                    printf "REFRESH" >&3
+                    printf "END\n"
+                    break
+                    ;;
+                ENTER)
+                    printf "ENTER" >&3
+                    printf "END\n"
+                    break
+                    ;;
+            esac
+        done
+        
+        # Notice: Meaningless but important.
+        printf "\n"
+
+    } | ___x_cmd_ui_region_send | ___x_cmd_ui_table_control | ___x_cmd_ui_region_update
+
+    exec 3>&-
+
+    tput cvvis
+    stty echo
+}
+
+
+# EndSection
+
 

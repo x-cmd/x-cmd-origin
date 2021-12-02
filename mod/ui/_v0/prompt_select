@@ -1,0 +1,20 @@
+# shellcheck shell=sh disable=SC3043
+
+___ui_prompt_select1(){
+    local question="${1:?Question}"
+    local answer="${2:?Answer variable}"
+    local op="${3:?Must be}"
+    if [ "$op" != "=" ]; then
+        printf "%s" "#3 be = but get $op" >&2
+        return 1
+    fi
+
+    shift 3
+
+    
+
+}
+
+
+
+

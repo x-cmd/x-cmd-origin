@@ -1,0 +1,4 @@
+#! /usr/bin/env bash
+
+cp region ~/.x-cmd/ui/_v0/region
+cp table ~/.x-cmd/ui/_v0/table

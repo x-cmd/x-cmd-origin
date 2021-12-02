@@ -15,7 +15,11 @@ ui(){
         :)                                                      ui_print_var "$@"       ;; # TODO
         progressbar|probar)     shift;                          ___ui_progressbar "$@"     ;; 
         cmd|cmdline)            shift;                          ui_cmdline "$@"         ;;
-        table)                  shift; xrc ui/_v0/table;        ___ui_table  "$@"       ;;
+        table)                  
+            shift; 
+            command -v ___ui_table >/dev/null || xrc ui/_v0/table;        
+            ___ui_table  "$@"
+            ;;
         prompt)                 shift; xrc ui/_v0/prompt;       ___ui_prompt "$@"       ;;
         md|markdown)            shift; xrc ui/_v0/markdown;     ___ui_markdown "$@"     ;;
         cols)                                                   printf "%s" "$COLUMNS"  ;;

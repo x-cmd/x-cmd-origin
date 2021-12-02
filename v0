@@ -184,29 +184,39 @@ A
 }
 
 ___advise_get_result(){
-    local offset="${2:-0}"
-
-    local resname="${1:-${COMP_WORDS[offset]}}"
-
-    local filepath
-    case "$resname" in
-        /*) filepath="$resname" ;;
-        -)  filepath=/dev/stdin ;;
-        *)  filepath="${TMPDIR%/}/.x-cmd/advise_auto_json/$resname" ;;
-    esac
-
     local OLDIFS="$IFS"
-    local IFS=$'\002' # IFS="$(printf "\002")"
+    local offset="${1:-0}"
+    # If there are two parameters, take the second one.
+    local offset="${2:-${1:-0}}"
+
+    if [ -n "$ZSH_VERSION" ];then
+        resname="${words[offset+1]}"
+        COMP_WORDS=("${words[@]}")
+        COMP_CWORD="$(( ${#words[@]}-1 ))"
+    else
+        resname="${COMP_WORDS[offset]}"
+    fi
+
+    local filepath="${TMPDIR%/}/.x-cmd/advise_auto_json/$resname"
+
+    local IFS=$'\002'
 
     # Delete $offset numbers from the COMP_WORDS
     local i
     local words=()
-    for ((i=0; i<=$(($COMP_CWORD-$offset)); ++i)); do
-        words+=( "${COMP_WORDS[i+offset]}" )
-    done
+    if [ -n "$ZSH_VERSION" ];then
+        for ((i=0; i<=$(($COMP_CWORD-$offset)); ++i)); do
+            words+=( "${COMP_WORDS[i+offset+1]}" )
+        done
+    else
+        for ((i=0; i<=$(($COMP_CWORD-$offset)); ++i)); do
+            words+=( "${COMP_WORDS[i+offset]}" )
+        done
+    fi
 
     COMP_WORDS=("${words[@]}")
     COMP_CWORD="$(( ${#words[@]}-1 ))"
+    COMP_LINE="${COMP_WORDS[*]}"
 
     s="${COMP_WORDS[*]}"
     s="${s#*$IFS}"
@@ -227,22 +237,22 @@ ___advise_get_result(){
 
     [ -f "$filepath" ] || return
 
-    local result
+    local result=""
     result="$(
         {
             cat "$filepath"
-            printf "\034%s\034" "$s"  # printf "\034${s}\034"
+            printf "\034%s\034" "$s"
         } | awk -f "$___ADVISE_AWK_PATH" 2>/dev/null
-    )"
-    IFS="$OLDIFS"
 
-    local cmd="${result##*#> }"
+    )"
+
+    local cmd="${result##*\#> }"
     local cmd_result=""
     if [ "$cmd" != "$result" ]; then
         cmd_result="$(eval "$cmd")"
-        result="${result%%#> *}"
+        result="${result%%\#> *}"
     fi
-
+    IFS="$OLDIFS"
     printf "%s" "$result
 $cmd_result"
 }
@@ -281,7 +291,11 @@ ___advise_main(){
         filepath="$tmp_filepath"
     fi
 
-    complete -F "___advise_completer" "$func"
+    if [ -z "$ZSH_VERSION" ];then
+        complete -F "___advise_completer" "$func"
+    else
+        compdef "___advise_completer" "$func"
+    fi
 }
 
 ___advise_update(){
@@ -289,7 +303,6 @@ ___advise_update(){
     local tmp_filepath=${TMPDIR%/}/.x-cmd/advise_auto_json/$func
 
     if [ -f "$tmp_filepath" ] && [ -z "$(find "$tmp_filepath" -mtime -1)" ]; then
-        advise_log info "update: $tmp_filepath"
         rm -rf "$tmp_filepath"
         ___advise_main $func
     fi
@@ -298,7 +311,12 @@ ___advise_update(){
 ___advise_run(){
 
     local offset="${2:-0}"
-    local resname="${1:-${COMP_WORDS[0]}}"
+    local resname
+    if [ -n "$ZSH_VERSION" ];then
+        resname="${1:-${words[1]}}"
+    else
+        resname="${1:-${COMP_WORDS[0]}}"
+    fi
 
     if [ -z "$___ADVISE_RUN_CMD_FOLDER" ]; then
         ___ADVISE_RUN_CMD_FOLDER="${TMPDIR%/}/.x-cmd/advise_auto_json"
@@ -339,20 +357,18 @@ ___advise_run(){
 
         COMP_WORDS=("${words[@]}")
         COMP_CWORD="$(( ${#words[@]}-1 ))"
+
+    fi
+
+    if [ -n "$ZSH_VERSION" ];then
+        local COMP_WORDS=("${words[@]}")
+        local COMP_CWORD="$(( ${#words[@]}-1 ))"
     fi
 
     local cur="${COMP_WORDS[COMP_CWORD]}"
 
-    if [ "$cur" == "" ]; then
-        # Notice: The following line handle zsh compatibility problem.
-        # In zsh, When input word is empty, COMP_WORDS[COMP_CWORD] does not exist.
-        # In bash, When input word is empty, COMP_WORDS[COMP_CWORD] exist, and it is ""
-        # This will result in difference value of "${COMP_WORDS[*]}"
-        COMP_WORDS[COMP_CWORD]=""
-    fi
-
     local OLDIFS="$IFS"
-    local IFS=$'\002' # IFS="$(printf "\002")"
+    local IFS=$'\002'
 
     s="${COMP_WORDS[*]}"
     s="${s#*$IFS}"
@@ -369,45 +385,50 @@ ___advise_run(){
     esac
 
     IFS=$'\n'   # Bash/Zsh Only
-
     [ -f "$filepath" ] || return
 
     local result
     result="$(
         {
             cat "$filepath"
-            printf "\034%s\034" "$s"  # printf "\034${s}\034"
+            printf "\034%s\034" "$s"
         } | awk -f "$___ADVISE_AWK_PATH" 2>/dev/null
     )"
-    IFS="$OLDIFS"
 
-    if [ -z "$ZSH_VERSION" ];then
-        if [[ "$result" =~ [:=\/]$ ]];then
-            compopt -o nospace
-        else
-            compopt +o nospace
-        fi
-    fi
-
-    local cmd="${result##*#> }"
+    local cmd="${result##*\#> }"
     local cmd_result=""
     if [ "$cmd" != "$result" ]; then
         cmd_result="$(eval "$cmd" 2>/dev/null)"
-        result="${result%%#> *}"
+        result="${result%%\#> *}"
     fi
+    local cmds="$result
+$cmd_result"
 
-    # shellcheck disable=SC2207
-    COMPREPLY=(
-        $(
-            compgen -W "$result
-$cmd_result" -- "$cur"
+    IFS="$OLDIFS"
+    if [ -n "$ZSH_VERSION" ];then
+        eval "cmds=($cmds)"
+        local commands=($cmds)
+        compadd -a commands
+    else
+        if [ -n "$BASH_VERSION" ] && [[ ! "$BASH_VERSION" =~ ^3.* ]];then
+            if [[ "$result" =~ [:=\/]$ ]];then
+                compopt -o nospace
+            else
+                compopt +o nospace
+            fi
+        fi
+
+        # shellcheck disable=SC2207
+        COMPREPLY=(
+            $(
+                compgen -W "$cmds" -- "$cur"
+            )
         )
-    )
 
-    __ltrim_completions "$cur" "@"
-    __ltrim_completions "$cur" ":"
-    __ltrim_completions "$cur" "="
-
+        __ltrim_completions "$cur" "@"
+        __ltrim_completions "$cur" ":"
+        __ltrim_completions "$cur" "="
+    fi
 }
 
 __ltrim_completions()
@@ -432,8 +453,8 @@ ___advise_completer() {
 
 # EndSection
 
-if [ -n "$ZSH_VERSION" ] && [ "$(autoload | grep bashcompinit)" = "" ]; then
-    autoload -U +X bashcompinit compinit && bashcompinit && compinit
+if [ -n "$ZSH_VERSION" ] && [ "$(autoload | grep compinit)" = "" ]; then
+    autoload -Uz compinit && compinit
 fi
 
 advise init advise
@@ -476,17 +497,6 @@ ___advise_man_which(){
 
     return 1
 }
-
-# ___advise_man_load(){
-#     local cmd="${1:?Provide cmd}"
-#     local p="$(___advise_man_which "$cmd")"
-#     if [ ! -f "$p" ]; then
-#         printf "%s\n" "$cmd.json Not found. You could try 'advise man update' for updates." >&2
-#         return 1
-#     fi
-#     compgen "___advise_man_completer" "$cmd"
-# }
-
 ___advise_man_load(){
     local i
     for i in $(___advise_man_ls); do
@@ -513,11 +523,11 @@ ___advise_man_completer() {
 ___advise_man(){
     local op="${1:?Provide subcommand}"; shift
     case "$op" in
-        ls)         ___advise_man_ls ;;
-        update)     ___advise_man_update ;;
-        which)      ___advise_man_which "$@" ;;
-        load)       ___advise_man_load ;;
-        rm)         ___advise_man_rm ;;
+        ls)         ___advise_man_ls              ;;
+        update)     ___advise_man_update          ;;
+        which)      ___advise_man_which "$@"      ;;
+        load)       ___advise_man_load            ;;
+        rm)         ___advise_man_rm              ;;
         *)          ___advise_man_load "$op" "$@" ;;
     esac
 }

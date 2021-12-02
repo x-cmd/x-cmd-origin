@@ -1,0 +1,60 @@
+# shellcheck shell=sh disable=SC2039,SC1090,SC3043,SC2263
+
+# author:       Li Junhao           l@x-cmd.com    edwinjhlee.github.io
+# maintainer:   Li Junhao
+# license:      GPLv3
+
+# LIB
+___x_cmd_awk_lib(){
+    local IFS="
+"
+
+    printf "%s\n" "default,$USE" | tr "," "\n" | while read -r lib; do
+        xrc which "awk/${lib}.awk"
+        # printf "%s\n" "./${lib}.awk"
+    done
+}
+
+___X_CMD_AWK_ALL_LIB="bit,math,ord,char,str,wcwidth,arr,ui"
+
+___x_cmd_awk(){
+    local op="$1"; shift
+    case "$op" in
+        "")
+            local code="$(cat)"
+            local USE="$___X_CMD_AWK_ALL_LIB"
+            printf "" | awk "$@" "$(cat $(___x_cmd_awk_lib))
+BEGIN{
+    ${code}
+}"
+            ;;
+        file=*)
+            local fp="${op#file=}"
+            awk "$@" "$(cat $(___x_cmd_awk_lib) "$fp")"
+            ;;
+        code=*)
+            awk "$@" "$(cat $(___x_cmd_awk_lib))
+${op#code=}"
+            ;;
+        try=*)
+            local USE="$___X_CMD_AWK_ALL_LIB"
+            awk "$@" "$(cat $(___x_cmd_awk_lib))
+${op}"
+            ;;
+        *)
+            local USE="$___X_CMD_AWK_ALL_LIB"
+            printf "" | awk "$@" "$(cat $(___x_cmd_awk_lib))
+BEGIN{
+    ${op}
+}"
+            ;;
+    esac
+}
+
+# x awk file=a.txt
+
+# x awk code='{
+#
+# }' $@
+
+alias xawk=___x_cmd_awk

@@ -2,11 +2,11 @@
 
 git remote remove gitee 2>/dev/null
 git remote add gitee git@gitee.com:x-cmd/x-cmd.git
-git push gitee
+git push gitee main
 
 git remote remove github 2>/dev/null
 git remote add github git@github.com:x-cmd/x-cmd.git
-git push github
+git push github main
 
 git push gitee main
 git push github main

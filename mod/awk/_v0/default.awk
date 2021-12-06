@@ -17,6 +17,13 @@ function debug(msg){
     if (0 != DEBUG)     print msg > "/dev/stderr"
 }
 
+function debug_file(msg, file){
+    if (file == "") {
+        file = "./awk.default.debug.log"
+    }
+    print msg > file
+}
+
 BEGIN {
     EXIT_CODE = -1
 }

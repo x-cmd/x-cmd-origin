@@ -1,27 +1,8 @@
 BEGIN{
-    CURSOR_SAVE="\0337"
-    CURSOR_RESTORE="\0338"
-    
-    CURSOR_SHOW="\033[34l"
-    CURSOR_NORM="\033[34h\033[?25h"
-    CURSOR_HIDE="\033[?25l"
-
     line_count = 0
     
-    printf(CURSOR_SAVE)
-    printf(CURSOR_HIDE)
-}
-
-function str_rep(char, number, _i, _s) {
-    for (   _i=1; _i<=number; ++_i  ) _s = _s char
-    return _s
-}
-
-
-function strlen_without_color(text){
-    # gsub(/\033\[[0-9]+m/, "", text)
-    gsub(/\033\[([0-9]+;)*[0-9]+m/, "", text)
-    return length(text)
+    printf(UI_CURSOR_SAVE) > "/dev/stderr"
+    printf(UI_CURSOR_HIDE) > "/dev/stderr"
 }
 
 function cal_empty_line(line_count, width, 
@@ -47,7 +28,7 @@ function output(text, width,
     OUTPUT_LINE_COUNT = 0
     for (i=1; i<=line_arr_len; i++) {
         line = line_arr[i]
-        line_len = strlen_without_color(line)
+        line_len = length( str_remove_style(line) )
         if (line_len == 0) {
             OUTPUT_LINE_COUNT = OUTPUT_LINE_COUNT + 1
             return_text = return_text str_rep(" ", width) "\n"
@@ -74,8 +55,8 @@ BEGIN {
 
 
 function update(text, width){
-    # printf(CURSOR_RESTORE)
-    # printf(CURSOR_SAVE)
+    # printf(UI_CURSOR_RESTORE)
+    # printf(UI_CURSOR_SAVE)
     # printf "\033[%sA"
 
     LAST_OUTPUT_LINE_COUNT = OUTPUT_LINE_COUNT
@@ -84,23 +65,35 @@ function update(text, width){
     
     output_text = output(text, width)
 
-    printf(CURSOR_RESTORE)
-    # printf(CURSOR_SAVE)
+    printf(UI_CURSOR_RESTORE) > "/dev/stderr"
+    # printf(UI_CURSOR_SAVE)
 
     if (LAST_OUTPUT_LINE_COUNT < OUTPUT_LINE_COUNT) {
         # printf( "%s", 
         #     last_output_test cal_empty_line(OUTPUT_LINE_COUNT - LAST_OUTPUT_LINE_COUNT, width) )
-        printf( "%s", str_rep("\n", OUTPUT_LINE_COUNT))
-        printf("\033[" (OUTPUT_LINE_COUNT ) "A")
-        printf(CURSOR_SAVE)
+        printf( "%s", str_rep("\n", OUTPUT_LINE_COUNT)) > "/dev/stderr"
+        printf("\033[" (OUTPUT_LINE_COUNT ) "A") > "/dev/stderr"
+        printf(UI_CURSOR_SAVE) > "/dev/stderr"
     }
 
-    printf("%s", output_text)
+    printf("%s", output_text) > "/dev/stderr"
     
 }
 
 BEGIN{
    LAST_WIDTH=0 
+
+   ALREAD_END = 0
+}
+
+function end(){
+    if (ALREAD_END == 1) return
+    ALREAD_END = 1
+    printf(UI_CURSOR_RESTORE) > "/dev/stderr"
+    printf( "%s", cal_empty_line(LAST_OUTPUT_LINE_COUNT, LAST_WIDTH)) > "/dev/stderr"
+    printf(UI_CURSOR_RESTORE) > "/dev/stderr"
+
+    printf(UI_CURSOR_NORM) > "/dev/stderr"
 }
 
 {
@@ -112,16 +105,18 @@ BEGIN{
     } else if ($1 == "UPDATE") {
         op = $1
         op2 = $2
-    } else {   
-
+    } else if (op == "STDOUT") {
+        print $0
+    } else if (op == "RESULT") {
+        end()
+        print $0
+    }  else {   
+        op = $1
+        op2 = $2
     }
 
 }
 
 END {
-    printf(CURSOR_RESTORE)
-    printf( "%s", cal_empty_line(LAST_OUTPUT_LINE_COUNT, LAST_WIDTH))
-    printf(CURSOR_RESTORE)
-
-    printf(CURSOR_NORM)
+    end()
 }

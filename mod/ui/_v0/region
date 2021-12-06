@@ -28,15 +28,20 @@ ___x_cmd_ui_region_send(){
     fi
 }
 
+xrc awk
+
 ___x_cmd_ui_region_update(){
     {
         local line
+        # TODO: Consider get rid of it to improve performance.
         while read -r line; do
             printf "%s %s\n%s\n" UPDATE "$COLUMNS" "$line"
         done | {
-            awk -f "$___X_CMD_UI_REGION_AWK"
+            # awk  "$(cat $(xrc which awk/_v0/ui.awk)  $___X_CMD_UI_REGION_AWK)"
+            # awk -f "$___X_CMD_UI_REGION_AWK"
+            LC_ALL=en_US.UTF-8 USE=str,ui ___x_cmd_awk file "$___X_CMD_UI_REGION_AWK"
         }
-    }>&2
+    }
 }
 
 region_run(){
@@ -728,10 +733,10 @@ ___x_cmd_ui_prompt_form(){
     done
 }
 
-___x_cmd_ui_prompt_form \
-    "Access type" atype public = private public -- \
-    "Repo Name" repo "" =~ abc1[0-9]+   -- \
-    "User name" user "" =~ 12[0-9]+
+# ___x_cmd_ui_prompt_form \
+#     "Access type" atype public = private public -- \
+#     "Repo Name" repo "" =~ abc1[0-9]+   -- \
+#     "User name" user "" =~ 12[0-9]+
 
 # EndSection
 

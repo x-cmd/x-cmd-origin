@@ -3,8 +3,11 @@
 ______x_cmd_theme_prompt_get_info(){
     ___x_cmd_theme_scm && case "${___X_CMD_THEME_SCM_TYPE}" in
         git)
-            printf "%s " "${PREFIX:-on} git:$(___x_cmd_theme_style cyan "$___X_CMD_THEME_SCM_INFO")"
-            if [ "$(___x_cmd_theme_is_git_dirty)" ];then
+            local _branch_info
+            local _is_dirty
+            x con _branch_info= ___x_cmd_theme_git_get_friendly_ref _is_dirty= ___x_cmd_theme_is_git_dirty
+            printf "%s " "${PREFIX:-on} git:$(___x_cmd_theme_style cyan "$_branch_info")"
+            if [ "$_is_dirty" ];then
                 printf "%s " "$(___x_cmd_theme_style yellow 'x')"
             else
                 printf "%s " "$(___x_cmd_theme_style green 'o')"

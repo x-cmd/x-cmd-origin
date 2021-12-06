@@ -72,16 +72,16 @@ proxy_go_set(){
     param:dsl <<A
 subcommand:
     aliyun|ali                  "Ali"
-    goproxy|goproxy.cn          "goproxy.cn"
-    qiniu|io|goproxy.io         "goproxy.io"
+    goproxy                     "goproxy.cn"
+    qiniu|io                    "goproxy.io"
     official                    "Official"
 A
     param:run
 
     case "${PARAM_SUBCMD:-qiniu}" in
         ali|aliyun)            ___proxy_go_set    https://mirrors.aliyun.com/goproxy/ ;;
-        goproxy|goproxy.cn)    ___proxy_go_set    https://goproxy.io/zh/              ;;
-        qiniu|io|goproxy.io)   ___proxy_go_set    https://goproxy.cn                  ;;
+        goproxy)               ___proxy_go_set    https://goproxy.io/zh/              ;;
+        qiniu|io)              ___proxy_go_set    https://goproxy.cn                  ;;
         *) ;;
     esac
 }

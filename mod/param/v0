@@ -158,14 +158,14 @@ param_default() {
 # Section 5: param scope and plugin
 
 ___param_scope_set_id(){
-    ___X_BASH_PARAM_SCOPE="${1:?Please provide scope}"
+    ___X_CMD_PARAM_SCOPE="${1:?Please provide scope}"
 }
-alias param:scope='local ___X_BASH_PARAM_SCOPE;    ___param_scope_set_id'
+alias param:scope='local ___X_CMD_PARAM_SCOPE;    ___param_scope_set_id'
 
 ___param_plugin_set_id(){
-    ___X_BASH_PARAM_PLUGIN_ID="${1:?Please provide scope}"
+    ___X_CMD_PARAM_PLUGIN_ID="${1:?Please provide scope}"
 }
-alias param:plugin="local ___X_BASH_PARAM_PLUGIN_ID; ___param_plugin_set_id"
+alias param:plugin="local ___X_CMD_PARAM_PLUGIN_ID; ___param_plugin_set_id"
 
 # EndSection
 
@@ -173,16 +173,16 @@ alias param:plugin="local ___X_BASH_PARAM_PLUGIN_ID; ___param_plugin_set_id"
 
 ___param_dsl_set(){
     if [ -z "$1" ]; then
-        ___X_BASH_PARAM_DSL="$(cat)"
+        ___X_CMD_PARAM_DSL="$(cat)"
     else
-        ___X_BASH_PARAM_DSL="$1"
+        ___X_CMD_PARAM_DSL="$1"
     fi
 }
 
-alias param:dsl="local ___X_BASH_PARAM_DSL; ___param_dsl_set"
+alias param:dsl="local ___X_CMD_PARAM_DSL; ___param_dsl_set"
 alias param:run='local IFS; eval "$(_param_main "$@"  )"'
 
-alias param:void="local ___X_BASH_PARAM_SCOPE;  local ___X_BASH_PARAM_DSL;  param:run"
+alias param:void="local ___X_CMD_PARAM_SCOPE;  local ___X_CMD_PARAM_DSL;  param:run"
 
 ___param_eval_echo(){
     local IFS
@@ -199,7 +199,7 @@ fi
 # TODO: our goal, 6ms
 _param_main() {
     ___init_lines_columns
-    if [ -n "$___X_BASH_PARAM_PLUGIN_ID" ]; then
+    if [ -n "$___X_CMD_PARAM_PLUGIN_ID" ]; then
         if [ "plugin" = "$1" ]; then
             printf "%s\n" shift
             printf "param_plugin \"\$@\"\n"
@@ -208,46 +208,52 @@ _param_main() {
         fi
     fi
 
-    local ___X_BASH_PARAM_IS_INTERACTIVE=0
+    local ___X_CMD_PARAM_IS_INTERACTIVE=0
     # Maybe for JUDGE
     # TO OPTIMIZE
     if [ -t 0 ] && [ "${-#*i}" != "$-" ]; then
-        ___X_BASH_PARAM_IS_INTERACTIVE=1
+        ___X_CMD_PARAM_IS_INTERACTIVE=1
+    fi
+
+    local ___X_CMD_PARAM_STDERR_IS_TTY=0
+    if [ -t 2 ] ; then
+        ___X_CMD_PARAM_STDERR_IS_TTY=1
     fi
 
     {
         local IFS
-        if [ -z "$___X_BASH_PARAM_SCOPE" ]; then
+        if [ -z "$___X_CMD_PARAM_SCOPE" ]; then
             # line 1: global types and subcmds are null
             printf "$PARAM_RS_SEP$PARAM_RS_SEP"
         else
             # line 1: global types and subcmds
-            _param_type_print "${___X_BASH_PARAM_SCOPE%%/*}"
+            _param_type_print "${___X_CMD_PARAM_SCOPE%%/*}"
             printf "$PARAM_RS_SEP"
-            if [ "${___X_BASH_PARAM_PLUGIN_ID}" != "" ] ;then
-                ___param_plugin_print "${___X_BASH_PARAM_PLUGIN_ID}"
+            if [ "${___X_CMD_PARAM_PLUGIN_ID}" != "" ] ;then
+                ___param_plugin_print "${___X_CMD_PARAM_PLUGIN_ID}"
             fi
             printf "$PARAM_RS_SEP"
         fi
 
-        printf "%s" "$___X_BASH_PARAM_DSL"
+        printf "%s" "$___X_CMD_PARAM_DSL"
         # line 3: running argument lines
         IFS="$PARAM_ARG_SEP"                    # ARG_SEP in awk script
         printf "$PARAM_RS_SEP%s$PARAM_RS_SEP" "$*"
 
         # line 4: default dict
-        if [ -n "$___X_BASH_PARAM_SCOPE" ]; then
-            param_default dump_raw "$___X_BASH_PARAM_SCOPE"
+        if [ -n "$___X_CMD_PARAM_SCOPE" ]; then
+            param_default dump_raw "$___X_CMD_PARAM_SCOPE"
         fi
     } | awk \
             -v OBJECT_NAME="${O}" \
             -v ARG_SEP="$PARAM_ARG_SEP" \
             -v RS="$PARAM_RS_SEP" \
             -v COLUMNS="$COLUMNS" \
-            -v IS_INTERACTIVE="$___X_BASH_PARAM_IS_INTERACTIVE" \
+            -v IS_INTERACTIVE="$___X_CMD_PARAM_IS_INTERACTIVE" \
+            -v IS_TERMINAL="$___X_CMD_PARAM_STDERR_IS_TTY" \
             -f "$PARAM_AWK_PATH"
     # Notice: Must clear this variable.
-    ___X_BASH_PARAM_SCOPE=
+    ___X_CMD_PARAM_SCOPE=
 }
 
 # EndSections
@@ -267,7 +273,7 @@ param_plugin(){
 
 ___param_plugin_define() {
     # FIXME: To use no app name to add the subcmd plugin.
-    local plugin_id="$___X_BASH_PARAM_PLUGIN_ID"
+    local plugin_id="$___X_CMD_PARAM_PLUGIN_ID"
     local subcmd="${1:?Provide subcmd}"
     local desc="${2:?Provide description}"
 
@@ -279,14 +285,14 @@ ___param_plugin_define() {
 # Maybe using dict?
 ___param_plugin_del() {
     # FIXME: To use no app name to add the subcmd plugin.
-    local plugin_id="$___X_BASH_PARAM_PLUGIN_ID"
+    local plugin_id="$___X_CMD_PARAM_PLUGIN_ID"
     local subcmd="${1:?Provide subcmd}"
 
     # TODO: Not provided
 }
 
 ___param_plugin_unset() {
-    local plugin_id="$___X_BASH_PARAM_PLUGIN_ID"
+    local plugin_id="$___X_CMD_PARAM_PLUGIN_ID"
     local varname="${PARAM_SUBCMD_VAR_PREFIX}${plugin_id}"
     eval "$varname="
 }

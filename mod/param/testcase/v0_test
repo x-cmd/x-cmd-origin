@@ -20,4 +20,4 @@ cross_env_test() {
 }
 
 . ./testcase/v0_test_base
-cross_env_test
+# cross_env_test

@@ -7,7 +7,7 @@
 
 ___dict_make(){
     local O="${O:?Please provide object name}"
-    ___dict_instance_add "$O"
+    ___x_cmd_instance_add "dict" "$O"
     unset "___X_BASH_DICT_$O"
     eval "declare -gA ___X_BASH_DICT_${O}"
     eval "___X_BASH_DICT_$O=()"

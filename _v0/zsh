@@ -8,13 +8,13 @@
 ___dict_make(){
     local O="${O:?Please provide object name}"
     unset "___X_BASH_DICT_$O"
-    ___dict_instance_add "$O"
+    ___x_cmd_instance_add "dict" "$O"
     typeset -gA ___X_BASH_DICT_"$O"
 }
 
 ___dict_clear(){
     local O="${O:?Please provide object name}"
-    eval "typeset -A $O=()"
+    eval "typeset -gA ___X_BASH_DICT_$O=()"
 }
 
 ___dict_dump(){

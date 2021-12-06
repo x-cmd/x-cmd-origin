@@ -35,12 +35,21 @@ BEGIN{
             ;;
         file)
             local fp="$1"; shift
-            awk "$@" "$(eval cat "$(___x_cmd_awk_lib)" "$fp") )"
+            local code
+            if ! code="$(eval cat "$(___x_cmd_awk_lib)" "$fp")"; then
+                printf "%s\n" "Cannot find out code."
+                return 1
+            fi
+            awk "$@" "$code"
             ;;
         code)
             local code="$1"; shift
             awk "$@" "$(eval cat "$(___x_cmd_awk_lib)")
 ${code}"
+            ;;
+        src)
+            local fp="$1"; shift
+            eval cat "$(___x_cmd_awk_lib) $fp"
             ;;
         try)
             local code="$1"; shift

@@ -284,7 +284,7 @@ ___x_cmd_bw(){
 }
 
 ___x_cmd_exa(){
-    xrc static-build && static_build_init exa exa ___x_cmd_exa && ___x_cmd_exa      "$@"
+    xrc static-build && static_build_init exa exa ___x_cmd_exa && ___x_cmd_exa   "--color always" "$@"
 }
 
 ___x_cmd_dust(){
@@ -638,7 +638,7 @@ ___x_cmd_main(){
                                                 fi
                                                 ;;
         bw)                                     ___x_cmd_bw         "$@"             ;;
-        jq)                                     
+        jq)
                                                 if [ "$#" -ne 0 ]; then
                                                     ___x_cmd_jq "$@"
                                                 else

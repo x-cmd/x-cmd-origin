@@ -1,7 +1,15 @@
 BEGIN {
     false = 0;  true = 1
-    LEN="len"
-    KSEP = "\034"
+    LEN   ="len"
+    KSEP  = "\034"
+
+    if (IS_TERMINAL == true) {
+        FG_RED        = "\033[31m"
+        FG_LIGHT_RED  = "\033[91m"
+        FG_BLUE       = "\033[36m"
+        FG_YELLOW     = "\033[33m"
+        UI_END        = "\033[0m"
+    }
 
     EXIT_CODE = 0
 }
@@ -18,19 +26,19 @@ function exit_print(exit_code){
 }
 
 function panic_error(msg){
-    print "\033[0;91merror: \033[0m" msg "\nFor more information try \033[36m--help\033[0m" > "/dev/stderr"
+    print FG_LIGHT_RED "error: " UI_END msg "\nFor more information try " FG_BLUE "--help" UI_END > "/dev/stderr"
     print "return 1 2>/dev/null || exit 1 2>/dev/null"
     exit_now(1)
 }
 
 function panic_param_define_error( msg ){
-    print "\033[0;91mparam define error: \033[0m" msg "\nFor more information try to read the demo in \033[36mhttps://gitee.com/x-bash/param/blob/master/testcases/v0_test\033[0m" > "/dev/stderr"
+    print FG_LIGHT_RED "param define error: " UI_END msg "\nFor more information try to read the demo in " FG_BLUE "https://gitee.com/x-bash/param/blob/master/testcases/v0_test" UI_END > "/dev/stderr"
     print "return 1 2>/dev/null || exit 1 2>/dev/null"
     exit_now(1);
 }
 
 function panic_invalid_argument_error(arg_name){
-    panic_error("Option unexpected, or invalid in this context: '\033[0;33m" arg_name "\033[0;0m'")
+    panic_error("Option unexpected, or invalid in this context: '" FG_YELLOW arg_name UI_END "'")
 }
 
 # TODO: short
@@ -39,7 +47,7 @@ function panic_match_candidate_error(option_id, value, candidate_list) {
 }
 
 function panic_match_candidate_error_msg(option_id, value, candidate_list) {
-    return ("Fail to match any candidate, option '\033[0;33m" get_option_string(option_id) "\033[0;0m' is part of value is '\033[1;31m" value "\033[0m'\n" candidate_list)
+    return ("Fail to match any candidate, option '" FG_YELLOW get_option_string(option_id) UI_END "' is part of value is '" FG_LIGHT_RED value UI_END "'\n" candidate_list)
 }
 
 function panic_match_regex_error(option_id, value, regex) {
@@ -47,7 +55,7 @@ function panic_match_regex_error(option_id, value, regex) {
 }
 
 function panic_match_regex_error_msg(option_id, value, regex) {
-    return ("Fail to match any regex pattern, option '\033[0;33m" get_option_string(option_id) "\033[0;0m' is part of value is '\033[1;31m" value "\033[0m'\n" regex )
+    return ("Fail to match any regex pattern, option '" FG_YELLOW get_option_string(option_id) UI_END "' is part of value is '" FG_LIGHT_RED value UI_END "'\n" regex )
 }
 
 function panic_required_value_error(option_id) {
@@ -55,11 +63,11 @@ function panic_required_value_error(option_id) {
 }
 
 function panic_required_value_error_msg(option_id) {
-    return ("Option require value, but none was supplied: '\033[0;33m" get_option_string(option_id) "\033[0;0m'")
+    return ("Option require value, but none was supplied: '" FG_YELLOW get_option_string(option_id) UI_END "'")
 }
 
 function debug(msg){
-    print "\033[1;31m" msg "\033[0;0m" > "/dev/stderr"
+    print FG_RED msg UI_END > "/dev/stderr"
 }
 
 # EndSection
@@ -913,9 +921,9 @@ function generate_option_help(         _option_help, i, j, k, option_list, flag_
         for (i=1; i<=flag_list[ LEN ]; ++i) {
             option_id = flag_list[ i ]
             _space = get_space(_max_len-length(_opt_help_doc_arr[ i ]))
-            _option_after = option_arr[option_id KSEP OPTION_DESC ] "\033[0m"
+            _option_after = option_arr[option_id KSEP OPTION_DESC ] UI_END
             _option_after = cut_line(_option_after,_max_len)
-            _option_help = _option_help "    \033[36m" _opt_help_doc_arr[ i ] _space "   \033[91m" _option_after"\n"
+            _option_help = _option_help "    " FG_BLUE _opt_help_doc_arr[ i ] _space "   " FG_LIGHT_RED _option_after"\n"
         }
     }
 
@@ -975,9 +983,9 @@ function generate_option_help(         _option_help, i, j, k, option_list, flag_
             }
 
             _space = get_space(_max_len-length(_opt_help_doc_arr[ i ]))
-            _option_after = option_arr[ option_list[ i ] KSEP OPTION_DESC ] "\033[0m" oparr_string _multiple
+            _option_after = option_arr[ option_list[ i ] KSEP OPTION_DESC ] UI_END oparr_string _multiple
             _option_after = cut_line(_option_after,_max_len)
-            _option_help = _option_help "    \033[36m" _opt_help_doc_arr[ i ] _space "   \033[91m" _option_after"\n"
+            _option_help = _option_help "    " FG_BLUE _opt_help_doc_arr[ i ] _space "   " FG_LIGHT_RED _option_after"\n"
         }
     }
 
@@ -1028,9 +1036,9 @@ function generate_rest_argument_help(        _option_help,_option_after) {
         }
 
         oparr_string = oparr_string _default _candidate _regex
-        _option_after = option_arr[option_id KSEP OPTION_DESC ] "\033[0m" oparr_string
+        _option_after = option_arr[option_id KSEP OPTION_DESC ] UI_END oparr_string
         _option_after = cut_line(_option_after,_max_len)
-        _option_help = _option_help "    \033[36m" option_id _space "   \033[91m" _option_after "\n"
+        _option_help = _option_help "    " FG_BLUE option_id _space "   " FG_LIGHT_RED _option_after "\n"
     }
 
     return _option_help
@@ -1050,7 +1058,7 @@ function generate_subcommand_help(        _option_help) {
         gsub("\\|", ",", _cmd_name)
         _space = get_space(_max_len-length(_cmd_name))
 
-        _option_help = _option_help "    \033[36m" _cmd_name _space "\t\033[91m" str_unquote(subcmd_map[ subcmd_arr[ i ] ]) "\033[0m\n"
+        _option_help = _option_help "    " FG_BLUE _cmd_name _space "\t" FG_LIGHT_RED str_unquote(subcmd_map[ subcmd_arr[ i ] ]) UI_END "\n"
     }
 
     _option_help = _option_help "\nRun 'CMD SUBCOMMAND --help' for more information on a command\n"

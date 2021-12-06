@@ -46,6 +46,12 @@ function str_rep(char, number, _i, _s) {
     return _s
 }
 
+# function strlen_without_color(text){
+#     # gsub(/\033\[[0-9]+m/, "", text)
+#     gsub(/\033\[([0-9]+;)*[0-9]+m/, "", text)
+#     return length(text)
+# }
+
 function str_remove_style(text){
     gsub(/\033\[([0-9]+;)*[0-9]+m/, "", text)
     return text

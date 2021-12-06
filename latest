@@ -11,7 +11,7 @@ ___x_cmd_awk_lib(){
 
     printf "%s\n" "default,$USE" | tr "," "\n" | while read -r lib; do
         [ -z "$lib" ] && continue
-        xrc which "awk/${lib}.awk"
+        xrc which "awk/_v0/${lib}.awk"
         printf " "
         # printf "%s\n" "./${lib}.awk"
     done | tr "\n" " "
@@ -35,7 +35,7 @@ BEGIN{
             ;;
         file)
             local fp="$1"; shift
-            awk "$@" "$(eval cat "$(___x_cmd_awk_lib)") "$fp")"
+            awk "$@" "$(eval cat "$(___x_cmd_awk_lib)" "$fp") )"
             ;;
         code)
             local code="$1"; shift

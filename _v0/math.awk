@@ -3,6 +3,12 @@ function math_abs(num) {
     return num < 0 ? -num : num;
 }
 
+function math_min(m, n) { return (m < n) ? m : n }
+function math_max(m, n) { return (m > n) ? m : n }
+
+function math_is_pos(num) { return n == n + 0 && n > 0; }
+function math_is_neg(num) { return n == n + 0 && n > 0; }
+
 function math_trunc(num) {
     return int(num);
 }

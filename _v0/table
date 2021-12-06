@@ -6,7 +6,7 @@
 # Section: main
 
 ___ui_table(){
-    local O="${O:-___X_BASH_UI_TABLE_DEFAULT}"
+    local O="${O:-___X_CMD_UI_TABLE_DEFAULT}"
     case "${1}" in   
         json)   shift; ___ui_table_json      "$@"      ;;
         -)      ___ui_table_clear                      ;;
@@ -16,17 +16,17 @@ ___ui_table(){
 }
 
 
-___X_BASH_UI_TABLE_DEFAULT_SIZE=0
+___X_CMD_UI_TABLE_DEFAULT_SIZE=0
 ___ui_table_read(){
     
-    local O="${O:-___X_BASH_UI_TABLE_DEFAULT}"
+    local O="${O:-___X_CMD_UI_TABLE_DEFAULT}"
 
-    eval "___X_BASH_UI_TABLE_DEFAULT_ROW_$O=\$((___X_BASH_UI_TABLE_DEFAULT_ROW_$O+1))"
+    eval "___X_CMD_UI_TABLE_DEFAULT_ROW_$O=\$((___X_CMD_UI_TABLE_DEFAULT_ROW_$O+1))"
 
     local ttt
-    eval "ttt=\"\${___X_BASH_UI_TABLE_DEFAULT_COL_$O}\""
+    eval "ttt=\"\${___X_CMD_UI_TABLE_DEFAULT_COL_$O}\""
     if [ "${ttt:-0}" -lt $# ]; then
-        eval "___X_BASH_UI_TABLE_DEFAULT_COL_$O=\$#"
+        eval "___X_CMD_UI_TABLE_DEFAULT_COL_$O=\$#"
     fi
 
     local s
@@ -44,7 +44,7 @@ ___ui_table_read(){
 }
 
 ___ui_table_out(){
-    local O="${O:-___X_BASH_UI_TABLE_DEFAULT}"
+    local O="${O:-___X_CMD_UI_TABLE_DEFAULT}"
 
     local out="${1:-1}"
 
@@ -63,8 +63,8 @@ ___ui_table_out(){
 
 
 ___ui_table_clear(){
-    local O="${O:-___X_BASH_UI_TABLE_DEFAULT}"
-    eval ___X_BASH_UI_TABLE_DEFAULT_ROW_$O=0
+    local O="${O:-___X_CMD_UI_TABLE_DEFAULT}"
+    eval ___X_CMD_UI_TABLE_DEFAULT_ROW_$O=0
     eval "$O="
 }
 
@@ -110,7 +110,7 @@ xrc ui/_v0/region
 # CRUD
 ___ui_table_out2(){
 
-    local O="${O:-___X_BASH_UI_TABLE_DEFAULT}"
+    local O="${O:-___X_CMD_UI_TABLE_DEFAULT}"
 
     echo hhh
     stty -echo
@@ -119,9 +119,9 @@ ___ui_table_out2(){
     local HIGHROW=1
 
     local COL_COUNT
-    eval "COL_COUNT=\"\$___X_BASH_UI_TABLE_DEFAULT_COL_$O\""
+    eval "COL_COUNT=\"\$___X_CMD_UI_TABLE_DEFAULT_COL_$O\""
     local ROW_COUNT
-    eval "ROW_COUNT=\"\$___X_BASH_UI_TABLE_DEFAULT_ROW_$O\""
+    eval "ROW_COUNT=\"\$___X_CMD_UI_TABLE_DEFAULT_ROW_$O\""
 
     {
         ___ui_table_out | ___x_cmd_ui_region_send
@@ -192,20 +192,40 @@ ___X_CMD_UI_TABLE_CONTROL_AWK_PATH="./table.control.awk" # ui/_v0/table.control.
 # ___X_CMD_UI_TABLE_CONTROL_AWK_PATH="$(x which ui/_v0/table.control.awk)"
 
 ___x_cmd_ui_table_control(){
-    LC_ALL=en_US.UTF-8 USE=wcwidth,ui ___x_cmd_awk file "$___X_CMD_UI_TABLE_CONTROL_AWK_PATH"
+    LC_ALL=en_US.UTF-8 USE=wcwidth,ui,str ___x_cmd_awk file "$___X_CMD_UI_TABLE_CONTROL_AWK_PATH" -v EXIT_OP="$EXIT_OP"
+    # LC_ALL=en_US.UTF-8  awk "$(xrc cat ui/_v0/wcwidth.awk)$(cat $___X_CMD_UI_TABLE_CONTROL_AWK_PATH)"
     
+    # echo "aaaaa" >a.out
     # using awk
     # counting
     # calculating the view
 }
 
+___x_cmd_ui_region_update_table(){
+    awk -f "$___X_CMD_UI_REGION_AWK"
+}
+
+# EXIT_OP=
+___ui_table_out3_contain_exit_op(){
+    # local EXIT_OP=${EXIT_OP:-""}
+    # EXIT_OP=",$EXIT_OP,"
+    if [ "$EXIT_OP" = "${EXIT_OP%*,$1,*}" ]; then
+        return 1
+    fi
+    return 0
+}
+
 ___ui_table_out3(){
-    local O="${O:-___X_BASH_UI_TABLE_DEFAULT}"
+    local O="${O:-___X_CMD_UI_TABLE_DEFAULT}"
+    
+    local EXIT_OP=${EXIT_OP:-"ENTER,CREATE,DELETE"}
+    EXIT_OP=",$EXIT_OP,"
 
     stty -echo
+    exec 3>&1
     {
-        ___ui_table_out 
-        printf "VIEW\n" | ___x_cmd_ui_region_send
+        printf "%s\n" "$___X_CMD_UI_TABLE_DEFAULT" | ___x_cmd_ui_region_send
+        printf "VIEW %s %s\n" "$(ui rows)" "$(ui cols)" | ___x_cmd_ui_region_send
 
         while region_getchar; do
             case "$___X_CMD_UI_GETCHAR_CHAR" in
@@ -214,39 +234,53 @@ ___ui_table_out3(){
                     ;;
                 p)
                     printf "PREV-PAGE" >&3
-                    break
                     ;;
                 n)
                     printf "NEXT-PAGE" >&3
-                    break
                     ;;
                 c)
-                    printf "CREATE\n" >&3
-                    printf "END\n"
-                    break
+                    printf "CREATE\n"
+                    if ___ui_table_out3_contain_exit_op CREATE; then
+                        printf "END\n"
+                        break
+                    fi
                     ;;
                 e|u)
-                    printf "UPDATE\n" >&3
-                    printf "END\n"
-                    break
+                    printf "UPDATE\n"
+                    if ___ui_table_out3_contain_exit_op UPDATE; then
+                        printf "END\n"
+                        break
+                    fi
+                    ;;
+                d)
+                    printf "DELETE\n"
+                    if ___ui_table_out3_contain_exit_op DELETE; then
+                        printf "END\n"
+                        break
+                    fi
                     ;;
                 r)
-                    printf "REFRESH" >&3
-                    printf "END\n"
-                    break
+                    printf "REFRESH\n"
+                    if ___ui_table_out3_contain_exit_op REFRESH; then
+                        printf "END\n"
+                        break
+                    fi
                     ;;
                 ENTER)
-                    printf "ENTER" >&3
-                    printf "END\n"
-                    break
+                    printf "ENTER\n"
+                    if ___ui_table_out3_contain_exit_op ENTER; then
+                        printf "END\n"
+                        break
+                    fi
                     ;;
             esac
+            printf "VIEW %s %s\n" "$(ui rows)" "$(ui cols)"
         done
         
         # Notice: Meaningless but important.
         printf "\n"
 
-    } | ___x_cmd_ui_region_send | ___x_cmd_ui_table_control | ___x_cmd_ui_region_update
+    } | ___x_cmd_ui_table_control | ___x_cmd_ui_region_update_table
 
     exec 3>&-
 
@@ -257,4 +291,17 @@ ___ui_table_out3(){
 
 # EndSection
 
+ui table -
+ui table + B%USER               PID  %CPU %MEM      VSZ    RSS   TT  STAT STARTED      TIME COMMAND
+for i in {1..6}; do
+    ui table + edwinjhlee       45694  69.7  3.2 12906080 542124   ??  R    "三02下午" 2171:02.57 "com.docker.hyperkit -A -u -F vms/0/hyperkit.pid -c 4 -m 8192M -s 0:0,hostbridge -s"
+    ui table + _windowserver    24773   9.6  0.9  9289004 146772   ??  Ss   "29 521"  2827:26.66 "/System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer -daemo"
+    ui table + edwinjhlee       40627   9.1  0.8  9704844 133228   ??  Ss   "25 621"  351:58.88 "/Applications/Visual Studio Code.app/Contents/MacOS/Electron /Users/edwinjhlee/x-b"
+    ui table + edwinjhlee       81250   5.9  1.7 57448804 293384   ??  S    "2:25下午"  18:21.02 "/Applications/Visual Studio Code.app/Contents/Frameworks/Code Helper (Renderer).app"
+    ui table + edwinjhlee       81250   5.9  1.7 57448804 293384   ??  S    "2:25下午"  18:21.02 "/Applications/Visual Studio Code.app/Contents/Frameworks/Code Helper (Renderer).app"
+    ui table + edwinjhlee       99999   5.9  1.7 57448804 293384   ??  S    "2:25下午"  18:21.02 "/Applications/Visual Studio Code.app/Contents/Frameworks/Code Helper (Renderer).app"
+done
+# HIGHROW=2 HIGHCOL=3 ui table out
+HIGHROW=2 HIGHCOL=3 ___ui_table_out3
+# ui table -
 

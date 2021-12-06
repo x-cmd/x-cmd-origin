@@ -192,8 +192,7 @@ ___X_CMD_UI_TABLE_CONTROL_AWK_PATH="./table.control.awk" # ui/_v0/table.control.
 # ___X_CMD_UI_TABLE_CONTROL_AWK_PATH="$(x which ui/_v0/table.control.awk)"
 
 ___x_cmd_ui_table_control(){
-    :
-    LC_ALL=en_US.UTF-8  awk "$(xrc cat ui/_v0/wcwidth.awk)$(cat $___X_CMD_UI_TABLE_CONTROL_AWK_PATH)"
+    LC_ALL=en_US.UTF-8 USE=wcwidth,ui ___x_cmd_awk file "$___X_CMD_UI_TABLE_CONTROL_AWK_PATH"
     
     # using awk
     # counting

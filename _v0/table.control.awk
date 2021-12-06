@@ -41,18 +41,19 @@ function update_view_print_cell(row_i, col_i,       h, _size){
     if (highrow[i] == 1)  h = 1
     if (highcol[j] == 1)  h = 1
 
-    if (h == 1) printf("\033[7m")
+    if (h == 1) printf( TEXT_REV )
 
-    _size = col_max[j] - data_wlen[ cord ]
-    printf("%s", data[ cord ] sprintf("%" _size "s", ""))
+    printf("%s", str_pad_right(data[ cord ], col_max[j], data_wlen[ cord ]))
+    # _size = col_max[j] - data_wlen[ cord ]
+    # printf("%s", data[ cord ] sprintf("%" _size "s", ""))
 
-    if ((h == 1) && (highrow[i] != 1)) printf("\033[0m")
+    if ((h == 1) && (highrow[i] != 1)) printf( UI_END )
 }
 
 function update_view(row_i){
     start_row = int( (cur_row - 2) / max_row_in_page) * max_row_in_page + 2
 
-    printf "\033[4m"
+    printf("%s", TEXT_UNDERLINE)
     for (col_i=1; col_i<=col; col_i++) {
         update_view_print_cell( 1, col_i )
         printf("%s", "  ")
@@ -64,13 +65,14 @@ function update_view(row_i){
             update_view_print_cell( row_i, col_i )
             printf("%s", "  ")
         }
-        printf("\033[0m\n")
+        printf("%s\n", UI_END)
     }
 }
 
 # EndSection
 
-function parse_data(text, row_i, col_i,
+function parse_data(text, 
+    row_i, col_i,
     elem, elem_wlen){
 
     row = split(text, lines, "\002")
@@ -93,7 +95,6 @@ function parse_data(text, row_i, col_i,
             data_wlen [ row_i KSEP col_i ] = elem_wlen
             if (col_max[ col_i ] < elem_wlen) col_max[ col_i ] = col_max[ col_i ] = elem_wlen
         }
-
     }
 }
 

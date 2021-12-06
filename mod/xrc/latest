@@ -415,21 +415,22 @@ ___x_cmd_which_one(){
 ___x_cmd_instance_new(){
     local name="${2:?Provide object name}"
     name="${name#?}"
-#     eval "
-# function $name {
-#     $1 $2 \"\$@\"
-# }
-# " && "$@"
-
-    eval "alias $name='$1 $2'" && "$@"
+    eval "
+function $name {
+    $1 $2 \"\$@\"
+}
+"
 }
 
 ___x_cmd_instance_del(){
     local name="${2:?Provide object name}"
-    eval "$@"
+    # TODO:
+    if [ $# -gt 2 ];then
+        eval "$@"
+    fi
     name="${name#?}"
     if command -v "$name" 1>/dev/null 2>&2; then
-        eval "$@" && unset "$name"
+        unset "$name"
     else
         printf "%s\n" "Instance not found: $O" >&2
         return 1

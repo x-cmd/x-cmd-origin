@@ -22,8 +22,8 @@ dict(){
         O=
         shift
     else
-        op="${2}"
-        shift 2
+        op="${2:-help}"
+        shift 2 1>/dev/null 2>&1
     fi
 
     case "$op" in
@@ -73,7 +73,7 @@ _dict_x_cmd_advise_json(){
     "json"      : null,
     "size"      : null,
     "is_empty"  : null,
-    "@"         : "___dict_instance_list"
+    "@"         : "___x_cmd_instance_list dict"
 }
 A
     return 126
@@ -82,23 +82,6 @@ A
 
 # EndSection
 
-# Section: Instance Management
-___X_BASH_DICT_INSTANCE=""
-
-___dict_instance_add(){
-    local O="${1:?Provide instance name}"
-    ___X_BASH_DICT_INSTANCE="$___X_BASH_DICT_INSTANCE@$O-"
-}
-
-___dict_instance_rm(){
-    local O="${1:?Provide instance name}"
-    ___X_BASH_DICT_INSTANCE="${___X_BASH_DICT_INSTANCE%@$O-*}${___X_BASH_DICT_INSTANCE##*@$O-}"
-}
-
-___dict_instance_list(){
-    [ -z "$___X_BASH_DICT_INSTANCE" ] && return 0
-    printf "%s" "$___X_BASH_DICT_INSTANCE" | tr "-" "\n"
-}
 
 # EndSection
 
@@ -107,12 +90,7 @@ ___dict_instance_list(){
 _dict_new(){
     local O="${O:?list_name}"
     O="${O#@}"
-    eval "
-function $O {
-    dict @$O \"\$@\"
-}
-"
-    ___dict_make "$@"
+    ___x_cmd_instance_new "dict" "@$O" "$@"
 }
 
 _dict_del(){
@@ -125,7 +103,7 @@ _dict_del(){
 
 _dict_free(){
     local O="${O:?Please provide dict_name for _dict_free}"
-    ___dict_instance_rm "$O"
+    ___x_cmd_instance_rm "dict" "$O"
     eval "unset ___X_BASH_DICT_$O"
 }
 

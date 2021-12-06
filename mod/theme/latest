@@ -3,12 +3,15 @@
 xrc param/v0
 
 ___x_cmd_theme_control(){
+    local _is_zsh
+    _is_zsh="$([ -n "$ZSH_VERSION" ] && printf "zinit    \"init the zsh environment\"")"
     param:dsl <<A
 subcommands:
     ls          "list all theme"
     use         "use theme when starting the shell"
     try         "try theme"
     rollback    "use last theme"
+    ${_is_zsh}
     unset       "unset the theme"
 A
     param:run
@@ -62,7 +65,7 @@ ___x_cmd_theme_control_unset(){
         printf "%s\n" "The configuration file does not exist,unset failed"
         return 0
     fi
-    x boot rc del x-theme x theme try
+    x boot rc del x-theme
     printf "\033[32munset the theme successfully! \033[1;33mNow you can restart your terminal.\033[0m \n"
 }
 
@@ -103,6 +106,43 @@ ___x_cmd_theme_control_rollback(){
     :
 }
 
+___x_cmd_theme_control_zinit(){
+    local _have_loaded_theme
+    local defalut_font='MonacoPL'
+    _have_loaded_theme=$(x boot rc ls | grep 'x-theme')
+    # load theme
+    [ -z "$_have_loaded_theme" ] && ___x_cmd_theme_control_use ""
+    # load zsh plugins
+    [ -z "$ZSH_AUTOSUGGEST_COMPLETIONS_PTY_NAME" ] && ___x_cmd_theme_control_use_plugin "zsh-autosuggestions"
+    [ -z "$ZSH_HIGHLIGHT_REVISION" ] && ___x_cmd_theme_control_use_plugin "zsh-syntax-highlighting"
+    # load font
+    ___x_cmd_theme_control_font $defalut_font
+    printf "%s\n" "[x-cmd]: Successfully initialized."
+}
+
+___x_cmd_theme_control_use_plugin() {
+    { [ -z "$1" ] || [ -z "$ZSH_VERSION" ]; } && return 1
+    xrc theme/third-party/"$1"/"$1".plugin.zsh
+    x boot rc add "x-plugin-$1" "[ -n \"\$ZSH_VERSION\" ] && xrc theme/third-party/$1/$1.plugin.zsh"
+}
+
+___x_cmd_theme_control_font() {
+    local _font_dir
+    if [ "$(uname)" = "Darwin" ]; then
+        # MacOS
+        _font_dir="$HOME/Library/Fonts"
+    else
+        # Linux
+        _font_dir="$HOME/.local/share/fonts"
+        mkdir -p "$_font_dir"
+    fi
+    { [ -z "$1" ] || [ -f "$_font_dir/$1.ttf" ] ; } && return 1;
+    mv "$(xrc which theme/third-party/"$1".ttf)" "$_font_dir/"
+    if [ -n "$(command -v fc-cache)" ] ; then
+        printf "%s\n" "[x-cmd]: Resetting font cache, this may take a moment..."
+        fc-cache -f "$_font_dir"
+    fi
+}
 
 # Best efforts to retrieve background color.
 # Works: terminal app in macos, ...

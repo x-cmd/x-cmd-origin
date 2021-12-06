@@ -81,12 +81,12 @@ ___x_cmd_theme_git_get_prompt_info_exe() {
 ___x_cmd_theme_scm() {
     ___X_CMD_THEME_SCM_TYPE="$(___x_cmd_theme_git_get_prompt_info_exe 2>/dev/null)"
 
-    case "$___X_CMD_THEME_SCM_TYPE" in
-        git)        ___X_CMD_THEME_SCM_INFO="$(___x_cmd_theme_git_get_friendly_ref)";;
-        hg)         ___X_CMD_THEME_SCM_INFO="$(___x_cmd_theme_hg_get_friendly_ref)" ;;
-        svn)        ___X_CMD_THEME_SCM_INFO="$(___x_cmd_theme_svn_get_friendly_ref)" ;;
-        *)          ___X_CMD_THEME_SCM_TYPE= ;;
-    esac
+    # case "$___X_CMD_THEME_SCM_TYPE" in
+    #     git)        ___X_CMD_THEME_SCM_INFO="$(___x_cmd_theme_git_get_friendly_ref)";;
+    #     hg)         ___X_CMD_THEME_SCM_INFO="$(___x_cmd_theme_hg_get_friendly_ref)" ;;
+    #     svn)        ___X_CMD_THEME_SCM_INFO="$(___x_cmd_theme_svn_get_friendly_ref)" ;;
+    #     *)          ___X_CMD_THEME_SCM_TYPE= ;;
+    # esac
 }
 
 ___x_cmd_theme_get_git_repo_name() {
@@ -120,7 +120,7 @@ ___x_cmd_theme_prompt_comp_symbol(){
 
 ___x_cmd_theme_prompt_comp_username() {
     if [ -n "$SSH_CONNECTION" ] || [ -f "/.dockerenv" ]; then
-        printf "%s" "${___X_CMD_THEME_USER}@${___X_CMD_THEME_HOST}"
+        printf "%s" "${___X_CMD_THEME_USER}${SEP:-@}${___X_CMD_THEME_HOST}"
     else
         printf "%s" "${___X_CMD_THEME_USER}"
     fi

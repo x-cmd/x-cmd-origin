@@ -3,7 +3,7 @@ BEGIN {
     LEN   ="len"
     KSEP  = "\034"
 
-    if (IS_TERMINAL == true) {
+    if (IS_TTY == true) {
         FG_RED        = "\033[31m"
         FG_LIGHT_RED  = "\033[91m"
         FG_BLUE       = "\033[36m"

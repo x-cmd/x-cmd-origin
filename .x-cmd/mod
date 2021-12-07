@@ -25,6 +25,7 @@ x-cmd
 hub
 install
 awk
+x_fs
 
 # basic modules: non dependency
 str

@@ -11,7 +11,7 @@ ___ui_table(){
         json)   shift; ___ui_table_json      "$@"      ;;
         -)      ___ui_table_clear                      ;;
         +)      shift; ___ui_table_read      "$@"      ;;
-        *)      shift; ___ui_table_out       "$@"      ;;
+        *)      shift; ___ui_table_out3      "$@"      ;;
     esac
 }
 
@@ -192,9 +192,9 @@ ___X_CMD_UI_TABLE_CONTROL_AWK_PATH="./table.control.awk" # ui/_v0/table.control.
 # ___X_CMD_UI_TABLE_CONTROL_AWK_PATH="$(x which ui/_v0/table.control.awk)"
 
 ___x_cmd_ui_table_control(){
-    LC_ALL=en_US.UTF-8 USE=wcwidth,ui,str ___x_cmd_awk file "$___X_CMD_UI_TABLE_CONTROL_AWK_PATH" -v EXIT_OP="$EXIT_OP"
+    LC_ALL=en_US.UTF-8 USE=str,wcwidth,ui ___x_cmd_awk file "$___X_CMD_UI_TABLE_CONTROL_AWK_PATH" -v EXIT_OP="$EXIT_OP"
     # LC_ALL=en_US.UTF-8  awk "$(xrc cat ui/_v0/wcwidth.awk)$(cat $___X_CMD_UI_TABLE_CONTROL_AWK_PATH)"
-    
+
     # echo "aaaaa" >a.out
     # using awk
     # counting
@@ -202,7 +202,7 @@ ___x_cmd_ui_table_control(){
 }
 
 ___x_cmd_ui_region_update_table(){
-    awk -f "$___X_CMD_UI_REGION_AWK"
+    LC_ALL=en_US.UTF-8 USE=str,ui ___x_cmd_awk file "$___X_CMD_UI_REGION_AWK"
 }
 
 # EXIT_OP=
@@ -227,53 +227,77 @@ ___ui_table_out3(){
         printf "%s\n" "$___X_CMD_UI_TABLE_DEFAULT" | ___x_cmd_ui_region_send
         printf "VIEW %s %s\n" "$(ui rows)" "$(ui cols)" | ___x_cmd_ui_region_send
 
+        local SPACE=
+
         while region_getchar; do
-            case "$___X_CMD_UI_GETCHAR_CHAR" in
-                UP|DN|LEFT|RIGHT)
-                    printf "%s\n" "$___X_CMD_UI_GETCHAR_CHAR"
-                    ;;
-                p)
-                    printf "PREV-PAGE" >&3
-                    ;;
-                n)
-                    printf "NEXT-PAGE" >&3
-                    ;;
-                c)
-                    printf "CREATE\n"
-                    if ___ui_table_out3_contain_exit_op CREATE; then
-                        printf "END\n"
-                        break
-                    fi
-                    ;;
-                e|u)
-                    printf "UPDATE\n"
-                    if ___ui_table_out3_contain_exit_op UPDATE; then
-                        printf "END\n"
-                        break
-                    fi
-                    ;;
-                d)
-                    printf "DELETE\n"
-                    if ___ui_table_out3_contain_exit_op DELETE; then
-                        printf "END\n"
-                        break
-                    fi
-                    ;;
-                r)
-                    printf "REFRESH\n"
-                    if ___ui_table_out3_contain_exit_op REFRESH; then
-                        printf "END\n"
-                        break
-                    fi
-                    ;;
-                ENTER)
-                    printf "ENTER\n"
-                    if ___ui_table_out3_contain_exit_op ENTER; then
-                        printf "END\n"
-                        break
-                    fi
-                    ;;
-            esac
+
+            if [ -n "$SPACE"  ]; then
+                case "$___X_CMD_UI_GETCHAR_TYPE" in
+                    ascii-space|ascii-delete|ascii-symbol*|ascii-digit|ascii-letter*|UTF8-MULTI*)    
+                        printf "INPUT %s %s\n" "$___X_CMD_UI_GETCHAR_TYPE" "$___X_CMD_UI_GETCHAR_CHAR" ;;
+                    *)
+                        if [ "$___X_CMD_UI_GETCHAR_CHAR" = ENTER ]; then
+                            SPACE=
+                            printf "FILTER_EDIT_END\n"
+                        fi
+                        ;;
+                esac
+            else
+                case "$___X_CMD_UI_GETCHAR_CHAR" in
+                    UP|DN|LEFT|RIGHT)
+                        printf "%s\n" "$___X_CMD_UI_GETCHAR_CHAR"
+                        ;;
+                    p)
+                        printf "PREV-PAGE\n"
+                        ;;
+                    n)
+                        printf "NEXT-PAGE\n"
+                        ;;
+                    c)
+                        printf "CREATE\n"
+                        if ___ui_table_out3_contain_exit_op CREATE; then
+                            printf "END\n"
+                            break
+                        fi
+                        ;;
+                    e|u)
+                        printf "UPDATE\n"
+                        if ___ui_table_out3_contain_exit_op UPDATE; then
+                            printf "END\n"
+                            break
+                        fi
+                        ;;
+                    d)
+                        printf "DELETE\n"
+                        if ___ui_table_out3_contain_exit_op DELETE; then
+                            printf "END\n"
+                            break
+                        fi
+                        ;;
+                    r)
+                        printf "REFRESH\n"
+                        if ___ui_table_out3_contain_exit_op REFRESH; then
+                            printf "END\n"
+                            break
+                        fi
+                        ;;
+                    ENTER)
+                        printf "ENTER\n"
+                        if ___ui_table_out3_contain_exit_op ENTER; then
+                            printf "END\n"
+                            break
+                        fi
+                        ;;
+                    *)
+                        # TODO: add filter?
+                        case "$___X_CMD_UI_GETCHAR_TYPE" in
+                            ascii-space)    
+                                SPACE=1
+                                printf "FILTER_EDIT_BEGIN\n" ;;
+                        esac
+                esac
+            fi
+
             printf "VIEW %s %s\n" "$(ui rows)" "$(ui cols)"
         done
         
@@ -291,17 +315,15 @@ ___ui_table_out3(){
 
 # EndSection
 
-ui table -
-ui table + B%USER               PID  %CPU %MEM      VSZ    RSS   TT  STAT STARTED      TIME COMMAND
-for i in {1..6}; do
-    ui table + edwinjhlee       45694  69.7  3.2 12906080 542124   ??  R    "三02下午" 2171:02.57 "com.docker.hyperkit -A -u -F vms/0/hyperkit.pid -c 4 -m 8192M -s 0:0,hostbridge -s"
-    ui table + _windowserver    24773   9.6  0.9  9289004 146772   ??  Ss   "29 521"  2827:26.66 "/System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer -daemo"
-    ui table + edwinjhlee       40627   9.1  0.8  9704844 133228   ??  Ss   "25 621"  351:58.88 "/Applications/Visual Studio Code.app/Contents/MacOS/Electron /Users/edwinjhlee/x-b"
-    ui table + edwinjhlee       81250   5.9  1.7 57448804 293384   ??  S    "2:25下午"  18:21.02 "/Applications/Visual Studio Code.app/Contents/Frameworks/Code Helper (Renderer).app"
-    ui table + edwinjhlee       81250   5.9  1.7 57448804 293384   ??  S    "2:25下午"  18:21.02 "/Applications/Visual Studio Code.app/Contents/Frameworks/Code Helper (Renderer).app"
-    ui table + edwinjhlee       99999   5.9  1.7 57448804 293384   ??  S    "2:25下午"  18:21.02 "/Applications/Visual Studio Code.app/Contents/Frameworks/Code Helper (Renderer).app"
-done
-# HIGHROW=2 HIGHCOL=3 ui table out
-HIGHROW=2 HIGHCOL=3 ___ui_table_out3
 # ui table -
+# ui table + B%USER               PID  %CPU %MEM      VSZ    RSS   TT  STAT STARTED      TIME COMMAND
+# for i in {1..6}; do
+#     ui table + edwinjhlee       45694  69.7  3.2 12906080 542124   ??  R    "三02下午" 2171:02.57 "com.docker.hyperkit -A -u -F vms/0/hyperkit.pid -c 4 -m 8192M -s 0:0,hostbridge -s"
+#     ui table + _windowserver    24773   9.6  0.9  9289004 146772   ??  Ss   "29 521"  2827:26.66 "/System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer -daemo"
+#     ui table + edwinjhlee       40627   9.1  0.8  9704844 133228   ??  Ss   "25 621"  351:58.88 "/Applications/Visual Studio Code.app/Contents/MacOS/Electron /Users/edwinjhlee/x-b"
+#     ui table + edwinjhlee       81250   5.9  1.7 57448804 293384   ??  S    "2:25下午"  18:21.02 "/Applications/Visual Studio Code.app/Contents/Frameworks/Code Helper (Renderer).app"
+#     ui table + edwinjhlee       81250   5.9  1.7 57448804 293384   ??  S    "2:25下午"  18:21.02 "/Applications/Visual Studio Code.app/Contents/Frameworks/Code Helper (Renderer).app"
+#     ui table + edwinjhlee       99999   5.9  1.7 57448804 293384   ??  S    "2:25下午"  18:21.02 "/Applications/Visual Studio Code.app/Contents/Frameworks/Code Helper (Renderer).app"
+# done
+# ui table
 

@@ -284,7 +284,7 @@ ___x_cmd_bw(){
 }
 
 ___x_cmd_exa(){
-    xrc static-build && static_build_init exa exa ___x_cmd_exa && ___x_cmd_exa   "--color always" "$@"
+    xrc static-build && static_build_init exa exa ___x_cmd_exa && ___x_cmd_exa --color always "$@"
 }
 
 ___x_cmd_dust(){
@@ -552,6 +552,10 @@ ___x_cmd_ws(){
     fi
 }
 
+___x_cmd_cd(){
+    xrc x_fs/v0 && ___x_cmd_cd "$@"
+}
+
 ___x_cmd_main(){
     local subcmd=$1;    shift 2>/dev/null
     case "$subcmd" in
@@ -566,6 +570,8 @@ ___x_cmd_main(){
         *=)                                     ___x_cmd_varset_without_end "${subcmd%=}" "$@" ;;
 
         install)                                xrc install/v0 && ___x_cmd_install "$@" ;;
+
+        cd)                                     ___x_cmd_cd ;;
 
         man)        ;;
         tldr)                                   xrc tldr/v0 && tldr "$@" ;;

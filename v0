@@ -1,0 +1,22 @@
+# shellcheck shell=sh disable=SC3043,SC2164
+
+# author:       Li Junhao           l@x-cmd.com    edwinjhlee.github.io
+# maintainer:   Li Junhao
+# license:      GPLv3
+
+xrc x_fs/cd
+xrc x_fs/ls
+xrc x_fs/mv
+xrc x_fs/cp
+xrc x_fs/rm
+
+___x_cmd_fs_activate(){
+    alias cd=___x_cmd_cd
+    alias ls=___x_cmd_ls
+    alias mv=___x_cmd_mv
+    alias cp=___x_cmd_cp
+    alias rm=___x_cmd_rm
+}
+
+# ___x_cmd_fs_activate
+

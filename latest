@@ -1,0 +1,11 @@
+# shellcheck shell=sh
+
+# author:       Li Junhao           l@x-cmd.com    edwinjhlee.github.io
+# maintainer:   Li Junhao
+
+xrc cd/v0
+
+# bash <<A
+# xrc proxy/v0
+# proxy $@
+# A

@@ -4,11 +4,11 @@
 # maintainer:   Li Junhao
 # license:      GPLv3
 
-xrc x_fs/cd
-xrc x_fs/ls
-xrc x_fs/mv
-xrc x_fs/cp
-xrc x_fs/rm
+xrc x_fs/_v0/cd
+xrc x_fs/_v0/ls
+xrc x_fs/_v0/mv
+xrc x_fs/_v0/cp
+xrc x_fs/_v0/rm
 
 ___x_cmd_fs_activate(){
     alias cd=___x_cmd_cd

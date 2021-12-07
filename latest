@@ -3,15 +3,18 @@
 xrc param/v0
 
 ___x_cmd_theme_control(){
-    local _is_zsh
-    _is_zsh="$([ -n "$ZSH_VERSION" ] && printf "zinit    \"init the zsh environment\"")"
+    local zinit
+    local font
+    zinit="$([ -n "$ZSH_VERSION" ] && printf "zinit    \"init the zsh environment\"")"
+    font="$([ -z "$SSH_CONNECTION" ] && [ ! -f "/.dockerenv" ] && printf "font    \"install powerline font\"")"
     param:dsl <<A
 subcommands:
     ls          "list all theme"
     use         "use theme when starting the shell"
     try         "try theme"
     rollback    "use last theme"
-    ${_is_zsh}
+    ${zinit}
+    ${font}
     unset       "unset the theme"
 A
     param:run
@@ -108,7 +111,6 @@ ___x_cmd_theme_control_rollback(){
 
 ___x_cmd_theme_control_zinit(){
     local _have_loaded_theme
-    local defalut_font='MonacoPL'
     _have_loaded_theme=$(x boot rc ls | grep 'x-theme')
     # load theme
     [ -z "$_have_loaded_theme" ] && ___x_cmd_theme_control_use ""
@@ -116,7 +118,7 @@ ___x_cmd_theme_control_zinit(){
     [ -z "$ZSH_AUTOSUGGEST_COMPLETIONS_PTY_NAME" ] && ___x_cmd_theme_control_use_plugin "zsh-autosuggestions"
     [ -z "$ZSH_HIGHLIGHT_REVISION" ] && ___x_cmd_theme_control_use_plugin "zsh-syntax-highlighting"
     # load font
-    ___x_cmd_theme_control_font $defalut_font
+    [ -z "$SSH_CONNECTION" ] && [ ! -f "/.dockerenv" ] && ___x_cmd_theme_control_font
     printf "%s\n" "[x-cmd]: Successfully initialized."
 }
 
@@ -128,16 +130,27 @@ ___x_cmd_theme_control_use_plugin() {
 
 ___x_cmd_theme_control_font() {
     local _font_dir
+    local _font_name
     if [ "$(uname)" = "Darwin" ]; then
         # MacOS
         _font_dir="$HOME/Library/Fonts"
+        _font_name='MonacoPL.ttf'
     else
         # Linux
         _font_dir="$HOME/.local/share/fonts"
         mkdir -p "$_font_dir"
+        _font_name='CascadiaCodePL.ttf'
     fi
-    { [ -z "$1" ] || [ -f "$_font_dir/$1.ttf" ] ; } && return 1;
-    mv "$(xrc which theme/third-party/"$1".ttf)" "$_font_dir/"
+    if [ -f "$_font_dir/$_font_name" ];then
+        printf "%s\n" "[x-cmd]: font already installed: $_font_dir"
+        return 0
+    fi
+    local CACHE="$_font_dir/$_font_name"
+    local url="https://gitee.com/x-cmd/theme/raw/main/font/$_font_name"
+    if [ "$___X_CMD_IN_CHINA_NET" != 1 ]; then
+        url="https://raw.githubusercontent.com/x-cmd/theme/main/font/$_font_name"
+    fi
+    ___x_cmd_curl "$url"
     if [ -n "$(command -v fc-cache)" ] ; then
         printf "%s\n" "[x-cmd]: Resetting font cache, this may take a moment..."
         fc-cache -f "$_font_dir"

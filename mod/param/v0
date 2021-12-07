@@ -250,7 +250,7 @@ _param_main() {
             -v RS="$PARAM_RS_SEP" \
             -v COLUMNS="$COLUMNS" \
             -v IS_INTERACTIVE="$___X_CMD_PARAM_IS_INTERACTIVE" \
-            -v IS_TERMINAL="$___X_CMD_PARAM_STDERR_IS_TTY" \
+            -v IS_TTY="$___X_CMD_PARAM_STDERR_IS_TTY" \
             -f "$PARAM_AWK_PATH"
     # Notice: Must clear this variable.
     ___X_CMD_PARAM_SCOPE=

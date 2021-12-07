@@ -1,5 +1,6 @@
 # shellcheck shell=sh disable=SC2039,SC2142,SC3043
 
+___X_CMD_XRC_MODULE_IMPORTED=
 x log param xrc dict
 xrc param/v0
 xrc assert

@@ -1,0 +1,138 @@
+# shellcheck shell=sh disable=SC3043
+
+xrc ui/_v0/region
+
+# Section: select app
+___x_cmd_ui_region_select_draw(){
+    local select="$1"
+    local text="$2"
+    local prompt="$3"; shift 3
+    {
+        local l=0
+        local arg
+        printf "%s\n" "$prompt"
+        for arg in "$@"; do
+            l=$((l+1))
+            if [ "$l" -eq "$select" ]; then
+                printf "  $l. \033[7m%s\033[0m\n" "$arg"
+            else
+                printf "  $l. \033[32m%s\033[0m\n" "$arg"
+            fi
+        done
+        printf "Input number: %s\n" "$text"
+        printf "\n\033[2m%s\033[0m" "Use arrow up/down to select. Press ENTER to confirm."
+    } | ___x_cmd_ui_region_send
+}
+
+___x_cmd_ui_region_select_main(){
+    exec 3>&1
+    local state=2           # default
+    local state_text="2"
+    local question="$1"; shift
+    {
+        ___x_cmd_ui_region_select_draw "$state" "$state_text" "$question" "$@"
+        while region_getchar; do
+            case "${___X_CMD_UI_GETCHAR_CHAR}" in
+                UP)
+                    if [ $state -eq -1 ]; then
+                        state=$#
+                    else
+                        state="$((state-1))" 
+                    fi
+                    ;;
+                DN)         
+                    if [ $state -eq -1 ]; then
+                        state=1
+                    else
+                        state="$((state+1))" 
+                    fi
+                    ;;
+                ENTER)
+                    break ;;
+                DELETE)     
+                    state_text="${state_text%?}"
+                    if [ "$state_text" = "" ]; then
+                        state=-1
+                    elif [ "$state_text" -ge 1 ] && [ "$state_text" -le $# ]; then
+                        state="$state_text"
+                    else
+                        state=-1
+                    fi
+                    ;;
+                0|1|2|3|4|5|6|7|8|9)        
+                    state_text="${state_text}${___X_CMD_UI_GETCHAR_CHAR}"
+                    if [ "$state_text" = "" ]; then
+                        state=-1
+                    elif [ "$state_text" -ge 1 ] && [ "$state_text" -le $# ]; then
+                        state="$state_text"
+                    else
+                        state=-1
+                    fi
+                    ;;
+            esac
+            if [ "$state" -eq -1 ]; then
+                # state=$(( state % $# + $# ))
+                state=-1
+            else
+                state=$(( (state + $# - 1 ) % $# + 1 ))
+                state_text="$state"
+            fi
+            ___x_cmd_ui_region_select_draw "$state" "$state_text" "$question" "$@"
+        done
+        
+        # Notice: Meaningless but important.
+        ___x_cmd_ui_region_select_draw "$state" "$question" "$@"
+
+        if [ "$state" -eq -1 ]; then
+            case "$___UI_REGION_OUTPUT" in
+                text)           printf "" ;;
+                numtext)        printf "%s\n" -1 ;;
+                ""|*)           printf "%s" "-1" ;;
+            esac >&3
+        else
+            case "$___UI_REGION_OUTPUT" in
+                text)           shift 1; eval printf "\"%s\"" "\"\$$state\"" ;;
+                numtext)        shift 1; eval printf "\"%s\n%s\"" "\"$state\"" "\"\$$state\"" ;;
+                ""|*)           printf "%s" "$state" ;;
+            esac >&3
+        fi
+        
+    } | ___x_cmd_ui_region_update
+    # tput cvvis
+    # stty echo
+    exec 3>&-
+}
+
+___x_cmd_ui_region_select_null(){
+    printf "%s" "$(___x_cmd_ui_region_select_main "$@")"
+}
+
+___x_cmd_ui_region_select_text(){
+    printf "%s" "$(___UI_REGION_OUTPUT=text ___x_cmd_ui_region_select_main "$@")"
+}
+
+___x_cmd_ui_region_select_numtext(){
+    printf "%s" "$(___UI_REGION_OUTPUT=numtext ___x_cmd_ui_region_select_main "$@")"
+}
+
+___x_cmd_ui_select(){
+    local op="$1"; shift
+    case "$op" in
+        text)           ___x_cmd_ui_region_select_text "$@" ;;
+        numtext)        ___x_cmd_ui_region_select_numtext "$@" ;;
+        *)              ___x_cmd_ui_region_select_null "$@" ;;
+    esac
+}
+
+# EndSection
+
+
+# ___x_cmd_ui_select \
+#     "Please select the app you want to install:" \
+#     "Install docker" \
+#     "Install k8s" \
+#     "Install minikube" \
+#     "Install jvm" \
+#     "Install nvm"
+
+

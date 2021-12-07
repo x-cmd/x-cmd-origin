@@ -48,6 +48,18 @@ function uitem(str){
     return str "\033[0m"
 }
 
+function ui_goto_cursor(row, column){
+    printf "\033[" row ";" column "dh"
+}
+
+function ui_goto_cursor0(){
+    printf "\033[1;1dh"
+}
+
+function ui_move_next_line(cur_row, cur_col){
+    ui_goto_cursor(cur_row + 1, cur_col)
+}
+
 # BEGIN {
 #     print uitem( UI_TEXT_REV UI_FG_RED "hi")
 #     print uitem( UI_TEXT_BOLD UI_BG_WHITE UI_FG_CYAN "hi")

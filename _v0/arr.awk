@@ -33,12 +33,12 @@ function arr_top(arr) {
     return arr[ _len ]
 }
 
-function arr_join(arr, sep, _len, _i, _result){
-    if (sep == "") sep = " "
+function arr_join(arr, sep, _start, _len, _i, _result) {
+    if (sep == "")      sep = "\n"
+    if (_start == "")   _start = 1
+    if (_len == "" )    _len = arr[ LEN ]
 
-    _len = arr[ LEN ]
-
-    if (_len < 1) return
+    if (_len < 1) return ""
 
     _result = arr[1]
     for (_i=2; _i<=_len; ++_i) {

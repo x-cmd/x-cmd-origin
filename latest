@@ -237,6 +237,7 @@ ___x_cmd_xrc_source_file(){
 
         if ! file="$(___X_CMD_NO_LOCAL=1 ___x_cmd_which_one "$xrcpath")"; then
             printf "ERROR: Interrupted because resource not found. %s \n" "$xrcpath" >&2
+            printf "%s\n" "return 1"
             return 1
         fi
 
@@ -257,6 +258,7 @@ A
             if [ "$input" != "yes" ]; then
                 rm "$file"
                 printf "%s\n" "Exit because of a non yes output received: $input" >&2
+                printf "%s\n" "return 1"
                 return 1
             fi
         fi
@@ -379,7 +381,7 @@ ___x_cmd_which_one(){
             fi
             ;;
         *)
-            [ -z "$___X_CMD_NO_LOCAL" ] && [ -f "$RESOURCE_NAME" ] && printf "%s" "$RESOURCE_NAME" && return      # local file
+            # [ -z "$___X_CMD_NO_LOCAL" ] && [ -f "$RESOURCE_NAME" ] && printf "%s" "$RESOURCE_NAME" && return      # local file
 
             if TGT="$(___x_cmd_search_path . ".x-cmd/$RESOURCE_NAME")"; then
                 ___X_CMD_UNTRUSTED_RESOURCE=workspace

@@ -1,0 +1,88 @@
+# shellcheck shell=sh
+
+
+# shellcheck disable=SC3043,SC2034,SC2155
+
+x log init ps1env
+
+___X_CMD_PS1ENV_OVERRIDE_ALIAS=""
+
+ps1env(){
+    local subcmd="${1:?Subcommand}";    shift
+
+    case "$subcmd" in
+        init)                   ___x_cmd_ps1env_init "$@" ;;
+        alias)                  ___x_cmd_ps1env_alias "$@" ;;
+        reset)                  ___x_cmd_ps1env_reset "$@" ;;
+        _x_cmd_advise_json)     
+            cat <<A
+{
+    "init": null,
+    "alias": null
+}
+A
+            return 126 ;;
+    esac
+}
+
+# Section: advise
+
+xrc advise/v0
+advise ps1env
+
+___x_cmd_ps1env_init(){
+    ___x_cmd_ps1env_reset
+
+    ___X_CMD_PS1ENV_PS1="$PS1"
+    # _ps1env_set_ps1 "${1:-\$}"
+    ___x_cmd_theme_control_subenv_prompt "${1:?Please provide}"
+
+    ___x_cmd_ps1env_alias %q "___x_cmd_ps1env_reset"
+}
+
+___x_cmd_ps1env_alias(){
+    local s
+    if s=$(alias "$1" 2>/dev/null); then
+        eval "___X_CMD_PS1ENV_OVERRIDE_ALIAS=\"
+\$s
+\$___X_CMD_PS1ENV_OVERRIDE_ALIAS
+\"
+"
+    fi
+
+    alias $1="$2"
+
+    ___X_CMD_PS1ENV_BIND="$___X_CMD_PS1ENV_BIND
+$1
+"
+}
+
+___x_cmd_ps1env_reset(){
+
+    if [ -z "$___X_CMD_PS1ENV_PS1" ]; then
+        ps1env_log debug "Reset abort."
+        return 1
+    fi
+
+    ___x_cmd_theme_control_subenv_prompt_clear
+
+    local IFS=""
+
+    # Donot recover
+    # PS1="${___X_CMD_PS1ENV_PS1}"
+    ___X_CMD_PS1ENV_PS1=
+
+    while read -r line; do
+        [ -z "$line" ] && continue
+        unalias "${line}"
+    done <<A
+$___X_CMD_PS1ENV_BIND
+A
+
+    ___X_CMD_PS1ENV_BIND=
+
+    eval "$___X_CMD_PS1ENV_OVERRIDE_ALIAS"
+    ___X_CMD_PS1ENV_OVERRIDE_ALIAS=
+}
+
+# EndSection

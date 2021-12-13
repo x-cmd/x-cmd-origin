@@ -32,15 +32,6 @@ PARAM_RS_SEP="${DICT_SEP}"
 #     param_marg optname "$idx"
 # done
 
-___init_lines_columns(){
-    if [ -z "${BASH_VERSION}${ZSH_VERSION}" ]; then
-        local IFS
-        read -r LINES COLUMNS <<A
-$(stty size)
-A
-    fi
-}
-
 param_marg() {
     local a=${1:?Provide option name}
     if [ -n "$2" ]; then
@@ -191,15 +182,11 @@ ___param_eval_echo(){
 }
 
 alias param:debug='local IFS; ___param_eval_echo "$(_param_main "$@"  )"'
-
-if [ "${-#*i}" != "$-" ]; then
-    xrc ui/v0
-fi
+xrc ui/v0
 
 # TODO: our goal, 6ms
 _param_main() {
-    ___init_lines_columns
-    if [ -n "$___X_CMD_PARAM_PLUGIN_ID" ]; then
+    if [ -n "$___X_BASH_PARAM_PLUGIN_ID" ]; then
         if [ "plugin" = "$1" ]; then
             printf "%s\n" shift
             printf "param_plugin \"\$@\"\n"

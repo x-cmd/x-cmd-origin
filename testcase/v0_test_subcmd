@@ -6,6 +6,7 @@ paramtest_subcmd(){
 subcommand:
     sscmd1|s1|s-s1|longlongsubcommand   "Test sub sub command1"
     sscmd2                              "Test sub sub command2"
+    subcmd_null                         "Test 2 subcommand null"
 '
     param:run
     paramtest_subcmd_"${PARAM_SUBCMD}" "$@"
@@ -14,6 +15,8 @@ subcommand:
 paramtest_subcmd_sscmd1(){
     param:scope     "paramtest/$O"
     param:dsl       '
+subcommand:
+    subcmd_null        "Test 3 subcommand null"
 options:
     --ss1_opt1|-s      "Test sub sub command1 option1"
     --ss1_opt2|-d      "Test sub sub command1 option2"

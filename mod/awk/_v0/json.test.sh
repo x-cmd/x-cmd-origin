@@ -18,15 +18,15 @@ awk -v RS="\t" "$SSS"'
 
 END{
     json_parse(data, arr)
-    json_list_push(arr, ".b.")
+    json_dict_push(arr, S "\"" 1 "\"","\"d\"",9)
     # print( jkey(1, "b", 6) )
     # print ( json_handle_jpath(".b.1"))
     # print("---"  arr[ jkey(1, "b", 6) ])
 
 
     print json_stringify_format(arr, ".", 6)
-    # print json_stringify_machine(arr, ".b")
-    print json_stringify_compact(arr, ".c")
+    # print json_stringify_machine(arr)
+    # print json_stringify_compact(arr, ".")
 }
 
 ' <<A
@@ -43,6 +43,7 @@ END{
     "c": {
         "c1": 12,
         "c2": {
+            "c21": 12,
             "c22": [
                 3,
                 4

@@ -171,11 +171,8 @@ function ___json_parse_walk_panic(msg,       start){
 
 function ___json_parse_walk_dict(arr, keypath,
     nth, cur_keypath, _result, _klist){
-    if (s != "{") {
-        # debug("___json_parse_walk_dict() fails" )
-        return false
-    }
-
+    if (s != "{") return false
+    arr[ keypath T ] = T_DICT
 
     nth = 0
     s = ___JSON_TMP_TOKENS[++s_idx]
@@ -204,7 +201,7 @@ function ___json_parse_walk_dict(arr, keypath,
 
         if (s == ",") s = ___JSON_TMP_TOKENS[++s_idx]
     }
-    arr[ keypath T_LEN ] = nth + 1  # starts from 1
+    arr[ keypath T_LEN ] = nth - 1  # starts from 1
     arr[ keypath T_KEY ] = _klist
     return true
 }
@@ -213,6 +210,7 @@ function ___json_parse_walk_list(arr, keypath,
     nth, cur_keypath, _result){
 
     if (s != "[")   return false
+    arr[ keypath T ] = T_ARRAY
 
     nth = 0
     s = ___JSON_TMP_TOKENS[++s_idx]
@@ -238,8 +236,7 @@ function ___json_parse_walk_list(arr, keypath,
         if (s == ",")   s = ___JSON_TMP_TOKENS[ ++s_idx ]
     }
 
-    arr[ keypath T_LEN ] = nth  # starts from 1
-
+    arr[ keypath T_LEN ] = nth - 1  # starts from 1
     return true
 }
 
@@ -313,14 +310,16 @@ function json_dict_keys(arr, keypath, klist, _l){
     return _l
 }
 
-function json_dict_rm(arr, keypath, key){
-    # substr()
+function json_dict_rm(arr, keypath, key,  _key_str){
+    _key_str = arr[ keypath T_KEY]
+    if (match(_key_str, S key)){
+        arr[ keypath T_KEY ] = substr(_key_str, 1, RSTART - 1) substr(_key_str, RSTART + RLENGTH)
+        arr[ keypath T_LEN ] = arr[ keypath T_LEN ] - 1
+    }
 }
 
 # TODO: We should quote
 function json_dict_push(arr, keypath, key, value,  _v){
-    keypath=json_handle_jpath(keypath)
-    key=q(key)
     _v = arr[keypath S key]
     if ( _v != "" ) {
         arr[keypath S key] = value
@@ -351,14 +350,14 @@ function json_dict_len(arr, keypath){
 # Section: json list handler
 function json_list_push(arr, keypath, value,  _l){
     _l = arr[ keypath T_LEN ] + 1
-    arr[ _l ] = value
+    arr[ keypath S "\"" _l "\""] = value
     arr[ keypath T_LEN ] = _l
 }
 
 function json_list_has(arr, keypath, value,  _l, _i) {
     _l = arr[ keypath T_LEN ]
     for (_i=1; _i<=_l; ++_i) {
-        if ( arr[keypath S _i ] == value ) {
+        if ( arr[keypath S "\""_i "\"" ] == value ) {
             return true
         }
     }
@@ -370,9 +369,9 @@ function json_list_rm(arr, keypath, value,  _l, _i, _found_idx) {
     _found_idx = 0
     for (_i=1; _i<=_l; ++_i) {
         if (_found_idx != 0) {
-            arr[ _i - 1 ] = arr[ _i ]
+            arr[ keypath S "\"" _i - 1 "\"" ] = arr[ keypath S "\"" _i "\""]
         }
-        if ( arr[keypath S _i ] == value ) {
+        if ( arr[keypath S "\""_i "\"" ] == value ) {
             _found_idx = _i
         }
     }
@@ -382,7 +381,7 @@ function json_list_rm(arr, keypath, value,  _l, _i, _found_idx) {
     return _found_idx
 }
 
-function json_list_len(arr, dict_keypath){
+function json_list_len(arr, keypath){
     return arr[ keypath T_LEN ]
 }
 
@@ -414,31 +413,24 @@ function ___json_stringify_compact_list(arr, keypath,     _l, _i, _ret){
     _l = arr[ keypath T_LEN ]
     if (_l == 0) return "[]"
     _ret = ___json_stringify_compact_value( arr, keypath S "\"" 1 "\"" )
-    for (_i=2; _i<_l; _i++){
+    for (_i=2; _i<=_l; _i++){
         _ret = _ret "," ___json_stringify_compact_value( arr, keypath S "\"" _i "\"" )
     }
     return "[" _ret "]"
 }
 
-function ___json_stringify_compact_value(arr, keypath,      _t, _klist, _klist_l, _i){
+function ___json_stringify_compact_value(arr, keypath,      _t, _klist, _i){
     _t = arr[ keypath T ]
     if (_t == T_DICT) {
         return ___json_stringify_compact_dict(arr, keypath)
     } else if (_t == T_ARRAY) {
         return ___json_stringify_compact_list(arr, keypath)
-    } else if (_t == T_PRI) {
+    } else {
         return arr[ keypath ]
-    }else {
-        _klist_l = json_dict_keys(arr, keypath, _klist)
-        if ( _klist_l == 0 ) return ""
-        for (_i=2; _i<=_klist_l; ++_i){
-            _ret = _ret _klist[ _i ] ":"___json_stringify_compact_value(arr, keypath S _klist[ _i ]) ","
-        }
-        return _ret
     }
 }
 
-function json_stringify_compact(arr, keypath, i, len){
+function json_stringify_compact(arr, keypath, i, len, _ret){
     if (keypath != "") {
         keypath=json_handle_jpath(keypath)
         return ___json_stringify_compact_value(arr, keypath)
@@ -460,7 +452,7 @@ function ___json_stringify_machine_dict(arr, keypath,     _klist, _l, _i, _key, 
 
     _l = json_dict_keys(arr, keypath, _klist)
 
-    if (_l == 0) return "\n{\n}"
+    if (_l == 0) return "{\n}"
     _key = _klist[ 1 ]
     _val = arr[ keypath S _key ]
     _ret = _key "\n:\n" _val
@@ -471,46 +463,37 @@ function ___json_stringify_machine_dict(arr, keypath,     _klist, _l, _i, _key, 
         _ret = _ret "\n,\n" _key "\n:\n" ___json_stringify_machine_value( arr, keypath S _key )
     }
     _ret = substr(_ret, 7)
-    return "\n{\n" _ret "\n}"
+    return "{\n" _ret "\n}"
 }
 
 function ___json_stringify_machine_list(arr, keypath,     _l, _i, _ret){
     _l = arr[ keypath T_LEN ]
-    if (_l == 0) return "\n[\n]"
+    if (_l == 0) return "[\n]"
     _ret = ___json_stringify_machine_value( arr, keypath  S "\"" 1 "\"" )
 
-    for (_i=2; _i<_l; _i++){
+    for (_i=2; _i<=_l; _i++){
         _ret = _ret "\n,\n" ___json_stringify_machine_value( arr, keypath S "\""  _i "\"" )
     }
 
-    return "\n[\n" _ret "\n]"
+    return "[\n" _ret "\n]"
 }
 
-function ___json_stringify_machine_value(arr, keypath,     _t, _klist, _klist_l, _i){
+function ___json_stringify_machine_value(arr, keypath,     _t, _klist, _i, _ret){
     _t = arr[ keypath T ]
     if (_t == T_DICT) {
         return ___json_stringify_machine_dict(arr, keypath)
     } else if (_t == T_ARRAY) {
         return ___json_stringify_machine_list(arr, keypath)
-    } else if (_t == T_PRI) {
+    } else {
         return arr[ keypath ]
-    }else {
-        _klist_l = json_dict_keys(arr, keypath, _klist)
-        if ( _klist_l == 0 ) return ""
-        for (_i=2; _i<=_klist_l; ++_i){
-            _ret = _ret _klist[ _i ] "\n:\n"___json_stringify_machine_value(arr, keypath S _klist[ _i ]) "\n,\n"
-        }
-        return _ret
     }
 }
 
 function json_stringify_machine(arr, keypath, i, len){
     if (keypath != "") {
         keypath=json_handle_jpath(keypath)
-
         return ___json_stringify_machine_value(arr, keypath)
     }
-
     len = arr[ T_LEN ]
     if (len < 1)  return ""
 
@@ -527,31 +510,28 @@ function ___json_stringify_format_dict(arr, keypath, indent,    _klist, _l, _i, 
     _l = json_dict_keys(arr, keypath, _klist)
 
     if (_l == 0) return "{ }"
-    _key = _klist[ 1 ]
-    _val = arr[ keypath S _key ]
-    _ret = _key ": " _val
 
     for (_i=2; _i<=_l; _i++){
         _key = _klist[ _i ]
         _val = arr[ keypath S _key ]
-        _ret = _ret ",\n" draw_space(indent + indent)  _key ": " ___json_stringify_format_value( arr, keypath S _key, indent + indent )
+        _ret = _ret ",\n" draw_space(indent) _key ": " ___json_stringify_format_value( arr, keypath S _key, indent+INDENT_LEN )
     }
-    _ret = substr(_ret, 3+indent)
-    return "{\n" _ret "\n" draw_space(indent) "}"
+    _ret = substr(_ret, 2)
+    return "{" _ret "\n" draw_space(indent-INDENT_LEN) "}"
 }
 
 function ___json_stringify_format_list(arr, keypath, indent,    _l, _i, _ret){
     _l = arr[ keypath T_LEN ]
     if (_l == 0) return "[ ]"
-    _ret = ___json_stringify_format_value( arr, keypath S "\"" 1 "\"", indent + indent )
 
-    for (_i=2; _i<_l; _i++){
-        _ret = _ret ","  ___json_stringify_format_value( arr, keypath S "\"" _i "\"", indent + indent)  # arr[ keypath S _i ]
+    for (_i=1; _i<=_l; _i++){
+        _ret = _ret ",\n" draw_space(indent) ___json_stringify_format_value( arr, keypath S "\"" _i "\"", indent+INDENT_LEN)
     }
-    return "[" _ret "]"
+    _ret = substr(_ret, 2)
+    return "[" _ret "\n" draw_space(indent-INDENT_LEN) "]"
 }
 
-function ___json_stringify_format_value(arr, keypath, indent,   _t, _klist, _klist_l, _i){
+function ___json_stringify_format_value(arr, keypath, indent,   _t, _klist, _i, _ret){
 
     _t = arr[ keypath T ]
 
@@ -559,20 +539,13 @@ function ___json_stringify_format_value(arr, keypath, indent,   _t, _klist, _kli
         return ___json_stringify_format_dict(arr, keypath, indent)
     } else if (_t == T_ARRAY) {
         return ___json_stringify_format_list(arr, keypath, indent)
-    } else if (_t == T_PRI) {
+    } else {
         return arr[ keypath ]
-    }else {
-        _klist_l = json_dict_keys(arr, keypath, _klist)
-        if ( _klist_l == 0 ) return ""
-        for (_i=2; _i<=_klist_l; ++_i){
-            _ret = _ret draw_space(indent) _klist[ _i ] ": "___json_stringify_format_value(arr, keypath S _klist[ _i ], indent) ",\n"
-        }
-        return _ret
     }
 }
 
-function json_stringify_format(arr, keypath, indent,      i, len,   _indent){
-
+function json_stringify_format(arr, keypath, indent,      i, len){
+    INDENT_LEN = indent
 
     if (keypath != "") {
         keypath=json_handle_jpath(keypath)

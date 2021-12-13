@@ -144,6 +144,7 @@ END {
 '
 
 ___x_cmd_cd_load_history(){
+    if [ -f "$___X_CMD_ROOT/.tmp/cd/history" ]; then
     ___X_CMD_CD_HISTORY=$(awk '
 BEGIN {
     res_len = 0
@@ -163,6 +164,7 @@ END {
         print data[ len-j-1 ]
     }
 }' <"$___X_CMD_ROOT/.tmp/cd/history")
+fi
 
     printf "%s" "$___X_CMD_CD_HISTORY" | awk '
 BEGIN {
@@ -180,6 +182,7 @@ END {
 }
     ' > "$___X_CMD_ROOT/.tmp/cd/history"
 }
+___x_cmd_cd_load_history
 
 ___x_cmd_cd(){
     local p="$1"

@@ -29,5 +29,5 @@ ___x_cmd_theme_prompt_format(){
 
     printf "\n%s\n%s " \
         "${_username} ${_cwd} $(______x_cmd_theme_prompt_get_info)${_time}" \
-        "$(___x_cmd_theme_style bold "$(___x_cmd_theme_prompt_comp_symbol)")"
+        "$(___x_cmd_theme_prompt_comp_symbol "\$" "bold green" "bold red")"
 }

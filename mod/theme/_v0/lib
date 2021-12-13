@@ -111,10 +111,12 @@ ___x_cmd_theme_is_hg_dirty() {
 # Section: prompt components
 
 ___x_cmd_theme_prompt_comp_symbol(){
+    [ -n "$___X_CMD_THEME_CONTROL_SUBENV_PROMPT" ] && \
+        eval "$(printf "%s" "___x_cmd_theme_style ${4:-"yellow"}  $___X_CMD_THEME_CONTROL_SUBENV_PROMPT': '")"
     if [ "${___X_CMD_THEME_EXIT_STATUS}" -ne 0 ];then
-        ___x_cmd_theme_style "${3:-"red"}" "${1:-\$}"
+        eval "$(printf "%s" "___x_cmd_theme_style ${3:-"red"} ${1:-\$}")"
     else
-        ___x_cmd_theme_style "${2:-"green"}" "${1:-\$}"
+        eval "$(printf "%s" "___x_cmd_theme_style ${2:-"green"} ${1:-\$}")"
     fi
 }
 

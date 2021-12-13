@@ -22,6 +22,7 @@ param
 http
 advise
 ui
+ps1env
 
 # modules
 static-build

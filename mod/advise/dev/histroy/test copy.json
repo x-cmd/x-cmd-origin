@@ -1,12 +1,22 @@
 {
     "option": {
+        "--repo2|-a|m|1": [ "m1-a", "m1-b", "m1-c" ],
+        "--repo2|-a|m|2": [ "m2-a", "m2-b", "m2-c" ],
         "--repo3|-c|m": [ "m3-a", "m3-b", "m3-c" ],
         "--priviledge|-p": [ "private", "public" ],
+        "--dict|-d": {
+            "e":    [ "edwinjhlee", "labve" ],
+            "c:":   [ "c:abc", "c:aaa" ],
+            "*":    [ "e", "c:" ,"a"]
+        },
         "--cmd": "___advise_ls",
+        "--@": {
+            "@a": [ "@a1", "@a2", "@a3" ],
+            "@b": [ "@b1", "@b2", "@b3" ],
+            "*": ["@a", "@b"]
+        },
         "--colon": ["www:a", ":b", ":c"],
         "--flag|-f": null,
-        "--dict|-d": [ "edwinjhlee", "labve", "c:abc", "c:aaa"],
-        "--@": [ "@a1", "@a2", "@a3", "@b", "@c" ],
         "atcmd": {
             "--@": "myself_ls",
             "--ls": "___advise_ls"
@@ -49,13 +59,11 @@
     },
     "ssh": {
         "-b": null,
-        "-I": [ ],
-        "-J": "",
-        "-K": "   ",
-        "-L": [],
         "-c": "ssh -Q cipher",
         "-E|-F|-S": "___advise_ls",
+        "-I": null,
         "-i": "___advise_ls ${cur:-$HOME/.ssh/}",
+        "-J": null,
         "-l": "compgen -u",
         "-m": "ssh -Q mac || echo 'hmac-md5 hmac-sha1 umac-64@openssh.com hmac-ripemd160 hmac-sha1-96 hmac-md5-96'",
         "-O": ["check", "forward", "cancel", "exit stop"],
@@ -64,35 +72,19 @@
         "#1": "advise ls",
         "#n": "___advise_get_result 2"
     },
-    "segment|seg": {
+    "tldr": {
         "update": null,
-        "ls": "___advise_ls",
-        "lang": "x tldr lang",
-        "cat": ["common/2to3.md", "common/git-clone.md", "common/ogr2ogr.md", "common/7z.md","common/7za.md","common/7zr.md","linux/manpath.md","linux/mcookie.md"]
+        "ls": null,
+        "lang": "___tldr_lang",
+        "cat": ["common/2to3.md", "common/git-clone.md", "common/ogr2ogr.md", "common/7z.md","common/7za.md","common/7zr.md","linux/manpath.md","linux/mcookie.md"],
+        "test": ["ddd", "eee"]
     },
+    "proxy": {},
     "desc": {
-        "option|opt": {
-            "--op|-a|m": {
+        "subcmd|subcommand": {
+            "--op|-a|m|1": {
                 "#1": [ "m1-a", "m1-b", "m1-c" ],
-                "#2": [ "m2-a", "m2-b", "m2-c" ],
-                "#3": [ "m3-a", "m3-b", "m3-c" ],
-                "#desc": "cmd for op description"
-            },
-            "--repo2|-b|m": {
-                "#1": [ "abc", "cde", "def" ],
-                "#2": [ ],
-                "#desc": "Provide two repo name"
-            },
-            "sub|subcmmd": {
-                "#1": [ "abc", "cde", "def" ],
-                "#2": null,
-                "#desc": "cmd for sub description"
-            },
-            "-c": {
-                "#1": [ "m1-a", "m1-b", "m1-c" ],
-                "#2": [ "m2-a", "m2-b", "m2-c" ],
-                "#n": [ "m3-a", "m3-b", "m3-c" ],
-                "#desc": "cmd for ccc description"
+                "#desc": "op 1 bababa"
             },
             "--option|-O": [
                 "check     --- ssh-check-host-ip",
@@ -100,27 +92,12 @@
                 "cancel    --- ssh-cancel-forward-agent",
                 "exit      --- ssh-stop-forward-agent"
             ],
-            "--flag|-f": "--- cmd for flag description",
             "#desc": "subcmd description"
-        },
-        "seg": {
-            "-a": ["aaa", "bbb", "ccc"],
-            "-b|--adc": ["aaa", "bbb", "ccc"],
-            "-c":{
-                "#1": ["aaa", "bbb", "ccc" ],
-                "#desc": "cmd for ccc description"
-            },
-            "-d":{
-                "#1": ["aaa", "bbb", "ccc" ],
-                "#2": ["ddd", "bbb", "ccc" ]
-            },
-
-            "#desc": "cmd for oseg description"
         },
         "#1": "advise ls",
         "#n": "___advise_get_result 2",
-        "#desc": "cmd for 中文 测试 description"
+        "#desc": "cmd for description"
     },
     "#1": "advise ls",
-    "#n": "___advise_get_result 1"
+    "#n": "___advise_get_result '' 1"
 }

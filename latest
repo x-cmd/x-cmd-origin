@@ -195,6 +195,10 @@ ___x_cmd_theme_control_is_using_x_theme(){
     :
 }
 
+___x_cmd_theme_control_subenv_prompt_clear(){
+    ___X_CMD_THEME_CONTROL_SUBENV_PROMPT=
+}
+
 ___x_cmd_theme_control_subenv_prompt(){
     local subenv_prompt="${1}"
 

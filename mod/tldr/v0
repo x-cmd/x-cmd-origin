@@ -54,6 +54,7 @@ A
     if [ -z "${PARAM_SUBCMD}" ]; then
         case "$1" in
             :*)     tldr cat "${1#:}" ;;
+            "")     tldr help;;
             *)      tldr cat "$@" ;;
         esac
         return
@@ -226,14 +227,13 @@ ___tldr_cat(){
 # TODO: Maybe x-cmd can use this advise json. And then we can remove this from x-cmd.
 if [ -n "$BASH_VERSION$ZSH_VERSION" ] && [ "${-#*i}" != "$-" ]; then
     xrc advise
-    advise tldr <<A
+    advise tldr - <<A
 {
     "update": null,
-    "ls": "___tldr_lsname",
+    "ls": null,
     "lang": "___tldr_lang",
     "cat": "___tldr_lsname"
 }
 A
-
 fi
 

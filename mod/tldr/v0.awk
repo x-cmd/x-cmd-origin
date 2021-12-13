@@ -17,42 +17,32 @@ function get_space(space_len,      _space, _j){
     return _space
 }
 
-# Split the string into an array in order.
-function cut_text_get_arr(text,     _i){
-    for (_i=0; match(text,/ /); _i++) {
-        _arr[_i] = substr(text,1,RSTART)
-        text     = substr(text,RSTART+1)
-    }
-    _arr[_i] = text
-    return _i + 1
-}
-
 function cut_info_line(info, space_len, color,
-    _info_len, _info_arr_len, _info_arr_real_len, _info_line, _info_arr_key){
+    _info_len, _info_arr_len, _info_arr_real_len, _info_line, _info_arr_key, _arr){
     _info_line         = ""
     _info_arr_len      = 0
     _info_arr_real_len = 0
     _info_arr_key      = 0
 
     _info_len     = strlen_without_color(info)
-    _info_arr_key = cut_text_get_arr(info)
+    _info_arr_key = split(info, _arr, " ")
 
-    if (_info_len >= COLUMNS-space_len) {
-        for (i=0; i<_info_arr_key; i++) {
-            _info_arr_len      = _info_arr_len + strlen_without_color(_arr[i])
-            _info_arr_real_len = _info_arr_real_len + length(_arr[i])
+    if (_info_len < COLUMNS-space_len) {
+        _info_line = info get_space(COLUMNS-space_len-_info_len)
+    } else {
+        for (_i=1; _i<=_info_arr_key; ++_i) {
+            _info_arr_len      = _info_arr_len + strlen_without_color(_arr[_i])
+            _info_arr_real_len = _info_arr_real_len + length(_arr[_i])
 
             if (_info_arr_len >= COLUMNS-space_len) {
-                _info_arr_len      = _info_arr_len - strlen_without_color(_arr[i])
-                _info_arr_real_len = _info_arr_real_len - length(_arr[i])
+                _info_arr_len      = _info_arr_len - strlen_without_color(_arr[_i])
+                _info_arr_real_len = _info_arr_real_len - length(_arr[_i])
                 break
             }
         }
         _info_line         = _info_line substr(info,1,_info_arr_real_len) get_space(COLUMNS - space_len - _info_arr_len) color get_space(space_len) cut_info_line(substr(info,_info_arr_real_len+1), space_len,color)
         _info_arr_len      = 0
         _info_arr_real_len = 0
-    } else {
-        _info_line = info get_space(COLUMNS-space_len-_info_len)
     }
     return color _info_line
 }

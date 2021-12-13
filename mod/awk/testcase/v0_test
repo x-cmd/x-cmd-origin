@@ -1,0 +1,31 @@
+# shellcheck shell=bash disable=SC3043
+x log init awk
+
+mkdir -p ~/.x-cmd/awk/_v0
+cp -rf _v0/*.awk ~/.x-cmd/awk/_v0/
+cp -rf latest ~/.x-cmd/awk/
+
+# Section: Testcase for different awk
+cross_env_test() {
+    for i in debian centos bash ; do
+        awk_log info "Testing : " "$i"
+        docker run -it -v  ~/.x-cmd/:/root/.x-cmd/ -v "$(pwd)":/pd "${i}" bash -c ". ~/.x-cmd/xrc/latest && cd pd && . ./testcase/v0_test_main"
+    done
+}
+
+dbash() {
+    docker run -it -v  ~/.x-cmd/:/root/.x-cmd/ -v "$(pwd)":/pd "bash:$1" \
+        bash -c "printf \". ~/.x-cmd/xrc/latest && . ./testcase/v0_test_main\" >/root/.bashrc && cd pd && bash"
+}
+
+# EndSection
+
+. ./testcase/v0_test_main
+
+printf "You can test cross awk env use: \n  cross_env_test\n"
+printf "You can test cross bash env use: \n"
+
+for i in 3 4 5 ; do
+    printf "  dbash %s\n" "$i"
+done
+printf "\n"

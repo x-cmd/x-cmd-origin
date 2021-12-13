@@ -1,7 +1,11 @@
 BEGIN {
     LEN = "\001"
+    L = LEN
 
     KSEP = "\034"
+    S = KSEP
+
+    T = "\002"
 
     false = 0
     FALSE = 0
@@ -9,13 +13,13 @@ BEGIN {
     TRUE = 1
 }
 
-# function debug(msg){
-# 	print msg > "/dev/stderr"
-# }
-
 function debug(msg){
-    if (0 != DEBUG)     print msg > "/dev/stderr"
+	print msg > "/dev/stderr"
 }
+
+# function debug(msg){
+#     if (0 != DEBUG)     print msg > "/dev/stderr"
+# }
 
 function debug_file(msg, file){
     if (file == "") {

@@ -7,7 +7,7 @@ function str_escape(s) {
     gsub(/\n/, "\\n", s)
     gsub(/\r/, "\\r", s)
     gsub(/\n/, "\\n", s)
-    gsub(/\"/, "\\\"", s)
+    gsub(/"/, "\\\"", s)
     gsub(/\//, "\\/", s)
     return "\"" s "\""
 }
@@ -36,7 +36,7 @@ function str_quote2(str){
 
 function str_unquote2(str){
     gsub(/\\\\/, "\001\001", str)
-    gsub(/\\\"/, "\"", str)
+    gsub(/\\"/, /"/, str)
     gsub("\001\001", "\\\\", str)
     return substr(str, 2, length(str)-2)
 }

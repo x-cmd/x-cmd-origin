@@ -29,7 +29,7 @@ ___x_cmd_awk(){
             local code="$(cat)"
             local USE="$___X_CMD_AWK_ALL_LIB"
             printf "" | awk "$@" "$(eval cat "$(___x_cmd_awk_lib)")
-BEGIN{
+END{
     ${code}
 }"
             ;;
@@ -60,7 +60,7 @@ $code"
         *)
             local USE="$___X_CMD_AWK_ALL_LIB"
             printf "" | awk "$@" "$(eval cat "$(___x_cmd_awk_lib)")
-BEGIN{
+END{
     ${op}
 }"
             ;;

@@ -866,7 +866,8 @@ function cut_line(_line,_space_len,_option_line,_len_line,_max_len_line,_option_
     _max_len_line = COLUMNS-_space_len-3-4
     _option_after_len = split(_line,_option_after_arr," ")
     if (_len_line >= _max_len_line) {
-        for(key in _option_after_arr){
+        # for(key in _option_after_arr){
+        for(key=1; key<=_option_after_len; ++key){
             _option_after_arr_len=_option_after_arr_len+length(_option_after_arr[key])+1
             if(_option_after_arr_len >= _max_len_line) {
                 _option_after_arr_len = _option_after_arr_len-length(_option_after_arr[key])-1
@@ -1119,7 +1120,7 @@ function generate_advise_json_value_candidates(oparr_keyprefix,
 
 # Rely on subcmd_arr. Must after
 function generate_advise_json(      indent, indent_str,
-    i, j,
+    i, j,tmp_len,
     option_id, option_argc, advise_map,
     option_id_advise, tmp, _name_arr){
     indent = arg_arr[2] # for recursive gen advise json
@@ -1133,46 +1134,41 @@ function generate_advise_json(      indent, indent_str,
 
     for (i=1; i<=advise_arr[ LEN ]; ++i) {
         # TODO: Can be optimalize.
-        split(advise_arr[ i ], tmp)
+        tmp_len=split(advise_arr[ i ], tmp)
         if ( option_alias_2_option_id[ tmp[1] ] != "" ){
             option_id = option_alias_2_option_id[ tmp[1] ]
         } else {
             option_id = tmp[1]
         }
 
-        for (j=2; j in tmp; ++j) {
+        for (j=2; j<tmp_len; ++j) {
             advise_map[ option_id ] = advise_map[ option_id ] " " tmp[j]
         }
         advise_map[ option_id ] = str_trim( advise_map[ option_id ] )
     }
 
+    # Rule for option
     for (i=1; i<=option_id_list[ LEN ]; ++i) {
 
         option_id       = option_id_list[ i ]
         option_argc     = option_arr[ option_id KSEP LEN ]
 
         if (option_argc == 0) {
-            ADVISE_JSON = ADVISE_JSON "\n" indent_str "  \"" option_id "\": null,"
+            ADVISE_JSON = ADVISE_JSON "\n" indent_str "  \"" option_id "\": \"--- " option_arr[ option_id KSEP OPTION_DESC ] " \","
+        } else {
+            ADVISE_JSON = ADVISE_JSON "\n" indent_str "  \"" option_id "\": " "{\n  "
         }
 
         for ( j=1; j<=option_argc; ++j ) {
             oparr_keyprefix = option_id KSEP j KSEP OPTARG_OPARR
             oparr_string    = generate_advise_json_value_candidates(oparr_keyprefix)
+            oparr_string    = indent_str "  \"#" j "\": " oparr_string "\n  "
 
-            option_id_advise = option_id
+            ADVISE_JSON = ADVISE_JSON oparr_string
+        }
 
-            if ( option_arr[ option_id KSEP j KSEP OPTARG_DEFAULT ] == OPTARG_DEFAULT_REQUIRED_VALUE ) {
-                if (option_id_advise ~ /\|m$/) {
-                    option_id_advise = option_id_advise "r"
-                } else {
-                    option_id_advise = option_id_advise "|r"
-                }
-            }
-
-            if (option_argc > 1) {
-                option_id_advise = option_id_advise "|" j
-            }
-            ADVISE_JSON = ADVISE_JSON "\n" indent_str "  \"" option_id_advise "\": " oparr_string
+        if (option_argc > 0) {
+            ADVISE_JSON = ADVISE_JSON indent_str "  \"#desc\": \"" option_arr[ option_id KSEP OPTION_DESC ] "\"\n  " indent_str "},"
         }
     }
 
@@ -1200,11 +1196,11 @@ function generate_advise_json(      indent, indent_str,
         subcmd_invocation = subcmd_invocation subcmd_funcname " _x_cmd_advise_json " (indent + 1) " 2>/dev/null "
         subcmd_invocation = "s=$(" subcmd_invocation "); "
 
-        value = subcmd_invocation " if [ $? -eq 126 ]; then printf \002$s\002 ; else printf 'null'; fi"
+        value = subcmd_invocation "if [ $? -eq 126 ] && [ ${#s} != " (indent*2+5) " ] ; then printf \002,${s#{}\002 ; else printf '\n" indent_str "  }'; fi"
         value = "$( " value  " )"
 
         key = quote_string( subcmd_arr[ i ] )
-        ADVISE_JSON = ADVISE_JSON "\n  " indent_str key ": " value ","
+        ADVISE_JSON = ADVISE_JSON "\n  " indent_str key ": {\n"  indent_str "    \"#desc\": " subcmd_map[ subcmd_arr[ i ] ] value ","
     }
 
     if (ADVISE_JSON != "{"){

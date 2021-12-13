@@ -28,6 +28,7 @@ subcommand:
     namelist        "Test name list"
     snl             "Test small name list"
     advise_null     "Test advise null"
+    subcmd_null     "Test subcommand null"
 options:
     --candi_null    "Test null option to use candidate"  <candi_null>:candis="abc"        =  abc  cde     def
 A
@@ -45,37 +46,77 @@ A
 test_advise_json(){
     assert_stdout "X_CMD_ADVISE_FUNC_NAME=paramtest paramtest _x_cmd_advise_json" <<A
 {
-  "--candi_null": [ "abc", "cde", "def" ],
+  "--candi_null": {
+    "#1": [ "abc", "cde", "def" ],
+    "#desc": "Test null option to use candidate"
+  },
   "option|op-test": {
-    "--mul_line_arg|-m|r": [  ],
-    "--regex_arg1": [  ],
-    "--regex_arg2": [  ],
-    "--repo|-r|r": [  ],
-    "--repo2|-b|m|1": [ "abc", "cde", "def" ],
-    "--repo2|-b|m|2": [  ],
-    "--priviledge|-p": [ "private", "public" ],
-    "--no_type_arg|-n": [  ],
-    "--flag1|-f": null,
-    "--flag1222|-g": null,
+    "#desc": "Test option",
+    "--mul_line_arg|-m": {
+      "#1": [  ],
+      "#desc": "Test multiple line argument"
+    },
+    "--regex_arg1": {
+      "#1": [  ],
+      "#desc": "Test an argument with regex 1"
+    },
+    "--regex_arg2": {
+      "#1": [  ],
+      "#desc": "Test an argument with regex 2"
+    },
+    "--repo|-r": {
+      "#1": [  ],
+      "#desc": "Provide repo name"
+    },
+    "--repo2|-b|m": {
+      "#1": [ "abc", "cde", "def" ],
+      "#2": [  ],
+      "#desc": "Provide two repo name"
+    },
+    "--priviledge|-p": {
+      "#1": [ "private", "public" ],
+      "#desc": "Provide privilidge"
+    },
+    "--no_type_arg|-n": {
+      "#1": [  ],
+      "#desc": "Test no type argument but have default"
+    },
+    "--flag1|-f": "--- Flag1 that you can use $\{flag1:-false} to get the bool value ",
+    "--flag1222|-g": "--- Flag1222 that you can use $\{flag1222:-false} to get the bool value ",
+    "#1": [  ],
     "#222222": [  ],
     "#3": [  ],
-    "repo": "list_repo all",
-    "#1": "list_repo"
+    "repo": "list_repo"
   },
   "subcmd": {
+    "#desc": "Test subcommand",
     "sscmd1|s1|s-s1|longlongsubcommand": {
-      "--ss1_opt1|-s": null,
-      "--ss1_opt2|-d": null,
-      "--ss1_opt3|-f": null
+      "#desc": "Test sub sub command1",
+      "--ss1_opt1|-s": "--- Test sub sub command1 option1 ",
+      "--ss1_opt2|-d": "--- Test sub sub command1 option2 ",
+      "--ss1_opt3|-f": "--- Test sub sub command1 option3 ",
+      "subcmd_null": {
+        "#desc": "Test 3 subcommand null"
+      }
     },
-    "sscmd2": null
+    "sscmd2": {
+      "#desc": "Test sub sub command2"
+    },
+    "subcmd_null": {
+      "#desc": "Test 2 subcommand null"
+    }
   },
   "marg": {
-    "--card|-c|mr|1": [  ],
-    "--card|-c|mr|2": [  ],
-    "--card|-c|mr|3": [  ]
+    "#desc": "Test multiple argement",
+    "--card|-c|m": {
+      "#1": [  ],
+      "#2": [  ],
+      "#3": [  ],
+      "#desc": "Provide multiple action card in following format. [ <title> <message-url> <picture-url> ] ..."
+    }
   },
   "rarg": {
+    "#desc": "Test rest argement",
     "#1": [  ],
     "#2": [  ],
     "#3": [  ],
@@ -83,28 +124,46 @@ test_advise_json(){
     "#5": [  ]
   },
   "namelist": {
-    "--repo|-r|r": [  ],
-    "--repo2|-b|m|1": [ "abc", "cde", "def" ],
-    "--repo2|-b|m|2": [  ],
-    "--priviledge|-p": [ "private", "public" ],
-    "--no_type_arg|-n": [  ],
-    "--flag1|-f": null,
-    "--flag1222|-g": null,
+    "#desc": "Test name list",
+    "--repo|-r": {
+      "#1": [  ],
+      "#desc": "Provide repo name"
+    },
+    "--repo2|-b|m": {
+      "#1": [ "abc", "cde", "def" ],
+      "#2": [  ],
+      "#desc": "Provide two repo name"
+    },
+    "--priviledge|-p": {
+      "#1": [ "private", "public" ],
+      "#desc": "Provide privilidge"
+    },
+    "--no_type_arg|-n": {
+      "#1": [  ],
+      "#desc": "Test no type argument but have default"
+    },
+    "--flag1|-f": "--- Flag1 that you can use $\{flag1:-false} to get the bool value ",
+    "--flag1222|-g": "--- Flag1222 that you can use $\{flag1222:-false} to get the bool value ",
+    "#1|--mul_line_arg|-m": [  ],
     "#3|--regex_arg2": [  ],
     "#2|--regex_arg1": [  ],
-    "repo": "list_repo all",
-    "#1|--mul_line_arg|-m": "list_repo"
+    "repo": "list_repo"
   },
   "snl": {
+    "#desc": "Test small name list",
     "#1|--org": [  ]
   },
   "advise_null": {
+    "#desc": "Test advise null"
+  },
+  "subcmd_null": {
+    "#desc": "Test subcommand null"
   }
 }
 A
 }
 
-test_help(){
+test1_help(){
 
     # TESTCASE: error help
     echo "======== test option wasn't expected ============="

@@ -2,17 +2,17 @@
 # Section: utilities
 
 BEGIN{
-    false = 0;      true = 1
+    false = 0
+    true  = 1
+    RS    = "\034"
 
-    RS = "\034"
     # KEYPATH_SEP = "\034"  # Not works with regex pattern [^\034]
-    # KEYPATH_SEP = "\003"
-    KEYPATH_SEP = ","
-    # KEYPATH_SEP = "-"
-    VAL_SEP = "\n"
-    KV_SEP = RS
-    FUNC_SEP = "\004"
-    FUNC_SEP_LEN = FUNC_SEP "len"
+    KEYPATH_SEP      = ","
+    KEYPATH_DESC_SEP = ";desc"
+    VAL_SEP          = "\n"
+    KV_SEP           = RS
+    FUNC_SEP         = "\004"
+    FUNC_SEP_LEN     = FUNC_SEP "len"
 }
 
 function str_wrap(s){
@@ -20,7 +20,6 @@ function str_wrap(s){
 }
 
 function str_unwrap(s){
-    # return "\"" s "\""
     s = substr(s, 2, length(s)-2)
     gsub(/\\"/, "\"", s)
     return s
@@ -37,13 +36,10 @@ function str_startswith(src, prefix,    len){
 
 function pattern_wrap(s){
     return "\"[^\003]*:" s ":[^\003]*\""
-    # return "\"[^-\034\035]*:" s ":[^-\034\035]*\""
-    # return "\"[^-]*:" s ":[^-]*\""
 }
 
 function debug(msg){
-    # if (dbg == false) return
-	print "\033[1;31midx[" s_idx "]\tDEBUG:   " msg "\033[0;0m" > "/dev/stderr"
+	print "\033[1;31mDEBUG:   " msg "\033[0;0m" > "/dev/stderr"
 }
 
 function json_walk_panic(msg,       start){
@@ -78,32 +74,16 @@ BEGIN {
 function rule_add_key( keypath, key,
     num, tmp ) {
 
-    # key = str_unwrap( key )  # Notice: simple unwrap
-
     keyarrlen = split(key, keyarr, "|")
     first = keyarr[1]
 
     KEYPREFIX = keypath KEYPATH_SEP
     keyid = KEYPREFIX key
 
-    # It is an option
-    # TODO: add code for it is an option :<Object name>
-
     if (first ~ /-/) {
         # options
         last = keyarr[keyarrlen]
-        if ( match(last, /^[0-9]+$/) ) {
-            keyid = substr(keyid, 1, length(keyid)-RLENGTH-1)
-            num = last
-            tmp = RULE_ID_ARGNUM[ keyid ] || 0
-            if (tmp < num) {
-                RULE_ID_ARGNUM[ keyid ] = num
-            }
-            keyarrlen = keyarrlen - 1
-        } else {
-            RULE_ID_ARGNUM[ keyid ] = 1
-            # Notice: What if value is null ?
-        }
+        RULE_ID_ARGNUM[ keyid ] = 1
 
         last = keyarr[keyarrlen]
         if (last ~ /^[rm|mr|r|m]$/) {
@@ -114,25 +94,31 @@ function rule_add_key( keypath, key,
                 RULE_ID_R_LIST = RULE_ID_R_LIST "\n" keyid
             }
         }
+    } else if (match(keypath, /.*,-[^,]*/)) {
+        if ( match(first, /#[0-9]+$/) ) {
+            num = substr(first, 2)
+
+            tmp = RULE_ID_ARGNUM[ keypath ] || 0
+            if (tmp < num) {
+                RULE_ID_ARGNUM[ keypath ] = num
+            }
+        }
     } else {
-        RULE_ID_ARGNUM[ keyid ] = -1    # Means it is subcmd
+        # Means it is subcmd
+        RULE_ID_ARGNUM[ keyid ] = -1
     }
 
-    # tmp = ""
     for (i=1; i<=keyarrlen; ++i) {
-        e = keyarr[i]
-        RULE_ALIAS_TO_ID[ KEYPREFIX e ] = keyid
-        # tmp = tmp " " e
+        RULE_ALIAS_TO_ID[ KEYPREFIX keyarr[i] ] = keyid
     }
-    # RULE_ID_CANDIDATES[ keypath ] = RULE_ID_CANDIDATES[ keypath ] tmp
     RULE_ID_CANDIDATES[ keypath ] = RULE_ID_CANDIDATES[ keypath ] "\n" keyid
-    # debug("aaa:\t" RULE_ID_CANDIDATES[ keypath ])
 }
 
 function rule_add_list_val( keypath, val,
     num, tmp ) {
 
     val = str_unwrap( val )     # Notice: simple unwrap
+
 
     if (match(keypath, KEYPATH_SEP "[0-9]+$") ) {
         keypath = substr( keypath, 1, RSTART-1 )
@@ -142,11 +128,20 @@ function rule_add_list_val( keypath, val,
 }
 
 function rule_add_dict_val( keypath, val,
-    num, tmp ) {
+    num, tmp, keypath_arr, arr_i) {
 
     if (val == "null") {
         RULE_ID_ARGNUM[ keypath ] = 0
         # No candidates
+    } else if (val ~ /---/ || keypath ~ /#desc$/){
+        val=str_unwrap( val )
+        if (match(keypath, /#desc$/)){
+            keypath=substr(keypath,1,RSTART-2)
+            val= "--- " val
+        }
+
+        # Put description to RULE_ID_DESC
+        RULE_ID_DESC[ keypath ] = " " val
     } else {
         RULE_ID_CANDIDATES[ keypath ] = "#> " str_unwrap( val )
     }
@@ -157,11 +152,10 @@ function rule_add_dict_val( keypath, val,
 # Section: JSON: utilities
 
 function json_walk_dict_as_candidates(keypath,
-    _tmp, _res){
+    _tmp, _res, s){
 
     nth = -1
     s = JSON_TOKENS[ ++s_idx ]
-
     _res = ""
 
     while (1) {
@@ -196,16 +190,13 @@ function json_walk_dict_as_candidates(keypath,
         _res = _res KV_SEP key KV_SEP _tmp
         if (s == ",") s = JSON_TOKENS[++s_idx]
     }
-
     RULE_ID_CANDIDATES[ keypath ] = _res
-
 }
 
 function json_walk_dict(keypath, indent,
     data, nth, cur_keypath, cur_indent, key, value){
 
     if (s != "{") {
-        # debug("json_walk_dict() fails" )
         return false
     }
 
@@ -225,7 +216,6 @@ function json_walk_dict(keypath, indent,
         rule_add_key(keypath, key)
         cur_keypath = keypath KEYPATH_SEP key
 
-
         data = data VAL_SEP key
 
         s = JSON_TOKENS[++s_idx]
@@ -233,17 +223,13 @@ function json_walk_dict(keypath, indent,
 
         s = JSON_TOKENS[++s_idx]            # Value
 
-        if ( (s == "{") && (key ~ /^[-#]/) )
+        # It means it is bas description.
+        if ( (s == "{") && (key ~ /^[-#desc]/) )
         {
-            # It means it is an struct candidate
-            json_walk_dict_as_candidates(cur_keypath)
-            # json_walk_log("json_walk_dict !!! " s)
-            # print "s is " s > "/dev/stderr"
-        } else {
-            json_walk_value(cur_keypath, cur_indent, "dict")
+            RULE_ID_CANDIDATES[cur_keypath KEYPATH_DESC_SEP]=cur_keypath KEYPATH_SEP "#desc"
         }
-        # json_walk_value(cur_keypath, cur_indent, "dict")
 
+        json_walk_value(cur_keypath, cur_indent, "dict")
         if (s == ",") s = JSON_TOKENS[++s_idx]
     }
 
@@ -266,11 +252,7 @@ function json_walk_array(keypath, indent,
         }
 
         cur_keypath = keypath KEYPATH_SEP nth
-
-        # if (s == ",")  json_walk_panic("json_walk_array() Expect a value but get " s)
         json_walk_value(cur_keypath, cur_indent, "list")
-        # debug("json_walk_array() value: " result)
-
         data = data VAL_SEP result
 
         if (s == ",")   s = JSON_TOKENS[++s_idx]
@@ -302,14 +284,6 @@ function json_walk_value(keypath, indent, struct_type){
 
 function _json_walk(    final, idx, nth){
     if (s == "")  s = JSON_TOKENS[++s_idx]
-
-    # nth = 0
-    # while (s_idx <= s_len) {
-    #     if (json_walk_value(nth++, "") == false) {
-    #        json_walk_panic("json_walk() Expect a value")
-    #     }
-    # }
-
     json_walk_dict(".", "")
 }
 
@@ -319,8 +293,7 @@ function json_walk(text,   final, b_s, b_s_idx, b_s_len){
 
     result = "";
     gsub(/"[^"\\\001-\037]*((\\[^u\001-\037]|\\u[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F])[^"\\\001-\037]*)*"|-?(0|[1-9][0-9]*)([.][0-9]+)?([eE][+-]?[0-9]+)?|null|false|true|[ \t\n\r]+|./, "\n&", text)
-    # gsub(/^\357\273\277|^\377\376|^\376\377|"[^"\\\001-\037]*((\\[^u\001-\037]|\\u[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F])[^"\\\001-\037]*)*"|-?(0|[1-9][0-9]*)([.][0-9]+)?([eE][+-]?[0-9]+)?|null|false|true|[ \t\n\r]+|./, "\n&", text)
-    # gsub(/^\357\273\277|^\377\376|^\376\377|"[^"\\\000-\037]*((\\[^u\000-\037]|\\u[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F])[^"\\\000-\037]*)*"|-?(0|[1-9][0-9]*)([.][0-9]+)?([eE][+-]?[0-9]+)?|null|false|true|[ \t\n\r]+|./, "\n&", text)
+    # gsub(/^\\357\\273\\277|^\\377\\376|^\\376\\377|"[^"\\\000-\037]*((\\[^u\000-\037]|\\u[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F])[^"\\\000-\037]*)*"|-?(0|[1-9][0-9]*)([.][0-9]+)?([eE][+-]?[0-9]+)?|null|false|true|[ \t\n\r]+|./, "\n&", text)
 	gsub("\n" "[ \t\n\r]+", "\n", text)
 
     s_len = split(text, JSON_TOKENS, /\n/)
@@ -335,7 +308,6 @@ function json_walk(text,   final, b_s, b_s_idx, b_s_len){
 
 # Section: Main
 NR==1{
-    # debug("json_walk")
     json_walk($0)
 }
 
@@ -351,12 +323,10 @@ function get_colon_argument_optionid(keypath,      _id){
 
 NR==2{
     argstr = $0
-    # debug("argstr: " argstr)
     if ( argstr == "" ) argstr = "" # "." "\002"
 
     gsub("\n", "\001", argstr)
     parsed_arglen = split(argstr, parsed_argarr, "\002")
-    # debug("arglen\t" parsed_arglen)
 
     ruleregex = ""
 
@@ -364,6 +334,7 @@ NR==2{
     rest_argv_len = 0
 
     current_keypath = "."
+    opt_len = parsed_arglen
 
     for (i=1; i<=parsed_arglen; ++i) {
         arg = parsed_argarr[i]
@@ -374,7 +345,6 @@ NR==2{
     for (i=1; i<parsed_arglen; ++i) {
         arg = parsed_argarr[i]
         argval = ""
-
         if (arg ~ /^-/) {
             if(match(arg,/=/)){
                 continue
@@ -383,10 +353,8 @@ NR==2{
                 argval = substr(arg, RLENGTH+1)
                 arg = substr(arg, 1, RLENGTH)
             }
-
             cur_option_alias = arg
             option_id = RULE_ALIAS_TO_ID[ current_keypath KEYPATH_SEP cur_option_alias ]
-
             if (option_id != "") {
                 used_option_add( option_id )
             } else {
@@ -435,7 +403,6 @@ NR==2{
                         break
                     }
                 }
-
                 if (cur_optarg_index > optarg_num) {
                     cur_option_alias = ""
                     cur_optarg_index = 0
@@ -453,8 +420,6 @@ NR==2{
 
             cur_option_alias = ""
             option_id = RULE_ALIAS_TO_ID[ current_keypath KEYPATH_SEP arg ]
-
-            # debug("2\t" option_id "\t|" current_keypath KEYPATH_SEP arg)
 
             if (option_id == "") {
                 # Must be positional argument
@@ -492,18 +457,19 @@ NR==2{
         show_positional_candidates( current_keypath, cur, rest_argv_len)
     } else if (cur_option_alias != "") {
         option_id = RULE_ALIAS_TO_ID[ current_keypath KEYPATH_SEP cur_option_alias ]
-
-        candidates = RULE_ID_CANDIDATES[ option_id "|" cur_optarg_index ]
-        if (candidates == "") {
-            candidates = RULE_ID_CANDIDATES[ option_id ]
+        if (option_id !~ "#" cur_optarg_index "+$" && cur_optarg_index !~ "1"){
+            option_id=option_id KEYPATH_SEP "#" cur_optarg_index
         }
-        print_list_candidate(candidates, cur)
-    } else if (match(cur,/^-.*=/)){
+        show_candidates( option_id, cur )
+    } else if(match(cur,/^-.*=/)){
         current_keypath = current_keypath KEYPATH_SEP substr(cur,1,RLENGTH-1)
+        current_keypath = RULE_ALIAS_TO_ID[current_keypath]
         candidates = RULE_ID_CANDIDATES[ current_keypath ]
+        if ( candidates ~ /#[0-9]+/){
+            candidates = RULE_ID_CANDIDATES[ RULE_ALIAS_TO_ID[ current_keypath KEYPATH_SEP "#1"] ]
+        }
         print_list_candidate(candidates, substr(cur,1,RLENGTH))
     } else {
-        # list subcmd or options or postional arguments
         show_candidates( current_keypath, cur )
     }
 }
@@ -516,7 +482,6 @@ BEGIN{
 }
 
 function used_option_add(option_id){
-    # debug("used_option_add:\t" option_id)
     RULE_ID_R[ option_id ] = REQUIRED_PROVIDED
     used_option_list = used_option_list "\n" option_id
 }
@@ -535,7 +500,6 @@ function is_all_required_provided(      arr, arrlen, i, elem){
     for (i=2; i<=arrlen; ++i) {
         elem = arr[i]
         if (RULE_ID_R[elem] != REQUIRED_PROVIDED) {
-            # debug("is_all_required_provided failed at:\t" elem)
             return false
         }
     }
@@ -543,14 +507,16 @@ function is_all_required_provided(      arr, arrlen, i, elem){
 }
 
 function print_list_candidate(candidates, cur,
-    can, i, can_arr_len, can_arr, _key ){
+    can, i, can_arr_len, can_arr, _key){
 
-    if(match(cur,/^-.*=$/)){
+    if ( match(cur,/^-.*=$/ )) {
         if (candidates !~ "^" KV_SEP) {
             can_arr_len = split( candidates, can_arr, "\n" )
             for (i=2; i<=can_arr_len; ++i) {
                 can = cur can_arr[i]
-                print can
+                if (str_startswith( can, cur )) {
+                    print can
+                }
             }
             return
         }
@@ -560,7 +526,6 @@ function print_list_candidate(candidates, cur,
         # print command line
         print candidates
     }
-
 
     if (candidates !~ "^" KV_SEP) {
         can_arr_len = split( candidates, can_arr, "\n" )
@@ -580,7 +545,6 @@ function print_list_candidate(candidates, cur,
     can_arr_len = split(candidates, can_arr, KV_SEP)
     for (i=2; i<=can_arr_len; i=i+2) {
         _key = can_arr[i]
-        # print "list _key ----- " _key "|"
         if ( (_key == "*") || ( ( _key != "*" ) && (cur != "") && (cur ~ "^" _key) ) ) {
             _val = can_arr[i + 1]
             gsub("\001", "\n", _val)
@@ -597,16 +561,14 @@ function show_positional_candidates(final_keypath, cur, rest_argv_len,
 
     all_required = is_all_required_provided()
     if ( all_required == false ) return
-    # debug("show_positional_candidates()  all_required=true")
-
     if(match(cur,/.*=$/)){
         RULE_ID = RULE_ALIAS_TO_ID[ final_keypath KEYPATH_SEP cur ]
     }else{
         RULE_ID = RULE_ALIAS_TO_ID[ final_keypath KEYPATH_SEP "#" rest_argv_len ]
     }
 
+    RULE_ID = RULE_ALIAS_TO_ID[ final_keypath KEYPATH_SEP "#" rest_argv_len ]
     candidates = RULE_ID_CANDIDATES[ RULE_ID ]
-    # debug("show_positional_candidates(): CANDIDATES\n" candidates)
     if (candidates != "") {
         print_list_candidate( candidates, cur )
         return
@@ -634,15 +596,15 @@ function show_candidates(final_keypath, cur,
     candidates = RULE_ID_CANDIDATES[ final_keypath ]
 
     can_arr_len = split( candidates, can_arr, "\n")
-    # debug( "show_candidates\t" candidates)
     print_list_candidate(can_arr[1])
+
     for (i=2; i<=can_arr_len; ++i) {
         can = can_arr[i]
-        # debug( "show_candidates\t" can "\t" i)
         if (used_option_set[ can ] == true) continue
         # if ( (can == "#n") || (can ~ /^#[0-9]+$/) )  continue
-        if ( can ~ "#(n|[0-9]+)$" )  continue
-        # debug( "show_candidates\t" can "\t" i)
+        if ( can ~ "#(desc|n|[0-9]+)") {
+            gsub("#(desc|n|[0-9]+)", "",can)
+        }
         print_candidate_with_optionid( can, cur )
         used_option_set[ can ] = true
     }
@@ -656,13 +618,12 @@ function show_candidates(final_keypath, cur,
 
 # NOTICE: option_id = option / subcmd id
 function print_candidate_with_optionid( option_id, cur,
-    can_arr, can_arr_len, can, i, is_required){
+    can_arr, can_arr_len, can, i, is_required, desc_info){
 
-    # if ( (length(cur) > 0) && (cur !~ /^-/) ) return
-    # if ( length(cur) == 0)  cur = "-"
-    # if ( cur !~ /^-/ ) return
-
-    # debug( "print_candidate_with_optionid\t" option_id "\t>" RULE_ID_R[option_id])
+    desc_info = ""
+    if(option_id in RULE_ID_DESC){
+        desc_info = RULE_ID_DESC[option_id]
+    }
     is_required = RULE_ID_R[option_id]
 
     can_arr_len = split( option_id, can_arr, KEYPATH_SEP )
@@ -674,14 +635,14 @@ function print_candidate_with_optionid( option_id, cur,
         # It is option
         if (is_required != true) {
             if (cur == "") return
-            # if (option_id ~ /^-[^-]/) || (cur !~ /^-/))
             if (! cur ~ /^-/ ) return
         }
-
         if (cur == "-") {
             for (i=1; i<=can_arr_len; ++i) {
                 can = can_arr[i]
-                if (can ~ /^-[^-]/) print can
+                if (can ~ /^-[^-]/) {
+                    print can desc_info
+                }
             }
             return
         }
@@ -691,12 +652,7 @@ function print_candidate_with_optionid( option_id, cur,
     for (i=1; i<=can_arr_len; ++i) {
         can = can_arr[i]
         if (str_startswith( can, cur ) && can != "--@" && cur !~ /^-.*=$/) {
-            if (cur !~ /[:=\/]/ && match(can, /[:=\/]/)){
-                can=substr(can,1,RSTART)
-            }
-            if (!a[can]++){
-                print can
-            }
+            print can desc_info
         }
     }
 }

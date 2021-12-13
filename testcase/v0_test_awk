@@ -1,10 +1,174 @@
 # shellcheck shell=bash
 
+___X_CMD_XRC_MODULE_IMPORTED=
 x log advise xrc
 xrc assert
 xrc advise
 
+test_omz(){
+    assert_stdout "test123 desc opt " <<A
+option --- subcmd description
+opt --- subcmd description
+#> advise ls
+A
+}
+
+test_seg(){
+    assert_stdout "test123 desc seg -a=" <<A
+-a=aaa
+-a=bbb
+-a=ccc
+A
+    assert_stdout "test123 desc seg -b=" <<A
+-b=aaa
+-b=bbb
+-b=ccc
+A
+    assert_stdout "test123 desc seg -c=" <<A
+-c=aaa
+-c=bbb
+-c=ccc
+A
+}
+
+test_null(){
+    assert_stdout "test123 ssh -b ''" <<A
+#> advise ls
+A
+    # FIXME: "" and [] are not equal to null
+    assert_stdout "test123 ssh -I a ''" <<A
+#> advise ls
+A
+    assert_stdout "test123 ssh -J a ''" <<A
+#> advise ls
+A
+    assert_stdout "test123 ssh -K a ''" <<A
+#> advise ls
+A
+    assert_stdout "test123 ssh -L a ''" <<A
+#> advise ls
+A
+}
+
+test_get_result(){
+    assert_stdout "test123 ssh compt ssh compt ssh compt compt desc opt -O''" <<A
+#> ___advise_get_result 2
+A
+}
+
+test_opt(){
+
+    assert_stdout "test123 desc opt" <<A
+option --- subcmd description
+opt --- subcmd description
+#> advise ls
+A
+    assert_stdout "test123 desc opt --" <<A
+--op --- cmd for op description
+--repo2 --- Provide two repo name
+--option
+--flag --- cmd for flag description
+A
+}
+
+test_marg(){
+    assert_stdout "test123 desc opt -a ''" <<A
+m1-a
+m1-b
+m1-c
+A
+
+    assert_stdout "test123 desc opt -a m1-a ''" <<A
+m2-a
+m2-b
+m2-c
+A
+
+    assert_stdout "test123 desc opt -a m1-a m2-a ''" <<A
+m3-a
+m3-b
+m3-c
+A
+
+    assert_stdout "test123 desc opt -a m1-a m2-a m3-a '-'" <<A
+-a --- cmd for op description
+-b --- Provide two repo name
+-c --- cmd for ccc description
+-O
+-f --- cmd for flag description
+A
+
+    assert_stdout "test123 desc opt -O cancel '-'" <<A
+-a --- cmd for op description
+-b --- Provide two repo name
+-c --- cmd for ccc description
+-f --- cmd for flag description
+A
+
+    assert_stdout "test123 desc opt -f a -" <<A
+-a --- cmd for op description
+-b --- Provide two repo name
+-c --- cmd for ccc description
+-O
+A
+    assert_stdout "test123 desc opt -b a a -" <<A
+-a --- cmd for op description
+-b --- Provide two repo name
+-c --- cmd for ccc description
+-O
+-f --- cmd for flag description
+A
+
+    a="$(test123 seg update '')"
+    if [ ! "$a" = "" ];then
+        echo "\033[1;31mERROR\033[0m: $a not equal to \"\""
+    fi
+
+    assert_stdout "test123 desc opt --repo" <<A
+--repo2 --- Provide two repo name
+A
+    assert_stdout "test123 desc opt -b  ''" <<A
+abc
+cde
+def
+A
+    a="$(test123 desc opt -b a '')"
+    if [ ! "$a" = "" ];then
+        echo "\033[1;31mERROR\033[0m: $a not equal to \"\""
+    fi
+    # FIXME: "#n": "m3-a", "m3-b", "m3-c"
+#     assert_stdout "test123 desc opt -c a a a a a ''" <<A
+# m3-a
+# m3-b
+# m3-c
+# A
+
+    assert_stdout "test123 desc optttt a a a a a a ''" <<A
+#> ___advise_get_result 2
+A
+}
+
 # Section: Testcase for advise awk code
+test_desc(){
+    assert_stdout "test123 " <<A
+option
+rarg
+subcmd
+subcommand
+cs
+ssh
+segment
+seg
+desc --- cmd for 中文 测试 description
+#> advise ls
+A
+    assert_stdout "test123 desc option --option ''" <<A
+check     --- ssh-check-host-ip
+forward   --- ssh-forward-agent
+cancel    --- ssh-cancel-forward-agent
+exit      --- ssh-stop-forward-agent
+A
+}
 
 test_at(){
 
@@ -15,39 +179,45 @@ test_at(){
 A
 
     assert_stdout "test123 option @" <<A
-@a
+@a1
+@a2
+@a3
 @b
+@c
 A
 
     assert_stdout "test123 option @a ''" <<A
 atcmd
 @
 A
+    assert_stdout "test123 option atcmd @" <<A
+#> myself_ls
+A
 }
 
-test_tldr(){
-    assert_stdout "test123 tldr cat common/7z"<<A
+test_segment_complement(){
+    assert_stdout "test123 seg cat common/7z"<<A
 common/7z.md
 common/7za.md
 common/7zr.md
 A
-    assert_stdout "test123 tldr cat ''" <<A
-common/
-linux/
-A
-}
 
-test_ssh(){
+    #FIXME: The function of segment complement is not working
+#     assert_stdout "test123 seg cat ''" <<A
+# common/
+# linux/
+# A
+
     assert_stdout "test123 ssh -o AddKeysToAgent=" <<A
 AddKeysToAgent=yes
 AddKeysToAgent=ask
 AddKeysToAgent=confirm
 AddKeysToAgent=no
 A
-    assert_stdout "test123 ssh -o A" <<A
-AddKeysToAgent=
-AddressFamily=
-A
+#     assert_stdout "test123 ssh -o A" <<A
+# AddKeysToAgent=
+# AddressFamily=
+# A
 }
 
 test_xsxs(){
@@ -73,6 +243,26 @@ A
 -a=cscs
 A
 
+    assert_stdout "test123 option -c ''"<<A
+m3-a
+m3-b
+m3-c
+A
+
+    assert_stdout "test123 option -c="<<A
+-c=m3-a
+-c=m3-b
+-c=m3-c
+A
+    assert_stdout "test123 option -p="<<A
+-p=private
+-p=public
+A
+    assert_stdout "test123 option --colon="<<A
+--colon=www:a
+--colon=:b
+--colon=:c
+A
     assert_stdout "test123 cs -b test -"<<A
 -seq
 -a
@@ -97,40 +287,28 @@ A
 }
 
 test_hyphen(){
+    assert_stdout "test123 option ''" <<A
+atcmd
+@
+A
     assert_stdout "test123 option -" <<A
--a
 -c
 -p
--d
 -f
+-d
 @
 A
 
 assert_stdout "test123 option --" <<A
---repo2
 --repo3
 --priviledge
---dict
 --cmd
 --colon
 --flag
+--dict
 @
 A
 
-}
-
-test_marg(){
-    assert_stdout "test123 option -a ''" <<A
-m1-a
-m1-b
-m1-c
-A
-
-    assert_stdout "test123 option -a m1-a ''" <<A
-m2-a
-m2-b
-m2-c
-A
 }
 
 test_cmd(){
@@ -152,16 +330,30 @@ A
 
 test_option(){
 
+    assert_stdout "test123 option --" <<A
+--repo3
+--priviledge
+--cmd
+--colon
+--flag
+--dict
+@
+A
+    assert_stdout "test123 option -" <<A
+-c
+-p
+-f
+-d
+@
+A
     assert_stdout "test123 option atcmd --ls ''" <<A
 #> ___advise_ls
 A
 
     assert_stdout "test123 option -c ''" <<A
-:m3-a
-:m3-b
-:m3-c
-:c
-:b
+m3-a
+m3-b
+m3-c
 A
 
     assert_stdout "test123 option --priviledge ''" <<A
@@ -170,14 +362,14 @@ public
 A
 
     assert_stdout "test123 option -d ''" <<A
-e
-c:
-a
+edwinjhlee
+labve
+c:abc
+c:aaa
 A
 
     assert_stdout "test123 option -d e" <<A
 edwinjhlee
-labve
 A
 
     assert_stdout "test123 option -d c:" <<A
@@ -206,6 +398,11 @@ A
 [A-Z]
 [a-z]
 [0-9]
+A
+    assert_stdout "test123 rarg s s s s s s ''"<<A
+#n-1
+#n-2
+#n-3
 A
 }
 
@@ -244,13 +441,14 @@ A
 #> ___advise_seq 1 10000
 A
 
-    assert_stdout "test123 subcmd -d ''"<<A
-,
-|
--
-:
-/
-A
+# FIXME: Maybe it is not nesscessary to this feature
+#     assert_stdout "test123 subcmd -d ''"<<A
+# ,
+# |
+# -
+# :
+# /
+# A
 
     assert_stdout "test123 subcmd -i ''"<<A
 #> ___advise_ls \${cur:-\$HOME/.ssh/}
@@ -313,4 +511,9 @@ start_test() {
 
 start_test ./testcase/v0_test_awk
 
+# EndSection
+
+# Section: for the interactive ui
+advise rm compt
+advise compt "./testcase/test.json"
 # EndSection

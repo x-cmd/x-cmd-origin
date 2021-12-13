@@ -88,8 +88,17 @@ A
             return 126
             ;;
         ""|help)
-            # TODO: help doc
-            printf "%s\n" "Show advise help" >&2; return 1
+            printf "advise    x-bash complete function.
+    Uasge:  advise <subcmd> [<obj>...]
+    Please visit our homepage for more information: https://x-cmd.com
+SUBCOMMAND:
+    ls             Show all available advise json obj.
+    rm [<obj>]     Remove one obj, if no obj is given, remove all obj.
+    which <obj>    Show the path of the obj.
+    cat <obj>      Show the content of the obj.
+    init <obj>     Create a new obj.
+    man            Manager for x-cmd/advise.
+" >&2; return 1
             ;;
         *)
             ___advise_main "$op" "$@" ;;
@@ -102,20 +111,17 @@ A
 
 ___advise_lsd(){
     local l
-    # local localdir="${1:-${cur:-.}}"
-    # ls -d "${localdir}"*/ 2>/dev/null | while read -r l; do
-    #     printf "%s\n" "${l%/}"
-    # done
-
     local localdir="${1:-${cur:-""}}"
-    compgen -d "${localdir}" 2>dev/null | while read -r l; do
+    compgen -d "${localdir}" 2>/dev/null | while read -r l; do
         printf "%s/\n" "${l%/}"
     done
 }
+
 ___advise_ls_grep(){
     local localopt="${1:-${cur:-""}}"
     ls | grep -E "${localopt}" 2>/dev/null
 }
+
 ___advise_ls(){
     local localdir="${1:-${cur:-""}}"
 
@@ -144,7 +150,7 @@ ___advise_ls(){
 
 # 1-10
 ___advise_seq(){
-    local curnum="${cur:-""}"
+    local cur="${cur:-""}"
     awk -v range="$1" -v cur="$cur" '
 function inside(num, start, end, step){
     if ( (num < start) || (num > end) ) return 0
@@ -183,45 +189,14 @@ A
 
 }
 
-___advise_get_result(){
-    local OLDIFS="$IFS"
-    local offset="${1:-0}"
-    # If there are two parameters, take the second one.
-    local offset="${2:-${1:-0}}"
-
-    if [ -n "$ZSH_VERSION" ];then
-        resname="${words[offset+1]}"
-        COMP_WORDS=("${words[@]}")
-        COMP_CWORD="$(( ${#words[@]}-1 ))"
-    else
-        resname="${COMP_WORDS[offset]}"
-    fi
-
-    local filepath="${TMPDIR%/}/.x-cmd/advise_auto_json/$resname"
-
+___advise_get_result_from_awk(){
+    local result cmd_result
     local IFS=$'\002'
+    local s="${COMP_WORDS[*]}"
+    s="${s#*"$IFS"}"
 
-    # Delete $offset numbers from the COMP_WORDS
-    local i
-    local words=()
-    if [ -n "$ZSH_VERSION" ];then
-        for ((i=0; i<=$(($COMP_CWORD-$offset)); ++i)); do
-            words+=( "${COMP_WORDS[i+offset+1]}" )
-        done
-    else
-        for ((i=0; i<=$(($COMP_CWORD-$offset)); ++i)); do
-            words+=( "${COMP_WORDS[i+offset]}" )
-        done
-    fi
-
-    COMP_WORDS=("${words[@]}")
-    COMP_CWORD="$(( ${#words[@]}-1 ))"
+    # Handle the case that the last word has "@" or ":" in bash.
     COMP_LINE="${COMP_WORDS[*]}"
-
-    s="${COMP_WORDS[*]}"
-    s="${s#*$IFS}"
-
-    # TODO: Can be optimized.
     local cur_1="${COMP_WORDS[COMP_CWORD-1]}"
     case "$cur_1" in
         *@|*:)
@@ -233,28 +208,47 @@ ___advise_get_result(){
         *)
     esac
 
-    IFS=$'\n'   # Bash/Zsh Only
-
-    [ -f "$filepath" ] || return
-
-    local result=""
+    IFS=$'\n'
     result="$(
         {
             cat "$filepath"
             printf "\034%s\034" "$s"
         } | awk -f "$___ADVISE_AWK_PATH" 2>/dev/null
-
     )"
-
     local cmd="${result##*\#> }"
-    local cmd_result=""
+    cmd_result=""
     if [ "$cmd" != "$result" ]; then
         cmd_result="$(eval "$cmd")"
         result="${result%%\#> *}"
     fi
-    IFS="$OLDIFS"
+
+    if [ "$cmd" != "$result" ]; then
+        cmd_result="$(eval "$cmd" 2>/dev/null)"
+        result="${result%%\#> *}"
+    fi
+
     printf "%s" "$result
 $cmd_result"
+}
+
+___advise_get_result(){
+
+    # If there are two parameters, take the second one.
+    local offset="${2:-${1:-0}}"
+    local remain_len=$((COMP_CWORD-offset))
+
+    [ -n "$ZSH_VERSION" ] && offset=$((offset+1))
+    local filepath="${TMPDIR%/}/.x-cmd/advise_auto_json/${COMP_WORDS[offset]}"
+    [ -f "$filepath" ] || return
+
+    # Delete $offset numbers from the COMP_WORDS
+    local i tmp=()
+    for ((i=0; i<=remain_len; ++i)); do
+        tmp+=( "${COMP_WORDS[i+offset]}" )
+    done
+    COMP_WORDS=("${tmp[@]}")
+    COMP_CWORD="$(( ${#tmp[@]}-1 ))"
+    ___advise_get_result_from_awk
 }
 
 # EndSection
@@ -304,25 +298,24 @@ ___advise_update(){
 
     if [ -f "$tmp_filepath" ] && [ -z "$(find "$tmp_filepath" -mtime -1)" ]; then
         rm -rf "$tmp_filepath"
-        ___advise_main $func
+        ___advise_main "$func"
     fi
 }
 
 ___advise_run(){
-
-    local offset="${2:-0}"
-    local resname
+    local resname cur
     if [ -n "$ZSH_VERSION" ];then
-        resname="${1:-${words[1]}}"
+        local COMP_WORDS=("${words[@]}")
+        local COMP_CWORD="$(( ${#words[@]}-1 ))"
+        cur="${COMP_WORDS[COMP_CWORD+1]}"
+        resname="${1:-${COMP_WORDS[1]}}"
     else
+        cur="${COMP_WORDS[COMP_CWORD]}"
         resname="${1:-${COMP_WORDS[0]}}"
     fi
 
-    if [ -z "$___ADVISE_RUN_CMD_FOLDER" ]; then
-        ___ADVISE_RUN_CMD_FOLDER="${TMPDIR%/}/.x-cmd/advise_auto_json"
-    fi
-
     local filepath
+    [ -z "$___ADVISE_RUN_CMD_FOLDER" ] && ___ADVISE_RUN_CMD_FOLDER="${TMPDIR%/}/.x-cmd/advise_auto_json"
     case "$resname" in
         /*) filepath="$resname" ;;
         -)  filepath=/dev/stdin ;;
@@ -334,83 +327,51 @@ ___advise_run(){
             fi
             ;;
     esac
-
-    shift 2>/dev/null
+    [ -f "$filepath" ] || return
 
     if [ -n "$BASH_VERSION" ] && [ "${BASH_VERSION#3}" = "${BASH_VERSION}" ]; then
         local last="${COMP_WORDS[COMP_CWORD]}"
         case "$last" in
             \"*|\'*)
-                COMP_LINE="${COMP_LINE%$last}"
-                words=( $COMP_LINE )
-                words+=("$last")
+                COMP_LINE="${COMP_LINE%"$last"}"
+                tmp=( $COMP_LINE )
+                tmp+=("$last")
                 ;;
             *)
-                words=( $COMP_LINE )
+                tmp=( $COMP_LINE )
                 ;;
         esac
 
         # Ends with space
         if [ "${COMP_LINE% }" != "${COMP_LINE}" ]; then
-            words+=( "" )
+            tmp+=( "" )
         fi
 
-        COMP_WORDS=("${words[@]}")
-        COMP_CWORD="$(( ${#words[@]}-1 ))"
-
+        COMP_WORDS=("${tmp[@]}")
+        COMP_CWORD="$(( ${#tmp[@]}-1 ))"
     fi
-
-    if [ -n "$ZSH_VERSION" ];then
-        local COMP_WORDS=("${words[@]}")
-        local COMP_CWORD="$(( ${#words[@]}-1 ))"
-    fi
-
-    local cur="${COMP_WORDS[COMP_CWORD]}"
 
     local OLDIFS="$IFS"
-    local IFS=$'\002'
+    local IFS=$'\n'
+    local cmds
+    cmds="$(___advise_get_result_from_awk)"
+    local commands=($(printf "%s" "$cmds"))
+    desc=()
+    cmds=()
+    for i in "${commands[@]}"; do
+        if [ ! "$i" = "${i%%---*}" ] && [ -n "$ZSH_VERSION" ];then
+            desc+=("\"${i%% *}:${i#*--- }\"")
+            continue
+        fi
+        cmds+=("${i%% *}")
+    done
 
-    s="${COMP_WORDS[*]}"
-    s="${s#*$IFS}"
-
-    local cur_1="${COMP_WORDS[COMP_CWORD-1]}"
-    case "$cur_1" in
-        *@|*:)
-            if [ "${COMP_LINE% }" != "${COMP_LINE}" ]; then
-                s="${s%$cur_1$IFS$cur}"
-                s="${s}${cur_1}$cur"
-            fi
-            ;;
-        *)
-    esac
-
-    IFS=$'\n'   # Bash/Zsh Only
-    [ -f "$filepath" ] || return
-
-    local result
-    result="$(
-        {
-            cat "$filepath"
-            printf "\034%s\034" "$s"
-        } | awk -f "$___ADVISE_AWK_PATH" 2>/dev/null
-    )"
-
-    local cmd="${result##*\#> }"
-    local cmd_result=""
-    if [ "$cmd" != "$result" ]; then
-        cmd_result="$(eval "$cmd" 2>/dev/null)"
-        result="${result%%\#> *}"
-    fi
-    local cmds="$result
-$cmd_result"
-
-    IFS="$OLDIFS"
     if [ -n "$ZSH_VERSION" ];then
-        eval "cmds=($cmds)"
-        local commands=($cmds)
-        compadd -a commands
+        eval "desc=(${desc[*]})"
+        _describe 'commands' desc
+        compadd -a cmds
     else
-        if [ -n "$BASH_VERSION" ] && [[ ! "$BASH_VERSION" =~ ^3.* ]];then
+        if [[ ! "$BASH_VERSION" =~ ^3.* ]];then
             if [[ "$result" =~ [:=\/]$ ]];then
                 compopt -o nospace
             else
@@ -421,7 +382,7 @@ $cmd_result"
         # shellcheck disable=SC2207
         COMPREPLY=(
             $(
-                compgen -W "$cmds" -- "$cur"
+                compgen -W "${cmds[*]}" -- "$cur"
             )
         )
 
@@ -429,16 +390,16 @@ $cmd_result"
         __ltrim_completions "$cur" ":"
         __ltrim_completions "$cur" "="
     fi
+    IFS="$OLDIFS"
 }
 
 __ltrim_completions()
 {
-
     local i=${#COMPREPLY[*]}
     ((i == 0)) && return 0
     if [[ $1 == *$2* && $COMP_WORDBREAKS == *$2* ]]; then
         # Remove colon-word prefix from COMPREPLY items
-        local colon_word=${1%"${1##*$2}"}
+        local colon_word=${1%"${1##*"$2"}"}
         COMPREPLY=("${COMPREPLY[@]}")
         while ((i-- > 0)); do
             COMPREPLY[i]=${COMPREPLY[i]#"$colon_word"}
@@ -458,7 +419,6 @@ if [ -n "$ZSH_VERSION" ] && [ "$(autoload | grep compinit)" = "" ]; then
 fi
 
 advise init advise
-fi
 
 # Section: man
 
@@ -498,6 +458,9 @@ ___advise_man_which(){
     return 1
 }
 ___advise_man_load(){
+    if [[ ! "${1:-}" == "" ]]; then
+        complete -F "___advise_man_completer" "$1" && return 1
+    fi
     local i
     for i in $(___advise_man_ls); do
         if s=$(complete -p "$i" 1>/dev/null 2>&1); then
@@ -508,8 +471,8 @@ ___advise_man_load(){
 }
 
 ___advise_man_rm(){
-    local srcfolder="$___X_CMD_ROOT/.tmp/advise/src"
-    local CACHE="$___X_CMD_ROOT/.tmp/advise/all.tar.gz"
+    local name="${1:-}"
+    local srcfolder="$___X_CMD_ROOT/.tmp/advise/src/$name"
     if ___advise_man_exists; then
         rm -rf "$srcfolder"
     fi
@@ -526,10 +489,11 @@ ___advise_man(){
         ls)         ___advise_man_ls              ;;
         update)     ___advise_man_update          ;;
         which)      ___advise_man_which "$@"      ;;
-        load)       ___advise_man_load            ;;
-        rm)         ___advise_man_rm              ;;
-        *)          ___advise_man_load "$op" "$@" ;;
+        load)       ___advise_man_load "$@"      ;;
+        rm)         ___advise_man_rm "$@"         ;;
+        *)          ___advise_man_load "$@"       ;;
     esac
 }
 
 # EndSection
+fi

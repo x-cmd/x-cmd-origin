@@ -15,7 +15,8 @@ ___x_cmd_readlink_recursive(){
 }
 
 ___x_cmd_list_resource(){
-    printf "%s" "proxy tldr"
+    printf "%s" "proxy
+tldr"
 }
 
 # Section : Unfinished ___x_cmd_official_which
@@ -571,7 +572,7 @@ ___x_cmd_main(){
 
         install)                                xrc install/v0 && ___x_cmd_install "$@" ;;
 
-        cd)                                     ___x_cmd_cd ;;
+        cd)                                     ___x_cmd_cd "$@";;
 
         man)        ;;
         tldr)                                   xrc tldr/v0 && tldr "$@" ;;
@@ -678,6 +679,7 @@ ___x_cmd_main(){
 
 # EndSection
 
+# Section : advise.json
 ___x_cmd_x_cmd_advise_json(){
     cat <<A
 {
@@ -809,8 +811,8 @@ ___x_cmd_x_cmd_advise_json(){
 
     "jq": null,
     "yq": null,
-    "ls|ll": null,
-    "ps|procs": null,
+    "ls|ll|cat|du|cd": "___advise_ls",
+    "ps|procs": null
 
     "nmap":null,
     "ncat":null,
@@ -829,6 +831,7 @@ ___x_cmd_x_cmd_advise_json(){
 A
     return 126
 }
+# EndSection
 
 x(){
     ___x_cmd_main "$@"

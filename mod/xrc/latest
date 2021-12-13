@@ -381,12 +381,15 @@ ___x_cmd_which_one(){
             fi
             ;;
         *)
-            # [ -z "$___X_CMD_NO_LOCAL" ] && [ -f "$RESOURCE_NAME" ] && printf "%s" "$RESOURCE_NAME" && return      # local file
+            if [ -z "$___X_CMD_NO_LOCAL" ]; then
+                # This is ONLY for x-cmd
+                [ -f "$RESOURCE_NAME" ] && printf "%s" "$RESOURCE_NAME" && return      # local file
 
-            if TGT="$(___x_cmd_search_path . ".x-cmd/$RESOURCE_NAME")"; then
-                ___X_CMD_UNTRUSTED_RESOURCE=workspace
-                printf "%s" "$TGT/.x-cmd/$RESOURCE_NAME"
-                return                   # .x-cmd
+                if TGT="$(___x_cmd_search_path . ".x-cmd/$RESOURCE_NAME")"; then
+                    ___X_CMD_UNTRUSTED_RESOURCE=workspace
+                    printf "%s" "$TGT/.x-cmd/$RESOURCE_NAME"
+                    return                   # .x-cmd
+                fi
             fi
 
             # x-bash module

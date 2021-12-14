@@ -156,9 +156,10 @@ ___x_cmd_python3(){
         0)
             eval "$code"
             if [ -n "$FP" ]; then
-                if ! xfp="$(___x_cmd_which_one "$FP")"; then
+                if ! ___x_cmd_which_one "$FP"; then
                     return
                 fi
+                xfp="$___X_CMD_WHICH_ONE_RESULT"
                 eval ___x_cmd_python3_bin "$S1" "\"\$xfp\"" "$S2"
             else
                 ___x_cmd_python3_bin "$@"

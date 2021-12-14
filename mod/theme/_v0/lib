@@ -28,8 +28,12 @@ ___x_cmd_theme_hg_get_friendly_ref() {
 }
 
 ___x_cmd_theme_svn_get_friendly_ref() {
-    #TODO: using awk
-    svn info 2> /dev/null | grep '^URL:' | egrep -o '(tags|branches)/[^/]+|trunk'
+    svn info 2> /dev/null | awk '{
+        if ( $1 == "URL:" ) {
+            match($0,/(branches|tags)\/[^\/]+|trunk/)
+            printf substr($0,RSTART, RLENGTH)
+        }
+    }'
 }
 # EndSection
 
@@ -80,13 +84,6 @@ ___x_cmd_theme_git_get_prompt_info_exe() {
 
 ___x_cmd_theme_scm() {
     ___X_CMD_THEME_SCM_TYPE="$(___x_cmd_theme_git_get_prompt_info_exe 2>/dev/null)"
-
-    # case "$___X_CMD_THEME_SCM_TYPE" in
-    #     git)        ___X_CMD_THEME_SCM_INFO="$(___x_cmd_theme_git_get_friendly_ref)";;
-    #     hg)         ___X_CMD_THEME_SCM_INFO="$(___x_cmd_theme_hg_get_friendly_ref)" ;;
-    #     svn)        ___X_CMD_THEME_SCM_INFO="$(___x_cmd_theme_svn_get_friendly_ref)" ;;
-    #     *)          ___X_CMD_THEME_SCM_TYPE= ;;
-    # esac
 }
 
 ___x_cmd_theme_get_git_repo_name() {

@@ -145,6 +145,7 @@ A
         w|which)
             if [ $# -gt 0 ]; then
                 ___x_cmd_which_one "$@"
+                printf "%s" "$___X_CMD_WHICH_ONE_RESULT"
                 return
             fi
             cat >&2 <<A
@@ -218,24 +219,24 @@ A
 ___x_cmd_xrc_cat(){
     local file
     while [ $# -ne 0 ]; do
-        local xrcpath=$1;   shift
+        local xrcpath="$1";   shift
 
-        if ! file="$(___X_CMD_NO_LOCAL=1 ___x_cmd_which_one "$xrcpath")"; then
+        if ! ___X_CMD_NO_LOCAL=1 ___x_cmd_which_one "$xrcpath"; then
             printf "ERROR: Interrupted because resource not found. %s \n" "$xrcpath" >&2
             return 1
         fi
 
-        cat "$file"
+        cat "$___X_CMD_WHICH_ONE_RESULT"
     done
 }
 
 ___X_CMD_XRC_MODULE_IMPORTED=""
 ___x_cmd_xrc_source_file(){
-    local file
-    while [ $# -ne 0 ]; do
-        local xrcpath=$1;   shift
 
-        if ! file="$(___X_CMD_NO_LOCAL=1 ___x_cmd_which_one "$xrcpath")"; then
+    while [ $# -ne 0 ]; do
+        local xrcpath="$1";   shift
+
+        if ! ___X_CMD_NO_LOCAL=1 ___x_cmd_which_one "$xrcpath"; then
             printf "ERROR: Interrupted because resource not found. %s \n" "$xrcpath" >&2
             printf "%s\n" "return 1"
             return 1
@@ -247,16 +248,16 @@ ___x_cmd_xrc_source_file(){
             # We should do it before ___x_cmd_which_one
             printf "Sourcing script from untrusted location: %s\n" "$xrcpath"
             cat >&2 <<A
-SECURITY WARNING! Sourcing script from untrusted location: $1
+SECURITY WARNING! Sourcing script from untrusted location: $___X_CMD_WHICH_ONE_RESULT
 If you confirm this script is secure and want to skip this warning for some purpose, use the following code.
-> NOWARN=1 xrc "$1"
+> NOWARN=1 xrc "$xrcpath"
 A
             printf "Input yes to continue. Otherwise exit > " >&2
             local input
             read -r input
 
             if [ "$input" != "yes" ]; then
-                rm "$file"
+                rm "$___X_CMD_WHICH_ONE_RESULT"
                 printf "%s\n" "Exit because of a non yes output received: $input" >&2
                 printf "%s\n" "return 1"
                 return 1
@@ -265,17 +266,17 @@ A
 
         if [ -z "$___XRC_RELOAD" ]; then
             if [ "${___X_CMD_XRC_MODULE_IMPORTED#*
-$file
+$___X_CMD_WHICH_ONE_RESULT
 *}" != "${___X_CMD_XRC_MODULE_IMPORTED}" ]; then
                 shift 2>/dev/null
                 continue    # exixted already. skip
             fi
         fi
 
-        printf ". '%s'\n" "$file"
+        printf ". '%s'\n" "$___X_CMD_WHICH_ONE_RESULT"
         printf "%s" "
 ___X_CMD_XRC_MODULE_IMPORTED=\"\$___X_CMD_XRC_MODULE_IMPORTED
-$file
+$___X_CMD_WHICH_ONE_RESULT
 \""
 
     done
@@ -342,15 +343,18 @@ ___x_cmd_search_path(){
 # EndSection
 
 # Section: which
+# RETURN ___X_CMD_WHICH_ONE_RESULT
 ___x_cmd_which_one(){
     local RESOURCE_NAME=${1:?Provide resource name}
+
+    ___X_CMD_WHICH_ONE_RESULT=
 
     local TGT
     ___X_CMD_UNTRUSTED_RESOURCE=
     case "$RESOURCE_NAME" in
         /*)
             ___xrc_log debug "Resource recognized as local file: $RESOURCE_NAME"
-            printf "%s" "$RESOURCE_NAME"
+            ___X_CMD_WHICH_ONE_RESULT="$RESOURCE_NAME"
             return 0
             ;;
         http://*|https://*)
@@ -362,7 +366,7 @@ ___x_cmd_which_one(){
                 ___xrc_log debug "ERROR: Fail to load http resource due to network error or other: $RESOURCE_NAME "
                 return 1
             else
-                printf "%s" "$TGT"
+                ___X_CMD_WHICH_ONE_RESULT="$TGT"
             fi
             ;;
         *@*/*)
@@ -373,7 +377,7 @@ ___x_cmd_which_one(){
             ___xrc_log debug "Resource recognized as local file with relative path: $RESOURCE_NAME"
             local tmp
             if tmp="$(cd "$(dirname "$RESOURCE_NAME")" || exit 1; pwd)"; then
-                printf "%s" "$tmp/$(basename "$RESOURCE_NAME")"
+                ___X_CMD_UNTRUSTED_RESOURCE="$tmp/$(basename "$RESOURCE_NAME")"
                 return 0
             else
                 ___xrc_log warn "Local file not exists: $RESOURCE_NAME"
@@ -383,11 +387,11 @@ ___x_cmd_which_one(){
         *)
             if [ -z "$___X_CMD_NO_LOCAL" ]; then
                 # This is ONLY for x-cmd
-                [ -f "$RESOURCE_NAME" ] && printf "%s" "$RESOURCE_NAME" && return      # local file
+                [ -f "$RESOURCE_NAME" ] && ___X_CMD_WHICH_ONE_RESULT="$RESOURCE_NAME" && return      # local file
 
                 if TGT="$(___x_cmd_search_path . ".x-cmd/$RESOURCE_NAME")"; then
-                    ___X_CMD_UNTRUSTED_RESOURCE=workspace
-                    printf "%s" "$TGT/.x-cmd/$RESOURCE_NAME"
+                    ___X_CMD_UNTRUSTED_RESOURCE=workspace1
+                    ___X_CMD_WHICH_ONE_RESULT="$TGT/.x-cmd/$RESOURCE_NAME"
                     return                   # .x-cmd
                 fi
             fi
@@ -401,12 +405,12 @@ ___x_cmd_which_one(){
             fi
 
             TGT="$___X_CMD_ROOT/$module"
-            [ -f "$TGT" ] && printf "%s" "$TGT" && return 0
+            [ -f "$TGT" ] && ___X_CMD_WHICH_ONE_RESULT="$TGT" && return 0
             # ___xrc_log debug "Module not found: $module"
             # return 1
 
             ___xrc_log info "Downloading resource=$RESOURCE_NAME to local cache: $TGT"
-            CACHE="$TGT" ___x_cmd_curl_gitx "$module" && printf "%s" "$TGT" && return 0
+            CACHE="$TGT" ___x_cmd_curl_gitx "$module" && ___X_CMD_WHICH_ONE_RESULT="$TGT" && return 0
 
             ___xrc_log warn "ERROR: Fail to load module due to network error or other: $RESOURCE_NAME"
             return 1

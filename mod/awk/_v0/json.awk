@@ -90,9 +90,13 @@ function jtokenize(text) {
     return json_to_machine_friendly(text)
 }
 
+function jiter_after_tokenize(jobj, text,       _arr, _arrl, _i){
+    _arrl = split( json_to_machine_friendly(text), _arr, "\n" )
+    for (_i=1; _i<=_arrl; ++_i) {
+        jiter( jobj, _arr[_i] )
+    }
+}
 
-# jjoin(arr, jpath, start:end, sep1)
-# jjoin(arr, jpath, start:end, sep1, keystr, sep2)
 
 function ___json_range_trick(arr, max){
     if (arr[1] == "") arr[1] = 1
@@ -112,9 +116,10 @@ function ___json_range_trick(arr, max){
     }
 }
 
-
+# jjoin(arr, jpath, start:end, sep1)
+# jjoin(arr, jpath, start:end, sep1, keystr, sep2)
 function jjoin(arr, jpath, range, sep1, keystr, sep2,
-    _kp, _len, _i, _range, _rangel, _start, _end, _step) {
+    _kp, _keyl, _key, _len, _i, _range, _rangel, _start, _end, _step) {
 
     _kp = json_handle_jpath(jpath)
 
@@ -590,7 +595,9 @@ function _jiter_handle_keypath(arr, item,     _cur_keypath, _cur_state, _len){
 
     _cur_state = arr[ _cur_keypath T ]
 
+    # print "---len " arr[ _cur_keypath T_LEN ]
     _len = int(arr[ _cur_keypath T_LEN ] + 1)
+    # print "+++len " arr[ _cur_keypath T_LEN ]
     arr[ _cur_keypath T_LEN ] = _len
 
     if ( _cur_state == T_DICT ) {
@@ -598,6 +605,7 @@ function _jiter_handle_keypath(arr, item,     _cur_keypath, _cur_state, _len){
             _cur_keypath = _cur_keypath S JITER_LAST_KP
             if (item != "") {
                 arr[ _cur_keypath ] = item
+                # print "_this_keypath: " _cur_keypath ": " arr[ _cur_keypath ]
             }
             return _cur_keypath
         } else {
@@ -608,6 +616,8 @@ function _jiter_handle_keypath(arr, item,     _cur_keypath, _cur_state, _len){
         _cur_keypath = _cur_keypath S "\"" _len "\""
         if (item != "") {
             arr[ _cur_keypath ] = item
+
+            # print "_this_keypath: " _cur_keypath ": " item
         }
         return _cur_keypath
     }
@@ -615,12 +625,10 @@ function _jiter_handle_keypath(arr, item,     _cur_keypath, _cur_state, _len){
 
 
 function jiter(arr, item,      s, _t, _p_s, _cur_state, _len, _this_keypath){
-    _last_token = JITER_LAST_TOKEN
 
     if (item == "[") {
 
         _this_keypath = _jiter_handle_keypath(arr)
-        print "_this_keypath: " _this_keypath
         arr[ _this_keypath T ] = T_LIST
 
         JITER_STACK[ ++JITER_LEVEL ] = _this_keypath
@@ -643,6 +651,9 @@ function jiter(arr, item,      s, _t, _p_s, _cur_state, _len, _this_keypath){
         JITER_LAST_TOKEN = JITER_TOKEN_DCOLON
     } else if (item == ",") {
         JITER_LAST_TOKEN = ""   # Needless to distinguish
+    } else if (item ~ /^[ ]*$/) {
+        # TODO: ...
+        return
     } else {
 
         _this_keypath = _jiter_handle_keypath( arr, item )

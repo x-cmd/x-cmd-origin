@@ -166,7 +166,7 @@ ___tldr_getfile(){
         [ -f "$fp" ] && printf "%s" "$fp" && return
     fi
 
-    printf "%s" "$_______X_CMD_TLDR_ROOT/$(___tldr_current)/pages/$cand"
+    printf "%s" "$_______X_CMD_TLDR_ROOT/$(___tldr_current)/$cand"
 }
 
 ___tldr_lsname(){
@@ -191,12 +191,12 @@ ___tldr_exact()(
     local version
     version="$(___tldr_current_or_update)" || return
 
-    if cd "$_______X_CMD_TLDR_ROOT/$version/pages/"; then
+    if cd "$_______X_CMD_TLDR_ROOT/$version/"; then
         local cmd="${1}"
         case "$cmd" in
-            "")     ls */* ;;
-            */*)    ls */* | grep "$cmd" ;;
-            *)      ls */* | grep "\/$cmd.md" ;;
+            "")     ls */*/* ;;
+            */*)    ls */*/* | grep "$cmd" ;;
+            *)      ls */*/* | grep "\/$cmd.md" ;;
         esac
     fi
 )
@@ -218,10 +218,13 @@ ___tldr_cat(){
                 cat "$(___tldr_getfile "$cand")"
             fi
                 ;;
-        *)  printf "Found %s:\n---------\n%s\n" "$num" "$cand"; >&2 return 1 ;;
+        *)
+            local tldr_file
+            eval "$(printf "%s" "$cand" | awk 'BEGIN{ str="ui prompt main \"Found\" tldr_file \"=\""; }{ str = str " " "\"" $0 "\""; }END{ print str; }')"
+            awk -v COLUMNS="$COLUMNS" "$(xrc cat $______X_CMD_TLDR_WCWIDTH_AWK)$(cat "$______X_CMD_TLDR_AWK")" < "$(___tldr_getfile "$tldr_file")"
+            return 1 ;;
     esac
 }
-
 # EndSection
 
 # TODO: Maybe x-cmd can use this advise json. And then we can remove this from x-cmd.

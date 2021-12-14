@@ -49,12 +49,13 @@ function cut_info_line(info, space_len, color,
 
 function handle_title(title){
     printf("\033[0;40m%s\033[1;40m", get_space(COLUMNS))
-    printf("\033[1;33;40m%s\033[0;40m", "")
+    # printf("\033[1;33;40m%s\033[0;40m", "")
     printf("\033[1;32;40m%s: \033[0;40m", title)
+    return int(strlen_without_color(title)+2)
 }
 
-function handle_desc(desc){
-    printf("\033[1;33;40m%s\n\033[0;40m", desc)
+function handle_desc(desc, title_len){
+    printf("\033[1;33;40m%s%s%s\n\033[0;40m", desc, get_space(COLUMNS-title_len-strlen_without_color(desc)-1)," ")
 }
 
 
@@ -103,6 +104,7 @@ function handle_short_cmd(cmd, max_len,
         _text=out_cmd_key_color _cmd_text "\033[0;40m" get_space(max_len+4-strlen_without_color(_cmd_text)) out_cmd_info_color cut_info_line(_cmd_info,max_len+4, out_cmd_info_color)
         printf("%s\n\033[0;40m", _text)
     }
+    printf("\033[0;40m%s%s\033[0;40m", get_space(COLUMNS-1), " ")
 }
 
 function handle_long_cmd(cmd,
@@ -140,11 +142,12 @@ BEGIN {
     {
         title = $0
         gsub(/^#[ ]*/, "", title)
-        handle_title(title)
+        title_len = handle_title(title)
     } else if ($1~/^>/) {
         desc = $0
         gsub(/^>[ ]*/, "", desc)
-        handle_desc(desc)
+        handle_desc(desc, title_len)
+        title_len = 0
     } else if ($1 ~ /^-/) {
         desc = $0
         gsub(/^-[ ]*/, "", desc)

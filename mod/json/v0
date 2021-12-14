@@ -32,23 +32,23 @@ Subcommand:
         color|col|c         json color <variable-name>. $(tput init)
                             Colorize the formated json stored in variable
         push|append         json push <variable-name.<pattern>> <element>. $(tput init)
-                            Putting the element at the end of the specified list in variable 
-        unshift|prepend     json unshift <variable-name.<pattern>> <element>. 
-                            Putting the element at the begin of the specified list in variable 
-        keys|key|k          json keys <variable-name.<pattern>>. 
-                            Printing the keys of the specified dictionary in variable 
-        values|val|v        json values <variable-name.<pattern>>. 
-                            Printing the values of the specified dictionary in variable 
-        shift|sh            json shift <variable-name.<pattern>>. 
-                            Shift the values of the specified list in variable 
-        pop|po              json pop <variable-name.<pattern>>. 
+                            Putting the element at the end of the specified list in variable
+        unshift|prepend     json unshift <variable-name.<pattern>> <element>.
+                            Putting the element at the begin of the specified list in variable
+        keys|key|k          json keys <variable-name.<pattern>>.
+                            Printing the keys of the specified dictionary in variable
+        values|val|v        json values <variable-name.<pattern>>.
+                            Printing the values of the specified dictionary in variable
+        shift|sh            json shift <variable-name.<pattern>>.
+                            Shift the values of the specified list in variable
+        pop|po              json pop <variable-name.<pattern>>.
                             Pop the values of the specified list in variable
-        del|d               json del <variable-name.<pattern>>. 
+        del|d               json del <variable-name.<pattern>>.
                             delete the values of the specified list in variable
-        length|len          json len <variable-name.<pattern>>. 
-                            Print the length of the specified list or object in variable 
-        unescape            
-        <none>              
+        length|len          json len <variable-name.<pattern>>.
+                            Print the length of the specified list or object in variable
+        unescape
+        <none>
 A
         ;;
         var)                json_var        "$@" ;;
@@ -101,14 +101,14 @@ json_push(){ json_append "$@"; }
 
 # aaa.append()
 json_append(){
-    local keypath="${1:?Provide variable name}" 
+    local keypath="${1:?Provide variable name}"
     local opv2="${2:?Provide value}"
 
     local varname=${keypath%%.*}
     local opv1=".${keypath#*.}"
     [ "$varname" = "$keypath" ] && opv1="."
     shift 2
-    
+
     local s
     if [ "$varname" ]; then
         s="$(awk -v op=append -v opv1="$opv1" -v opv2="$opv2" -f "$JSON_AWK_PATH" <<A
@@ -126,7 +126,7 @@ A
 # aaa.prepend("value")
 json_unshift(){ json_prepend "$@"; }
 json_prepend(){
-    local keypath=${1:?Provide variable name} 
+    local keypath=${1:?Provide variable name}
     local opv2="${2:?Provide value}"
 
     local varname=${keypath%%.*}
@@ -134,7 +134,7 @@ json_prepend(){
 
     [ "$varname" = "$keypath" ] && opv1="."
     shift 2
-    
+
     local s
     if [ "$varname" ]; then
         s="$(awk -v op=prepend -v opv1="$opv1" -v opv2="$opv2" -f "$JSON_AWK_PATH" <<A
@@ -203,7 +203,7 @@ json_values(){
     [ "$varname" = "$keypath" ] && opv1=""
     # TODO: why？Seems wrong
     # shift 2
-    
+
     local s
     if [ "$varname" ]; then
         awk -v op="$op" -v opv1="$opv1" -f "$JSON_AWK_PATH" <<A
@@ -236,7 +236,7 @@ json_keys(){
     [ "$varname" = "$keypath" ] && opv1=""
     # TODO: why？Seems wrong
     # shift 2
-    
+
     local s
     if [ "$varname" ]; then
         awk -v op="$op" -v opv1="$opv1" -f "$JSON_AWK_PATH" <<A
@@ -249,7 +249,7 @@ A
 
 # jo b.b
 json_query(){
-    local keypath=${1:?Provide variable name} 
+    local keypath=${1:?Provide variable name}
 
     local varname=${keypath%%.*}
     local opv1=".${keypath#*.}"
@@ -273,7 +273,7 @@ A
 [2,3]
 DOCTEST
 json_del(){
-    local keypath=${1:?Provide variable name} 
+    local keypath=${1:?Provide variable name}
 
     local varname=${keypath%%.*}
     local opv1=".${keypath#*.}"
@@ -346,7 +346,7 @@ json_length(){
     local opv1=".${keypath#*.}"
 
     [ "$varname" = "$keypath" ] && opv1="."
-    
+
     if [ "$varname" ]; then
         awk -v op=length -v opv1="$opv1" -f "$JSON_AWK_PATH" <<A
 $(eval echo $(printf "%s" \"\$"${varname}"\"))
@@ -372,7 +372,7 @@ json_pop(){
     local opv1=".${keypath#*.}"
 
     [ "$varname" = "$keypath" ] && opv1="."
-    
+
     local s
     if [ "$varname" ]; then
         if s="$(awk -v op=pop -v opv1="$opv1" -f "$JSON_AWK_PATH" <<A
@@ -406,7 +406,7 @@ json_array(){
             [*)                s="$s,$1";;
             \{*)              s="$s,$1";;
             # =\"*)             s="$2,${1:1}"   ;;
-            *)  if [[ "$1" =~ ^[+-]?[0-9]+(.[0-9]+)*([eE][0-9]+(.[0-9]+))*$ ]];       
+            *)  if [[ "$1" =~ ^[+-]?[0-9]+(.[0-9]+)*([eE][0-9]+(.[0-9]+))*$ ]];
                 then s="$s,$1" ;
                 else s="$s,\"${1//\"/\\\"}\"" ;
                 fi
@@ -450,7 +450,7 @@ BEGIN{
     gsub(/\t/, "\\t", a)
     gsub(/\v/, "\\v", a)
     printf("\"%s\"", a)
-}    
+}
 ' <<A
 ${1:?Provide string}
 A
@@ -597,7 +597,7 @@ json_table(){
                 arr=()
                 idx=0
             fi
-            
+
         done
     else
         while read -r line; do
@@ -684,3 +684,64 @@ json_from_kv(){
 #     printf "\n}"
 # }
 
+___X_CMD_JSON_AWK_SRC="$(xrc cat awk/_v0/json.awk)"
+
+___json_awk_end(){
+    local func=jiter_after_tokenize
+    if [ -n "$ALREADY_TOKENIZED" ]; then
+        func=jiter
+    fi
+
+        awk "$___X_CMD_JSON_AWK_SRC
+{ $func(_, \$0); }
+$1"
+
+}
+
+___json_awk_get(){
+    local func=jiter_after_tokenize
+    if [ -n "$ALREADY_TOKENIZED" ]; then
+        func=jiter
+    fi
+
+    local IFS
+    IFS="$(printf "\002")"
+
+    local code
+    if code="$(awk -v data="$*" "$___X_CMD_JSON_AWK_SRC
+{ $func(_, \$0); }"'
+END {
+    arrl = split(data, arr, "\002")
+    for (i=1; i<=arrl; ++i) {
+        e = arr[i]
+        idx = index(e, "=")
+        if (idx <= 0) {
+            exit(1)
+            break
+        }
+
+        varname = substr(e, 1, idx-1)
+        expr    = substr(e, idx+1)
+        print varname "=" jget(_, expr)
+    }
+}
+')"; then
+
+        eval "$code"
+    fi
+
+}
+
+
+
+___json_var(){
+    local IFS="
+"
+    local varname
+    local data
+    while read -r data; do
+        [ "$#" -le 0 ] && break
+        eval "$1"="$data"
+        shift
+    done
+}

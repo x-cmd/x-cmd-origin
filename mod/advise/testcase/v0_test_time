@@ -1,0 +1,4 @@
+#!/bin/bash
+. ~/.x-cmd/xrc/latest
+xrc advise/v0
+time advise init advise

@@ -8,11 +8,7 @@ elif ! ___ADVISE_AWK_PATH="$(xrc which advise/v0.awk)"; then
     x log error "Cannot introduce advise"
 else
 
-x log init advise
-______X_CMD_ADVISE_V0_FILEPATH="$(xrc which advise/v0)"
-
 # Section : advise entrance
-
 advise(){
     local op="${1}"; shift 2>/dev/null
     case "$op" in
@@ -258,29 +254,26 @@ ___advise_get_result(){
 ___advise_main(){
     local func="${1:?Provide function name}"
     local filepath="${2}"
-    local tmp_filepath=${TMPDIR%/}/.x-cmd/advise_auto_json/$func
-    mkdir -p "$(dirname "$tmp_filepath")"
+    local advise_json_dir="${TMPDIR%/}/.x-cmd/advise_auto_json"
+    local tmp_filepath=${advise_json_dir}/$func
+    [ ! -d "$advise_json_dir" ] && mkdir -p "$advise_json_dir"
 
     if [ "-" = "$filepath" ]; then
         filepath=$tmp_filepath
-        advise_log "Pipe standard input to $filepath"
         cat >"$filepath"
     elif [ -z "$filepath" ]; then
         ___advise_update "$func"
         local filepath=$tmp_filepath
         if [ -n "$___XRC_UDPATE" ] || [ ! -f "$filepath" ]; then
-            advise_log debug "Pipe the result of \"$func _x_cmd_advise_json\" to $filepath"
             local content
             content="$(X_CMD_ADVISE_FUNC_NAME=$func eval "$func" _x_cmd_advise_json)"
             if [ $? = 126 ]; then
                 printf "%s" "$content" >"$filepath"
             else
-                advise_log warn "Fail to write file because the return code of \"$func _x_cmd_advise_json\" is not 126."
                 return 0
             fi
         fi
     else
-        advise_log debug "Copy self-defined file $filepath to $tmp_filepath"
         cp "$filepath" "$tmp_filepath"
         filepath="$tmp_filepath"
     fi

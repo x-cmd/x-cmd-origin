@@ -188,11 +188,12 @@ ali_sg_rule_del(){
 }
 
 ali_sg_rule_ingress(){
-    param <<A
+    param:dsl <<A
 subcommand:
     add             "add ingress rule"
     del             "delete ingress rules"
 A
+    param:run
 
     if [ -z "$PARAM_SUBCMD" ]; then
         ali_sg_rule_ingress help
@@ -207,11 +208,12 @@ ali_sg_rule_ingress_add(){      param:void; ali_sg_rule_func AuthorizeSecurityGr
 ali_sg_rule_ingress_del(){      param:void; ali_sg_rule_func RevokeSecurityGroup "$@";      }
 
 ali_sg_rule_egress(){
-    param <<A
+    param:dsl <<A
 subcommand:
-    add             "add ingress rule"
-    del             "delete ingress rules"
+    add             "add egress rule"
+    del             "delete egress rules"
 A
+    param:run
 
     if [ -z "$PARAM_SUBCMD" ]; then
         ali_sg_quick "$@"
@@ -225,10 +227,12 @@ ali_sg_rule_egress_add(){       param:void; ali_sg_rule_func AuthorizeSecurityGr
 ali_sg_rule_egress_del(){       param:void; ali_sg_rule_func RevokeSecurityGroupEgress "$@";        }
 
 ali_sg_rule_egress_add_ssh(){
+    param:void
     :
 }
 
 ali_sg_rule_egress_add_icmp(){
+    param:void
     :
 }
 

@@ -219,7 +219,7 @@ function pprint(name, val){
 
 # ali ec create --image ubuntu_20_04_x64 --switch inner-d --type ecs.t6-c1m1.large --disk "40||brand|disk for test"
 ali_ec_create(){
-    param <<A
+    param:dsl <<A
 options:
     --name      "ec name"               <instance-name>=""
     --image     "Image keyword"         <image>="ubuntu_20_04_x64"
@@ -227,7 +227,8 @@ options:
     --type      "instance keyword"      <instance-type>
     --disk      "system disk"           <disk>="40|cloud_ssd|diskname|diskdescription"
 A
-
+    param:run
+    
     local image_id
     if ! image_id=$(ali_image_exactid "$image"); then
         return
@@ -251,6 +252,7 @@ A
 }
 
 ali_ec_quick(){
+    param:void
     ali_quicker2 ec "$@"
 }
 

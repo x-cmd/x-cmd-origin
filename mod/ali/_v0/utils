@@ -56,13 +56,14 @@ ali_table_json(){
 }
 
 ali_instance(){
-    param <<A
+    param:dsl <<A
 options:
     --mem       "Memory"        <size>=""
     --cpu       "CPU"           <core>=""
     --gpu       "GPU"           <gpu>=0
 A
-
+    param:run
+    
     {
         ccmd -- aliyun ecs DescribeInstanceTypes | x jq .InstanceTypes.InstanceType[] | x jq '
             def fun: if . == null then "" else . end;

@@ -75,7 +75,7 @@ ali_exactor_declare ali_vpc_switch "No such vpc switch found." "Multiple vpc swi
 
 # ali vpc switch create --vpc it-switch --zone cn-hongkong-a --cidr 10.0.0.3/14 --name hi
 ali_vpc_switch_create(){
-    param <<A
+    param:dsl <<A
 options:
     --vpc           "vpc id or key word to search"      <id>=""
     --zone          "zone id"                           <zone-id>
@@ -84,7 +84,8 @@ options:
     --name          "vswitch name"                      <name>=""
     --description   "description"                       <des>=""
 A
-
+    param:run
+    
     # TODO: put it on param
     vpc="${vpc:-${ALI_VPCID}}"
     if [ -z "$vpc" ]; then

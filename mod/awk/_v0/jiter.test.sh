@@ -2,24 +2,28 @@
 
 xrc awk
 
-# DSL: json_get(arr, ".b")
+# DSL: json_get(_, ".b")
 
 SSS="$(cat default.awk)$(cat json.awk)"
 
 f1(){
     awk "$SSS
+    BEGIN{
+        init_jiter_()
+    }
     {
         if (\$0 != \"\") {
-            jiter(arr, \$0)
+            jiter_(\$0)
             # print (\$0)
         }
     }
     END{
-        print \"---\" arr[S q(1) S q(\"b\") S q(6) ]
-        print(arr[ jkey(1, \"b\", 6) ])
-        print jget(arr, \"1.b.6\")
-        jget(arr, \".b.6\")
-        jget(arr, \".c.a\")
+        print \"---\" _[S q(1) S q(\"b\") S q(6) ]
+        print(_[ jkey(1, \"b\", 6) ])
+        print jget(_, \"1.b.6\")
+        print jget(_, \"1.a\")
+        jget(_, \".b.6\")
+        jget(_, \".c.a\")
     }
     "
 }

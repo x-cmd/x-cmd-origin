@@ -573,18 +573,18 @@ function json_stringify_format(arr, keypath, indent,      i, len){
 
 BEGIN{
 
-    JITER_TOKEN_LLEFT   = 1 # "["
-    JITER_TOKEN_LRIGHT  = 2 # "]"
-    JITER_TOKEN_LCOMMA  = 3 #  "[,"
-    # JITER_TOKEN_LVALUE  = 4
-    JITER_TOKEN_DLEFT   = 5     # "{"
-    JITER_TOKEN_DRIGHT  = 6    # "}"
-    JITER_TOKEN_DCOMMA  = 7    # ",}"
-    JITER_TOKEN_DCOLON  = 8    # ":}"
-    JITER_TOKEN_DKEY    = 9
+    # JITER_TOKEN_LLEFT   = 1 # "["
+    # JITER_TOKEN_LRIGHT  = 2 # "]"
+    # JITER_TOKEN_LCOMMA  = 3 #  "[,"
+    # # JITER_TOKEN_LVALUE  = 4
+    # JITER_TOKEN_DLEFT   = 5     # "{"
+    # JITER_TOKEN_DRIGHT  = 6    # "}"
+    # JITER_TOKEN_DCOMMA  = 7    # ",}"
+    # JITER_TOKEN_DCOLON  = 8    # ":}"
+    # JITER_TOKEN_DKEY    = 9
     # JITER_TOKEN_DVALUE  = 10
 
-    JITER_LAST_TOKEN = ""
+    # JITER_LAST_TOKEN = ""
 
     JITER_LEVEL = 1
     JITER_STACK[ 1 ] = ""   # keypath
@@ -601,8 +601,9 @@ function _jiter_handle_keypath(arr, item,     _cur_keypath, _cur_state, _len){
     arr[ _cur_keypath T_LEN ] = _len
 
     if ( _cur_state == T_DICT ) {
-        if ( JITER_LAST_TOKEN == JITER_TOKEN_DCOLON ) {
+        if ( JITER_LAST_KP != "" ) {
             _cur_keypath = _cur_keypath S JITER_LAST_KP
+            JITER_LAST_KP = ""
             if (item != "") {
                 arr[ _cur_keypath ] = item
                 # print "_this_keypath: " _cur_keypath ": " arr[ _cur_keypath ]
@@ -627,37 +628,112 @@ function _jiter_handle_keypath(arr, item,     _cur_keypath, _cur_state, _len){
 function jiter(arr, item,      s, _t, _p_s, _cur_state, _len, _this_keypath){
 
     if (item == "[") {
-
         _this_keypath = _jiter_handle_keypath(arr)
         arr[ _this_keypath T ] = T_LIST
 
         JITER_STACK[ ++JITER_LEVEL ] = _this_keypath
-        JITER_LAST_TOKEN = JITER_TOKEN_LLEFT
+        # JITER_LAST_TOKEN = JITER_TOKEN_LLEFT
     } else if (item == "]") {
         JITER_LEVEL --
-        JITER_LAST_TOKEN = JITER_TOKEN_LRIGHT
+        # JITER_LAST_TOKEN = JITER_TOKEN_LRIGHT
     } else if (item == "{") {
 
         _this_keypath = _jiter_handle_keypath(arr)
         arr[ _this_keypath T ] = T_DICT
 
         JITER_STACK[ ++JITER_LEVEL ] = _this_keypath
-        JITER_LAST_TOKEN = JITER_TOKEN_DLEFT
+        # JITER_LAST_TOKEN = JITER_TOKEN_DLEFT
     } else if (item == "}") {
         JITER_LEVEL --
-        JITER_LAST_TOKEN = JITER_TOKEN_DLEFT
+        # JITER_LAST_TOKEN = JITER_TOKEN_DLEFT
     } else if (item == ":") {
-
-        JITER_LAST_TOKEN = JITER_TOKEN_DCOLON
+        # JITER_LAST_TOKEN = JITER_TOKEN_DCOLON
     } else if (item == ",") {
-        JITER_LAST_TOKEN = ""   # Needless to distinguish
-    } else if (item ~ /^[ ]*$/) {
-        # TODO: ...
-        return
+        # JITER_LAST_TOKEN = ""   # Needless to distinguish
     } else {
-
         _this_keypath = _jiter_handle_keypath( arr, item )
-        JITER_LAST_TOKEN = ""
+        # JITER_LAST_TOKEN = ""
+    }
+}
+
+# EndSection
+
+# Section: jiter special
+
+function init_jiter_(){
+    JITER_FA_KEYPATH = ""
+    JITER_STATE = T_ROOT
+    JITER_LAST_KP = ""
+    JITER_LEVEL = 1
+    JITER_STACK[ 1 ] = ""
+    JITER_CURLEN = 0
+}
+
+function jiter_( item ){
+    if (item == "[") {
+        JITER_CURLEN = JITER_CURLEN + 1
+        _[ JITER_FA_KEYPATH T_LEN ] = JITER_CURLEN
+        if ( JITER_STATE != T_DICT ) {
+            JITER_FA_KEYPATH = JITER_FA_KEYPATH S "\"" JITER_CURLEN "\""
+        } else {
+            JITER_FA_KEYPATH = JITER_FA_KEYPATH S JITER_LAST_KP
+            JITER_LAST_KP = ""
+        }
+
+        JITER_STATE = T_LIST
+        JITER_CURLEN = 0
+
+        _[ JITER_FA_KEYPATH T ] = T_LIST
+
+        JITER_STACK[ ++JITER_LEVEL ] = JITER_FA_KEYPATH
+    } else if (item == "]") {
+        _[ JITER_FA_KEYPATH T_LEN ] = JITER_CURLEN
+
+        JITER_LEVEL --
+
+        JITER_FA_KEYPATH = JITER_STACK[ JITER_LEVEL ]
+        JITER_STATE = _[ JITER_FA_KEYPATH T ]
+        JITER_CURLEN = _[ JITER_FA_KEYPATH T_LEN ]
+    } else if (item == "{") {
+        JITER_CURLEN = JITER_CURLEN + 1
+        _[ JITER_FA_KEYPATH T_LEN ] = JITER_CURLEN
+        if ( JITER_STATE != T_DICT ) {
+            JITER_FA_KEYPATH = JITER_FA_KEYPATH S "\"" JITER_CURLEN "\""
+        } else {
+            JITER_FA_KEYPATH = JITER_FA_KEYPATH S JITER_LAST_KP
+            JITER_LAST_KP = ""
+        }
+
+        JITER_STATE = T_DICT
+        JITER_CURLEN = 0
+
+        _[ JITER_FA_KEYPATH T ] = T_DICT
+
+        JITER_STACK[ ++JITER_LEVEL ] = JITER_FA_KEYPATH
+    } else if (item == "}") {
+        _[ JITER_FA_KEYPATH T_LEN ] = JITER_CURLEN
+
+        JITER_LEVEL --
+
+        JITER_FA_KEYPATH = JITER_STACK[ JITER_LEVEL ]
+        JITER_STATE = _[ JITER_FA_KEYPATH T ]
+        JITER_CURLEN = _[ JITER_FA_KEYPATH T_LEN ]
+    } else if (item == ":") {
+        # JITER_LAST_TOKEN = JITER_TOKEN_DCOLON
+    } else if (item == ",") {
+        # JITER_LAST_TOKEN = ""   # Needless to distinguish
+    } else {
+        JITER_CURLEN = JITER_CURLEN + 1
+        if ( JITER_STATE != T_DICT ) {
+            _[ JITER_FA_KEYPATH S "\"" JITER_CURLEN "\"" ] = item
+        } else {
+            if ( JITER_LAST_KP != "" ) {
+                _[ JITER_FA_KEYPATH S JITER_LAST_KP ] = item
+                JITER_LAST_KP = ""
+            } else {
+                JITER_LAST_KP = item
+            }
+        }
     }
 }
 

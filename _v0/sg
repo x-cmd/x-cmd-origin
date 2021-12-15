@@ -29,13 +29,14 @@ A
 
 
 ali_sg_create(){
-    param <<A
+    param:dsl <<A
 options:
     --vpc                       "Provide vpc information"                   <vpc>
     --name                      "Default is a auto generated name"          <name>=""
     --type                      "Default is normal"                         <type>=normal               =   normal     enterprise
     --desc|--description        "Provide description"                       <description-string>=""
 A
+    param:run
 
     local id
     if ! id="$(ali_vpc_exactid "$vpc")"; then

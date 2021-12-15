@@ -69,11 +69,12 @@ ali_exactor_declare ali_keypair \
     KeyPairName
 
 ali_keypair_import(){
-    param <<A
+    param:dsl <<A
 options:
     #1      "keypair name"
     #2      "keypair body"
 A
+    param:run
 
     local name="${1:?keypair name}"
     local body="${2}"
@@ -113,22 +114,24 @@ A
 }
 
 ali_keypair_create(){
-    param <<A
+    param:dsl <<A
 options:
     #1      "keypair name"
     #2      "filepath to save private keypair"
 A
+    param:run
 
     local keypairname="${1:?Keypair name}"
     aliyun ecs CreateKeyPair --KeyPairName "${keypairname}" | x jq -r .PrivateKeyBody>"${2:-"&1"}"
 }
 
 ali_keypair_delete(){
-    param <<A
+    param:dsl <<A
 options:
     #n      "keypair name list"
 A
-
+    param:run
+    
     local keypairname
     for keypairname in "$@"; do
         aliyun ecs DeleteKeyPairs --KeyPairNames "[\"${keypairname}\"]"

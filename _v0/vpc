@@ -58,14 +58,15 @@ ali_exactor_declare ali_vpc \
     VpcId
 
 ali_vpc_create(){
-    param <<A
+    param:dsl <<A
 options:
     --name          "Provide name"      <name>=""
     --description   "Description"       <desc>="Create-by-x-cmd-ali-module"
     --cidr          "Subnet of 172.16.0.0/12, 10.0.0.0/8, 192.168.0.0/16"  
                                         <cidr>=""
 A
-
+    param:run
+    
     name="${name:-"xcmd-ali-v0-vpc-$(date +%y%m%d%H%m)"}"
 
     # 172.16.0.0/12

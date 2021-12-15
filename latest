@@ -232,7 +232,7 @@ ___x_cmd_xrc_cat(){
 
 ___X_CMD_XRC_MODULE_IMPORTED=""
 ___x_cmd_xrc_source_file(){
-
+    
     while [ $# -ne 0 ]; do
         local xrcpath="$1";   shift
 
@@ -277,7 +277,8 @@ $___X_CMD_WHICH_ONE_RESULT
         printf "%s" "
 ___X_CMD_XRC_MODULE_IMPORTED=\"\$___X_CMD_XRC_MODULE_IMPORTED
 $___X_CMD_WHICH_ONE_RESULT
-\""
+\"
+"
 
     done
 }

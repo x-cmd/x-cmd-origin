@@ -7,8 +7,8 @@ xrc param/v0
 ___x_cmd_theme_control(){
     local zinit
     local font
-    zinit="$([ -n "$ZSH_VERSION" ] && printf "zinit    \"init the zsh environment\"")"
-    font="$([ -z "$SSH_CONNECTION" ] && [ ! -f "/.dockerenv" ] && printf "font    \"install powerline font\"")"
+    [ -n "$ZSH_VERSION" ] && zinit="zinit    \"init the zsh environment\""
+    [ -z "$SSH_CONNECTION" ] && [ ! -f "/.dockerenv" ] && font="font    \"install powerline font\""
     param:dsl <<A
 subcommands:
     ls          "list all theme"
@@ -187,45 +187,3 @@ ___x_cmd_theme_control_get_current_background_color(){
 }
 
 # EndSection
-
-
-# Section: test
-
-___x_cmd_theme_control_is_using_x_theme(){
-    :
-}
-
-___x_cmd_theme_control_subenv_prompt_clear(){
-    ___X_CMD_THEME_CONTROL_SUBENV_PROMPT=
-}
-
-___x_cmd_theme_control_subenv_prompt(){
-    local subenv_prompt="${1}"
-
-    if [ -z "$1" ]; then
-        printf "%s\n" "$___X_CMD_THEME_CONTROL_SUBENV_PROMPT"
-        return
-    fi
-
-    if ___x_cmd_theme_control_is_using_x_theme; then
-        # ___x_cmd_theme_control_subenv
-        ___X_CMD_THEME_CONTROL_SUBENV_PROMPT="${subenv_prompt}"
-    else
-        :
-    fi
-}
-
-# using dict
-
-___x_cmd_theme_control_env(){
-    xrc dict/v0
-    case "$#" in
-        0)      dict :___x_cmd_theme_env ls ;;
-        1)      dict :___x_cmd_theme_env get "$1" ;;
-        2)      dict :___x_cmd_theme_env put "$1" "$2" ;;
-        *)      printf "%s\n" "___x_cmd_theme_control_env [key] [val]" >&2
-    esac
-}
-
-# EndSection
-

@@ -181,7 +181,7 @@ A
         reload)
             if [ "$#" -gt 0 ]; then
                 local ___XRC_RELOAD=1
-                eval "$( ___x_cmd_xrc_source_file "$@")"
+                ___x_cmd_xrc_source_file "$@"
                 return
             fi
             RELOAD=1 xrc xrc/latest; return ;;
@@ -209,7 +209,7 @@ A
             return 126
             ;;
         *)
-            eval "$(___x_cmd_xrc_source_file "$subcmd" "$@")"
+            ___x_cmd_xrc_source_file "$subcmd" "$@"
             return
     esac
 }
@@ -232,9 +232,11 @@ ___x_cmd_xrc_cat(){
 
 ___X_CMD_XRC_MODULE_IMPORTED=""
 ___x_cmd_xrc_source_file(){
-    
+    local ___X_CMD_WHICH_ONE_RESULT
+    local xrcpath
+
     while [ $# -ne 0 ]; do
-        local xrcpath="$1";   shift
+        xrcpath="$1";   shift
 
         if ! ___X_CMD_NO_LOCAL=1 ___x_cmd_which_one "$xrcpath"; then
             printf "ERROR: Interrupted because resource not found. %s \n" "$xrcpath" >&2
@@ -266,19 +268,16 @@ A
 
         if [ -z "$___XRC_RELOAD" ]; then
             if [ "${___X_CMD_XRC_MODULE_IMPORTED#*
-$___X_CMD_WHICH_ONE_RESULT
+"$___X_CMD_WHICH_ONE_RESULT"
 *}" != "${___X_CMD_XRC_MODULE_IMPORTED}" ]; then
                 shift 2>/dev/null
                 continue    # exixted already. skip
             fi
         fi
 
-        printf ". '%s'\n" "$___X_CMD_WHICH_ONE_RESULT"
-        printf "%s" "
-___X_CMD_XRC_MODULE_IMPORTED=\"\$___X_CMD_XRC_MODULE_IMPORTED
-$___X_CMD_WHICH_ONE_RESULT
-\"
-"
+        . "$___X_CMD_WHICH_ONE_RESULT"
+        ___X_CMD_XRC_MODULE_IMPORTED="$___X_CMD_XRC_MODULE_IMPORTED
+$___X_CMD_WHICH_ONE_RESULT"
 
     done
 }

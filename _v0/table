@@ -8,10 +8,12 @@
 ___ui_table(){
     local O="${O:-___X_CMD_UI_TABLE_DEFAULT}"
     case "${1}" in   
-        json)   shift; ___ui_table_json      "$@"      ;;
-        -)      ___ui_table_clear                      ;;
-        +)      shift; ___ui_table_read      "$@"      ;;
-        *)      shift; ___ui_table_out3      "$@"      ;;
+        json)       shift; ___ui_table_json      "$@"       ;;
+        -)          ___ui_table_clear                       ;;
+        +)          shift; ___ui_table_read      "$@"       ;;
+        jsonfmt)    shift; ___ui_table_json_to_table "$@"   ;;
+        func)       shift; ___ui_table_out_func  "$@"       ;;
+        *)          shift; ___ui_table_out3      "$@"       ;;
     esac
 }
 
@@ -215,10 +217,22 @@ ___ui_table_json(){
     :
 }
 
+___ui_table_out3(){
+    ___ui_table_out_func 'printf "%s\n" "$___X_CMD_UI_TABLE_DEFAULT"'
+}
 
+___ui_table_json_to_table(){
+    local keyname="$1"; shift
+    local keylist
+    xrc json/v0
+
+    local IFS
+    IFS="$(printf "\001")"
+    SEP1="\002" SEP2="\003" ___json_awk_table_stream "$keyname" "$*"
+}
 
 # DATA
-___ui_table_out3(){
+___ui_table_out_func(){
     local EXIT_OP=${EXIT_OP:-"ENTER,CREATE,DELETE"}
     EXIT_OP=",$EXIT_OP,"
 
@@ -226,7 +240,7 @@ ___ui_table_out3(){
     exec 3>&1
     {
         # { cat; printf "\n"; } | ___x_cmd_ui_region_send
-        printf "%s\n" "$___X_CMD_UI_TABLE_DEFAULT" | ___x_cmd_ui_region_send
+        { eval "$@"; printf "\n"; } | ___x_cmd_ui_region_send
         printf "VIEW %s %s\n" "$(ui rows)" "$(ui cols)" | ___x_cmd_ui_region_send
 
         local SPACE=
@@ -317,15 +331,105 @@ ___ui_table_out3(){
 
 # EndSection
 
-ui table -
-ui table + B%USER               PID  %CPU %MEM      VSZ    RSS   TT  STAT STARTED      TIME COMMAND
-for i in {1..6}; do
-    ui table + edwinjhlee       45694  69.7  3.2 12906080 542124   ??  R    "三02下午" 2171:02.57 "com.docker.hyperkit -A -u -F vms/0/hyperkit.pid -c 4 -m 8192M -s 0:0,hostbridge -s"
-    ui table + _windowserver    24773   9.6  0.9  9289004 146772   ??  Ss   "29 521"  2827:26.66 "/System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer -daemo"
-    ui table + edwinjhlee       40627   9.1  0.8  9704844 133228   ??  Ss   "25 621"  351:58.88 "/Applications/Visual Studio Code.app/Contents/MacOS/Electron /Users/edwinjhlee/x-b"
-    ui table + edwinjhlee       81250   5.9  1.7 57448804 293384   ??  S    "2:25下午"  18:21.02 "/Applications/Visual Studio Code.app/Contents/Frameworks/Code Helper (Renderer).app"
-    ui table + edwinjhlee       81250   5.9  1.7 57448804 293384   ??  S    "2:25下午"  18:21.02 "/Applications/Visual Studio Code.app/Contents/Frameworks/Code Helper (Renderer).app"
-    ui table + edwinjhlee       99999   5.9  1.7 57448804 293384   ??  S    "2:25下午"  18:21.02 "/Applications/Visual Studio Code.app/Contents/Frameworks/Code Helper (Renderer).app"
-done
-ui table
+# ui table -
+# ui table + B%USER               PID  %CPU %MEM      VSZ    RSS   TT  STAT STARTED      TIME COMMAND
+# for i in {1..6}; do
+#     ui table + edwinjhlee       45694  69.7  3.2 12906080 542124   ??  R    "三02下午" 2171:02.57 "com.docker.hyperkit -A -u -F vms/0/hyperkit.pid -c 4 -m 8192M -s 0:0,hostbridge -s"
+#     ui table + _windowserver    24773   9.6  0.9  9289004 146772   ??  Ss   "29 521"  2827:26.66 "/System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer -daemo"
+#     ui table + edwinjhlee       40627   9.1  0.8  9704844 133228   ??  Ss   "25 621"  351:58.88 "/Applications/Visual Studio Code.app/Contents/MacOS/Electron /Users/edwinjhlee/x-b"
+#     ui table + edwinjhlee       81250   5.9  1.7 57448804 293384   ??  S    "2:25下午"  18:21.02 "/Applications/Visual Studio Code.app/Contents/Frameworks/Code Helper (Renderer).app"
+#     ui table + edwinjhlee       81250   5.9  1.7 57448804 293384   ??  S    "2:25下午"  18:21.02 "/Applications/Visual Studio Code.app/Contents/Frameworks/Code Helper (Renderer).app"
+#     ui table + edwinjhlee       99999   5.9  1.7 57448804 293384   ??  S    "2:25下午"  18:21.02 "/Applications/Visual Studio Code.app/Contents/Frameworks/Code Helper (Renderer).app"
+# done
+# ui table
+
+
+prepare_data(){
+    ui table jsonfmt .table.abc name age gender math=score.math <<A
+{
+    "table": {
+        "abc": [
+            {
+                "name": "Edwin",
+                "age": 31,
+                "gender": "male",
+                "score": {
+                    "math": 100
+                }
+            },
+            {
+                "name": "Li Junhao",
+                "age": 30,
+                "gender": "male",
+                "score": {
+                    "math": 95
+                }
+            },
+            {
+                "name": "Junhao",
+                "age": 30,
+                "gender": "male",
+                "score": {
+                    "math": 900
+                }
+            }
+
+        ]
+    }
+
+}
+
+A
+}
+
+ui table func prepare_data
+
+# Section: other design for encapulation
+
+___ui_table_out_jsonsource(){
+    local srcfunc="$1"; shift
+    local IFS=" "
+    ___ui_table_out_func "$srcfunc | ___ui_table_json_to_table $*"
+}
+
+data(){
+    cat <<A
+{
+    "table": {
+        "abc": [
+            {
+                "name": "Edwin",
+                "age": 31,
+                "gender": "male",
+                "score": {
+                    "math": 100
+                }
+            },
+            {
+                "name": "Li Junhao",
+                "age": 30,
+                "gender": "male",
+                "score": {
+                    "math": 95
+                }
+            },
+            {
+                "name": "Junhao",
+                "age": 30,
+                "gender": "male",
+                "score": {
+                    "math": 900
+                }
+            }
+
+        ]
+    }
+
+}
+A
+}
+
+# ___ui_table_out_jsonsource data .table.abc name age gender math=score.math
+
+# EndSection
 

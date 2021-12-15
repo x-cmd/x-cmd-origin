@@ -17,7 +17,7 @@ A
 
 cmd2_ps1env(){
     ps1env init "cmd2"
-    ps1env alias "+csub1" "cmd2 csub1"
-    ps1env alias "+csub2" "cmd2 csub2"
-    ps1env alias "+csub3" "cmd2 csub3"
+    ps1env alias ",csub1" "cmd2 csub1"
+    ps1env alias ",csub2" "cmd2 csub2"
+    ps1env alias ",csub3" "cmd2 csub3"
 }

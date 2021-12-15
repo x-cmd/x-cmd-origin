@@ -12,11 +12,11 @@
 # Section 6: param subcmd
 ############################
 
-xrc dict
+xrc dict/v0
 
 # Section 1: Global definitions
 ############################
-PARAM_AWK_PATH="$(xrc which param/v0.awk)"
+PARAM_AWK_PATH="${___X_CMD_ROOT}/param/v0.awk"
 PARAM_DEFAULT_VAR_PREFIX=___X_CMD_X_BASH_PARAM_DEFAULT___
 PARAM_TYPE_VAR_PREFIX=___X_CMD_X_BASH_PARAM_TYPE___
 PARAM_SUBCMD_VAR_PREFIX=___X_CMD_X_BASH_PARAM_SUBCMD___
@@ -182,7 +182,9 @@ ___param_eval_echo(){
 }
 
 alias param:debug='local IFS; ___param_eval_echo "$(_param_main "$@"  )"'
-xrc ui/v0
+if [ "${-#*i}" != "$-" ]; then
+    xrc ui/v0
+fi
 
 # TODO: our goal, 6ms
 _param_main() {

@@ -116,17 +116,90 @@ function ___json_range_trick(arr, max){
     }
 }
 
+function ___json_unwrap(){
+
+}
+
+function ___json_join_handle_jpath(jpath,   _arr, _arrl, _i, _ret){
+    _arrl = split(jpath, _arr, ".")
+    _ret = ""
+    for (_i = 1; _i<=_arrl; _i++) {
+        if (_arr[_i] == "") continue
+        if ( _i == 1 )  _ret = q(_arr[_i])
+        else _ret = _ret S q(_arr[_i])
+    }
+    return _ret
+}
+
 # jjoin(arr, jpath, start:end, sep1)
 # jjoin(arr, jpath, start:end, sep1, keystr, sep2)
-function jjoin(arr, jpath, range, sep1, keystr, sep2,
-    _kp, _keyl, _key, _len, _i, _range, _rangel, _start, _end, _step) {
+
+BEGIN{
+    JJOIN_KEYLIST_SEPERATOR="\001"
+}
+
+function jjoin_str_unquote2(str){
+    if (str !~ /^"/) { # "
+        return str
+    }
+
+    gsub(/\\\\/, "\001\001", str)
+    gsub(/\\"/, /"/, str)
+    gsub("\001\001", "\\\\", str)
+    return substr(str, 2, length(str)-2)
+}
+
+function jjoin(arr, jpath, range, sep1, keystr, sep2,   _keyl, _key){
+    if (keystr == "") {
+        return _jjoin(arr, jpath, range, sep1)
+    }
+
+    _keyl = split(keystr, _key, "\001")
+    for (_i=1; _i<=_keyl; ++_i) {
+        _key[ _i ] = ___json_join_handle_jpath( _key[ _i ] )
+    }
+
+    return _jjoin(arr, jpath, range, sep1, _keyl, _key, sep2)
+}
+
+function jjoin_to_table( arr, jpath, range, sep1, keystr, sep2,   _keyl, _key ){
+    if (keystr == "") {
+        return _jjoin(arr, jpath, range, sep1)
+    }
+
+    _keyl = split(keystr, _key, "\001")
+
+    _title = ""
+
+    for (_i=1; _i<=_keyl; ++_i) {
+        _e = _key[ _i ]
+        if ( _e ~ /=/) {
+            _idx = index(_e, "=")
+            _e1 = substr(_e, 1, _idx-1)
+            _e2 = substr(_e, _idx+1)
+
+            _key[ _i ] = ___json_join_handle_jpath( _e2 )
+
+        } else {
+            _e1 = _e
+            _key[ _i ] = ___json_join_handle_jpath( _e )
+        }
+
+        if (_i == 1) _title = _e1
+        else _title = _title sep2 _e1
+    }
+
+    printf("%s", _title sep1)
+
+    return _jjoin(arr, jpath, range, sep1, _keyl, _key, sep2)
+}
+
+
+
+function _jjoin(arr, jpath, range, sep1, _keyl, _key, sep2,
+    _kp, _len, _i, _j, _range, _rangel, _start, _end, _step) {
 
     _kp = json_handle_jpath(jpath)
-
-    _keyl = split(keystr, _key, ",")
-    for (_i=1; _i<=_keyl; ++_i) {
-        _key[ _i ] = q( _key[ _i ] )
-    }
 
     _len = arr[ _kp T_LEN ]
     if (range == "") {
@@ -153,9 +226,9 @@ function jjoin(arr, jpath, range, sep1, keystr, sep2,
 
     for (_i=_start; _i<=_end; _i = _i + _step) {
 
-        printf("%s", arr[ _kp S "\"" _i "\"" S _key[1] ])
+        printf("%s", jjoin_str_unquote2( arr[ _kp S "\"" _i "\"" S _key[1] ] ) )
         for (_j=2; _j<=_keyl; ++_j) {
-            printf(sep2 "%s" , arr[ _kp S "\"" _i "\"" S _key[_j] ])
+            printf(sep2 "%s" , jjoin_str_unquote2( arr[ _kp S "\"" _i "\"" S _key[_j] ] ) )
         }
 
         if (_i<_end) printf(sep1)
@@ -599,6 +672,7 @@ function _jiter_handle_keypath(arr, item,     _cur_keypath, _cur_state, _len){
     _len = int(arr[ _cur_keypath T_LEN ] + 1)
     # print "+++len " arr[ _cur_keypath T_LEN ]
     arr[ _cur_keypath T_LEN ] = _len
+    # print "len: " _len " |" item "|"
 
     if ( _cur_state == T_DICT ) {
         if ( JITER_LAST_KP != "" ) {
@@ -627,7 +701,18 @@ function _jiter_handle_keypath(arr, item,     _cur_keypath, _cur_state, _len){
 
 function jiter(arr, item,      s, _t, _p_s, _cur_state, _len, _this_keypath){
 
-    if (item == "[") {
+    # if (item ~ /^[ \s\t]*$/){
+    #     return
+    # }
+    if (item == "") {
+        return
+    }
+
+    if (item == ":") {
+        # JITER_LAST_TOKEN = JITER_TOKEN_DCOLON
+    } else if (item == ",") {
+        # JITER_LAST_TOKEN = ""   # Needless to distinguish
+    } else if (item == "[") {
         _this_keypath = _jiter_handle_keypath(arr)
         arr[ _this_keypath T ] = T_LIST
 
@@ -646,10 +731,6 @@ function jiter(arr, item,      s, _t, _p_s, _cur_state, _len, _this_keypath){
     } else if (item == "}") {
         JITER_LEVEL --
         # JITER_LAST_TOKEN = JITER_TOKEN_DLEFT
-    } else if (item == ":") {
-        # JITER_LAST_TOKEN = JITER_TOKEN_DCOLON
-    } else if (item == ",") {
-        # JITER_LAST_TOKEN = ""   # Needless to distinguish
     } else {
         _this_keypath = _jiter_handle_keypath( arr, item )
         # JITER_LAST_TOKEN = ""
@@ -658,7 +739,7 @@ function jiter(arr, item,      s, _t, _p_s, _cur_state, _len, _this_keypath){
 
 # EndSection
 
-# Section: jiter special
+# Section: jiter_
 
 function init_jiter_(){
     JITER_FA_KEYPATH = ""
@@ -670,7 +751,16 @@ function init_jiter_(){
 }
 
 function jiter_( item ){
-    if (item == "[") {
+
+    # if (item == ":") {
+    #     return
+    # } else if (item == ",") {
+    #     return
+    # }
+
+    if (item ~ /^[,:]*$/) {
+        return
+    } else if (item ~ /^\[$/) {
         JITER_CURLEN = JITER_CURLEN + 1
         _[ JITER_FA_KEYPATH T_LEN ] = JITER_CURLEN
         if ( JITER_STATE != T_DICT ) {
@@ -686,7 +776,7 @@ function jiter_( item ){
         _[ JITER_FA_KEYPATH T ] = T_LIST
 
         JITER_STACK[ ++JITER_LEVEL ] = JITER_FA_KEYPATH
-    } else if (item == "]") {
+    } else if (item ~ /^\]$/) {
         _[ JITER_FA_KEYPATH T_LEN ] = JITER_CURLEN
 
         JITER_LEVEL --
@@ -694,7 +784,7 @@ function jiter_( item ){
         JITER_FA_KEYPATH = JITER_STACK[ JITER_LEVEL ]
         JITER_STATE = _[ JITER_FA_KEYPATH T ]
         JITER_CURLEN = _[ JITER_FA_KEYPATH T_LEN ]
-    } else if (item == "{") {
+    } else if (item ~ /^\{$/) {
         JITER_CURLEN = JITER_CURLEN + 1
         _[ JITER_FA_KEYPATH T_LEN ] = JITER_CURLEN
         if ( JITER_STATE != T_DICT ) {
@@ -710,7 +800,7 @@ function jiter_( item ){
         _[ JITER_FA_KEYPATH T ] = T_DICT
 
         JITER_STACK[ ++JITER_LEVEL ] = JITER_FA_KEYPATH
-    } else if (item == "}") {
+    } else if (item ~ /^\}$/) {
         _[ JITER_FA_KEYPATH T_LEN ] = JITER_CURLEN
 
         JITER_LEVEL --
@@ -718,10 +808,6 @@ function jiter_( item ){
         JITER_FA_KEYPATH = JITER_STACK[ JITER_LEVEL ]
         JITER_STATE = _[ JITER_FA_KEYPATH T ]
         JITER_CURLEN = _[ JITER_FA_KEYPATH T_LEN ]
-    } else if (item == ":") {
-        # JITER_LAST_TOKEN = JITER_TOKEN_DCOLON
-    } else if (item == ",") {
-        # JITER_LAST_TOKEN = ""   # Needless to distinguish
     } else {
         JITER_CURLEN = JITER_CURLEN + 1
         if ( JITER_STATE != T_DICT ) {

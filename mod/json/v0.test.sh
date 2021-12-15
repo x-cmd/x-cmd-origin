@@ -28,9 +28,19 @@ ___json_awk_tokenize(){
 
 ___json_awk_parse_flat_stream(){
     awk "$___X_CMD_JSON_AWK_SRC"'
-{ jiter(jobj, $0) }
+{ jiter(arr, $0) }
 END{
-    print jget(jobj, "3.1.id")
+    print jget(arr, "3.1.id")
+}
+'
+}
+
+___json_awk_parse_flat_stream1(){
+    awk "$___X_CMD_JSON_AWK_SRC"'
+{ jiter_($0) }
+END{
+    print jget(_, "3.1.id")
+    print jget(_, "1.1.full_name")
 }
 '
 }

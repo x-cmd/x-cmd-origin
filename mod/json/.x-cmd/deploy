@@ -1,0 +1,6 @@
+#! /usr/bin/env bash
+
+mkdir -p ~/.x-cmd/json/_v0
+cp -rf _v0/* ~/.x-cmd/json/_v0/
+cp -rf latest ~/.x-cmd/json/
+cp -rf v0* ~/.x-cmd/json/

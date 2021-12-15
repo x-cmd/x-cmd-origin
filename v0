@@ -64,15 +64,20 @@ ___xrc_run(){
     elif command -v "${___xrc_module_name}"; then
         "${___xrc_module_name}" "$@"
     else
-        cat 2>/dev/null <<A
-File not containing function: $___xrc_module_name
-Exit without execute: $___xrc_module_name "$@"
-A
-        return 1
+#         cat 2>/dev/null <<A
+# File not containing function: $___xrc_module_name
+# Exit without execute: $___xrc_module_name "$@"
+# A
+#         return 1
+        :
     fi
 }
 
-___x_cmd_xrc_run()(
+___x_cmd_xrc_run(){
+    ___xrc_run "$@"
+}
+
+___x_cmd_xsh_run()(
     ___xrc_run "$@"
 )
 
@@ -80,7 +85,8 @@ ___x_cmd_run_with_engine(){
     local engine="${1:?Please provide engine}";
     local filepath="${2:?Please provide filepath}";        shift 2
     case "$engine" in
-        x-bash)     ___x_cmd_xrc_run "$filepath" "$@";;
+        xrc)        ___x_cmd_xrc_run "$filepath" "$@";;
+        xsh)        ___x_cmd_xsh_run "$filepath" "$@";;
         7z)         ___x_cmd_main 7z x "$filepath" "$@"      ;;
         *)          ___x_cmd_main "$engine" "$filepath" "$@" ;;
     esac
@@ -89,6 +95,8 @@ ___x_cmd_run_with_engine(){
 ___x_cmd_get_engine_by_file_header(){
     local filepath="${1:?Please provide filepath}"; shift
     case "$(head -n1 "$filepath")" in
+        *xsh*)          printf "%s" xsh             ;;
+        *xrc*)          printf "%s" xrc             ;;
         *python*)       printf "%s" python          ;;
         *perl*)         printf "%s" perl            ;;
         *ruby*)         printf "%s" ruby            ;;

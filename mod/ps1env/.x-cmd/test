@@ -1,0 +1,4 @@
+
+mkdir -p "$HOME/.x-cmd/ps1env/"
+cp -r v0 latest "$HOME/.x-cmd/ps1env/"
+

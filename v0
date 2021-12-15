@@ -42,8 +42,6 @@ ui(){
 
 # Section : init
 
-x log init ui
-
 # Thank ryenus, iRaS and Mekcki for answers in https://stackoverflow.com/questions/263890/how-do-i-find-the-width-height-of-a-terminal-window
 ui_init_lines_columns(){
     local IFS

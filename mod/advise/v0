@@ -4,7 +4,7 @@
 
 if [ -z "${ZSH_VERSION}${BASH_VERSION}" ]; then
     x log info "advise is only available in 'bash' or 'zsh'."
-elif ! ___ADVISE_AWK_PATH="$(xrc which advise/v0.awk)"; then
+elif ! ___ADVISE_AWK_PATH="${___X_CMD_ROOT}/advise/v0.awk"; then
     x log error "Cannot introduce advise"
 else
 

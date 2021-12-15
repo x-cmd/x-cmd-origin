@@ -7,10 +7,6 @@
 
 # Section: main
 
-# TODO: key of
-# TODO: value of
-x log init dict
-
 # example of dict
 #   dict put key1 value1
 #   dict :a put key2 value2
@@ -319,7 +315,6 @@ ___dict_dump_json(){
 }
 
 ___dict_load_json(){
-    dict_log "load_json: $1 $(printf "%s" "$1" | ___dict_pjsonparse)"
     ___dict_load <<A
 $(printf "%s" "$1" | ___dict_pjsonparse)
 A
@@ -395,15 +390,13 @@ if [ -n "${BASH_VERSION}" ]; then
     esac
 elif [ -n "${ZSH_VERSION}" ]; then
     xrc dict/_v0/zsh
-    # . ./_v0/zsh
 else
     xrc dict/_v0/str
-    # . ./_v0/str
 fi
 
 if [ -z "$XRC_NO_ADVISE" ] && [ -n "${BASH_VERSION}${ZSH_VERSION}" ] && [ "${-#*i}" != "$-" ]; then
-    # dict_log debug "Using module advise for completion."
-    xrc advise/v0
+    # if you use xrc that you must have advise
+    # xrc advise/v0
     advise dict
 fi
 

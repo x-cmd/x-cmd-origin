@@ -336,9 +336,3 @@ ___x_cmd_ui_prompt_question(){
 
 # EndSection
 
-# ___x_cmd_ui_prompt_question "Input answer" =~ [0-9]+
-
-
-# Section: TableApp
-
-

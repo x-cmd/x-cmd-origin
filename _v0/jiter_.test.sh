@@ -9,11 +9,11 @@ SSS="$(cat default.awk)$(cat json.awk)"
 f1(){
     awk "$SSS
     BEGIN{
-
+        init_jiter_()
     }
     {
         if (\$0 != \"\") {
-            jiter(_, \$0)
+            jiter_(\$0)
             # print (\$0)
         }
     }

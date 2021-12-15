@@ -264,8 +264,8 @@ ___x_cmd_yq(){
     xrc static-build && static_build_init yq yq ___x_cmd_yq && ___x_cmd_yq          "$@"
 }
 
-___x_cmd_curl(){
-    xrc static-build && static_build_init curl curl ___x_cmd_curl && ___x_cmd_curl  "$@"
+___x_cmd_static_build_curl(){
+    xrc static-build && static_build_init curl curl ___x_cmd_static_build_curl && ___x_cmd_static_build_curl  "$@"
 }
 
 ___x_cmd_openssl(){
@@ -670,7 +670,7 @@ ___x_cmd_main(){
                                                 fi
                                                 ;;
         yq)                                     ___x_cmd_yq         "$@"             ;;
-        curl)                                   ___x_cmd_curl       "$@"             ;;
+        curl)                                   ___x_cmd_static_build_curl  "$@"     ;;
         openssl|ssl)                            ___x_cmd_openssl    "$@"             ;;
         tmux)                                   ___x_cmd_tmux       "$@"             ;;
         git)                                    ___x_cmd_git        "$@"             ;;
@@ -832,7 +832,8 @@ ___x_cmd_x_cmd_advise_json(){
 
     "jq": null,
     "yq": null,
-    "ls|ll|cat|du|cd": "___advise_ls",
+    "cat|du": "___advise_ls",
+    "ls|ll|cd": "___advise_lsd",
     "ps|procs": null
 
     "nmap":null,
@@ -859,6 +860,7 @@ x(){
 }
 
 if [ -z "$XRC_NO_ADVISE" ] && [ -n "${BASH_VERSION}${ZSH_VERSION}" ] && [ "${-#*i}" != "$-" ]; then
-    xrc advise/v0
+    # if you use xrc that you must have advise
+    # xrc advise/v0
     advise x
 fi

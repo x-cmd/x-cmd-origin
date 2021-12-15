@@ -1,4 +1,4 @@
-#! /usr/bin/env bash
+#! /usr/bin/env xsh
 
 add(){
     local name="${1:?Provide module name}"
@@ -20,23 +20,22 @@ update(){
     local IFS
     local mod
     git prune
+
+    x lsmod "$@" | \
     while read -r mod; do
         if [ -e "mod/$mod" ]; then
             pull "$mod"
         else
             add "$mod"
         fi
-    done <<A
-$(ls)
-A
+    done
 }
 
-if [ "$#" -gt 0 ]; then
-    op="$1"; shift
+op="$1"; shift
 
-    case "$op" in
-        add)        add "$@" ;;
-        pull)       pull "$@" ;;
-        all|*)      update "$@" ;;
-    esac
-fi
+case "$op" in
+    add)        add "$@" ;;
+    pull)       pull "$@" ;;
+    all|*)      update all ;;
+esac
+

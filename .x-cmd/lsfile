@@ -1,0 +1,16 @@
+#! /usr/bin/env xrc
+
+ls(){
+    x lsmod "$@" | (
+        cd "$(x wsroot)/mod" && \
+        while read -r line; do
+            local i
+            for i in $line/latest $line/v* $line/_v*/* $line/_v*/**/* $line/third-party/* $line/third-party/*/.* $line/third-party/**/* $line/third-party/**/*/* $line/third-party/**/*/*/*; do
+                [[ "$i" == *_test* ]] && continue
+                [ -f "$i" ] && printf "%s\n" "$i"
+            done
+        done
+    )
+}
+
+ls "$@"

@@ -1,0 +1,4 @@
+#! /usr/bin/env xsh
+
+cd "$(x wsroot)/mod" &&
+    x lsfile "$@" | xargs wc

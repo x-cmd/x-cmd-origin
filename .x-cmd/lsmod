@@ -1,0 +1,89 @@
+#! /usr/bin/env bash
+
+core_mod_list="
+xrc
+x-cmd
+hub
+install
+awk
+x_fs
+
+# basic modules: non dependency
+str
+list
+dict
+assert
+json
+os
+cowsay
+
+# basic modules: dependencies
+param
+http
+advise
+ui
+
+# modules
+static-build
+ccmd
+"
+
+
+mod_list="
+xrc
+x-cmd
+hub
+install
+awk
+x_fs
+
+# basic modules: non dependency
+str
+list
+dict
+assert
+json
+os
+cowsay
+
+# basic modules: dependencies
+param
+http
+advise
+ui
+ps1env
+
+# modules
+static-build
+ccmd
+xdk
+zuz
+el
+
+# Apps
+tldr
+proxy
+theme
+
+# web clients
+ali
+gitee
+"
+
+
+
+lsmod(){
+    {
+        case "$1" in
+            core)   printf "%s" "$core_mod_list" ;;
+            *)      printf "%s" "$mod_list" ;;
+        esac
+    } | \
+    while read -r line; do
+        [ "${line#\#}" != "$line" ] && continue
+        [ "$line" = "" ] && continue
+        printf "%s\n" "$line"
+    done 2>/dev/null
+}
+
+lsmod "$@"

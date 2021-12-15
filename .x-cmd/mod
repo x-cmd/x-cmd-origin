@@ -16,72 +16,7 @@ pull(){
     git subtree pull --prefix="mod/$name" "$position" "$branch" --squash
 }
 
-ls(){
-
-    # TODO: add modules: xrc xcmd adviser
-    local mod_list="
-xrc
-x-cmd
-hub
-install
-awk
-x_fs
-
-# basic modules: non dependency
-str
-list
-assert
-dict
-json
-os
-cowsay
-
-# basic modules: dependencies
-param
-http
-advise
-ui
-ps1env
-
-# modules
-static-build
-ccmd
-xdk
-p7zr
-p7z
-zuz
-el
-
-# Apps
-tldr
-proxy
-theme
-
-# web clients
-ali
-gitee
-
-# static-build
-# ls
-# du
-# ps
-# cat
-# bw
-# p7z
-"
-    while read -r mod; do
-        case "$mod" in
-            *#*)    continue ;;
-            "")     continue ;;
-            *)      printf "%s\n" "$mod"
-        esac
-    done <<A
-$(printf "%s" "$mod_list")
-A
-
-}
-
-all(){
+update(){
     local IFS
     local mod
     git prune
@@ -97,7 +32,11 @@ A
 }
 
 if [ "$#" -gt 0 ]; then
-    op="$1"
-    shift
-    "$op" "$@"
+    op="$1"; shift
+
+    case "$op" in
+        add)        add "$@" ;;
+        pull)       pull "$@" ;;
+        all|*)      update "$@" ;;
+    esac
 fi

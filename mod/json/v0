@@ -5,6 +5,8 @@
 
 JSON_AWK_PATH="$(xrc which json/v0_walk.awk)"
 
+# Section: main
+
 # TODO: Using subcmd module to enhance.
 
 json(){
@@ -68,6 +70,11 @@ A
     esac
 }
 
+# EndSection
+
+# Section: functions
+
+# We have a better design
 json_var(){
     local varname="${1:?Provide variable name}"
     shift
@@ -393,6 +400,9 @@ A
     fi
 }
 
+# EndSection
+
+# Section: serialize and unserialize
 
 json_flat(){
     awk -v op=flat-leaf -f "$JSON_AWK_PATH"
@@ -684,7 +694,14 @@ json_from_kv(){
 #     printf "\n}"
 # }
 
+# EndSection
+
+# Section: json facility using awk
+
 ___X_CMD_JSON_AWK_SRC="$(xrc cat awk/_v0/json.awk)"
+___X_CMD_JSON_AWK_SRC="$(xrc cat awk/_v0/default.awk)
+$___X_CMD_JSON_AWK_SRC
+"
 
 ___json_awk_end(){
     local func=jiter_after_tokenize
@@ -696,6 +713,44 @@ ___json_awk_end(){
 { $func(_, \$0); }
 $1"
 
+}
+
+___json_awk_tokenize(){
+    awk "$___X_CMD_JSON_AWK_SRC"'
+{
+    printf(jtokenize($0))
+}
+'
+}
+
+___json_awk_parse_flat_stream(){
+    awk "$___X_CMD_JSON_AWK_SRC"'
+{ jiter(_, $0) }'"
+$1
+"
+}
+
+___json_awk_parse_stream(){
+    awk "$___X_CMD_JSON_AWK_SRC"'
+{ jiter_after_tokenize(_, $0) }'"
+$1
+"
+}
+
+___json_awk_parse(){
+    awk -v RS="$(printf "\001")" "$___X_CMD_JSON_AWK_SRC"'
+{ r = $0 }
+END{ json_parse(r, jobj) }'"
+$1
+"
+}
+
+___json_awk_parse_flat(){
+    awk -v RS="$(printf "\001")" "$___X_CMD_JSON_AWK_SRC"'
+{ r = $0 }
+END{ ___json_parse(r, jobj) print jget(jobj, "3.1.id") }'"
+$1
+"
 }
 
 ___json_awk_get(){
@@ -732,8 +787,6 @@ END {
 
 }
 
-
-
 ___json_var(){
     local IFS="
 "
@@ -745,3 +798,5 @@ ___json_var(){
         shift
     done
 }
+
+# EndSection

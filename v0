@@ -799,4 +799,38 @@ ___json_var(){
     done
 }
 
+___json_awk_table_flat_stream(){
+
+    local key="$1"
+    local keylist="$2"
+
+    local SEP1="${SEP1:-"\002"}"
+    local SEP2="${SEP2:-"\003"}"
+
+    ___json_awk_parse_flat_stream '
+END{
+    print jjoin(_, "'"$key"'", "'"$SEP1"'", "'"$keylist"'", "'"$SEP2"'")
+}
+'
+}
+
+___json_awk_table_stream(){
+
+    local key="$1"
+    local keylist="$2"
+
+    local SEP1="${SEP1:-"\002"}"
+    local SEP2="${SEP2:-"\003"}"
+
+
+    ___json_awk_parse_stream '
+END{
+    # print json_handle_jpath(".table.abc.1.name")
+    # print jget(_, ".table.abc.1.name")
+    print jjoin_to_table(_, "'"$key"'", "", "'"$SEP1"'", "'"$keylist"'", "'"$SEP2"'")
+    # print jjoin(_, "'"$key"'", "", "\n", "'"$keylist"'", ", ")
+}
+'
+}
+
 # EndSection

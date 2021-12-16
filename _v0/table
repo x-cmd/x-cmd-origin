@@ -382,7 +382,7 @@ prepare_data(){
 A
 }
 
-ui table func prepare_data
+# ui table func prepare_data·
 
 # Section: other design for encapulation
 

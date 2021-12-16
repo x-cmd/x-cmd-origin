@@ -190,8 +190,8 @@ ___ui_table_out2(){
 # 3. Using instruction to control table
 
 
-___X_CMD_UI_TABLE_CONTROL_AWK_PATH="./table.control.awk" # ui/_v0/table.control.awk
-# ___X_CMD_UI_TABLE_CONTROL_AWK_PATH="$(x which ui/_v0/table.control.awk)"
+# ___X_CMD_UI_TABLE_CONTROL_AWK_PATH="./table.control.awk" # ui/_v0/table.control.awk
+___X_CMD_UI_TABLE_CONTROL_AWK_PATH="$(x which ui/_v0/table.control.awk)"
 
 ___x_cmd_ui_table_control(){
     LC_ALL=en_US.UTF-8 USE=str,wcwidth,ui ___x_cmd_awk file "$___X_CMD_UI_TABLE_CONTROL_AWK_PATH" -v EXIT_OP="$EXIT_OP"
@@ -382,7 +382,7 @@ prepare_data(){
 A
 }
 
-# ui table func prepare_data·
+ui table func prepare_data
 
 # Section: other design for encapulation
 

@@ -4,12 +4,9 @@
 # maintainer:   Li Junhao
 # license:      GPLv3
 
-xrc x_fs/_v0/cd
-xrc x_fs/_v0/ls
-xrc x_fs/_v0/mv
-xrc x_fs/_v0/cp
-xrc x_fs/_v0/rm
-xrc x_fs/_v0/open
+for i in cd ls mv cp rm open; do
+    xrc x_fs/_v0/$i
+done
 
 ___x_cmd_fs_activate(){
     alias cd=___x_cmd_cd

@@ -1,4 +1,4 @@
-#! /usr/bin/env xrc
+#! /usr/bin/env xsh
 
 ls(){
     x lsmod "$@" | (

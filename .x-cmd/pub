@@ -1,0 +1,3 @@
+#! /usr/bin/env xsh
+
+x mod all && x tgz && x push

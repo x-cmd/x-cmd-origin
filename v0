@@ -57,21 +57,22 @@ A
 
 ___xrc_run(){
     local ___xrc_run_filepath="${1:?filepath}";        shift
-    xrc "$___xrc_run_filepath"
-    local ___xrc_module_name="${___xrc_run_filepath##*/}"
+    . "$___xrc_run_filepath" "$@"
 
-    if command -v "___x_cmd_${___xrc_module_name}"; then
-        "___x_cmd_${___xrc_module_name}" "$@"
-    elif command -v "${___xrc_module_name}"; then
-        "${___xrc_module_name}" "$@"
-    else
+    # local ___xrc_module_name="${___xrc_run_filepath##*/}"
+
+    # if command -v "___x_cmd_${___xrc_module_name}" >/dev/null; then
+    #     "___x_cmd_${___xrc_module_name}" "$@"
+    # elif command -v "${___xrc_module_name}" >/dev/null; then
+    #     "${___xrc_module_name}" "$@"
+    # else
 #         cat 2>/dev/null <<A
 # File not containing function: $___xrc_module_name
 # Exit without execute: $___xrc_module_name "$@"
 # A
 #         return 1
-        :
-    fi
+    #     :
+    # fi
 }
 
 ___x_cmd_xrc_run(){

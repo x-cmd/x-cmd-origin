@@ -33,7 +33,7 @@ options:
     param:run
 
     gt_param_init_owner_repo
-    gt_get "/v5/repos/${owner_repo}/collaborators" page per_page | json_color
+    ___gt_get "/v5/repos/${owner_repo}/collaborators" page per_page  
 }
 
 gt_repo_member_add() {
@@ -54,14 +54,14 @@ options:
     local username
     for username in "$@"; do
         {
-            gt_put_json "/v5/repos/$owner_repo/collaborators/${username##*/}" permission
+            ___gt_put_json "/v5/repos/$owner_repo/collaborators/${username##*/}" permission
             local code=$?
             if [ $code -ne 0 ]; then
                 gt_log error "Creating repo failure: $name. Code is $code. "
-                # gt_resp_header "" >&2
+                # ___gt_resp_header "" >&2
                 return $code
             fi
-        } | json_color
+        }  
     done
 }
 
@@ -82,6 +82,6 @@ options:
     gt_param_init_owner_repo
     local username
     for username in "$@"; do
-        gt_delete "/v5/repos/$owner_repo/collaborators/${username##*/}"
+        ___gt_delete "/v5/repos/$owner_repo/collaborators/${username##*/}"
     done
 }

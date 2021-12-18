@@ -7,8 +7,8 @@ test_gitee() {
     echo "gitee开始测试"
     test_get_token() {
         # TODO:换成真实token
-        gt_token "xxxxxxxxxxxxxxxxxxxxx"
-        assert "$(gt_token)" = "xxxxxxxxxxxxxxxxxxxxx"
+        gt_token "$(gitee)"
+        assert "$(gt_token)" = "$(gitee)"
     }
     test_gt_current() {
         assert "$(gt_current owner)" = "mycw"

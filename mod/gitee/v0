@@ -1,13 +1,14 @@
 # shellcheck shell=sh
 # shellcheck disable=SC2039,3043
 
-xrc http/v0 param/v0 json/v0 str/v0 ui
+xrc http param json str ui ccmd
 
 # TODO: Precompile it into one file.
 _gt_xrc(){
     local i
     for i in "$@"; do
-        xrc "gitee/_v0/$i"
+    # xrc "gitee/_v0/$i"
+    . "_v0/$i"
     done
 }
 
@@ -15,8 +16,8 @@ _gt_xrc utils config current enterprise issue org  \
         repo issue repo_member repo_page repo_pr repo_release repo_tag   \
         repo_utils token user
 
-
-xrc log init gt
+ 
+x log init gt
 
 param_type    gitee     repo        "=~"   "[-A-Za-z0-9_/]+"      # TODO: make it fit it gitee definition
 param_type    gitee     name        "=~"   "[-A-Za-z0-9_]+"
@@ -59,12 +60,14 @@ subcommand:
 ############################
 
 gt_new() {
+    param:void
     local name="${1:?Provide object name}"
     # shellcheck disable=SC2139
     alias "$name=\"O=$name gt\""
 }
 
 gt_make() {
+    param:void
     local O_ORIGINAL=${1:?Provide client name by O environment}
 
     # if [ -n "$GITEE_DEFAULT" ] && [ "$O_ORIGINAL" = "GITEE_DEFAULT" ]; then

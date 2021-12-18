@@ -47,16 +47,15 @@ options:
     param:run
 
     gt_param_init_owner_repo
-
-    gt_get "/v5/repos/$owner_repo/pulls" state head base sort since \
-        direction milestone_number labels page per_page | json_color
+    ___gt_get "/v5/repos/$owner_repo/pulls" state head base sort since \
+        direction milestone_number labels page per_page 
 }
 
 # Assume pr and owner_repo are environments
 ___parse_pr_init_owner_repo_and_pr_main(){
     local pr_number=${pr##*/}
     owner_repo=${pr%/$pr_number}
-    gt_param_normalize_repo "$owner_repo"
+    ___gt_param_normalize_repo "$owner_repo"
     pr="$pr_number"
 }
 
@@ -76,7 +75,7 @@ options:
 
     ___parse_pr_init_owner_repo_and_pr
 
-    gt_get "/v5/repos/${owner_repo}/pulls/$pr" | json_color
+    ___gt_get "/v5/repos/${owner_repo}/pulls/$pr"  
 }
 
 
@@ -90,7 +89,7 @@ options:
     param:run
 
     ___parse_pr_init_owner_repo_and_pr
-    gt_get "/v5/repos/${owner_repo}/pulls/$pr/operate_logs" sort | json_color
+    ___gt_get "/v5/repos/${owner_repo}/pulls/$pr/operate_logs" sort  
 }
 
 gt_repo_pr_commit() {
@@ -103,7 +102,7 @@ options:
     param:run
 
     ___parse_pr_init_owner_repo_and_pr
-    gt_get "/v5/repos/${owner_repo}/pulls/$pr/commits" sort | json_color
+    ___gt_get "/v5/repos/${owner_repo}/pulls/$pr/commits" sort  
 }
 
 gt_repo_pr_view() {
@@ -148,8 +147,8 @@ options:
     
     gt_param_init_owner_repo
 
-    gt_post_json "/v5/repos/$owner_repo/pulls" title head base body milestone_number\
-        labels issue assignees testers assignees_number testers_number prune_source_branch |json_color
+    ___gt_post_json "/v5/repos/$owner_repo/pulls" title head base body milestone_number\
+        labels issue assignees testers assignees_number testers_number prune_source_branch  
 }
 
 gt_repo_pr_update() {
@@ -169,8 +168,8 @@ options:
     param:run
 
     ___parse_pr_init_owner_repo_and_pr
-    gt_patch_json "/v5/repos/${owner_repo}/pulls/$pr" title body milestone_number\
-        labels assignees_number testers_number state |json_color
+    ___gt_patch_json "/v5/repos/${owner_repo}/pulls/$pr" title body milestone_number\
+        labels assignees_number testers_number state  
 }
 
 gt_repo_pr_merge() {
@@ -186,8 +185,8 @@ options:
     param:run
 
     ___parse_pr_init_owner_repo_and_pr
-    gt_put_json "/v5/repos/${owner_repo}/pulls/$pr/merge"  merge_method \
-        prune_source_branch title description | json_color
+    ___gt_put_json "/v5/repos/${owner_repo}/pulls/$pr/merge"  merge_method \
+        prune_source_branch title description  
 }
 
 # EndSection
@@ -224,7 +223,7 @@ options:
     # TODO: interactive ui
 
     ___parse_pr_init_owner_repo_and_pr
-    gt_post_json "/v5/repos/${owner_repo}/pulls/$pr/assignees" assignees | json_color
+    ___gt_post_json "/v5/repos/${owner_repo}/pulls/$pr/assignees" assignees  
 }
 
 gt_repo_pr_assign_del() {
@@ -237,7 +236,7 @@ options:
     param:run
 
     ___parse_pr_init_owner_repo_and_pr
-    gt_delete "/v5/repos/${owner_repo}/pulls/$pr/assignees?assignees=$assignees" | json_color
+    ___gt_delete "/v5/repos/${owner_repo}/pulls/$pr/assignees?assignees=$assignees"  
 }
 
 gt_repo_pr_assign_reset() {
@@ -252,7 +251,7 @@ options:
     ___parse_pr_init_owner_repo_and_pr
 
     reset_all=${reset_all:-false}
-    gt_patch_json "/v5/repos/${owner_repo}/pulls/$pr/assignees" reset_all | json_color
+    ___gt_patch_json "/v5/repos/${owner_repo}/pulls/$pr/assignees" reset_all  
 }
 
 gt_repo_pr_assign_review() {
@@ -267,7 +266,7 @@ options:
     ___parse_pr_init_owner_repo_and_pr
 
     force=${force:-false}
-    gt_post_json "/v5/repos/${owner_repo}/pulls/$pr/review" force | json_color
+    ___gt_post_json "/v5/repos/${owner_repo}/pulls/$pr/review" force  
 }
 
 # EndSection
@@ -303,7 +302,7 @@ options:
     param:run
 
     ___parse_pr_init_owner_repo_and_pr
-    gt_post_json "/v5/repos/${owner_repo}/pulls/$pr/testers" testers | json_color
+    ___gt_post_json "/v5/repos/${owner_repo}/pulls/$pr/testers" testers  
 }
 
 gt_repo_pr_testers_delete() {
@@ -316,7 +315,7 @@ options:
     param:run
 
     ___parse_pr_init_owner_repo_and_pr
-    gt_delete "/v5/repos/${owner_repo}/pulls/$pr/testers?testers=$testers" | json_color
+    ___gt_delete "/v5/repos/${owner_repo}/pulls/$pr/testers?testers=$testers"  
 }
 
 gt_repo_pr_testers_reset() {
@@ -331,7 +330,7 @@ options:
     ___parse_pr_init_owner_repo_and_pr
 
     reset_all=${reset_all:-false}
-    gt_patch_json "/v5/repos/${owner_repo}/pulls/$pr/testers" reset_all | json_color
+    ___gt_patch_json "/v5/repos/${owner_repo}/pulls/$pr/testers" reset_all  
 }
 
 gt_repo_pr_testers_test() {
@@ -346,7 +345,7 @@ options:
     ___parse_pr_init_owner_repo_and_pr
 
     force=${force:-false}
-    gt_post_json "/v5/repos/${owner_repo}/pulls/$pr/test" force | json_color
+    ___gt_post_json "/v5/repos/${owner_repo}/pulls/$pr/test" force  
 } 
 
 # EndSection

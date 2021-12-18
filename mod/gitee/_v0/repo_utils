@@ -14,11 +14,12 @@ options:
 
     local repo
     for repo in "$@"; do
-        printf "https://gitee.com/%s.git\n" "$(gt_param_normalize_repo "$repo")"
+        printf "https://gitee.com/%s.git\n" "$(___gt_param_normalize_repo "$repo")"
     done
 }
 
 gt_repo_url() {
+    param:void
     gt_repo_url_ssh ${1:+"$@"}
 }
 
@@ -32,7 +33,7 @@ options:
 
     local repo
     for repo in "$@"; do
-        printf "git@gitee.com:%s.git\n" "$(gt_param_normalize_repo "$repo")"
+        printf "git@gitee.com:%s.git\n" "$(___gt_param_normalize_repo "$repo")"
     done
 }
 
@@ -44,11 +45,13 @@ gt_repo_clone() {
 
 # shellcheck disable=SC2120
 gt_repo_clone_ssh() {
+    param:void
     git clone "$(gt_repo_url_ssh "$@")"
 }
 
 # shellcheck disable=SC2120
 gt_repo_clone_https() {
+    param:void
     git clone "$(gt_repo_url_http "$@")"
 }
 
@@ -64,7 +67,7 @@ options:
     param:run
 
     local owner_repo
-    owner_repo="$(gt_param_normalize_repo "$repo")"
+    owner_repo="$(___gt_param_normalize_repo "$repo")"
 
-    gt_post_json "https://gitee.com/api/v5/repos/${owner_repo}/forks" organization
+    ___gt_post_json "https://gitee.com/api/v5/repos/${owner_repo}/forks" organization
 }

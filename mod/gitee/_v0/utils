@@ -4,59 +4,59 @@
 ############################
 # Section 2: Wrapping std/http module with object naming changing
 ############################
-gt_resp_header() {
+___gt_resp_header() {
     http "@_x_cmd_x_bash_gitee_${O:-GITEE_DEFAULT}" resp header "$@"
 }
 
 # TODO: Not supported yet
-gt_resp_body() {
+___gt_resp_body() {
     http "@_x_cmd_x_bash_gitee_${O:-GITEE_DEFAULT}" resp body "$@"
 }
 
-gt_get() {
+___gt_get() {
     http "@_x_cmd_x_bash_gitee_${O:-GITEE_DEFAULT}" get "$@"
     return $?
 }
 
-gt_get_multi() {
+___gt_get_multi() {
     if [ -n "$page" ] || [ -n "$per_page" ]; then
-        gt_get "$@" page per_page
+        ___gt_get "$@" page per_page
         return
     fi
 
     local i=1 
     local total_page=100000
     while [ "$i" -le "$total_page" ]; do
-        gt_get "$@" page="$i" per_page=100
-        total_page="$(gt_resp_header "total_page")"
+        ___gt_get "$@" page="$i" per_page=100
+        total_page="$(___gt_resp_header "total_page")"
         # echo "total_page:$total_page" >&2
         i=$((i+1))
     done
 }
 
 # gt_post(){ O="_x_cmd_x_bash_gitee_${O:-GITEE_DEFAULT}" http_post "$@"; }
-gt_post_json() {
+___gt_post_json() {
     http "@_x_cmd_x_bash_gitee_${O:-GITEE_DEFAULT}" post  json "$@"
 }
 
 # gt_put(){ O="_x_cmd_x_bash_gitee_${O:-GITEE_DEFAULT}" http_put "$@"; }
-gt_put_json() {
+___gt_put_json() {
     http "@_x_cmd_x_bash_gitee_${O:-GITEE_DEFAULT}" put json "$@"
 }
 
-gt_patch_json() {
+___gt_patch_json() {
     http "@_x_cmd_x_bash_gitee_${O:-GITEE_DEFAULT}" patch json "$@"
 }
 
-gt_delete() {
+___gt_delete() {
     http "@_x_cmd_x_bash_gitee_${O:-GITEE_DEFAULT}" delete "$@"
 }
 
-gt_dict_get() {
+___gt_dict_get() {
     http "@_x_cmd_x_bash_gitee_${O:-GITEE_DEFAULT}" dict "$@"
 }
 
-gt_dict_put() {
+___gt_dict_put() {
     http "@_x_cmd_x_bash_gitee_${O:-GITEE_DEFAULT}" dict "$@"
 }
 
@@ -67,10 +67,10 @@ gt_dict_put() {
 
 alias gt_param_init_owner_repo='
     local owner_repo
-    gt_param_normalize_repo  || return
+    ___gt_param_normalize_repo  || return
 '
 
-gt_param_normalize_repo() {
+___gt_param_normalize_repo() {
     local op="$repo"
     [ -z "$op" ] && op="$1"
     case "$op" in
@@ -107,7 +107,7 @@ gt_param_normalize_repo() {
 
 ### Repo #1
 
-gt_parse_owner_repo() {
+___gt_parse_owner_repo() {
     local O="${O:-GITEE_DEFAULT}"
     if [ -z "$repo" ]; then
         repo="$(gt_current_repo)"
@@ -122,29 +122,14 @@ gt_parse_owner_repo() {
     fi
 }
 
-gt_table_json(){
-    local arg
-    local args
-    local title
-    for arg in "$@"; do
-        case "$arg" in
-            .*)     args="$args,$arg"      
-                    title="$title ${arg#.}"      
-                    ;;
-            *=.*)   args="$args,${arg#*=}"
-                    title="$title ${arg%%=.*}"
-                    ;;
-            *)      printf "%s" "Argument Wrong." >&2
-        esac
-    done
-    args="${args#,}"
-    local line
-    ui table -
-    IFS="
-"
-    eval ui table + "$title"
-    for line in $(x jq -r ".[] | [ $args ] | map( . | @json) | join(\" \") "); do
-        eval ui table + "$line"
-    done
-    ui table out 6
+# ___gt_cache(){
+#     ccmd -- gt repo ls
+# }
+
+___gt_table() {
+    local dir
+    dir="$1"
+    shift
+    # ___gt_cache "$dir">a.json
+    cat "$dir" | ui table jsonfmt "$@"
 }

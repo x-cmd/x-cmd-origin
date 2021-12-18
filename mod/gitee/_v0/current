@@ -23,6 +23,7 @@ subcommands:
 
 # shellcheck disable=SC2120
 gt_current_repo() {
+    param:void
     local O="${O:-GITEE_DEFAULT}"
 
     if [ -n "$1" ]; then
@@ -35,6 +36,7 @@ gt_current_repo() {
 
 # shellcheck disable=SC2120
 gt_current_owner() {
+    param:void
     local O="${O:-GITEE_DEFAULT}"
     if [ -n "$1" ]; then
         param_default put "gitee_$O" owner "$1"
@@ -60,6 +62,7 @@ gt_current_owner() {
 
 # shellcheck disable=SC2120
 gt_current_owner_type() {
+    param:void
     local O="${O:-GITEE_DEFAULT}"
     if [ -n "$1" ]; then
         # Set owner type
@@ -85,6 +88,7 @@ gt_current_owner_type() {
 }
 
 ___gt_owner_type_query() {
+    param:void
     local owner="${1:?Provide owner name}"
     for types in "org" "enterprise" "user"
     do

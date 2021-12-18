@@ -5,6 +5,7 @@
 
 # shellcheck disable=SC2120
 gt_token() {
+    param:void
     local O="${O:-GITEE_DEFAULT}"
     if [ $# -eq 0 ]; then
         param_default get "gitee_$O" "token"

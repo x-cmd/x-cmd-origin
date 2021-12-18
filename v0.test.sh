@@ -26,11 +26,32 @@ ___json_awk_tokenize(){
 '
 }
 
+___json_awk_tokenize_trim(){
+    awk "$___X_CMD_JSON_AWK_SRC"'
+{
+    printf(jtokenize_trim($0))
+}
+'
+}
+
 ___json_awk_parse_flat_stream(){
     awk "$___X_CMD_JSON_AWK_SRC"'
 { jiter(arr, $0) }
 END{
     print jget(arr, "3.1.id")
+    print jget(arr, "1.1.full_name")
+}
+'
+}
+
+___json_awk_print_exact(){
+    awk -v key="$1" "$___X_CMD_JSON_AWK_SRC"'
+
+BEGIN{
+    key = json_handle_jpath( key )
+}
+{
+    jiter_print_exact_after_tokenize(_, $0, key)
 }
 '
 }

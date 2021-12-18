@@ -234,7 +234,7 @@ assert_within_regex(){
 yes
 DOCTEST
 assert_eq(){
-    local real=${1:?Real value}
+    local real="${1:?Real value}"
     while [ $# -gt 1 ]; do
         shift
         if [ "$real" != "$1" ]; then

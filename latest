@@ -35,7 +35,8 @@ ___x_cmd_theme_which(){
     local ___X_CMD_CURL_UPDATE="${___X_CMD_CURL_UPDATE}"
 
     local CACHE="$___X_CMD_ROOT/.tmp/theme/$name"
-    if find "$CACHE" -mmin 60 2>/dev/null 1>&2; then
+    if [ "$name" = 'index.yml' ] && [ -z "$(find "$CACHE" -mtime -1 2>/dev/null)" ]; then
+        rm -rf "$CACHE"
         ___X_CMD_CURL_UPDATE=
     fi
 
@@ -74,7 +75,7 @@ ___x_cmd_theme_control_unset(){
         return 0
     fi
     x boot rc del x-theme
-    printf "\033[32munset the theme successfully! \033[1;33mNow you can restart your terminal.\033[0m \n"
+    printf "\033[32mUnset the theme successfully! \033[1;33mNow you can restart your terminal.\033[0m \n"
 }
 
 ___x_cmd_theme_control_try(){
@@ -90,13 +91,23 @@ ___x_cmd_theme_control_try(){
             return
             ;;
     esac
+    local _cache_source="$___X_CMD_ROOT/.tmp/theme/index.yml"
+    if [ -f "$_cache_source" ];then
+        awk -v name="$name" '
+$1=name{ code=1; exit 0; };
+END{
+    if (code==1) exit 0
+    else exit 1
+}' <"$_cache_source"
 
-    ___x_cmd_theme_control_ls | awk -v name="$name" '
+    else
+        ___x_cmd_theme_control_ls | awk -v name="$name" '
 $1=name{ code=1; exit 0; };
 END{
     if (code==1) exit 0
     else exit 1
 }'
+    fi
 
     local code=$?
     if [ "$code" != 0 ]; then

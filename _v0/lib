@@ -1,4 +1,4 @@
-# shellcheck shell=sh disable=SC3043
+# shellcheck shell=sh disable=SC3043,SC2296
 
 
 # Section: scm-git
@@ -89,6 +89,16 @@ ___x_cmd_theme_scm() {
 ___x_cmd_theme_get_git_repo_name() {
     local repo_path
     repo_path="$(git rev-parse --show-toplevel 2>/dev/null)"
+    if [ -n "$repo_path" ]; then
+        printf "%s" "${repo_path##*/}"
+    else
+        return 1
+    fi
+}
+
+___x_cmd_theme_get_hg_repo_name() {
+    local repo_path
+    repo_path="$(hg root 2>/dev/null)"
     if [ -n "$repo_path" ]; then
         printf "%s" "${repo_path##*/}"
     else

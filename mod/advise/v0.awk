@@ -60,15 +60,14 @@ function json_walk_log(msg,       start){
 # Section: RULE
 
 BEGIN {
-    # RULE_ID_TO_NAME
-    # RULE_ID_ARGNUM
-
     # RULE_ID_M     false:1   true:0   REQUIRED_PROVIDED:100
     REQUIRED_PROVIDED = 100
 
-    # RULE_ID_R
-    # RULE_ID_R_LIST
-    # RULE_ID_CANDIDATES
+    # Critical data structures
+    #   RULE_ID_ARGNUM      : rule_id -> argnum
+    #   RULE_ID_R           : rule_id -> rule_regex
+    #   RULE_ID_R_LIST      : rule_id -> rule_regex_list
+    #   RULE_ID_CANDIDATES  : rule_id -> candidates
 }
 
 function rule_add_key( keypath, key,
@@ -322,6 +321,12 @@ function get_colon_argument_optionid(keypath,      _id){
 }
 
 NR==2{
+
+    # Critical data structures show for RULE_ID_CANDIDATES
+    # for( key in RULE_ID_CANDIDATES ){
+    #     debug("RULE_ID_CANDIDATES[" key "] = " RULE_ID_CANDIDATES[key])
+    # }
+
     argstr = $0
     if ( argstr == "" ) argstr = "" # "." "\002"
 

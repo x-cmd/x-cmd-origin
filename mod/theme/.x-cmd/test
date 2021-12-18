@@ -1,4 +1,4 @@
-
+#! /usr/bin/env bash
 mkdir -p "$HOME/.x-cmd/theme/"
 cp -r _v0 latest third-party  "$HOME/.x-cmd/theme/"
 

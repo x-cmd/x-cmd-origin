@@ -30,6 +30,7 @@ _gt_repo()(
 )
 
 gt_repo_new() {
+    param:void
     local reponame="${1:?Provide object name}"
     local aliasname="${2:-$reponame}"
     # shellcheck disable=SC2139
@@ -52,7 +53,7 @@ option:
     --no_auto_init          "auto init README"
     --gitignore_template    "Git Ignore"                    <>=""
     --license_template      "license"                       <>=""
-    --path                  "repo path"                     <>=""
+    --paths                  "repo path"                     <>=""
     #n                      "repo names"
 '
     param:run
@@ -76,16 +77,16 @@ option:
     local name
     for name in "$@"; do
         {
-            # gt_post_json "/v5/user/repos" name has_issues has_wiki private 2>/dev/null
-            gt_post_json "/v5/user/repos" name description homepage has_issues has_wiki can_comment auto_init \
-                gitignore_template license_template path private 2>/dev/null
+            # ___gt_post_json "/v5/user/repos" name has_issues has_wiki private 2>/dev/null
+            ___gt_post_json "/v5/user/repos" name description homepage has_issues has_wiki can_comment auto_init \
+                gitignore_template license_template path="$paths" private 2>/dev/null
             code=$?
             if [ $code -ne 0 ]; then
                 gt_log error "Creating repo failure: $name. Code is $code. "
-                # gt_resp_header "" >&2
+                # ___gt_resp_header "" >&2
                 return $code
             fi
-        } | json_color
+        }
     done
 }
 
@@ -109,7 +110,7 @@ option:
     --no_auto_init          "auto init README"
     --gitignore_template    "Git Ignore"                    <>=""
     --license_template      "license"                       <>=""
-    --path                  "repo path"                     <>=""
+    --paths                  "repo path"                    <>=""
     #n                      "repo names"
 '
     param:run
@@ -132,20 +133,20 @@ option:
     # TODO:owner may be personal
     local name
     for name in "$@"; do
-        # name="$(gt_param_normalize_repo "$name")"
+        # name="$(___gt_param_normalize_repo "$name")"
         # owner="$(echo "$name" | cut -d / -f 1)"
         # name="$(echo "$name" | cut -d / -f 2)"
         local resp
         {
-            gt_post_json "/v5/orgs/$org/repos" name description homepage has_issues has_wiki can_comment auto_init \
-             gitignore_template license_template path public
+            ___gt_post_json "/v5/orgs/$org/repos" name description homepage has_issues has_wiki can_comment auto_init \
+             gitignore_template license_template path="$paths" public
             code=$?
             if [ $code -ne 0 ]; then
                 gt_log error "Creating repo failure: $name. Code is $code. "
-                # gt_resp_header "" >&2
+                # ___gt_resp_header "" >&2
                 return $code
             fi
-        } | json_color
+        } 
     done
 }
 
@@ -159,7 +160,7 @@ option:
     --access                "private,public,innerSource"        <>=private          =   private public innerSource
     --description           "description"                       <>=""
     --homepage              "homepage"                          <>=""
-    --path                  "repo path"                         <>=""
+    --paths                 "repo path"                         <>=""
     --no_issues             "Provide issue"
     --no_wiki               "Provide wiki"
     --no_comment            "Provide can_comment"
@@ -192,9 +193,9 @@ option:
     local name
     for name in "$@"; do
     {
-        gt_post_json "/v5/enterprises/${enterprise##*/}/repos" \
+        ___gt_post_json "/v5/enterprises/${enterprise##*/}/repos" \
             name description homepage has_issues can_comment auto_init \
-            gitignore_template license_template path private enterprise outsourced project_creator members
+            gitignore_template license_template path="$paths" private enterprise outsourced project_creator members
             code=$?
             if [ $code -ne 0 ]; then
                 gt_log error "Creating repo failure: $name. Code is $code. "
@@ -222,6 +223,7 @@ options:
 
     local owner
     owner="$1"
+
     if [ -z "$owner" ]; then
         gt_user_repo "$@"
         return
@@ -230,7 +232,7 @@ options:
     local owner_type
     owner_type="$(___gt_owner_type_query "$owner")"
     if [ -n "$owner_type" ] && [ -n "$owner" ]; then
-        "gt_${owner_type}_repo" "$@"
+        "gt_${owner_type}_repo" ls "$@"
         return
     fi
 
@@ -238,8 +240,6 @@ options:
     return 1
     # param_help.show
 }
-
-
 
 ############################
 # Section 7: Repo - Deletion & Info & Creation
@@ -253,8 +253,8 @@ options:
     param:run
 
     gt_param_init_owner_repo
-    gt_get "/v5/repos/${owner_repo}"
-    # gt_get "/v5/repos/${owner}/${repo}"
+    ___gt_get "/v5/repos/${owner_repo}"
+    # ___gt_get "/v5/repos/${owner}/${repo}"
 }
 
 # https://gitee.com/api/v5/swagger#/deleteV5ReposOwnerRepo
@@ -267,9 +267,9 @@ options:
     param:run
     local i
     for i in "$@"; do
-        gt_param_normalize_repo "$i"
+        ___gt_param_normalize_repo "$i"
         gt_log info "Deleting repo: $owner_repo"
-        gt_delete "/v5/repos/$owner_repo" >/dev/null ||
+        ___gt_delete "/v5/repos/$owner_repo" >/dev/null ||
             gt_log error "Code is $?. Deleting repo failure: $i. Probably because it desn't exists."
     done
 }
@@ -283,7 +283,7 @@ options:
     param:run
 
     gt_param_init_owner_repo
-    gt_put_json "/v5/repos/${owner_repo}/clear"
+    ___gt_put_json "/v5/repos/${owner_repo}/clear"
 }
 
 gt_repo_review(){
@@ -298,5 +298,5 @@ options:
 '
     param:run
     gt_param_init_owner_repo
-    gt_put_json "/v5/repos/${owner_repo}/reviewer" assignees testers assignees_number testers_number
+    ___gt_put_json "/v5/repos/${owner_repo}/reviewer" assignees testers assignees_number testers_number
 }

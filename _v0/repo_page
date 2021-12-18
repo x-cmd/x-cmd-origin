@@ -32,7 +32,7 @@ options:
 
     gt_param_init_owner_repo
 
-    gt_get "/v5/repos/${owner_repo}/pages" | json_color
+    ___gt_get "/v5/repos/${owner_repo}/pages"  
 }
 
 # https://gitee.com/api/v5/swagger#/postV5ReposOwnerRepoPagesBuilds
@@ -48,5 +48,5 @@ options:
 
     gt_param_init_owner_repo
 
-    gt_post_json "/v5/repos/${owner_repo}/pages/builds" | json_color
+    ___gt_post_json "/v5/repos/${owner_repo}/pages/builds"  
 }

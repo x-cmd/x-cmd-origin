@@ -31,6 +31,7 @@ _gt_enterprise()(
 
 # TODO:?
 gt_enterprise_new() {
+    param:void
     local enterprise="${1:?Provide enterprise name}"
     local aliasname="${2:-$reponame}"
     # shellcheck disable=SC2139
@@ -60,10 +61,10 @@ options:
     param:run
     admin=${admin:-false}
     if [ "$#" -eq 0 ]; then
-        gt_get_multi "/v5/user/enterprises" admin
+        ___gt_get_multi "/v5/user/enterprises" admin
         [ $? -eq 1 ] && return 1
     else
-        gt_get "/v5/enterprises/${1:?Provide enterprise}"
+        ___gt_get "/v5/enterprises/${1:?Provide enterprise}"
         [ $? -eq 1 ] && return 1
     fi
     return 0
@@ -81,7 +82,11 @@ options:
 '
     param:run
     direct=${direct:-false}
-    gt_get_multi "/v5/enterprises/${1:?Provide enterprise}/repos" repo_type direct page per_page | json_color
+    local tmp
+    tmp="$(mktemp)"
+    ___gt_get_multi "/v5/enterprises/${1:?Provide enterprise}/repos" repo_type direct page per_page >"$tmp"
+    [ -s "$tmp" ] && ui table func ___gt_table "$tmp" . id full_name ownerName=owner.name
+    rm "$tmp"
 }
 
 # Section : member
@@ -120,8 +125,7 @@ options:
     param:run
 # TODO: | json_table remark role user.login
 
-    gt_get_multi "/v5/enterprises/${enterprise##*/}/members" role page per_page | gt_table_json \
-        .user.name .remark .user.login .role
+    ___gt_get_multi "/v5/enterprises/${enterprise##*/}/members" role page per_page
 }
 
 gt_enterprise_member_user() {
@@ -133,7 +137,7 @@ options:
 '
     param:run
 
-    gt_get_multi "/v5/enterprises/${enterprise}/members/${username}" | json_color
+    ___gt_get_multi "/v5/enterprises/${enterprise}/members/${username}"  
 }
 
 
@@ -148,7 +152,7 @@ options:
 '
     param:run
 
-    # repo="$(gt_param_normalize_repo "$repo")" || return 1
+    # repo="$(___gt_param_normalize_repo "$repo")" || return 1
 
     if [ -z "$1" ]; then
         gt_log error "At least one user’s spatial address or email is needed"
@@ -157,8 +161,8 @@ options:
 
     local username
     for username in "$@"; do
-        gt_post_json "/v5/enterprises/${enterprise}/members" \
-         role $mode="$username" | json_color
+        ___gt_post_json "/v5/enterprises/${enterprise}/members" \
+         role $mode="$username"  
     done
 }
 
@@ -179,13 +183,13 @@ options:
     local code
     for username in "$@"; do
         {
-            gt_delete "/v5/enterprises/${enterprise##*/}/members/${username##*/}"
+            ___gt_delete "/v5/enterprises/${enterprise##*/}/members/${username##*/}"
             code=$?
             if [ $code -ne 0 ]; then
                 gt_log error "Creating repo failure: $name. Code is $code. "
                 return $code
             fi
-        } | json_color
+        }  
     done
 }
 
@@ -202,7 +206,7 @@ options:
 '
     param:run
     active=${active:-false}
-    gt_put_json "/v5/enterprises/${enterprise##*/}/members/${username##*/}" name role active | json_color
+    ___gt_put_json "/v5/enterprises/${enterprise##*/}/members/${username##*/}" name role active  
 }
 
 # EndSection

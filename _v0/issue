@@ -45,8 +45,8 @@ options:
 '
     security=${security:-false}
     param:run
-    gt_post_json "/v5/repos/${owner##*/}/issues" repo title issue_type=$type body assignee \
-        collaborators milestone labels program security_hole=$security | json_color
+    ___gt_post_json "/v5/repos/${owner##*/}/issues" repo title issue_type=$type body assignee \
+        collaborators milestone labels program security_hole=$security  
 }
 
 gt_issue_update() {
@@ -68,8 +68,8 @@ options:
 '
     param:run
     security=${security:-false}
-    gt_patch_json "/v5/repos/${owner##*/}/issues/${number}" repo title state body assignee \
-        collaborators milestone labels program security_hole=$security | json_color
+    ___gt_patch_json "/v5/repos/${owner##*/}/issues/${number}" repo title state body assignee \
+        collaborators milestone labels program security_hole=$security  
 }
 
 gt_issue_logs(){
@@ -82,7 +82,7 @@ options:
     --sort          "sort(asc、desc)"       <>="desc"
 '
     param:run
-    gt_get "/v5/repos/${owner##*/}/issues/${number}/operate_logs" repo sort | json_color
+    ___gt_get "/v5/repos/${owner##*/}/issues/${number}/operate_logs" repo sort  
 }
 
 
@@ -111,10 +111,10 @@ options:
     param:run
     gt_param_init_owner_repo
     if [ -z $number ]; then
-        gt_get_multi "/v5/repos/${owner_repo}/issues" state labels sort direction \
-            milestone assignee creator program | json_color
+        ___gt_get_multi "/v5/repos/${owner_repo}/issues" state labels sort direction \
+            milestone assignee creator program  
     else
-        gt_get "/v5/repos/${owner_repo}/issues/${number}" | json_color
+        ___gt_get "/v5/repos/${owner_repo}/issues/${number}"  
     fi
     return
 }
@@ -131,8 +131,8 @@ options:
     --org           "organization path"                            <>
 '
     param:run
-    gt_get "/v5/orgs/${org##*/}/issues" filter state labels sort direction since page per_page \
-        schedule deadline created_at finished_at | json_color
+    ___gt_get "/v5/orgs/${org##*/}/issues" filter state labels sort direction since page per_page \
+        schedule deadline created_at finished_at  
 }
 
 gt_enterprise_issue(){
@@ -151,10 +151,9 @@ options:
     --program       "program"                                      <>=""
 '
     param:run
-    gt_get "/v5/enterprises/${enterprise##*/}/issues" \
+    ___gt_get "/v5/enterprises/${enterprise##*/}/issues" \
         filter state labels sort direction since page per_page \
-        schedule deadline created_at finished_at milestone assignee creator program \
-            | json_color
+        schedule deadline created_at finished_at milestone assignee creator program      
 }
 
 # Section : comment
@@ -183,7 +182,7 @@ options:
     --order         "order(asc、desc)"      <>="asc"
 '
     param:run
-    gt_get_multi "/v5/repos/${owner##*/}/${repo##*/}/issues/$number/comments"  since page per_page order | json_color
+    ___gt_get_multi "/v5/repos/${owner##*/}/${repo##*/}/issues/$number/comments"  since page per_page order  
 }
 
 gt_issue_comment_create(){
@@ -196,7 +195,7 @@ options:
     --body          "The contents of the comment."      <>
 '
     param:run
-    gt_post_json "/v5/repos/${owner##*/}/${repo##*/}/issues/$number/comments"  body | json_color
+    ___gt_post_json "/v5/repos/${owner##*/}/${repo##*/}/issues/$number/comments"  body  
 }
 
 gt_issue_comment_update(){
@@ -209,7 +208,7 @@ options:
     --body          "The contents of the comment."      <>
 '
     param:run
-    gt_patch_json "/v5/repos/${owner##*/}/${repo##*/}/issues/comments/${id}"  body | json_color
+    ___gt_patch_json "/v5/repos/${owner##*/}/${repo##*/}/issues/comments/${id}"  body  
 }
 
 gt_issue_comment_delete(){
@@ -221,7 +220,7 @@ options:
     --id            "comments id"                       <>
 '
     param:run
-    gt_delete "/v5/repos/${owner##*/}/${repo##*/}/issues/comments/${id}" | json_color
+    ___gt_delete "/v5/repos/${owner##*/}/${repo##*/}/issues/comments/${id}"  
 }
 
 # EndSection

@@ -30,7 +30,7 @@ subcommands:
 # options: 
 #     #1          "Provide owner"
 # A
-#     gt_get "/v5/users/$name" | json_extract "html_url"
+#     ___gt_get "/v5/users/$name" | json_extract "html_url"
 # }
 
 gt_user_info() {
@@ -43,10 +43,10 @@ options:
     
     local owner="$1"
     if [ -z "$owner" ]; then
-        gt_get "/v5/user"
+        ___gt_get "/v5/user"
         [ $? -eq 1 ] && return 1
     else
-        gt_get "/v5/users/$1"
+        ___gt_get "/v5/users/$1"
         [ $? -eq 1 ] && return 1
     fi
     return 0
@@ -69,12 +69,17 @@ options:
     --direction     "direction"         <>:direction="desc"
 '
     param:run
-    gt_get_multi "/v5/user/repos" visibility affiliation sort direction
+    local tmp
+    tmp="$(mktemp)"
+    ___gt_get_multi "/v5/user/repos" visibility affiliation sort direction>"$tmp"
+    [ -s "$tmp" ] && ui table func ___gt_table "$tmp" . id full_name ownerName=owner.name updatedTime="updated_at\001#T"
+    rm "$tmp"
 }
 
 # https://gitee.com/api/v5/swagger#/getV5Emails
 gt_user_email(){
-    gt_get_multi "/v5/emails" | json_color
+    param:void
+    ___gt_get_multi "/v5/emails"  
 }
 
 gt_user_issue(){
@@ -94,8 +99,8 @@ options:
     --finished_at   "finish date"                                  <>=""
 '
     param:run
-    gt_get_multi "/v5/user/issues" filter state labels direction since \
-        schedule deadline created_at finished_at | json_color
+    ___gt_get_multi "/v5/user/issues" filter state labels direction since \
+        schedule deadline created_at finished_at  
 }
 
 # Section: key
@@ -132,7 +137,7 @@ options:
     --per_page    "per_page"                <>=20
 '
     param:run
-    gt_get "v5/user/keys" page per_page
+    ___gt_get "v5/user/keys" page per_page
 }
 
 gt_user_key_get(){
@@ -142,7 +147,7 @@ options:
     --id        "provided key id"       <>
 '
     param:run
-    gt_get "v5/user/keys/$id"
+    ___gt_get "v5/user/keys/$id"
 }
 
 gt_user_key_del(){
@@ -152,7 +157,7 @@ options:
     --id        "provided key id"           <>
 '
     param:run
-    gt_delete "/v5/user/keys/$id"
+    ___gt_delete "/v5/user/keys/$id"
 }
 
 gt_user_key_add(){
@@ -163,7 +168,7 @@ options:
     --title     "add key name"              <>
 '
     param:run
-    gt_post_json "/v5/user/keys" key title
+    ___gt_post_json "/v5/user/keys" key title
 }
 # TODO
 # gt_user_key(){
@@ -183,17 +188,17 @@ options:
 #             echo "ERROR:no provided key:$key or key title:$title"
 #             return 1
 #         fi
-#            gt_post_json "/v5/user/keys" key title
+#            ___gt_post_json "/v5/user/keys" key title
 #            ;;
 #         delete)
 #         if [ -z "$id" ];then
 #             echo "ERROR:no provided keyid:$id"
 #             return 1
 #         fi
-#             gt_delete "/v5/user/keys/$id"
+#             ___gt_delete "/v5/user/keys/$id"
 #             ;;
 #         get|*)
-#             gt_get "v5/user/keys/$id" | json_color
+#             ___gt_get "v5/user/keys/$id"  
 #             ;;
 #     esac
 # }

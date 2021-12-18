@@ -30,6 +30,7 @@ _gt_org()(
 )
 
 gt_org_new() {
+    param:void
     local orgname="${1:?Provide orgname name}"
     local aliasname="${2:-$reponame}"
     # shellcheck disable=SC2139
@@ -47,10 +48,10 @@ options:
 
     admin=${admin:-false}
     if [ $# -eq 0 ]; then
-        gt_get_multi "/v5/user/orgs" admin page per_page
+        ___gt_get_multi "/v5/user/orgs" admin page per_page
         [ $? -eq 1 ] && return 1
     else
-        gt_get "/v5/orgs/${1:?Provide organization}"
+        ___gt_get "/v5/orgs/${1:?Provide organization}"
         [ $? -eq 1 ] && return 1
     fi
     return 0
@@ -67,7 +68,7 @@ options:
 '
     param:run
     org=${org:-$1}
-    gt_post_json "/v5/users/organization" name="$1" org description | json_color
+    ___gt_post_json "/v5/users/organization" name="$1" org description  
 }
 
 gt_org_repo(){
@@ -92,7 +93,11 @@ options:
     --type     "type"     <>="all"    = all private public
 '
     param:run
-    gt_get_multi "/v5/orgs/${1:?Provide organization}/repos" type | json_color
+    local tmp
+    tmp="$(mktemp)"
+    ___gt_get_multi "/v5/orgs/${1:?Provide organization}/repos" type >"$tmp"
+    [ -s "$tmp" ] && ui table func ___gt_table "$tmp" . id full_name ownerName=owner.name
+    rm "$tmp"
 }
 
 gt_org_quit() {
@@ -108,13 +113,13 @@ options:
     fi
         for org in "$@"; do
         {
-            gt_delete "/v5/user/memberships/orgs/${org##*/}"
+            ___gt_delete "/v5/user/memberships/orgs/${org##*/}"
         code=$?
             if [ $code -ne 0 ]; then
                 echo "Creating repo failure: $name. Code is $code. " >&2
                 return $code
             fi
-        } | json_color
+        }  
     done
 }
 
@@ -155,7 +160,7 @@ options:
     --role          "Repo name"            <>="all"         = admin member all
 '
     param:run
-    gt_get_multi "/v5/orgs/${org##*/}/members" role page per_page | json_color
+    ___gt_get_multi "/v5/orgs/${org##*/}/members" role page per_page  
 }
 
 gt_org_member_user() {
@@ -167,7 +172,7 @@ options:
 '
     param:run
 
-    gt_get "/v5/orgs/${org##*/}/memberships/${username##*/}" | json_color
+    ___gt_get "/v5/orgs/${org##*/}/memberships/${username##*/}"  
 }
 
 gt_org_member_add() {
@@ -180,7 +185,7 @@ options:
 '
     param:run
 
-    # repo="$(gt_param_normalize_repo "$repo")" || return 1
+    # repo="$(___gt_param_normalize_repo "$repo")" || return 1
     if [ -z "$1" ];then
         echo "At least one user’s spatial address is needed"
         return 1
@@ -188,13 +193,13 @@ options:
 
         for username in "$@"; do
         {
-            gt_put_json "/v5/orgs/${org##*/}/memberships/${username##*/}" role
+            ___gt_put_json "/v5/orgs/${org##*/}/memberships/${username##*/}" role
             local code=$?
             if [ $code -ne 0 ]; then
                 echo "Creating repo failure: $username. Code is $code. " >&2
                 return $code
             fi
-        } | json_color
+        }  
     done
 }
 
@@ -215,13 +220,13 @@ options:
     local username
     for username in "$@"; do
         {
-            gt_delete "/v5/orgs/${org##*/}/memberships/${username##*/}"
+            ___gt_delete "/v5/orgs/${org##*/}/memberships/${username##*/}"
             code=$?
             if [ $code -ne 0 ]; then
                 echo "Creating repo failure: $name. Code is $code. " >&2
                 return $code
             fi
-        } | json_color
+        }  
     done
 }
 

@@ -1,7 +1,7 @@
 . gitee
 gt.new a
 # Section 1: Token & Config management
-access_token=c32352471710e3306fd215919d15e034
+access_token=$(gitee)
 echo "init : "$(a.token) 
 a.token $access_token
 a.config.save
@@ -113,5 +113,3 @@ a.repo.pr.review-status.reset --repo "bash-gitee/x-bash-test" --number 1
 a.repo.pr.test-status.reset --repo "bash-gitee/x-bash-test" --number 1
 a.repo.pr.issue.list --repo "bash-gitee/x-bash-test" --number 1
 a.repo.pr.comment.list --repo "bash-gitee/x-bash-test"
-
-z

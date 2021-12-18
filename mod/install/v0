@@ -30,7 +30,7 @@ A
         get)            ___x_cmd_install_get "$@" ;;
         run)            ___x_cmd_install_run "$@" ;;
         update)         ___x_cmd_install_update "$@" ;;
-        name)           ___x_cmd_install_name "$@" ;;
+        name)           ___x_cmd_install_name;;
         *)              ___x_cmd_install_run "$subcmd" "$@" ;;
     esac
 }
@@ -157,8 +157,8 @@ ___x_cmd_install_name(){
         return 1
     fi
     awk '
-$0!~/^[ #]/{
-    printf "%s ", substr($0,1,length($0)-1)
+$0!~/^[ +#]/ && NF>0 {
+    print substr($0,1,length($0)-1)
 }
 ' <"$CACHE"
 }

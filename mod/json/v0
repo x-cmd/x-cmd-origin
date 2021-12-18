@@ -833,4 +833,25 @@ END{
 '
 }
 
+___json_awk_str_compact(){
+    awk "$___X_CMD_JSON_AWK_SRC"'
+{ jiter(_, $0) }'"
+END {
+    json_stringify_machine(_, \""$1"\")
+}
+"
+}
+
+___json_awk_print_exact(){
+    awk -v key="$1" "$___X_CMD_JSON_AWK_SRC"'
+
+BEGIN{
+    key = json_handle_jpath( key )
+}
+{
+    jiter_print_exact_after_tokenize(_, $0, key)
+}
+'
+}
+
 # EndSection

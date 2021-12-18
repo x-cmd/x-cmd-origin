@@ -16,7 +16,8 @@ ___x_cmd_readlink_recursive(){
 
 ___x_cmd_list_resource(){
     printf "%s" "proxy
-tldr"
+tldr
+advise"
 }
 
 # Section : Unfinished ___x_cmd_official_which
@@ -701,6 +702,7 @@ ___x_cmd_main(){
         _x_cmd_advise_json)                     ___x_cmd_x_cmd_advise_json "$@" ;;
         ws)                                     ___x_cmd_ws "$@" ;;
         wsroot)                                 ___x_cmd_workspace_root "$@" ;;
+        cowsay)                                 xrc cowsay/v0 && cowsay "$@" ;;
         *)                                      ___x_cmd_main_otherwise "$subcmd" "$@" ;;
 
     esac
@@ -712,151 +714,134 @@ ___x_cmd_main(){
 ___x_cmd_x_cmd_advise_json(){
     cat <<A
 {
-    "boot": {
-        "cat": null,
-        "which|w": null,
-        "mod": {
-            "add|+": null,
-            "del|-": "x initrc mod ls",
-            "ls": null
-        }
-    },
-
-    "install": {
-        "ls": null,
-        "get": "x install name",
-        "update": null,
-        "run": "x install name",
-        "#1": "x install name"
-    },
-    "config": {
-        "tab":null,
-        "ssh":null,
-        "sshd":null
-    },
-
-    "man": {},
-    "advise": {
-        "ls": null,
-        "rm": "x advise ls",
-        "which|cat|init|new": "ls ${TMPDIR%/}/.x-cmd/advise_auto_json/",
-        "man": {
-            "ls": null,
-            "update": null,
-            "rm": null,
-            "which": "x advise man ls",
-            "load": null
-        },
-        "del":null,
-        "obj-new":null,
-        "obj-del": null
-    },
-    "theme": {
-        "ls": null,
-        "use": "xrc theme/latest && ___x_cmd_theme_control_ls",
-        "try": "xrc theme/latest && ___x_cmd_theme_control_ls",
-        "rollback": null,
-        "unset": null
-    },
-    "env": {},
-
-    "login": {},
-    "register": {},
-    "token": {},
-    "hub": {
-        "file": {
-            "ls": null,
-            "which": "x hub file ls",
-            "upload": "x hub file ls",
-            "share": "x hub file ls",
-            "private": "x hub file ls",
-        },
-        "login": null,
-        "register": null,
-        "token": null
-    },
-
-    "log": {
-        "init": {},
-        "timestamp": {
-            "on": {},
-            "off": {}
-        },
-        "#n": "___x_cmd_log_completer"
-    },
-
-    "upgrade": {},
-    "clear": {},
-    "reinstall": {},
-
-    "z": null,
-    "uz": null,
-
-    "ubu|alp|deb|cen|bus": {
-        "alias": {},
-        "run":  {
-            "centos": {},
-            "ubuntu": {},
-            "alpine": {},
-            "busybox": {}
-        },
-        "exec": {},
-        "empower": {},
-        "centos": {},
-        "ubuntu": {},
-        "alpine": {},
-        "busybox": {}
-    },
-    "docker|dk|xdk": {
-        "alias": {},
-        "run":  {
-            "centos": {},
-            "ubuntu": {},
-            "alpine": {},
-            "busybox": {}
-        },
-        "exec": {},
-        "empower": {},
-        "centos": {},
-        "ubuntu": {},
-        "alpine": {},
-        "busybox": {}
-    },
-    "sh|bash|zsh|fish|ksh|dash|ash": "___advise_ls",
-    "jar": "___advise_ls",
-    "java": "___advise_ls",
-
-    "pip|pip3": "___advise_ls",
-    "python|py|python3|py3": "___advise_ls",
-
-    "nvm": null,
-    "javascript|js|node": "___advise_ls",
-    "npm":  null,
-    "npx":  null,
-
-    "ts": null,
-    "ruby|rb": null,
-    "lua": null,
-
-    "jq": null,
-    "yq": null,
-    "cat|du": "___advise_ls",
-    "ls|ll|cd": "___advise_lsd",
-    "ps|procs": null
-
-    "nmap":null,
-    "ncat":null,
-    "nping":null,
-    "traceroute":null,
-    "sqlite3":null,
-
-    "run": {},
-    "search_path": {},
-    "which": {},
-    "wsroot": {},
-
-    "#1": "___x_cmd_list_resource",
-    "#n": "___advise_get_result 1"
+  "boot": {
+      "cat": null,
+      "which|w": null,
+      "mod": {
+          "add|+": null,
+          "del|-": "x initrc mod ls",
+          "ls": null
+      }
+  },
+  "install": {
+      "ls": "--- list all software",
+      "update": "--- update",
+      "get": {
+          "#1": "x install name",
+          "#desc": "get software installation command"
+      },
+      "run": {
+          "#1": "x install name",
+          "#desc": "run software installation command"
+      },
+      "#1": "x install name"
+  },
+  "config": {
+      "tab": null,
+      "ssh": null,
+      "sshd": null
+  },
+  "man": { },
+  "theme": {
+      "ls": "--- list all theme",
+      "use": {
+        "#1": "awk '{ print \$2; }' <\$___X_CMD_ROOT/.tmp/theme/index.yml",
+        "#desc": "use theme when starting the shell"
+      },
+      "try": {
+        "#1": "awk '{ print \$2; }' <\$___X_CMD_ROOT/.tmp/theme/index.yml",
+        "#desc": "try theme"
+      },
+      "rollback": "--- use last theme",
+      "unset": "--- unset last theme"
+  },
+  "env": { },
+  "login": { },
+  "register": { },
+  "token": { },
+  "hub": {
+      "file": {
+          "ls": null,
+          "which": "x hub file ls",
+          "upload": "x hub file ls",
+          "share": "x hub file ls",
+          "private": "x hub file ls"
+      },
+      "login": null,
+      "register": null,
+      "token": null
+  },
+  "log": {
+      "init": { },
+      "timestamp": {
+          "on": { },
+          "off": { }
+      },
+      "#n": "xrc x-cmd/_v0/log && ___x_cmd_log_completer"
+  },
+  "upgrade": { },
+  "clear": { },
+  "reinstall": { },
+  "z": null,
+  "uz": null,
+  "ubu|alp|deb|cen|bus": {
+      "alias": { },
+      "run": {
+          "centos": { },
+          "ubuntu": { },
+          "alpine": { },
+          "busybox": { }
+      },
+      "exec": { },
+      "empower": { },
+      "centos": { },
+      "ubuntu": { },
+      "alpine": { },
+      "busybox": { }
+  },
+  "docker|dk|xdk": {
+      "alias": { },
+      "run": {
+          "centos": { },
+          "ubuntu": { },
+          "alpine": { },
+          "busybox": { }
+      },
+      "exec": { },
+      "empower": { },
+      "centos": { },
+      "ubuntu": { },
+      "alpine": { },
+      "busybox": { }
+  },
+  "sh|bash|zsh|fish|ksh|dash|ash": "___advise_ls",
+  "jar": "___advise_ls",
+  "java": "___advise_ls",
+  "pip|pip3": "___advise_ls",
+  "python|py|python3|py3": "___advise_ls",
+  "nvm": null,
+  "javascript|js|node": "___advise_ls",
+  "npm": null,
+  "npx": null,
+  "ts": null,
+  "ruby|rb": null,
+  "lua": null,
+  "jq": null,
+  "yq": null,
+  "cat|du": "___advise_ls",
+  "ls|ll|cd": "___advise_ls",
+  "ps|procs": null,
+  "nmap": null,
+  "ncat": null,
+  "nping": null,
+  "traceroute": null,
+  "sqlite3": null,
+  "run": { },
+  "search_path": { },
+  "which": { },
+  "wsroot": { },
+  "#1": "___x_cmd_list_resource",
+  "#n": "___advise_get_result 1"
 }
 A
     return 126

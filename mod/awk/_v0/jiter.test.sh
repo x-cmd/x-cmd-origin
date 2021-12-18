@@ -13,17 +13,20 @@ f1(){
     }
     {
         if (\$0 != \"\") {
-            jiter(_, \$0)
+            jiter_(\$0)
             # print (\$0)
         }
     }
     END{
         print \"---\" _[S q(1) S q(\"b\") S q(6) ]
         print(_[ jkey(1, \"b\", 6) ])
-        print jget(_, \"1.b.6\")
-        print jget(_, \"1.a\")
-        jget(_, \".b.6\")
-        jget(_, \".c.a\")
+        print jget(_, \"1.1.name\")
+        # print jget(_, \"1.a\")
+        # print jget(_, \".a\")
+        # print jget(_, \".c.a\")
+        # print json_stringify_machine(_, \"1.1.commit\")
+        # print json_stringify_compact(_)
+        print json_stringify_format(_, \".\", 4)
     }
     "
 }
@@ -36,20 +39,32 @@ f(){
         printf(\"%s\", json_to_machine_friendly(\$0) )
     }" | f1
 } <<A
-{
-    "a": 3,
-    "b": [
-        3,
-        4,
-        5,
-        6,
-        7,
-        8
-    ],
-    "c": {
-        "a": 1
+[
+    {
+        "name": "v1.0.2",
+        "message": "",
+        "commit": {
+            "sha": "17b952bbc9fa014ac33dc732510aaaa2d616c5eb",
+            "date": "2021-08-01T10:44:41+00:00"
+        }
+    },
+    {
+        "name": "v1.0.0",
+        "message": "",
+        "commit": {
+            "sha": "088ffaaf2808e34a4c108a5103e385ef5d853392",
+            "date": "2021-08-01T07:32:52+00:00"
+        }
+    },
+    {
+        "name": "v1.0.1",
+        "message": "",
+        "commit": {
+            "sha": "088ffaaf2808e34a4c108a5103e385ef5d853392",
+            "date": "2021-08-01T07:32:52+00:00"
+        }
     }
-}
+]
 A
 }
 

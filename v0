@@ -4,7 +4,7 @@
 # maintainer:   Li Junhao
 
 xrc str
-xrc log init ccmd
+x log init ccmd
 
 # Check it again.
 TMPDIR=${TMPDIR:-$(dirname "$(mktemp -u)")}
@@ -63,7 +63,7 @@ ___ccmd_main(){
         mkdir -p "$filepath"
         filepath="$filepath/$(str md5 "$*")"
     fi
-    
+
     if find "$filepath" -mtime "-${expiration}" 2>/dev/null | grep -q ^; then
         ccmd_log debug "Using cache in Cache Path: $filepath"
         cat "$filepath"
@@ -161,12 +161,12 @@ DESCRIPTION
 
     Example:
         Do NOT use cache. Update the command result NOW
-            > ccmd 0 -- curl https://x-bash.gitee.io/boot     
+            > ccmd 0 -- curl https://x-bash.gitee.io/boot
         Use cache if updated within 1 day. (default)
-            > ccmd -- curl https://x-bash.gitee.io/boot  
+            > ccmd -- curl https://x-bash.gitee.io/boot
         Use cache if updated within 3 day.
         Cache the command result in future 3 days
-            > ccmd 3 -- curl https://x-bash.gitee.io/boot   
+            > ccmd 3 -- curl https://x-bash.gitee.io/boot
         Use cache if updated within 3 minutes.
             > ccmd 3m -- curl https://x-bash.gitee.io/boot
         Use cache if updated within 3 hours.

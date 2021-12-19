@@ -167,6 +167,12 @@ subcommands:
     update          "update a comment"
     delete          "delete a comment"
 '
+    param:run
+    if [ -z "$PARAM_SUBCMD" ]; then
+        echo "subcommand not found. show help." >&2
+        return 0
+    fi
+    "gt_issue_comment_$PARAM_SUBCMD" "$@"
 }
 
 gt_issue_comment_ls(){

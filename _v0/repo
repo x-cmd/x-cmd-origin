@@ -12,6 +12,7 @@ subcommands:
     del             "Remove repo"
     clear           "clear repo"
     issue           "get repo issue"
+    release         "release"
 '
     param:run
 

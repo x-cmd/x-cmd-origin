@@ -48,10 +48,10 @@ gt user key add --key "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDAxf6zWYFTpqAbMCrcb
 ## repo member
 gt member ls typeshell/dev 1> /dev/null 2>&1 1> /dev/null 2>&1
 [ $? -ne 0 ] && gt_log error "gt member ls ERROR"
-gt member del -r typeshell/dev zhengqbbb niracler 1> /dev/null 2>&1
-[ $? -ne 0 ] && gt_log error "gt member del ERROR"
+gt member del -r typeshell/dev zhengqbbb 
 gt member add -r typeshell/dev -p push zhengqbbb niracler  1> /dev/null 2>&1
-[ $? -ne 0 ] && gt_log error "gt member add ERROR"
+niracler 1> /dev/null 2>&1
+[ $? -ne 0 ] && gt_log error "gt member del ERROR"[ $? -ne 0 ] && gt_log error "gt member add ERROR"
 
 
 ## enterprise

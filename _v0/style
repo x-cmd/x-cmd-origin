@@ -17,16 +17,17 @@
 if [ -z "${NO_COLOR}" ]; then
 
 if [ -n "$ZSH_VERSION" ]; then
+autoload -U colors && colors
 
 ______x_cmd_theme_setup_zsh_256color(){
     typeset -AHg FG BG
     # shellcheck disable=SC3009
-    for color in {000..255}; do
+    for _color in {000..255}; do
         # replace $'%{\033[38;5;31%}'
-        FG[$color]="%{[38;5;${color}m%}"
-        BG[$color]="%{[48;5;${color}m%}"
+        FG[$_color]="%{[38;5;${_color}m%}"
+        BG[$_color]="%{[48;5;${_color}m%}"
     done
-    unset color
+    unset _color
 }
 
 ______x_cmd_theme_setup_zsh_basecolor(){

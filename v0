@@ -10,6 +10,7 @@
 # example of dict
 #   dict put key1 value1
 #   dict :a put key2 value2
+x log init dict
 dict(){
     local op="${1:?Provide op}"
     local O=${op#@}

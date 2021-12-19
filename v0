@@ -93,7 +93,7 @@ ___http_free() {
     dict @$O free
 }
 
-xrc log init http
+x log init http
 
 ___http_browse() {
     local BROWSER=${BROWSER:-$BROWSER}

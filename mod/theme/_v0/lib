@@ -215,9 +215,12 @@ ___x_cmd_theme_load_format() {
         setopt PROMPT_SUBST
         # PROMPT interprete %n... after evaluation.
         PROMPT='$(___X_CMD_THEME_EXIT_STATUS="$?" ___x_cmd_theme_prompt_format)'
-    else
+    elif [ "$___X_CMD_SHELL" != 'dash' ];then
         # PS1 interprete \u before evaluation.
         PS1="\$(___X_CMD_THEME_EXIT_STATUS=\"\$?\" ______x_cmd_theme_prompt_format_wrapper \"\u\" \"\W\" \"\w\" \"\d\" \"\t\" \"\T\" \"\A\" \"\@\" \"\h\" \"\H\" \"\[\" \"\]\")"
+    else
+        # PS1 interprete \u before evaluation.
+        PS1="\$(___X_CMD_THEME_EXIT_STATUS=\"\$?\" ______x_cmd_theme_prompt_format_wrapper \"\$(whoami)\" \"\$(basename \"\$(pwd)\")\" \"\$(pwd)\" \"\$(date \"+%y-%m-%d\")\" \"\$(date \"+%H:%M:%S\")\" \"\$(date \"+%I:%M:%S\")\" \"\$(date \"+%H:%M\")\" \"\$(date \"+%I:%M\")\" \"\$(hostname -s)\" \"\$(hostname)\")"
     fi
 }
 # EndSection

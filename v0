@@ -220,8 +220,8 @@ ___tldr_cat(){
                 ;;
         *)
             local tldr_file
-            eval "$(printf "%s" "$cand" | awk 'BEGIN{ str="ui prompt main \"Found\" tldr_file \"=\""; }{ str = str " " "\"" $0 "\""; }END{ print str; }')"
-            awk -v COLUMNS="$COLUMNS" "$(xrc cat $______X_CMD_TLDR_WCWIDTH_AWK)$(cat "$______X_CMD_TLDR_AWK")" < "$(___tldr_getfile "$tldr_file")"
+            tldr_file="$(eval "$(printf "%s" "$cand" | awk 'BEGIN{ str="ui select \"text\" \"Found: \""; }{ str = str  " " "\"" $0 "\""; }END{ print str; }')" )"
+            cat "$(___tldr_getfile "$tldr_file")" | awk -v COLUMNS="$COLUMNS" "$(xrc cat $______X_CMD_TLDR_WCWIDTH_AWK)$(cat "$______X_CMD_TLDR_AWK")"
             return 1 ;;
     esac
 }

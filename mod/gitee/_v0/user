@@ -72,7 +72,7 @@ options:
     local tmp
     tmp="$(mktemp)"
     ___gt_get_multi "/v5/user/repos" visibility affiliation sort direction>"$tmp"
-    [ -s "$tmp" ] && ui table func ___gt_table "$tmp" . id full_name ownerName=owner.name updatedTime="updated_at\001#T"
+    [ -s "$tmp" ] && ui table func ___gt_table "$tmp" . id full_name ownerName=owner.name updatedTime="updated_at"
     rm "$tmp"
 }
 

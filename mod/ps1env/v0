@@ -119,19 +119,6 @@ ___x_cmd_theme_control_subenv_prompt(){
     ___X_CMD_THEME_CONTROL_SUBENV_PROMT="${subenv_symbol}"
 }
 
-________x_cmd_theme_env_load_format() {
-    [ -n "$___X_CMD_THEME_CONTROL_SUBENV_PROMT" ] && printf "%s \n%s " \
-        "$(___x_cmd_theme_control_env_prompt)" \
-        "$(___x_cmd_theme_style dfg-cyan "[$(___x_cmd_theme_control_subenv_prompt)]")"
-}
-
-________x_cmd_theme_env_load_format_wrapper() {
-    ___X_CMD_COLOR_PRE="$1"
-    ___X_CMD_COLOR_SUF="$2"
-
-    ________x_cmd_theme_env_load_format
-}
-
 ###
  # @param: key color
  # @param: value color
@@ -162,6 +149,17 @@ ___x_cmd_theme_control_env_prompt(){
     eval "$_res"
 }
 
+________x_cmd_theme_env_load_format() {
+    [ -n "$___X_CMD_THEME_CONTROL_SUBENV_PROMT" ] && printf "%s " \
+        "$(___x_cmd_theme_style dfg-cyan "[$(___x_cmd_theme_control_subenv_prompt)]")$(___x_cmd_theme_control_env_prompt)"
+}
+
+________x_cmd_theme_env_load_format_wrapper() {
+    ___X_CMD_COLOR_PRE="$1"
+    ___X_CMD_COLOR_SUF="$2"
+
+    ________x_cmd_theme_env_load_format
+}
 # PS1 inject
 if ! ___x_cmd_theme_control_is_using_x_theme; then
     xrc theme/_v0/style

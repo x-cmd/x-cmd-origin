@@ -227,10 +227,6 @@ ___advise_get_result_from_awk(){
     )"
     local cmd="${result##*\#> }"
     cmd_result=""
-    if [ "$cmd" != "$result" ]; then
-        cmd_result="$(eval "$cmd")"
-        result="${result%%\#> *}"
-    fi
 
     if [ "$cmd" != "$result" ]; then
         cmd_result="$(eval "$cmd" 2>/dev/null)"

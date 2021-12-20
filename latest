@@ -180,7 +180,7 @@ A
             ls "$___X_CMD_ROOT" ;;  # If tar.gz, using tar ls. If folder, ls $folder
         reload)
             if [ "$#" -gt 0 ]; then
-                local ___XRC_RELOAD=1
+                local ___X_CMD_XRC_RELOAD=1
                 ___x_cmd_xrc_source_file "$@"
                 return
             fi
@@ -219,10 +219,10 @@ A
 ___x_cmd_xrc_cat(){
     local file
     while [ $# -ne 0 ]; do
-        local xrcpath="$1";   shift
+        local ___X_CMD_LOCAL_XRCPATH="$1";   shift
 
-        if ! ___X_CMD_NO_LOCAL=1 ___x_cmd_which_one "$xrcpath"; then
-            printf "ERROR: Interrupted because resource not found. %s \n" "$xrcpath" >&2
+        if ! ___X_CMD_NO_LOCAL=1 ___x_cmd_which_one "$___X_CMD_LOCAL_XRCPATH"; then
+            printf "ERROR: Interrupted because resource not found. %s \n" "$___X_CMD_LOCAL_XRCPATH" >&2
             return 1
         fi
 
@@ -233,13 +233,13 @@ ___x_cmd_xrc_cat(){
 ___X_CMD_XRC_MODULE_IMPORTED=""
 ___x_cmd_xrc_source_file(){
     local ___X_CMD_WHICH_ONE_RESULT
-    local xrcpath
+    local ___X_CMD_LOCAL_XRCPATH
 
     while [ $# -ne 0 ]; do
-        xrcpath="$1";   shift
+        ___X_CMD_LOCAL_XRCPATH="$1";   shift
 
-        if ! ___X_CMD_NO_LOCAL=1 ___x_cmd_which_one "$xrcpath"; then
-            printf "ERROR: Interrupted because resource not found. %s \n" "$xrcpath" >&2
+        if ! ___X_CMD_NO_LOCAL=1 ___x_cmd_which_one "$___X_CMD_LOCAL_XRCPATH"; then
+            printf "ERROR: Interrupted because resource not found. %s \n" "$___X_CMD_LOCAL_XRCPATH" >&2
             printf "%s\n" "return 1"
             return 1
         fi
@@ -248,25 +248,25 @@ ___x_cmd_xrc_source_file(){
         if [ -n "$___X_CMD_UNTRUSTED_RESOURCE" ] && [ -z "$NOWARN" ]; then
 
             # We should do it before ___x_cmd_which_one
-            printf "Sourcing script from untrusted location: %s\n" "$xrcpath"
+            printf "Sourcing script from untrusted location: %s\n" "$___X_CMD_LOCAL_XRCPATH"
             cat >&2 <<A
 SECURITY WARNING! Sourcing script from untrusted location: $___X_CMD_WHICH_ONE_RESULT
 If you confirm this script is secure and want to skip this warning for some purpose, use the following code.
-> NOWARN=1 xrc "$xrcpath"
+> NOWARN=1 xrc "$___X_CMD_LOCAL_XRCPATH"
 A
             printf "Input yes to continue. Otherwise exit > " >&2
-            local input
-            read -r input
+            local ___X_CMD_LOCAL_INPUT
+            read -r ___X_CMD_LOCAL_INPUT
 
-            if [ "$input" != "yes" ]; then
+            if [ "$___X_CMD_LOCAL_INPUT" != "yes" ]; then
                 rm "$___X_CMD_WHICH_ONE_RESULT"
-                printf "%s\n" "Exit because of a non yes output received: $input" >&2
+                printf "%s\n" "Exit because of a non yes output received: $___X_CMD_LOCAL_INPUT" >&2
                 printf "%s\n" "return 1"
                 return 1
             fi
         fi
 
-        if [ -z "$___XRC_RELOAD" ]; then
+        if [ -z "$___X_CMD_XRC_RELOAD" ]; then
             if [ "${___X_CMD_XRC_MODULE_IMPORTED#*
 "$___X_CMD_WHICH_ONE_RESULT"
 *}" != "${___X_CMD_XRC_MODULE_IMPORTED}" ]; then
@@ -275,7 +275,7 @@ A
             fi
         fi
 
-        . "$___X_CMD_WHICH_ONE_RESULT"
+        ___X_CMD_ENABLE_AUTO_RUN="" . "$___X_CMD_WHICH_ONE_RESULT"
         ___X_CMD_XRC_MODULE_IMPORTED="$___X_CMD_XRC_MODULE_IMPORTED
 $___X_CMD_WHICH_ONE_RESULT"
 

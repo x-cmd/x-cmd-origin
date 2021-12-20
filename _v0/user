@@ -79,7 +79,12 @@ options:
 # https://gitee.com/api/v5/swagger#/getV5Emails
 gt_user_email(){
     param:void
-    ___gt_get_multi "/v5/emails"  
+    # local tmp
+    # tmp="$(mktemp)"
+    ___gt_get_multi "/v5/emails" 
+    # > "$tmp"
+    # [ -s "$tmp" ] && ui table func ___gt_table "$tmp" . email state
+    # rm "$tmp"
 }
 
 gt_user_issue(){

@@ -79,7 +79,6 @@ gt_make() {
     http "@$O" make  'https://gitee.com/api'
     http "@$O_ORIGINAL" header type "application/json;charset=utf-8"
     O=$O_ORIGINAL gt_config_load >/dev/null
-
     if [ $? -eq 0 ] && [ -n "$(O="$O_ORIGINAL" gt_token)" ]; then
         O="$O_ORIGINAL" gt_current_owner
     else

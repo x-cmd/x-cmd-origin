@@ -30,6 +30,11 @@ ui(){
             command -v ___x_cmd_ui_prompt_form >/dev/null || xrc ui/_v0/form
             ___x_cmd_ui_prompt_form "$@"
             ;;
+        tf)
+            shift
+            command -v ___x_cmd_ui_tf >/dev/null || xrc ui/_v0/truefalse
+            ___x_cmd_ui_tf "$@"
+            ;;
         prompt)                 shift; xrc ui/_v0/prompt;       ___ui_prompt "$@"       ;;
         md|markdown)            shift; xrc ui/_v0/markdown;     ___ui_markdown "$@"     ;;
         cols)                                                   printf "%s" "$COLUMNS"  ;;

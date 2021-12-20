@@ -102,4 +102,7 @@ if [ -z "$XRC_NO_ADVISE" ] && [ -n "${BASH_VERSION}${ZSH_VERSION}" ] && [ "${-#*
     advise ali
 fi
 
+if [ -n "$___X_CMD_ENABLE_AUTO_RUN" ]; then
+    ali "$@"
+fi
 

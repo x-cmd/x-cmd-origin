@@ -52,7 +52,7 @@ gt_config_load() {
         param_default load "gitee_$O" "$___gitee_path"
         param_default dump "gitee_$O"
         token="$(param_default get "gitee_$O" token)"
-        ! gt_token "$token" && echo "Config $O load from path: $___gitee_path" >&2
+        gt_token "false" "$token" && echo "Config $O load from path: $___gitee_path" >&2
     else
         echo "ERROR:There is no history config"
     fi

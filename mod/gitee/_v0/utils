@@ -23,12 +23,12 @@ ___gt_get_multi() {
         ___gt_get "$@" page per_page
         return
     fi
-
     local i=1 
     local total_page=100000
     while [ "$i" -le "$total_page" ]; do
         ___gt_get "$@" page="$i" per_page=100
         total_page="$(___gt_resp_header "total_page")"
+        [ -z "$total_page" ] && return
         # echo "total_page:$total_page" >&2
         i=$((i+1))
     done
@@ -122,14 +122,13 @@ ___gt_parse_owner_repo() {
     fi
 }
 
-# ___gt_cache(){
-#     ccmd -- gt repo ls
-# }
+___gt_cache(){
+    ccmd -- cat "$@"
+}
 
 ___gt_table() {
     local dir
     dir="$1"
     shift
-    # ___gt_cache "$dir">a.json
-    cat "$dir" | ui table jsonfmt "$@"
+    ___gt_cache "$dir" | ui table jsonfmt "$@"
 }

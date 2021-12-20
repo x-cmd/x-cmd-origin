@@ -10,8 +10,12 @@ gt_token() {
     if [ $# -eq 0 ]; then
         param_default get "gitee_$O" "token"
     else
+        if [ "$1" = "false" ];then
+            shift
+          else
+            gt_config_save
+        fi
         param_default put "gitee_$O" "token" "$@"
-        gt_config_save
     fi
 
     if [ -n "$1" ]; then

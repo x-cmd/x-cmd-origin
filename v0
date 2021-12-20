@@ -57,7 +57,7 @@ A
 
 ___xrc_run(){
     local ___xrc_run_filepath="${1:?filepath}";        shift
-    . "$___xrc_run_filepath" "$@"
+    ___X_CMD_ENABLE_AUTO_RUN=1 . "$___xrc_run_filepath" "$@"
 
     # local ___xrc_module_name="${___xrc_run_filepath##*/}"
 
@@ -176,7 +176,7 @@ ___x_cmd_run_by_file(){
     if engine="$(___x_cmd_get_engine_by_file "$filepath")"; then
         ___x_cmd_run_with_engine "$engine" "$filepath" "$@"
     else
-        ___x_cmd_run_with_engine x-bash "$filepath" "$@"
+        ___x_cmd_run_with_engine xrc "$filepath" "$@"
     fi
 }
 
@@ -605,7 +605,6 @@ ___x_cmd_main(){
         tldr)                                   xrc tldr/v0 && tldr "$@" ;;
         advise)                                 xrc advise/v0 && advise "$@" ;;
         proxy)                                  xrc proxy/latest && proxy "$@" ;;
-        theme)                                  xrc theme/latest && ___x_cmd_theme_control "$@" ;;
         env)        ;;
 
         login)                                  ( xrc hub/v0 && ___x_cmd_hub login "$@" ) ;;

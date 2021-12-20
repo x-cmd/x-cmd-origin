@@ -8,14 +8,15 @@ BEGIN {
     out_color_italy         = "\033[3;36m"
     out_color_bold          = "\033[1m\033[4m"
     out_color_del           = "\033[9m"
-    out_color_backtick      = "\033[1;36m\033[4m"
+    # out_color_backtick      = "\033[41;37m""\033[7m"
+    out_color_backtick      = "\033[48;5;254;31m"
     out_color_url           = "\033[0;32m"
 
     out_color_bullet        = "\033[0m" "\033[1;35m"
-    out_color_bullet2       = "\033[0;33m"
+    out_color_bullet2       = "\033[0m"
 
-    out_color_ordered       = "\033[0m" "\033[1;31m"
-    out_color_ordered2      = "\033[0;34m"
+    out_color_ordered       = "\033[0m" "\033[1;35m"
+    out_color_ordered2      = "\033[0m"
 
     out_color_head1         = "\033[1;34m" "\033[7;34m"
     out_color_head2         = "\033[1;34m" "\033[7;34m"
@@ -67,14 +68,11 @@ function str_center(text, linelen, _len, _len1){
 # Section : show_block
 function show_block(){
     if (block_str != "") {
-        # print "---------"
-  
-        gsub(/\n/, "\n> ", block_str)
+        gsub(/\n/, "\n\033[0;34m> \033[0;33m", block_str)
         block_str = substr(block_str, 2)
         print out_color_ordered2 "```"
         print out_color_end block_str out_color_ordered2
         printf("%s\n" , "```" out_color_end)
-        # print "---------"
         block_str = ""
     }
 }
@@ -157,19 +155,19 @@ function show_table( table_str,  _line, _line_arr, _line_len, _table, _table_col
 # EndSection
 
 # Section : url
-function show_url(tmp,color){
-    if(!color) color=out_color_end
-    if(match(tmp, /\[[^\[]+\]\([^\(]+\)/)){
-        _RSTART=RSTART
-        _RLENGTH=RLENGTH
-        tmpUrl=substr(tmp,_RSTART,_RLENGTH)
-        if(match(tmpUrl,/\]\(/)){
-            tmpUrl = "\033[4m" substr(tmpUrl,2,RSTART-2)out_color_end "\033[3;90m" substr(tmpUrl,RSTART+1)
-        }
-        tmp = substr(tmp,1,_RSTART-1) out_color_url tmpUrl out_color_end show_url(substr(tmp, _RSTART + _RLENGTH),out_color_end)  
-    }  
-    return tmp
-}
+# function show_url(tmp,color){
+#     if(!color) color=out_color_end
+#     if(match(tmp, /\[[^\[]+\]\([^\(]+\)/)){
+#         _RSTART=RSTART
+#         _RLENGTH=RLENGTH
+#         tmpUrl=substr(tmp,_RSTART,_RLENGTH)
+#         if(match(tmpUrl,/\]\(/)){
+#             tmpUrl = "\033[4m" substr(tmpUrl,2,RSTART-2)out_color_end "\033[3;90m" substr(tmpUrl,RSTART+1)
+#         }
+#         tmp = substr(tmp,1,_RSTART-1) out_color_url tmpUrl out_color_end show_url(substr(tmp, _RSTART + _RLENGTH),out_color_end)  
+#     }  
+#     return tmp
+# }
 # EndSection
 
 # Section : table
@@ -202,17 +200,17 @@ function markdown_text_render(tmp,color) {
     }
 
     while (match(tmp, /`[^`]+`/ )) {
-        tmp = substr(tmp, 1, RSTART-1) out_color_backtick substr(tmp, RSTART+1, RLENGTH-2) color substr(tmp, RSTART + RLENGTH)
-        FORMAT_DEL_NUM = FORMAT_DEL_NUM + 2
+        tmp = substr(tmp, 1, RSTART-1) out_color_backtick " " substr(tmp, RSTART+1, RLENGTH-2) " " color substr(tmp, RSTART + RLENGTH)
+        FORMAT_DEL_NUM = FORMAT_DEL_NUM
     }
     while (match(tmp, /``[^`]+``/ )) {
-        tmp = substr(tmp, 1, RSTART-2) out_color_backtick substr(tmp, RSTART+2, RLENGTH-4) color substr(tmp, RSTART + RLENGTH)
-        FORMAT_DEL_NUM = FORMAT_DEL_NUM + 4
+        tmp = substr(tmp, 1, RSTART-2) out_color_backtick " " substr(tmp, RSTART+2, RLENGTH-4) " " color substr(tmp, RSTART + RLENGTH)
+        FORMAT_DEL_NUM = FORMAT_DEL_NUM + 2
     }
     
     while (match(tmp, /```[^`]+```/ )) {
-        tmp = substr(tmp, 1, RSTART-3) out_color_backtick substr(tmp, RSTART+3, RLENGTH-6) color substr(tmp, RSTART + RLENGTH)
-        FORMAT_DEL_NUM = FORMAT_DEL_NUM + 6
+        tmp = substr(tmp, 1, RSTART-3) out_color_backtick " " substr(tmp, RSTART+3, RLENGTH-6) " " color substr(tmp, RSTART + RLENGTH)
+        FORMAT_DEL_NUM = FORMAT_DEL_NUM + 4
     }
     while(match(tmp, /\[[^\[]+\]\([^\(]+\)/)){
         _RSTART=RSTART
@@ -220,7 +218,7 @@ function markdown_text_render(tmp,color) {
         tmpUrl=substr(tmp,_RSTART,_RLENGTH)
         if(match(tmpUrl,/\]\(/)){
             # tmpUrl = "\033[4m\033[1m" substr(tmpUrl,2,RSTART-2)
-            tmpUrl = "\033[4m" substr(tmpUrl,2,RSTART-2)color "\033[3;90m" substr(tmpUrl,RSTART+1)
+            tmpUrl = "\033[1m" substr(tmpUrl,2,RSTART-2) "\033[2;3;4m" substr(tmpUrl,RSTART+1)
         }
         tmp = substr(tmp,1,_RSTART-1) out_color_url tmpUrl color substr(tmp, _RSTART + _RLENGTH)  
         FORMAT_DEL_NUM = FORMAT_DEL_NUM + 2
@@ -325,7 +323,7 @@ function consume_line(text,   tmp){
     }
 
     if (match(tmp, /^[ ]*\- / ) || match(tmp, /^[ ]*\+ / ) || match(tmp, /^[ ]*\* / )) {
-        tmp = out_color_bullet substr(tmp, 1, RSTART + RLENGTH - 1) \
+        tmp = out_color_bullet "●" substr(tmp, 2, RSTART + RLENGTH - 2) \
             out_color_bullet2 markdown_text_render(substr(tmp, RSTART + RLENGTH),out_color_bullet2) out_color_end
     } else if (match(tmp, /^[ \t]*[0-9]+\. / )) {
         _RSTART = RSTART

@@ -61,7 +61,7 @@ ___x_cmd_xrc_update()(
             queue="${queue}${line}
 "
         done <<A
-$( ___XRC_UPDATE=1 ___XRC_RELOAD=1 ___x_cmd_xrc_update_list_dependency "$elem" )
+$( ___XRC_UPDATE=1 ___X_CMD_XRC_RELOAD=1 ___x_cmd_xrc_update_list_dependency "$elem" )
 A
 
     done

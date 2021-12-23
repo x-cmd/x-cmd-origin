@@ -115,9 +115,9 @@ function update_view(           row_i, col_i, start_row){
 function update_logical_table(  _cord, _elem, row_i, col_i){
     logic_table[1] = 1
     logic_table_row = 1
-    for (row_i = 2; row_i <= table_row; row_i ++) {
+    for (row_i = 2; row_i <= table_row; row_i++) {
         _ok = true
-        for (col_i=1; col_i<=table_col; col_i++) {
+        for (col_i = 1; col_i <= table_col; col_i++) {
             _cord = row_i KSEP col_i
             _elem = data[ _cord ]
             _filter = filter[ col_i ]
@@ -185,6 +185,7 @@ function parse_data(text,
         for (col_i=1; col_i<=arr_len; col_i++) {
             elem = arr[col_i]
             elem = str_trim(elem)
+            gsub(/+$/, "", elem)
 
             if (elem ~ /^B%/) {
                 elem = substr(elem, 3)

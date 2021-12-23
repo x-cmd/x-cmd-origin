@@ -9,7 +9,7 @@ BEGIN {
     out_color_bold          = "\033[1m\033[4m"
     out_color_del           = "\033[9m"
     # out_color_backtick      = "\033[41;37m""\033[7m"
-    out_color_backtick      = "\033[48;5;254;31m"
+    out_color_backtick      = "\033[48;5;251;31m"
     out_color_url           = "\033[0;32m"
 
     out_color_bullet        = "\033[0m" "\033[1;35m"
@@ -68,11 +68,11 @@ function str_center(text, linelen, _len, _len1){
 # Section : show_block
 function show_block(){
     if (block_str != "") {
-        gsub(/\n/, "\n\033[0;34m> \033[0;33m", block_str)
+        gsub(/\n/, "\n  \033[0;34m> \033[0;33m", block_str)
         block_str = substr(block_str, 2)
-        print out_color_ordered2 "```"
+        print out_color_ordered2 "  ```"
         print out_color_end block_str out_color_ordered2
-        printf("%s\n" , "```" out_color_end)
+        printf("%s\n" , "  ```" out_color_end)
         block_str = ""
     }
 }
@@ -133,16 +133,16 @@ function show_table( table_str,  _line, _line_arr, _line_len, _table, _table_col
             _size = _table[ _i RS _j RS "LEN" ]
             if ( _j == _last_token_len ) {
                 if (_i == 1){
-                    printf(" %s","\033[7m" _cell sprintf("%" (_cell_len - _size) "s", ""))
+                    printf("\033[7m   %s", _cell sprintf("%" (_cell_len - _size) "s", ""))
                 }else{
-                    printf(" %s", _cell sprintf("%" (_cell_len - _size) "s", ""))
+                    printf("   %s", _cell sprintf("%" (_cell_len - _size) "s", ""))
                 }
                 # printf(" %s", _cell sprintf("%" (_cell_len - _size) "s", ""))
             } else {
                 if (_i == 1){
-                    printf(" %s","\033[7m" _cell sprintf("%" (_cell_len - _size) "s", "|"))
+                    printf("   %s","\033[7m" _cell sprintf("%" (_cell_len - _size) "s""\033[7m", "|"))
                 }else{
-                    printf(" %s", _cell sprintf("%" (_cell_len - _size) "s", "|"))
+                    printf("   %s", _cell sprintf("%" (_cell_len - _size) "s", "|"))
                 }
                 # printf(" %s", _cell sprintf("%" (_cell_len - _size) "s", "|"))
             }
@@ -234,7 +234,7 @@ function markdown_text_render(tmp,color) {
 # EndSection
 
 # Section : main
-function consume_line(text,   tmp){
+function consume_line(text,   tmp, _i){
     match(text, /^<!--.+-->/) 
     if (RSTART > 0) {
         text = substr(text, 1, RSTART-1) substr(text, RSTART + RLENGTH)
@@ -252,6 +252,12 @@ function consume_line(text,   tmp){
         if (IS_NOTE == false) {
             IS_NOTE = true
             return
+        }
+    }
+    
+    if (text ~ /^---$/ ){
+        for (_i=5; _i<COLUMNS; ++_i){
+            text = text "-"
         }
     }
 
@@ -311,8 +317,7 @@ function consume_line(text,   tmp){
     if (RSTART > 0)
     {
         tmp = substr(text, RSTART + RLENGTH)
-        printf out_color_head3
-        printf ( "%s%s\n", substr(text, RSTART , RLENGTH) , markdown_text_render(tmp), sprintf("%" COLUMNS - wcswidth(tmp) "s", "") )
+        printf ("  %s%s%s\n", out_color_head3, substr(text, RSTART , RLENGTH) , markdown_text_render(tmp), sprintf("%" COLUMNS - wcswidth(tmp) "s", "") )
         printf out_color_end 
         return
     }
@@ -373,7 +378,7 @@ function consume_line(text,   tmp){
     }
 
     tmp = markdown_text_render(tmp)
-    print ut_color_end tmp
+    print "  " out_color_end tmp
 }
 
 {
@@ -386,7 +391,7 @@ END {
         if ( false == show_table( table_block ) ) {
             tmp = substr(table_block, 2)
             tmp = markdown_text_render(tmp)
-            print ut_color_end tmp
+            print out_color_end tmp
         }
         table_block = ""
     }

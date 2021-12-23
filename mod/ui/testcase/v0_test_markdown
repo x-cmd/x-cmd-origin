@@ -50,4 +50,5 @@ ___ui_run_nawk(){
 }
 
 ___ui_markdown ./testcase/test_all.md
-___ui_markdown ./testcase/test_table.md
+# ___ui_markdown ./testcase/test_table.md
+___ui_markdown ./testcase/test.md

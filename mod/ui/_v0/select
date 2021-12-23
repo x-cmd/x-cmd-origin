@@ -91,15 +91,16 @@ ___x_cmd_ui_region_select_main(){
             esac >&3
         else
             case "$___UI_REGION_OUTPUT" in
-                text)           eval printf "\"%s\"" "\"\$$state\"" ;;
-                numtext)        eval printf "\"%s\n%s\"" "\"$state\"" "\"\$$state\"" ;;
+                text)           eval printf "\"%s\"" "\${$state}" ;;
+                numtext)        eval printf "\"%s\n%s\"" "\"$state\"" "\${$state}" ;;
                 ""|*)           printf "%s" "$state" ;;
             esac >&3
         fi
         
     } | ___x_cmd_ui_region_update
     # tput cvvis
-    # stty echo
+    # stty echo 
+    printf "\033[34h\033[?25h" >&2
     exec 3>&-
 }
 

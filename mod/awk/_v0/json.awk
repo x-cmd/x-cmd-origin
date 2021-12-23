@@ -642,6 +642,23 @@ function json_stringify_format(arr, keypath, indent,      i, len){
 # EndSection
 
 
+# Section: filter
+
+function json_filter(obj, key){
+    _l = obj[ key T_LEN ]
+    print "["
+    _k =  key S "\"" i "\""
+    for ( _i=1; i<=_l; ++i ) {
+        if (obj[ S ".cpu" ] == 3) {
+
+        }
+        print json_stringify_compact(obj[])
+    }
+    print "]"
+}
+
+# EndSection
+
 # Section: jiter
 
 BEGIN{

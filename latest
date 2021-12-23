@@ -144,7 +144,7 @@ A
             return 1;;
         w|which)
             if [ $# -gt 0 ]; then
-                ___x_cmd_which_one "$@"
+                ___X_CMD_NO_LOCAL=1 ___x_cmd_which_one "$@"
                 printf "%s" "$___X_CMD_WHICH_ONE_RESULT"
                 return
             fi
@@ -165,13 +165,18 @@ A
                 local CACHE="$___X_CMD_ROOT/all.tgz"
                 # rm -rf "$___X_CMD_ROOT" # Dangerous.
                 if ___x_cmd_curl_gitx "../dist/all.tgz"; then
-                    cd $___X_CMD_ROOT && tar xvf "$CACHE"
+                    cd "$___X_CMD_ROOT" && tar xvf "$CACHE"
                     rm "$CACHE"
+                    ___XRC_UDPATE=1
+                    ___X_CMD_XRC_MODULE_IMPORTED=
+                    . "$___X_CMD_ROOT"/xrc/latest
                 fi
             )
             ;;
         upgrade)
-            eval "$(curl https://get.x-cmd.com)"
+            ___XRC_UDPATE=1
+            ___X_CMD_XRC_MODULE_IMPORTED=
+            rm -rf "$___X_CMD_ROOT/.boot/boot" && eval "$(curl https://get.x-cmd.com)"
             ;;
         log)
             printf "WARN: xrc log deprecated, you should using 'x log' instead\n" >&2

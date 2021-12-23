@@ -46,7 +46,6 @@ gt_current_owner() {
         return 0
     fi
     local owner
-    echo "param_default get gitee_$O owner"
     owner="$(param_default get "gitee_$O" owner)"
     [ -n "$owner" ] && echo "$owner" && return
 

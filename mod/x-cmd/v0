@@ -614,7 +614,11 @@ ___x_cmd_main(){
 
         log)                                    xrc x-cmd/_v0/log && ___x_cmd_log "$@" ;;
 
-        upgrade)                                eval "$(curl https://get.x-cmd.com)" ;;
+        upgrade)
+                                                ___XRC_UDPATE=1
+                                                ___X_CMD_XRC_MODULE_IMPORTED=
+                                                rm -rf "$___X_CMD_ROOT/.boot/boot" && eval "$(curl https://get.x-cmd.com)"
+                                                ;;
         clear)                                  if ! grep "___x_cmd_http_get()" "$___X_CMD_ROOT/xrc/latest" >/dev/null 2>&1; then
                                                     ___xrc_log debug "'$___X_CMD_ROOT/xrc/latest' NOT found. Please manually clear cache folder: $___X_CMD_ROOT"
                                                     return 1

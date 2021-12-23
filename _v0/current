@@ -45,18 +45,13 @@ gt_current_owner() {
         # gt_current_owner_type || echo "Fetch owner type wrong. Please manually set owner-type using 'gt_current_owner_type <owner_type>'." >&2
         return 0
     fi
-    # get owner type
     local owner
-    if owner="$(param_default get "gitee_$O" owner)"; then
-        echo "$owner"
-        return 0
-    fi
+    echo "param_default get gitee_$O owner"
+    owner="$(param_default get "gitee_$O" owner)"
+    [ -n "$owner" ] && echo "$owner" && return
 
-    data=$(gt_user_info)
-    [ $? -eq 1 ] && return 1
-    owner=$(json_query data.login)
-    [ -z "$owner" ] && return 1
-    param_default get "gitee_$O" owner "$owner"
+    data=$(___gt_get "/v5/user")
+    [ -n "$data" ] && owner=$(json_query data.login) && param_default put "gitee_$O" owner "$owner"
     echo "$owner"
 }
 

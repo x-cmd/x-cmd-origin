@@ -37,19 +37,25 @@ gt_user_info() {
     param:scope     "gitee/$O"
     param:dsl       '
 options:
-    #1          "Username, if not set, show the user information of current owner, or owner of this token" 
+    #1              "Username, if not set, show the user information of current owner, or owner of this token" 
 '
     param:run
     
     local owner="$1"
+    local data name html_url types
     if [ -z "$owner" ]; then
-        ___gt_get "/v5/user"
-        [ $? -eq 1 ] && return 1
+        data=$(___gt_get "/v5/user" )
     else
-        ___gt_get "/v5/users/$1"
-        [ $? -eq 1 ] && return 1
+        data=$(___gt_get "/v5/users/$1")
     fi
-    return 0
+    
+    ___json_awk_get name=.login html_url=.html_url types=.type <<A
+    $data
+A
+    [ -n "$name" ] && ui tf "true" "success
+- name:$name
+- url:$html_url
+- type:$types"
 }
 
 # https://gitee.com/api/v5/swagger#/getV5UserRepos
@@ -69,22 +75,15 @@ options:
     --direction     "direction"         <>:direction="desc"
 '
     param:run
-    local tmp
-    tmp="$(mktemp)"
-    ___gt_get_multi "/v5/user/repos" visibility affiliation sort direction>"$tmp"
-    [ -s "$tmp" ] && ui table func ___gt_table "$tmp" . id full_name ownerName=owner.name updatedTime="updated_at"
-    rm "$tmp"
+    ui table func ___gt_table "\"\$(O=$O ___gt_get_multi \"/v5/user/repos\" visibility affiliation sort direction)\"" \
+        . id full_name ownerName=owner.name updatedTime="updated_at"
 }
 
 # https://gitee.com/api/v5/swagger#/getV5Emails
 gt_user_email(){
     param:void
-    # local tmp
-    # tmp="$(mktemp)"
-    ___gt_get_multi "/v5/emails" 
-    # > "$tmp"
-    # [ -s "$tmp" ] && ui table func ___gt_table "$tmp" . email state
-    # rm "$tmp"
+    ui table func ___gt_table "\"\$(O=$O ___gt_get_multi \"/v5/emails\")\"" \
+       . email state
 }
 
 gt_user_issue(){

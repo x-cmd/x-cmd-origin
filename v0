@@ -92,7 +92,7 @@ gt_make() {
     # fi
 }
 if [ -z "$DO_NOT_INIT_GITEE_DEFAULT" ]; then
-    gt_make "GITEE_DEFAULT"
+    gt_make "GITEE_DEFAULT" && DO_NOT_INIT_GITEE_DEFAULT="true"
 fi
 
 if [ -z "$XRC_NO_ADVISE" ] && [ -n "${BASH_VERSION}${ZSH_VERSION}" ] && [ "${-#*i}" != "$-" ]; then

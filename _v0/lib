@@ -1,6 +1,5 @@
 # shellcheck shell=sh disable=SC3043,SC2296
 
-
 # Section: scm-git
 
 ###
@@ -36,7 +35,6 @@ ___x_cmd_theme_svn_get_friendly_ref() {
     }'
 }
 # EndSection
-
 
 # Section: scm-main
 ___x_cmd_theme_scm_git_bin(){

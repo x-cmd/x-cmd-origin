@@ -1,4 +1,4 @@
-# shellcheck shell=sh disable=SC3043
+# shellcheck shell=sh disable=SC3043 # xrc
 
 xrc param/v0
 
@@ -14,7 +14,6 @@ subcommands:
     ls          "list all theme"
     use         "use theme when starting the shell"
     try         "try theme"
-    rollback    "use last theme"
     ${zinit}
     ${font}
     unset       "unset the theme"
@@ -64,8 +63,8 @@ xrc theme/_v0/style
 
 ___x_cmd_theme_control_use(){
     local name="${1:-ys}"
-    ___x_cmd_theme_control_try "$name"
-    x boot rc add x-theme x theme try "$name"
+    ___x_cmd_theme_control_try "$name" && \
+        x boot rc add "x-theme" "xrc theme && ___x_cmd_theme_control try $name"
 }
 
 ___x_cmd_theme_control_unset(){
@@ -80,7 +79,6 @@ ___x_cmd_theme_control_unset(){
 
 ___x_cmd_theme_control_try(){
     local name="${1}"
-
     case "$name" in
         ys|"")
             ___x_cmd_theme_load_format "$(xrc which theme/_v0/ys)"
@@ -94,7 +92,7 @@ ___x_cmd_theme_control_try(){
     local _cache_source="$___X_CMD_ROOT/.tmp/theme/index.yml"
     if [ -f "$_cache_source" ];then
         awk -v name="$name" '
-$1=name{ code=1; exit 0; };
+$1==name{ code=1; exit 0; };
 END{
     if (code==1) exit 0
     else exit 1
@@ -102,7 +100,7 @@ END{
 
     else
         ___x_cmd_theme_control_ls | awk -v name="$name" '
-$1=name{ code=1; exit 0; };
+$1==name{ code=1; exit 0; };
 END{
     if (code==1) exit 0
     else exit 1

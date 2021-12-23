@@ -15,7 +15,6 @@ ___gt_resp_body() {
 
 ___gt_get() {
     http "@_x_cmd_x_bash_gitee_${O:-GITEE_DEFAULT}" get "$@"
-    return $?
 }
 
 ___gt_get_multi() {
@@ -123,12 +122,12 @@ ___gt_parse_owner_repo() {
 }
 
 ___gt_cache(){
-    ccmd -- cat "$@"
+    ccmd -- eval "$@"
 }
 
 ___gt_table() {
-    local dir
-    dir="$1"
+    local tmp
+    tmp=$1
     shift
-    ___gt_cache "$dir" | ui table jsonfmt "$@"
+    echo "$tmp" 2>&1 | ui table jsonfmt "$@"
 }

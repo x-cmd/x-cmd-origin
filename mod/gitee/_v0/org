@@ -93,11 +93,8 @@ options:
     --type     "type"     <>="all"    = all private public
 '
     param:run
-    local tmp
-    tmp="$(mktemp)"
-    ___gt_get_multi "/v5/orgs/${1:?Provide organization}/repos" type >"$tmp"
-    [ -s "$tmp" ] && ui table func ___gt_table "$tmp" . id full_name ownerName=owner.name
-    rm "$tmp"
+    ui table func ___gt_table "\"\$(O=$O ___gt_get_multi \"/v5/orgs/${1:?Provide organization}/repos\" type)\"" \
+        . id full_name ownerName=owner.name updatedTime="updated_at"
 }
 
 gt_org_quit() {

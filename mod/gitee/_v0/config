@@ -23,24 +23,15 @@ gt_config_which() {
     local O="${O:-GITEE_DEFAULT}"
     echo "$HOME/.x-cmd.com/config/x-bash/app.gitee.config/$O"
 }
+
 # TODO:config 
 gt_config_save() {
     param:void
     local O="${O:-GITEE_DEFAULT}"
     local ___gitee_path="${1:-$HOME/.x-cmd.com/config/x-bash/app.gitee.config/$O}"
-    local data={}
-    if [ ! -e "$___gitee_path" ]; then
-        mkdir -p "$___gitee_path##*/"
-    else
-        [ -n "$(cat "$___gitee_path")" ] && data="$(cat "$___gitee_path")"
-    fi
-    json_put data.token "$(param_default get "gitee_$O" "token")"
-    if [ $? -eq 1 ]; then
-        echo "ERROR:json put error"
-    else
-        echo "$data" >"$___gitee_path"
-        echo "Config $O saved in path: $___gitee_path" >&2
-    fi
+    [ ! -e "$___gitee_path" ] && mkdir -p "$___gitee_path##*/"
+    param_default dump "gitee_$O">"$___gitee_path" && ui tf "true" "Config $O saved in path: $___gitee_path" && return
+    ui tf "false" "gt config save Fail"
 }
 
 # shellcheck disable=SC2120

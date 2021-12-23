@@ -92,7 +92,7 @@ ___x_cmd_theme_control_try(){
     local _cache_source="$___X_CMD_ROOT/.tmp/theme/index.yml"
     if [ -f "$_cache_source" ];then
         awk -v name="$name" '
-$1==name{ code=1; exit 0; };
+$2==name{ code=1; exit 0; };
 END{
     if (code==1) exit 0
     else exit 1

@@ -1,0 +1,9 @@
+#! xrc
+
+while [ "$#" -gt 0 ]; do
+    cd "$(x wsroot)/mod/$1" || return
+    cat "$(x wsroot)/.x-cmd/include"
+    shift
+    cd - || return
+done
+

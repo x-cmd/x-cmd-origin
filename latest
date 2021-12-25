@@ -125,9 +125,9 @@ xrc(){
 SUBCOMMAND:
     cat|c           Show the script in text form.
     which|w         Download lib files and print the local path.
-    update|u        Update file
-    cache           Provide cache filepath
-    clear           Clear the cache
+    update|u        Update file.
+    cache           Provide cache filepath.
+    clear           Clear the cache.
     ls              Show the cache modules.
 " >&2
             ;;
@@ -193,14 +193,22 @@ A
         _x_cmd_advise_json)
             cat <<A
 {
-    "cat|c": {
-        "#n": "ls $___X_CMD_ROOT | grep -v BASE64"
+    "cat": {
+        "#n": "ls $___X_CMD_ROOT | grep -v BASE64",
+        "#desc": "Show the script in text form"
     },
-    "which|w": {
-        "#n": "ls $___X_CMD_ROOT | grep -v BASE64"
+    "which": {
+        "#n": "ls $___X_CMD_ROOT | grep -v BASE64",
+        "#desc": "Download lib files and print the local path"
     },
-    "cache": {},
-    "clear": {},
+    "cache": "--- Provide cache filepath",
+    "clear": "--- Clear the cache",
+    "update": "--- Update file",
+    "ls": "--- Show the cache modules",
+    "upgrade": {},
+    "reload": {},
+    "root": {},
+    "export-all": {},
     "mirror": {
         "#n": [
             "https://x-bash.gitee.io",

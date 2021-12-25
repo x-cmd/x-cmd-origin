@@ -76,7 +76,8 @@ lsmod(){
     {
         case "$1" in
             core)   printf "%s" "$core_mod_list" ;;
-            *)      printf "%s" "$mod_list" ;;
+            all)    printf "%s" "$mod_list" ;;
+            *)      printf "%s" "$mod_list" | grep "$1" ;;
         esac
     } | \
     while read -r line; do

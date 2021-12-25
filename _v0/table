@@ -1,3 +1,4 @@
+
 # shellcheck shell=sh disable=SC3043
 
 # author:       Li Junhao           l@x-cmd.com    edwinjhlee.github.io
@@ -236,7 +237,7 @@ ___ui_table_out_func(){
     local EXIT_OP=${EXIT_OP:-"ENTER,CREATE,DELETE"}
     EXIT_OP=",$EXIT_OP,"
 
-    stty -echo
+    # stty -echo
     exec 3>&1
     {
         # { cat; printf "\n"; } | ___x_cmd_ui_region_send
@@ -326,8 +327,9 @@ ___ui_table_out_func(){
 
     exec 3>&-
 
-    tput cvvis
-    stty echo
+    # tput cvvis
+    # stty echo
+    printf "\033[34h\033[?25h" >&2
 }
 
 
@@ -431,7 +433,8 @@ ___ui_table_out_func(){
 # A
 # }
 
-# ___ui_table_out_jsonsource data .table.abc name age gender math=score.math
+# # ___ui_table_out_jsonsource data .table.abc name age gender math=score.math
+# printf "$(___ui_table_out_jsonsource data .table.abc name age gender math=score.math)\n"
 
 # EndSection
 

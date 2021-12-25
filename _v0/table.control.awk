@@ -170,9 +170,8 @@ function update_logic_view(           logic_row_i, row_i, col_i, start_row){
 function parse_data(text, 
     row_i, col_i,
     elem, elem_wlen){
-
-    gsub(/^[ \t\n\b\v\002]+/, "", text)
-    gsub(/[ \t\b\n\v\002]+$/, "", text)
+    gsub(/^[ \t\n\b\v\002\001]+/, "", text)
+    gsub(/[ \t\b\n\v\002\001]+$/, "", text)
 
     table_row = split(text, lines, "\002")
 
@@ -185,7 +184,6 @@ function parse_data(text,
         for (col_i=1; col_i<=arr_len; col_i++) {
             elem = arr[col_i]
             elem = str_trim(elem)
-            gsub(/+$/, "", elem)
 
             if (elem ~ /^B%/) {
                 elem = substr(elem, 3)

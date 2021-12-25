@@ -210,6 +210,19 @@ ui_url(){
     printf "$(ui smul)%s$(ui rmul)" "${1:?Provide URL}"
 }
 
+ui_draw_seperator(){
+    local sep=""
+    local _i=1
+    local maxw
+    maxw="$(ui cols)"
+    while [ "$_i" -lt "$maxw" ];do
+        sep="$sep""${1:-—}" 
+        _i="$((_i+1))"
+    done
+    printf "$sep\n" 
+}
+
+# TODO: Seq is an external command.
 ui_seperator(){
     local sep 
     local maxw

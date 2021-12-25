@@ -106,7 +106,7 @@ END{
 ___x_cmd_ui_animate_demo()(
     
     _control(){
-        for percentage in $(seq 0 5 100); do
+        for percentage in $(seq 0 1 100); do
 
             case $(( percentage / 10 % 2 )) in
                 0) 
@@ -130,16 +130,15 @@ hi";;
 
     _view(){
         printf "%s\n" "
-$(ui sep)
+$(ui_draw_seperator)
 $(ui spin $ticks) $(ui_style $style -- Initializing the storage)
 $(ui info -- Prepare the UI "$percentage")
 $(ui probar "$(ui bg-blue " ")" "$(ui bg-white " ")" "${percentage:-0}")
-
 $(ui bold black -- Initializing the storage)
 $(cowsay "$(ui_style warn -- "Hi Good work" "$percentage")" )
 $(cowsay Hi Good work)
 $(ui info -- "$text")
-$(ui sep)
+$(ui_draw_seperator)
 "
     }
 

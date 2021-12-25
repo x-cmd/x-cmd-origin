@@ -36,6 +36,7 @@ op="$1"; shift
 case "$op" in
     add)        add "$@" ;;
     pull)       pull "$@" ;;
+    update)     update "$@" ;;
     all|*)      update all ;;
 esac
 

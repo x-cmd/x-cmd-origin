@@ -16,6 +16,8 @@ ___x_cmd_readlink_recursive(){
 
 ___x_cmd_list_resource(){
     printf "%s" "proxy
+cowsay
+theme
 tldr
 advise"
 }
@@ -477,6 +479,136 @@ A
 
 # EndSection
 
+# Section : alias
+
+___X_CMD_ALIAS_SEP="$(printf "\001")"
+___X_CMD_ALIAS_ITEM_SEP="$(printf "\002")"
+
+___x_cmd_alias(){
+    case "$#" in
+        1)      ___x_cmd_alias_ls   "$@" ;;
+        2)
+                if [ "${2#*=}" = "$2" ]; then
+                    ___x_cmd_alias_print    "$@"
+                else
+                    ___x_cmd_alias_set      "$@"
+                fi
+                ;;
+        *)      ___x_cmd_alias_set          "$@" ;;
+    esac
+}
+
+___x_cmd_unalias(){
+    ___x_cmd_alias_unset "$@"
+}
+
+___x_cmd_alias_init(){
+    local obj="$1"
+    eval "___X_CMD_ALIAS_SET_${obj}=\"\${___X_CMD_ALIAS_SET_${obj}:-\${___X_CMD_ALIAS_SEP}}\""
+}
+
+___x_cmd_alias_ls(){
+    local obj="$1"
+    local DATA
+    eval "DATA=\"\${___X_CMD_ALIAS_SET_${obj}}\""
+
+    # printf "%s" "${DATA#${___X_CMD_ALIAS_SEP}}" | tr "${___X_CMD_ALIAS_SEP}${___X_CMD_ALIAS_ITEM_SEP}" "\n\t"
+    printf "%s" "${DATA#${___X_CMD_ALIAS_SEP}}" | awk -v RS="${___X_CMD_ALIAS_SEP}" -v FS="${___X_CMD_ALIAS_ITEM_SEP}" '
+{
+    print "  \033[31m" $1 "\033[0m=\033[32m" $2 "\t\t\033[34m" $3
+}
+'
+}
+
+___x_cmd_alias_echo(){
+    local IFS=" "
+    printf "%s" "$*"
+}
+
+
+___x_cmd_alias_set(){
+    local obj="$1";     local name="$2";
+
+
+    local code="${name#*=}"
+    if [ "$code" = "$name" ]; then
+        printf "CANNOT set alias for %s" "$*" >&2
+        return 1
+    fi
+
+    name="${name%%=*}"
+    # Put these things into the
+    local desc="$3"
+
+    ___x_cmd_alias_unset "$obj" "$name"
+
+    eval "___X_CMD_ALIAS_SET_${obj}=\"\${___X_CMD_ALIAS_SET_${obj}}"'${name}${___X_CMD_ALIAS_ITEM_SEP}${code}${___X_CMD_ALIAS_ITEM_SEP}${desc}${___X_CMD_ALIAS_SEP}"'
+}
+
+___x_cmd_alias_clear(){
+    local obj="$1"
+    eval "___X_CMD_ALIAS_SET_${obj}=\"\${___X_CMD_ALIAS_SEP}\""
+}
+
+___x_cmd_alias_unset(){
+    local obj="$1";     local name="$2";    shift 2
+    local DATA
+    eval "DATA=\"\${___X_CMD_ALIAS_SET_${obj}}\""
+
+    local a="${DATA%%${___X_CMD_ALIAS_SEP}${name}${___X_CMD_ALIAS_ITEM_SEP}*}"
+    if [ "$a" = "$DATA" ]; then
+        return 1
+    fi
+
+    DATA="${DATA#*${___X_CMD_ALIAS_SEP}${name}${___X_CMD_ALIAS_ITEM_SEP}*${___X_CMD_ALIAS_SEP}}"
+    DATA="$a${___X_CMD_ALIAS_SEP}${DATA}"
+
+    eval "___X_CMD_ALIAS_SET_${obj}=\"$DATA\""
+}
+
+___x_cmd_alias_exec(){
+    local obj="$1";     local name="$2";    shift 2
+    local DATA
+    eval "DATA=\"\${___X_CMD_ALIAS_SET_${obj}}\""
+    local code="${DATA#*$___X_CMD_ALIAS_SEP${name}${___X_CMD_ALIAS_ITEM_SEP}}"
+    ___X_CMD_ALIAS_EXEC_EXIST=
+    if [ "$code" = "$DATA" ]; then
+        return
+    fi
+
+    ___X_CMD_ALIAS_EXEC_EXIST=1
+    code="${code%%${___X_CMD_ALIAS_ITEM_SEP}*${___X_CMD_ALIAS_SEP}*}"
+    eval "$code" "$@"
+}
+
+___x_cmd_alias_info(){
+    local obj="$1";     local name="$2";    shift 2
+    local DATA
+    eval "DATA=\"\${___X_CMD_ALIAS_SET_${obj}}\""
+    local item="${DATA#*$___X_CMD_ALIAS_SEP${name}${___X_CMD_ALIAS_ITEM_SEP}}"
+    ___X_CMD_ALIAS_EXEC_EXIST=
+    if [ "$item" = "$DATA" ]; then
+        return
+    fi
+
+    ___X_CMD_ALIAS_EXEC_EXIST=1
+    item="${item%%${___X_CMD_ALIAS_SEP}*}"
+    code="${item%%${___X_CMD_ALIAS_ITEM_SEP}*}"
+    desc="${item#*${___X_CMD_ALIAS_ITEM_SEP}}"
+}
+
+___x_cmd_alias_print(){
+    local obj="$1"
+    local name="$2"
+    local code
+    local desc
+
+    ___x_cmd_alias_info "$@"
+    printf "%s    %s       %s\n" "$name" "$code" "$desc"
+}
+
+# EndSection
+
 # Section : x main function
 
 ___x_cmd_varset(){
@@ -550,7 +682,13 @@ ___x_cmd_workspace_root(){
 }
 
 ___x_cmd_main_otherwise(){
-    local subcmd="$1"; shift
+    local subcmd="$1";  shift
+
+    ___x_cmd_alias_exec ___x_cmd "$subcmd" "$@"
+    local code=$?
+    if [ -n "$___X_CMD_ALIAS_EXEC_EXIST" ]; then
+        return $?
+    fi
 
     # static build
     # update the static-build files
@@ -584,15 +722,23 @@ ___x_cmd_cd(){
     xrc x_fs/v0 && ___x_cmd_cd "$@"
 }
 
+
+___x_cmd_alias_init ___x_cmd
+
 ___x_cmd_main(){
+    local IFS=" "
+
     local subcmd=$1;    shift 2>/dev/null
     case "$subcmd" in
         ""|help)                                printf "%s\n" "Show help" >&2; return 1 ;;
-        # boot)                                   ( xrc x-cmd/_v0/boot && ___x_cmd_boot "$@"; ) ;;
+
+        alias)                                  ___x_cmd_alias      ___x_cmd "$@"   ;;
+        unalias)                                ___x_cmd_unalias    ___x_cmd "$@"   ;;
+
         boot)                                   ( xrc x-cmd/_v0/boot && ___x_cmd_boot "$@"; ) ;;
 
         conjoin)                                ___x_cmd_eval_concurrent_join "$@" ;;
-        con)                                   ___x_cmd_eval_concurrent_assign "$@" ;;
+        con)                                    ___x_cmd_eval_concurrent_assign "$@" ;;
 
         *:=)                                    ___x_cmd_varset "${subcmd%:=}" "$@" ;;
         *=)                                     ___x_cmd_varset_without_end "${subcmd%=}" "$@" ;;
@@ -746,19 +892,6 @@ ___x_cmd_x_cmd_advise_json(){
       "sshd": null
   },
   "man": { },
-  "theme": {
-      "ls": "--- list all theme",
-      "use": {
-        "#1": "awk '{ print \$2; }' <\$___X_CMD_ROOT/.tmp/theme/index.yml",
-        "#desc": "use theme when starting the shell"
-      },
-      "try": {
-        "#1": "awk '{ print \$2; }' <\$___X_CMD_ROOT/.tmp/theme/index.yml",
-        "#desc": "try theme"
-      },
-      "rollback": "--- use last theme",
-      "unset": "--- unset last theme"
-  },
   "env": { },
   "login": { },
   "register": { },

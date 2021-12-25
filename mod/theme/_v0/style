@@ -12,6 +12,19 @@
 ## NOTE: the NO_COLOR env variable is from: https://no-color.org/
 
 # Section: ___x_cmd_theme_style
+______x_cmd_theme_colorcode(){
+    case "$1" in
+        black)      printf 0           ;;
+        red)        printf 1           ;;
+        green)      printf 2           ;;
+        yellow)     printf 3           ;;
+        blue)       printf 4           ;;
+        magenta)    printf 5           ;;
+        cyan)       printf 6           ;;
+        white)      printf 7           ;;
+        rgb-*)      printf "${1#rgb-}" ;;
+    esac
+}
 # zsh https://zsh.sourceforge.io/Doc/Release/Prompt-Expansion.html#Visual-effects
 # TODO: here
 if [ -z "${NO_COLOR}" ]; then
@@ -73,19 +86,6 @@ ___x_cmd_theme_style(){
 }
 
 else
-
-______x_cmd_theme_colorcode(){
-    case "$1" in
-        black)      printf 0 ;;
-        red)        printf 1 ;;
-        green)      printf 2 ;;
-        yellow)     printf 3 ;;
-        blue)       printf 4 ;;
-        magenta)    printf 5 ;;
-        cyan)       printf 6 ;;
-        white)      printf 7 ;;
-    esac
-}
 
 ___x_cmd_theme_style(){
     while [ $# -gt 0 ]; do
@@ -166,4 +166,30 @@ ___X_CMD_COLOR_PRE='\['
 ___X_CMD_COLOR_SUF='\]'
 
 fi
+# EndSection
+
+# Section: ___x_cmd_theme_set_theme_color
+___x_cmd_theme_set_theme_color() {
+    : "${1:?Please provide correct primary color}"
+    if [ -z "${NO_COLOR}" ] || [ -n "$ZSH_VERSION" ]; then
+        local color_code
+        color_code="$(______x_cmd_theme_colorcode "$1")"
+        [ -z "$color_code" ] && printf "Error: $1" && return 1
+        if [ "${1#rgb}" != "$1" ];then
+            color_code="38;5;$color_code"
+        else
+            color_code="3$color_code"
+        fi
+        local x_cmd_theme_ls_color
+        # add seleted hightlight
+        x_cmd_theme_ls_color="ma=7;$color_code:$x_cmd_theme_ls_color:"
+        # add LS_COLORS hightlight
+        x_cmd_theme_ls_color="di=1;$color_code:$x_cmd_theme_ls_color:$LS_COLORS:"
+        # add advise complate hightlight
+        x_cmd_theme_ls_color="=(#b) #([0-9]#*)(-- *)*=0=$color_code=1;31:$x_cmd_theme_ls_color:"
+
+        # set zstyle
+        zstyle ':completion:*:default' list-colors "${(s.:.)x_cmd_theme_ls_color}"
+    fi
+}
 # EndSection

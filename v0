@@ -1,19 +1,5 @@
 # shellcheck shell=sh disable=SC3043
 
-___x_cmd_readlink_recursive(){
-    if [ -L "${1:?Provide link}" ]; then
-        local next_link
-        next_link="$(readlink "${1}")" || return
-        if [ "${next_link#/}" = "$next_link" ]; then
-            next_link="$(dirname "${1}")/$next_link"
-        fi
-        ___x_cmd_readlink_recursive "$next_link"
-    else
-        [ ! -e "${1}" ] && return 1        # File Not Exists
-        printf "%s" "$1"
-    fi
-}
-
 ___x_cmd_list_resource(){
     printf "%s" "proxy
 cowsay

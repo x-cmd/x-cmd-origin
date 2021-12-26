@@ -518,6 +518,20 @@ ___x_cmd_awk(){
     xrc awk/latest && ___x_cmd_awk "$@"
 }
 
+___x_cmd_readlink_recursive(){
+    if [ -L "${1:?Provide link}" ]; then
+        local next_link
+        next_link="$(readlink "${1}")" || return
+        if [ "${next_link#/}" = "$next_link" ]; then
+            next_link="$(dirname "${1}")/$next_link"
+        fi
+        ___x_cmd_readlink_recursive "$next_link"
+    else
+        [ ! -e "${1}" ] && return 1        # File Not Exists
+        printf "%s" "$1"
+    fi
+}
+
 if [ -n "$BASH_VERSION" ]; then
     ___X_CMD_SHELL=bash
 elif [ -n "$ZSH_VERSION" ]; then
@@ -526,10 +540,10 @@ elif [ -n "$KSH_VERSION" ]; then
     ___X_CMD_SHELL=ksh
 else
     ___X_CMD_SHELL="$(
-        res="$(this_command_should_never_exist 2>&1)"
-        if [ "${res#dash}" != "$res" ]; then
+        res="$(___x_cmd_readlink_recursive "$(command -v "$0")")"
+        if [ "${res%dash}" != "$res" ]; then
             printf "%s" dash
-        elif [ "${res#/bin/sh}" != "$res" ] && /bin/sh --help 2>&1 | grep BusyBox >/dev/null; then
+        elif /bin/sh --help 2>&1 | grep BusyBox >/dev/null; then
             printf "%s" ash
         else
             printf "WARNING: %s" "Unknown shell." >&2

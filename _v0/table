@@ -224,7 +224,6 @@ ___ui_table_out3(){
 
 ___ui_table_json_to_table(){
     local keyname="$1"; shift
-    local keylist
     xrc json/v0
 
     local IFS

@@ -278,7 +278,7 @@ NR>1 {
                 if (cur_row > logic_table_row) cur_row = 2
             }
         } else if (command == "LEFT" ) {
-            debug_file("RECV" command)
+            # debug_file("RECV" command)
             cur_col = cur_col - 1
             if (cur_col <= 0) cur_col = table_col
         } else if (command == "RIGHT") {

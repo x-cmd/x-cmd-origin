@@ -31,9 +31,9 @@ options:
     #1|--repo          "Repo name"         <>:repo
 '
     param:run
-
     gt_param_init_owner_repo
-    ___gt_get "/v5/repos/${owner_repo}/collaborators" page per_page  
+    ui table func ___gt_table "\"\$(O=$O ___gt_get_multi \"/v5/repos/${owner_repo}/collaborators\" page per_page)\"" \
+        . id login name push=permissions.push admin=permissions.admin
 }
 
 gt_repo_member_add() {
@@ -54,12 +54,12 @@ options:
     local username
     for username in "$@"; do
         {
-            ___gt_put_json "/v5/repos/$owner_repo/collaborators/${username##*/}" permission
+            ___gt_put_json "/v5/repos/$owner_repo/collaborators/${username##*/}" permission 1>/dev/null
             local code=$?
             if [ $code -ne 0 ]; then
-                gt_log error "Creating repo failure: $name. Code is $code. "
-                # ___gt_resp_header "" >&2
-                return $code
+                gt_log error "add user failure: $username. Code is $code. "
+            else
+                ui tf "true" "add $username to $owner_repo successfully"
             fi
         }  
     done
@@ -74,14 +74,16 @@ options:
     #n              "Username list"
 '
     param:run
-    if [ -z "$1" ];then
-        gt_log error "At least one user’s spatial address is needed"
-        return 1
-    fi
+    [ -z "$1" ] && gt_log error "At least one user’s spatial address is needed" && return 1
 
     gt_param_init_owner_repo
     local username
     for username in "$@"; do
         ___gt_delete "/v5/repos/$owner_repo/collaborators/${username##*/}"
+        if [ $? -ne 0 ];then
+            gt_log error "delete user failure: $username."
+        else
+            ui tf "true" "successfully deleted $username in $owner_repo"
+        fi
     done
 }

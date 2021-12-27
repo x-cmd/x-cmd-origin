@@ -17,11 +17,11 @@ _xdk_easy_env(){
 _xdk_accept_os(){
     local os="${1:?Provide image name}"
     case "$os" in
-        ubuntu*|ubu*)       echo ubuntu         ;;
-        debian*|deb*)       echo debian         ;;
-        centos*|cen*)       echo centos         ;;
-        busybox*|bus|bbox*) echo busybox        ;;
-        alpine*|alp*)       echo alpine         ;;
+        ubuntu*|ubu*)       printf "%s" ubuntu         ;;
+        debian*|deb*)       printf "%s" xcmd/debian    ;;
+        centos*|cen*)       printf "%s" centos         ;;
+        busybox*|bus|bbox*) printf "%s" busybox        ;;
+        alpine*|alp*)       printf "%s" xcmd/alpine    ;;
         *)                  return 1            ;;
     esac
 }
@@ -34,7 +34,7 @@ _xdk_accept(){
         ver=latest
     fi
     if sys=$(_xdk_accept_os "$sys"); then
-        echo "$sys:$ver"
+        printf "%s" "$sys:$ver"
     else
         return 1
     fi
@@ -64,7 +64,7 @@ xdk(){
                     if docker container list -q -f id="$arg" 1>/dev/null || \
                         docker container list -q -f name="$arg" 1>/dev/null ; then
 
-                        echo "$arg"
+                        printf "%s" "$arg"
                         break
                     fi
                 done

@@ -4,6 +4,7 @@
 +install
 +awk
 +x_fs
++dev
 
 # basic modules: non dependency
 +str

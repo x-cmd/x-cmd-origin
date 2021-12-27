@@ -26,7 +26,7 @@ lsmod(){
     if (mode == "all") print mod
     else if (mode == "core") { if ($1 ~ /^\+/) print mod }
     else if (index(mode, mod) > 0) print mod
-}' <"$(x wsroot)/modlist"
+}' <"$fp"
 
 }
 

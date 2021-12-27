@@ -189,9 +189,11 @@ ___x_cmd_abspath(){
 ___x_cmd_exe_workspace(){
     local filepath="${1:?filepath}"
     if [ -L "$filepath" ]; then
-        local target_path
-        target_path="$(___x_cmd_readlink_recursive "$filepath")"
-        target_path="$(___x_cmd_abspath "$target_path")"
+        # local target_path
+        # target_path="$(___x_cmd_readlink_recursive "$filepath")"
+        # target_path="$(___x_cmd_abspath "$target_path")"
+        filepath="$(___x_cmd_readlink_recursive "$filepath")"
+        filepath="$(___x_cmd_abspath "$filepath")"
     fi
 
     # TODO: notice. Filepath should be colorized and emphasized.
@@ -200,7 +202,7 @@ ___x_cmd_exe_workspace(){
         while true; do
             printf "%s" \
 "=> Running file: $filepath ?
-=> Enter or press y to continue, n to abort. default is y: "
+=> Enter or press y to continue, n to abort. default is y: " >&2
 
             read -r action
             case $action in
@@ -562,9 +564,9 @@ ___x_cmd_alias_exec(){
         return
     fi
 
-    ___X_CMD_ALIAS_EXEC_EXIST=1
     code="${code%%${___X_CMD_ALIAS_ITEM_SEP}*${___X_CMD_ALIAS_SEP}*}"
     eval "$code" "$@"
+    ___X_CMD_ALIAS_EXEC_EXIST=1
 }
 
 ___x_cmd_alias_info(){
@@ -627,6 +629,48 @@ ___x_cmd_varset_without_end(){
     result="$("$@")"
     eval "$_______variable_name=\"\$result\""
 }
+
+___x_cmd_arg_line(){
+    awk -v every="${1:-1}" '
+
+function printcode( len ){
+    count = 0
+    code=""
+    for (j=1; j<=len; ++j) {
+        e = result[j]
+        gsub("\"", "\\\"", e)
+        code = code " " "\"" e "\""
+    }
+    print code
+}
+
+{
+    arrl = split($0, arr, /[ \t]+/)
+    for (i=1; i<=arrl; ++i) {
+        count ++
+        result[ count ] = arr[i]
+        if (count == every) {
+            printcode( every )
+        }
+    }
+}
+
+END {
+    if (count > 0) printcode( count )
+}
+'
+
+}
+
+___x_cmd_args(){
+    local n="$1"; shift
+    local IFS=" "
+
+    ___x_cmd_arg_line "$n" | while read -r line; do
+        eval \"\$@\" "$line"
+    done
+}
+
 
 ___x_cmd_shell_exec(){
     local shell="${1:?Provide shell}"
@@ -694,12 +738,27 @@ ___x_cmd_main_otherwise(){
 }
 
 ___x_cmd_ws(){
+    local TGT
+
+    if [ -z "$1" ]; then
+        if TGT="$(___x_cmd_search_path . ".x-cmd/latest")"; then
+            ___x_cmd_exe_workspace "$TGT/.x-cmd/latest"
+            return
+        else
+            printf "%s\n" "Cannot find .x-cmd/latest" >&2
+            return 1
+        fi
+    fi
+
     local RESOURCE_NAME="$1"; shift
     if TGT="$(___x_cmd_search_path . ".x-cmd/$RESOURCE_NAME")"; then
         ___x_cmd_exe_workspace "$TGT/.x-cmd/$RESOURCE_NAME" "$@"
         return
+    elif TGT="$(___x_cmd_search_path . ".x-cmd/latest")"; then
+        ___x_cmd_exe_workspace "$TGT/.x-cmd/latest" "$RESOURCE_NAME" "$@"
+        return
     else
-        printf "Workspace Resource Not found: %s" "$RESOURCE_NAME" >&2
+        printf "Workspace Resource Not found: %s\n" "$RESOURCE_NAME" >&2
         return 1
     fi
 }
@@ -714,7 +773,7 @@ ___x_cmd_alias_init ___x_cmd
 ___x_cmd_main(){
     local IFS=" "
 
-    local subcmd=$1;    shift 2>/dev/null
+    local subcmd=$1; [ $# -gt 0 ] && shift
     case "$subcmd" in
         ""|help)                                printf "%s\n" "Show help" >&2; return 1 ;;
 
@@ -728,6 +787,11 @@ ___x_cmd_main(){
 
         *:=)                                    ___x_cmd_varset "${subcmd%:=}" "$@" ;;
         *=)                                     ___x_cmd_varset_without_end "${subcmd%=}" "$@" ;;
+
+        args)                                   ___x_cmd_args "$@"      ;;
+        arg1)                                   ___x_cmd_args 1 "$@"    ;;
+        arg2)                                   ___x_cmd_args 2 "$@"    ;;
+        arg3)                                   ___x_cmd_args 3 "$@"    ;;
 
         install)                                xrc install/v0 && ___x_cmd_install "$@" ;;
 
@@ -836,7 +900,7 @@ ___x_cmd_main(){
                                                 done
                                                 ;;
         _x_cmd_advise_json)                     ___x_cmd_x_cmd_advise_json "$@" ;;
-        ws)                                     ___x_cmd_ws "$@" ;;
+        ws)                                     X_DISABLE_WORKSPACE_EXECUTION_CONFIRMATION=1 ___x_cmd_ws "$@" ;;
         wsroot)                                 ___x_cmd_workspace_root "$@" ;;
         cowsay)                                 xrc cowsay/v0 && cowsay "$@" ;;
         *)                                      ___x_cmd_main_otherwise "$subcmd" "$@" ;;
@@ -980,3 +1044,6 @@ if [ -z "$XRC_NO_ADVISE" ] && [ -n "${BASH_VERSION}${ZSH_VERSION}" ] && [ "${-#*
     # xrc advise/v0
     advise x
 fi
+
+# TODO: We should have a better solution for this.
+X_DISABLE_WORKSPACE_EXECUTION_CONFIRMATION=1

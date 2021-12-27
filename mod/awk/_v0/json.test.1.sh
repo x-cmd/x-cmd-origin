@@ -21,7 +21,7 @@ awk -v RS="\t" "$SSS"'
 END{
     json_parse(data, arr)
     print "---:\t|" json_handle_jpath( "1.2.ssh_url" ) "|"
-    print "---\t" arr[",\"1\",\"2\",\"ssh_url\""]
+    print "---\t" arr[json_handle_jpath( "1.2.ssh_url" )]
     print "---:\t|" length(json_handle_jpath( "1.2.ssh_url" )) "|"
     print "---:\t|" arr[ json_handle_jpath( "1.2.ssh_url" ) ]
     print "---:\t" jget(arr, "1.2.ssh_url")

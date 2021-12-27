@@ -469,6 +469,7 @@ function json_list_len(arr, keypath){
 
 
 # EndSection
+
 # Section: Compact Stringify
 function ___json_stringify_compact_dict(arr, keypath,     _klist, _l, _i, _key, _val, _ret){
 
@@ -644,18 +645,18 @@ function json_stringify_format(arr, keypath, indent,      i, len){
 
 # Section: filter
 
-function json_filter(obj, key){
-    _l = obj[ key T_LEN ]
-    print "["
-    _k =  key S "\"" i "\""
-    for ( _i=1; i<=_l; ++i ) {
-        if (obj[ S ".cpu" ] == 3) {
+# function json_filter(obj, key){
+#     _l = obj[ key T_LEN ]
+#     print "["
+#     _k =  key S "\"" i "\""
+#     for ( _i=1; i<=_l; ++i ) {
+#         if (obj[ S ".cpu" ] == 3) {
 
-        }
-        print json_stringify_compact(obj[])
-    }
-    print "]"
-}
+#         }
+#         print json_stringify_compact(obj[])
+#     }
+#     print "]"
+# }
 
 # EndSection
 
@@ -664,6 +665,7 @@ function json_filter(obj, key){
 BEGIN{
     JITER_LEVEL = 1
     JITER_STACK[ 1 ] = ""   # keypath
+    JITER_STRAT_KEY = 0
 }
 
 function init_jiter(){
@@ -681,7 +683,7 @@ function jiter( obj, item ){
 
     if (item ~ /^[,:]*$/) {
         return
-    } else if (item ~ /^[tf"0-9+-]/) { #"
+    } else if (item ~ /^[tfn"0-9+-]/) { #"
     # } else if (item !~ /^[\{\}\[\]]$/) {
         JITER_CURLEN = JITER_CURLEN + 1
         if ( JITER_STATE != T_DICT ) {
@@ -747,7 +749,6 @@ function jiter( obj, item ){
     }
 }
 
-
 # EndSection
 
 # Section: jiter_
@@ -787,7 +788,6 @@ function _jiter_print_exact_setprint(kp, key){
 
 # TODO: Optimize. If key not match, then we SKIP.
 function jiter_print_exact( obj, item, key ){
-
     if (START_PRINT == 2) {
         exit(0)
         return
@@ -822,7 +822,7 @@ function jiter_print_exact( obj, item, key ){
 
     if (item ~ /^[,:]*$/) {
         return
-    } else if (item ~ /^[tf"0-9+-]/) { #"
+    } else if (item ~ /^[tfn"0-9+-]/) { #"
     # } else if (item !~ /^[\{\}\[\]]$/) {
         JITER_CURLEN = JITER_CURLEN + 1
         if ( JITER_STATE != T_DICT ) {
@@ -917,3 +917,91 @@ function jiter_print_exact_after_tokenize(jobj, text, key,      _arr, _arrl, _i)
 
 # EndSection
 
+# Section: jiter_exact
+
+function jiter_exact( obj, item, key){
+    key = json_handle_jpath( key )
+    if (item ~ /^[,:]*$/) {
+        return
+    } else if (item ~ /^[tfn"0-9+-]/) { #"
+    # } else if (item !~ /^[\{\}\[\]]$/) {
+        JITER_CURLEN = JITER_CURLEN + 1
+        if ( JITER_STRAT_KEY != 0) {
+            if ( JITER_STATE != T_DICT ) {
+                obj[ JITER_FA_KEYPATH S "\"" JITER_CURLEN "\"" ] = item
+            } else {
+                if ( JITER_LAST_KP != "" ) {
+                    JITER_CURLEN = JITER_CURLEN - 1
+                    obj[ JITER_FA_KEYPATH S JITER_LAST_KP ] = item
+                    JITER_LAST_KP = ""
+                } else {
+                    JITER_LAST_KP = item
+                    obj[ JITER_FA_KEYPATH T_KEY ] = obj[ JITER_FA_KEYPATH T_KEY ] S item
+                }
+            }
+        }
+    } else if (item ~ /^\[$/) {
+        JITER_CURLEN = JITER_CURLEN + 1
+        obj[ JITER_FA_KEYPATH T_LEN ] = JITER_CURLEN
+        if ( JITER_STATE != T_DICT ) {
+            JITER_FA_KEYPATH = JITER_FA_KEYPATH S "\"" JITER_CURLEN "\""
+        } else {
+            JITER_FA_KEYPATH = JITER_FA_KEYPATH S JITER_LAST_KP
+            JITER_LAST_KP = ""
+        }
+
+        JITER_STATE = T_LIST
+        JITER_CURLEN = 0
+        if ( JITER_FA_KEYPATH == key || JITER_STRAT_KEY != 0) {
+            obj[ JITER_FA_KEYPATH ] = T_LIST
+            JITER_STRAT_KEY = JITER_STRAT_KEY + 1
+        }
+
+        JITER_STACK[ ++JITER_LEVEL ] = JITER_FA_KEYPATH
+    } else if (item ~ /^\]$/) {
+        obj[ JITER_FA_KEYPATH T_LEN ] = JITER_CURLEN
+
+        JITER_LEVEL --
+        if (JITER_STACK[ JITER_LEVEL ] == key){
+            exit(0)
+            return
+        }
+        JITER_FA_KEYPATH = JITER_STACK[ JITER_LEVEL ]
+        JITER_STATE = obj[ JITER_FA_KEYPATH ]
+        JITER_CURLEN = obj[ JITER_FA_KEYPATH T_LEN ]
+        JITER_STRAT_KEY = JITER_STRAT_KEY - 1
+    } else if (item ~ /^\{$/) {
+        JITER_CURLEN = JITER_CURLEN + 1
+        obj[ JITER_FA_KEYPATH T_LEN ] = JITER_CURLEN
+        if ( JITER_STATE != T_DICT ) {
+            JITER_FA_KEYPATH = JITER_FA_KEYPATH S "\"" JITER_CURLEN "\""
+        } else {
+            JITER_FA_KEYPATH = JITER_FA_KEYPATH S JITER_LAST_KP
+            JITER_LAST_KP = ""
+        }
+
+        JITER_STATE = T_DICT
+        JITER_CURLEN = 0
+
+        if ( JITER_FA_KEYPATH == key || JITER_STRAT_KEY != 0) {
+            obj[ JITER_FA_KEYPATH ] = T_DICT
+            JITER_STRAT_KEY = JITER_STRAT_KEY + 1
+        }
+
+        JITER_STACK[ ++JITER_LEVEL ] = JITER_FA_KEYPATH
+    } else if (item ~ /^\}$/) {
+        obj[ JITER_FA_KEYPATH T_LEN ] = JITER_CURLEN
+
+        JITER_LEVEL --
+        if (JITER_STACK[ JITER_LEVEL ] == key){
+            exit(0)
+            return
+        }
+        JITER_FA_KEYPATH = JITER_STACK[ JITER_LEVEL ]
+        JITER_STATE = obj[ JITER_FA_KEYPATH ]
+        JITER_CURLEN = obj[ JITER_FA_KEYPATH T_LEN ]
+        JITER_STRAT_KEY = JITER_STRAT_KEY - 1
+    }
+}
+
+# EndSection

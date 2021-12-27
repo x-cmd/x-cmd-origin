@@ -1,0 +1,38 @@
++xrc
++x-cmd
++hub
++install
++awk
++x_fs
+
+# basic modules: non dependency
++str
++list
++dict
++assert
++json
++os
++cowsay
+
+# basic modules: dependencies
++param
++http
++advise
++ui
++ps1env
+
+# modules
++static-build
++ccmd
+xdk
+zuz
+el
+
+# Apps
++tldr
++proxy
+theme
+
+# web clients
+ali
+gitee

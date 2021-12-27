@@ -1,0 +1,126 @@
+# shellcheck shell=sh
+
+___x_cmd_dev_mod_geturl(){
+    git config --worktree --get-regexp "remote[a-z\.]+.url" | awk '
+
+    BEGIN { exit_code=1; }
+    {
+        url=$2
+        match(url, /x-((bash)|(cmd))\/[a-zA-Z0-9_-]+\.git$/)
+        if (RLENGTH > 0) {
+            print substr(url, RSTART, RLENGTH)
+            exit_code=0
+            exit(0)
+        }
+    }
+    END{
+        exit(exit_code)
+    }
+    '
+}
+
+___x_cmd_dev_mod_add_source(){
+    local url
+    url="$(___x_cmd_dev_mod_geturl)" || {
+        printf "Cannot find"
+        return
+    }
+
+    git remote remove gitee 2>/dev/null
+    git remote add gitee "git@gitee.com:$url"
+
+    git remote remove github 2>/dev/null
+    git remote add github "git@github.com:$url"
+}
+
+___x_cmd_dev_mod_pull(){
+    ___x_cmd_dev_mod_add_source || return
+
+    local branch
+    branch="${1:-"$(git branch --show-current)"}"
+
+    if [ -z "$___X_CMD_IN_CHINA_NET" ]; then
+        git pull github "$branch"
+    else
+        git pull gitee "$branch"
+    fi
+}
+
+___x_cmd_dev_mod_push(){
+    ___x_cmd_dev_mod_add_source || return
+
+    local branch
+    branch="${1:-"$(git branch --show-current)"}"
+
+    git push gitee "$branch"
+    git push github "$branch"
+}
+
+___x_cmd_dev_mod_lsfile0()(
+    IFS="
+"
+
+    cd "$(x wsroot)" || exit
+
+    local i
+    for i in \
+        latest v* _v*/* _v*/**/* \
+        third-party/* third-party/*/.* third-party/**/* third-party/**/*/* third-party/**/*/*/*
+    do
+        [ "$i" != "${i#*_test*}" ] && continue
+        [ -f "$i" ] && printf "%s\n" "$i"
+    done
+)
+
+___x_cmd_dev_mod_lsfile()(
+    if [ -f "$(x wsroot)/.x-cmd/lsfile" ]; then
+        # TODO: using engine to directly run the local file
+        X_DISABLE_WORKSPACE_EXECUTION_CONFIRMATION=1 x ws lsfile
+    else
+        ___x_cmd_dev_mod_lsfile0
+    fi
+)
+
+___x_cmd_dev_mod_cpfile_tmp(){
+    local src="$2"
+    local dst="$1/$src"
+    mkdir -p "$(dirname "$dst")"
+    cp "$src" "$dst"
+}
+
+___x_cmd_dev_mod_cpfile()(
+
+    local current_folder
+    current_folder="$(basename "$(x wsroot)")"
+    current_folder="$HOME/.x-cmd/$current_folder"
+    rm -rf "$current_folder"
+    mkdir -p "$current_folder"
+
+    if [ -f "$(x wsroot)/.x-cmd/cpfile" ]; then
+        # TODO: using engine to directly run the local file
+        X_DISABLE_WORKSPACE_EXECUTION_CONFIRMATION=1 x ws cpfile "$@"
+    else
+        ___x_cmd_dev_mod_lsfile | x arg1 ___x_cmd_dev_mod_cpfile_tmp "$current_folder"
+    fi
+)
+
+___x_cmd_dev_mod(){
+
+    param:dsl <<A
+subcommand:
+    pull        "pull module"
+    push        "push module"
+    lsfile      "ls file to p"
+    lsfile0     "ls file to p"
+    cpfile      "cp file to home folder"
+A
+    param:run
+
+    if [ -z "$PARAM_SUBCMD" ]; then
+        ___x_cmd_dev_mod help
+        return 1
+    fi
+
+    "___x_cmd_dev_mod_$PARAM_SUBCMD" "$@"
+
+}

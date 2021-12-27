@@ -11,7 +11,7 @@ ___ADVISE_AWK_PATH=${___ADVISE_AWK_PATH:-$(xrc which advise/v0.awk)}
 
 # Section : advise entrance
 advise(){
-    local op="${1}"; shift 2>/dev/null
+    local op="${1}"; [ $# -gt 0 ] && shift
     case "$op" in
         ls)
             ls "$@" "${TMPDIR%/}/.x-cmd/advise_auto_json" ;;
@@ -117,7 +117,7 @@ SUBCOMMAND:
 
 # EndSection
 
-# Section : adviser helper function: ls lsd seq
+# Section : adviser helper function: ls lsd seq get_result
 
 ___advise_lsd(){
     local l

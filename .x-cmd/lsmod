@@ -19,16 +19,15 @@ lsmod(){
         return
     }
 
-    local mode="${1:-all}"
-    while read -r line; do
-        [ "${line#\#}" != "$line" ] && continue
-        [ "$line" = "" ] && continue
-        case "$mode" in
-            core)   [ "$line" != "${line#+}" ] && printf "%s\n" "${line#+}" ;;
-            all)    printf "%s\n" "${line#+}" ;;
-            *)      [ "$line" != "${line#*${mode}*}" ] && printf "%s\n" "${line#+}" ;;
-        esac
-    done <"$(x wsroot)/modlist" 2>/dev/null
+    awk -v mode="${1:-all}" '
+($0!="")&&($0 !~ /[ ]*#/){
+    mod=$1
+    gsub(/^\+/, "", mod)
+    if (mode == "all") print mod
+    else if (mode == "core") { if ($1 ~ /^\+/) print mod }
+    else if (index(mode, mod) > 0) print mod
+}' <"$(x wsroot)/modlist"
+
 }
 
 lsmod "$@"

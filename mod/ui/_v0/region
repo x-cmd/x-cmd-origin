@@ -133,7 +133,7 @@ region_getchar(){
 
     # TODO: only the last enter worked. check and trim
     [ "${#___X_CMD_UI_GETCHAR_CHAR}" -eq 0 ] && ___X_CMD_UI_GETCHAR_CHAR=ENTER && return
-    # [ "${___X_CMD_UI_GETCHAR_CHAR}" = "$___X_CMD_UI_REGION_ENTER" ] && printf "%s\n" ENTER && return
+    [ "${___X_CMD_UI_GETCHAR_CHAR}" = "$___X_CMD_UI_REGION_ENTER" ] && ___X_CMD_UI_GETCHAR_CHAR=ENTER && return
     # [ "${___X_CMD_UI_GETCHAR_CHAR}" = "$(printf "\012")" ] && printf "%s\n" ENTER && return
     # [ "${___X_CMD_UI_GETCHAR_CHAR}" = "$(printf "\n")" ] && printf "%s\n" ENTER && return
     [ "${___X_CMD_UI_GETCHAR_CHAR}" = "

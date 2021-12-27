@@ -25,9 +25,10 @@ ___x_cmd_ui_region_select_draw(){
 }
 
 ___x_cmd_ui_region_select_main(){
+    stty -echo
     exec 3>&1
-    local state=2           # default
-    local state_text="2"
+    local state=1          # default
+    local state_text="1"
     local question="$1"; shift
     {
         ___x_cmd_ui_region_select_draw "$state" "$state_text" "$question" "$@"
@@ -40,7 +41,7 @@ ___x_cmd_ui_region_select_main(){
                         state="$((state-1))" 
                     fi
                     ;;
-                DN)         
+                DN)
                     if [ $state -eq -1 ]; then
                         state=1
                     else
@@ -81,7 +82,7 @@ ___x_cmd_ui_region_select_main(){
         done
         
         # Notice: Meaningless but important.
-        ___x_cmd_ui_region_select_draw "$state" "$question" "$@"
+        ___x_cmd_ui_region_select_draw "$state" "$state_text" "$question" "$@"
 
         if [ "$state" -eq -1 ]; then
             case "$___UI_REGION_OUTPUT" in
@@ -99,9 +100,9 @@ ___x_cmd_ui_region_select_main(){
         
     } | ___x_cmd_ui_region_update
     # tput cvvis
-    # stty echo 
-    printf "\033[34h\033[?25h" >&2
     exec 3>&-
+    printf "\033[34h\033[?25h" >&2
+    stty echo 
 }
 
 ___x_cmd_ui_region_select_null(){

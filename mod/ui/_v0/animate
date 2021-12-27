@@ -22,7 +22,7 @@ ___x_cmd_ui_animate_app(){
     local template_func2="$2"
     local IFS="
 "
-
+    stty -echo
     exec 3>&1
 
     {
@@ -64,6 +64,7 @@ ___x_cmd_ui_animate_app(){
     printf "\033[34h\033[?25h" >&2
 
     exec 3>&-
+    stty echo
 }
 
 ___x_cmd_ui_animate_sendenv(){
@@ -106,7 +107,7 @@ END{
 ___x_cmd_ui_animate_demo()(
     
     _control(){
-        for percentage in $(seq 0 1 100); do
+        for percentage in $(seq 0 10 100); do
 
             case $(( percentage / 10 % 2 )) in
                 0) 

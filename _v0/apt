@@ -47,7 +47,7 @@ A
 
     # TODO: Some problem in ubuntu 12.04
     local url
-    if url="$(proxy_apt_url "${PARAM_SUBCMD:-ali}")"; then
+    if url="$(proxy_apt_url "${PARAM_SUBCMD:-tuna}")"; then
         proxy_log info "Setting proxy_apt mirror :
     $url"
 

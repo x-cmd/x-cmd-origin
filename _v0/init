@@ -1,0 +1,43 @@
+# shellcheck shell=sh
+
+___x_cmd_dev_init(){
+    param:dsl <<A
+subcommand:
+    gitignore|git       "git ignore"
+    vscode              "git ignore"
+    xcmd                "git ignore"
+    license             "license"
+    xproj               "x project"
+A
+    param:run
+
+    if [ -z "$PARAM_SUBCMD" ]; then
+        ___x_cmd_dev_init help
+        return 0
+    fi
+
+    "___x_cmd_dev_init_$PARAM_SUBCMD" ${1:+"$@"}
+}
+
+# According projects
+___x_cmd_dev_init_gitignore(){
+    cat >.gitignore  <<A
+dist
+build
+bin
+A
+
+    # gitignore add
+    # gitignore append
+}
+
+# TODO: vscode project
+# According project
+___x_cmd_dev_init_vscode(){
+    mkdir -p .vscode
+    xrc cat dev/_v0/settings.json
+}
+
+___x_cmd_dev_init_license(){
+    xrc cat dev/_v0/LICENSE
+}

@@ -1,0 +1,45 @@
+# shellcheck shell=sh # xrc
+
+# author:       Li Junhao           l@x-cmd.com
+# maintainer:   Li Junhao
+
+xrc param/v0
+
+xrc dev/_v0/xproj
+xrc dev/_v0/mod
+xrc dev/_v0/pkg
+xrc dev/_v0/init
+
+# git config --worktree --get-regexp "remote[a-z\.]+.url"
+
+___x_cmd_dev(){
+    param:dsl <<A
+subcommand:
+    init        "init"
+    mod         "modules"
+    pkg         "package"
+A
+    param:run
+
+    if [ -z "${PARAM_SUBCMD}" ]; then
+        ___x_cmd_dev help
+        return 0
+    fi
+
+    "___x_cmd_dev_${PARAM_SUBCMD}" "$@"
+}
+
+
+x alias pull="x dev mod pull"
+x alias push="x dev mod push"
+x alias lsfile="x dev mod lsfile"
+x alias cpfile="x dev mod cpfile"
+
+# if [ -n "${BASH_VERSION}${ZSH_VERSION}" ] && [ "${-#*i}" != "$-" ]; then
+#     xrc advise/v0
+#     advise dev
+# fi
+
+if [ -n "$___X_CMD_ENABLE_AUTO_RUN" ]; then
+    ___x_cmd_dev "$@"
+fi

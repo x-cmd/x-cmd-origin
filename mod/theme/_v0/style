@@ -1,16 +1,82 @@
 # shellcheck shell=sh
 # shellcheck disable=SC2039,SC3044,SC2154,SC1087,SC2128,SC2144,SC2059,SC2296,SC2296,SC3054,SC2034
 
-# variables setup
+# Section: theme global variable setup
+___X_CMD_THEME_NEWLINE="
+"
+
+if [ -n "$ZSH_VERSION" ]; then
+
+___X_CMD_THEME_USER='%n'
+
+# Path
+___X_CMD_THEME_PATH='%1d'
+___X_CMD_THEME_FULL_PATH='%~'
+
+# Date
+___X_CMD_THEME_DATE='%D';
+___X_CMD_THEME_TIME_H_M_S='%*';
+___X_CMD_THEME_TIME_H12_M_S='%D{%L:%M:%S}';
+___X_CMD_THEME_TIME_H_M='%T';
+___X_CMD_THEME_TIME_H12_M='%@';
+
+# Host
+___X_CMD_THEME_HOST='%m'
+___X_CMD_THEME_FULL_HOST='%M'
+
+else
+
+___X_CMD_THEME_USER='\u'
+
+# Path
+___X_CMD_THEME_PATH='\W';
+___X_CMD_THEME_FULL_PATH='\w';
+
+# Date
+___X_CMD_THEME_DATE='\d';
+___X_CMD_THEME_TIME_H_M_S='\t';
+___X_CMD_THEME_TIME_H12_M_S='\T';
+___X_CMD_THEME_TIME_H_M='\A';
+___X_CMD_THEME_TIME_H12_M='\@';
+
+# Host
+___X_CMD_THEME_HOST='\h';
+___X_CMD_THEME_FULL_HOST='\H';
+
+# Color
+___X_CMD_COLOR_PRE='\['
+___X_CMD_COLOR_SUF='\]'
+
+fi
+# EndSection
+
+# Section: NO_COLOR flag
+## Enable our easy to read Colour Flags as long as the NO_COLOR Env Variable is set.
+## NOTE: the NO_COLOR env variable is from: https://no-color.org/
+if [ -n "${NO_COLOR}" ]; then
+    ___x_cmd_theme_style() {
+        while [ $# -gt 0 ]; do
+            case "$1" in
+                bold|underline|black|red|green|yellow|blue|magenta|cyan|white|fg-*|bfg-*|hfg-*|dfg-*|rgbfg-*|bg-*|bbg-*|hbg-*|dbg-*|rgbbg-*|reset)
+                    shift
+                ;;
+                *)
+                    printf "%s" "$*";return
+                ;;
+            esac
+        done
+     }
+    ___x_cmd_theme_set_theme_color() { :; }
+    return 0
+fi
+# EndSection
+
 ###
     # @description: set up color
     # @param: $color | bg-$color | bfg $color | ibg $color | bold | underline | reset
     # @param: $color => black | red | green | yellow | blue | magenta | cyan | white
     # @example1: ___x_cmd_theme_style fg-red bold hello
 ###
-## Enable our easy to read Colour Flags as long as --no-colors hasn't been passed or the NO_COLOR Env Variable is set.
-## NOTE: the NO_COLOR env variable is from: https://no-color.org/
-
 # Section: ___x_cmd_theme_style
 ______x_cmd_theme_colorcode(){
     case "$1" in
@@ -25,10 +91,9 @@ ______x_cmd_theme_colorcode(){
         rgb-*)      printf "${1#rgb-}" ;;
     esac
 }
+
 # zsh https://zsh.sourceforge.io/Doc/Release/Prompt-Expansion.html#Visual-effects
 # TODO: here
-if [ -z "${NO_COLOR}" ]; then
-
 if [ -n "$ZSH_VERSION" ]; then
 autoload -U colors && colors
 
@@ -85,6 +150,19 @@ ___x_cmd_theme_style(){
     done
 }
 
+_______x_cmd_theme_set_hightlight_color() {
+    local x_cmd_theme_ls_color
+    # add seleted hightlight
+    x_cmd_theme_ls_color="ma=7;$color_code:$x_cmd_theme_ls_color:"
+    # add LS_COLORS hightlight
+    x_cmd_theme_ls_color="di=1;$color_code:$x_cmd_theme_ls_color:$LS_COLORS:"
+    # add advise complate hightlight
+    x_cmd_theme_ls_color="=(#b) #([0-9]#*)(-- *)*=0=$color_code=1;31:$x_cmd_theme_ls_color:"
+
+    # set zstyle
+    zstyle ':completion:*:default' list-colors "${(s.:.)x_cmd_theme_ls_color}"
+}
+
 else
 
 ___x_cmd_theme_style(){
@@ -111,85 +189,26 @@ ___x_cmd_theme_style(){
     done
 }
 
-fi
+# TODO: bash hightlight
+_______x_cmd_theme_set_hightlight_color() {
+    :
+}
 
 fi
-# EndSection
 
-# Section: ___x_cmd_theme_style
-###
-# @description: set up color
-###
-___X_CMD_THEME_NEWLINE="
-"
-
-if [ -n "$ZSH_VERSION" ]; then
-
-___X_CMD_THEME_USER='%n'
-
-# Path
-___X_CMD_THEME_PATH='%1d'
-___X_CMD_THEME_FULL_PATH='%~'
-
-# Date
-___X_CMD_THEME_DATE='%D';
-___X_CMD_THEME_TIME_H_M_S='%*';
-___X_CMD_THEME_TIME_H12_M_S='%D{%L:%M:%S}';
-___X_CMD_THEME_TIME_H_M='%T';
-___X_CMD_THEME_TIME_H12_M='%@';
-
-# Host
-___X_CMD_THEME_HOST='%m'
-___X_CMD_THEME_FULL_HOST='%M'
-
-else
-
-___X_CMD_THEME_USER='\u'
-
-# Path
-___X_CMD_THEME_PATH='\W';
-___X_CMD_THEME_FULL_PATH='\w';
-
-# Date
-___X_CMD_THEME_DATE='\d';
-___X_CMD_THEME_TIME_H_M_S='\t';
-___X_CMD_THEME_TIME_H12_M_S='\T';
-___X_CMD_THEME_TIME_H_M='\A';
-___X_CMD_THEME_TIME_H12_M='\@';
-
-# Host
-___X_CMD_THEME_HOST='\h';
-___X_CMD_THEME_FULL_HOST='\H';
-
-# Color
-___X_CMD_COLOR_PRE='\['
-___X_CMD_COLOR_SUF='\]'
-
-fi
 # EndSection
 
 # Section: ___x_cmd_theme_set_theme_color
 ___x_cmd_theme_set_theme_color() {
     : "${1:?Please provide correct primary color}"
-    if [ -z "${NO_COLOR}" ] || [ -n "$ZSH_VERSION" ]; then
-        local color_code
-        color_code="$(______x_cmd_theme_colorcode "$1")"
-        [ -z "$color_code" ] && printf "Error: $1" && return 1
-        if [ "${1#rgb}" != "$1" ];then
-            color_code="38;5;$color_code"
-        else
-            color_code="3$color_code"
-        fi
-        local x_cmd_theme_ls_color
-        # add seleted hightlight
-        x_cmd_theme_ls_color="ma=7;$color_code:$x_cmd_theme_ls_color:"
-        # add LS_COLORS hightlight
-        x_cmd_theme_ls_color="di=1;$color_code:$x_cmd_theme_ls_color:$LS_COLORS:"
-        # add advise complate hightlight
-        x_cmd_theme_ls_color="=(#b) #([0-9]#*)(-- *)*=0=$color_code=1;31:$x_cmd_theme_ls_color:"
-
-        # set zstyle
-        zstyle ':completion:*:default' list-colors "${(s.:.)x_cmd_theme_ls_color}"
+    local color_code
+    color_code="$(______x_cmd_theme_colorcode "$1")"
+    [ -z "$color_code" ] && printf "Error: $1" && return 1
+    if [ "${1#rgb}" != "$1" ];then
+        color_code="38;5;$color_code"
+    else
+        color_code="3$color_code"
     fi
+    _______x_cmd_theme_set_hightlight_color
 }
 # EndSection

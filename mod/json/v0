@@ -416,9 +416,14 @@ json_array(){
             [*)                s="$s,$1";;
             \{*)              s="$s,$1";;
             # =\"*)             s="$2,${1:1}"   ;;
-            *)  if [[ "$1" =~ ^[+-]?[0-9]+(.[0-9]+)*([eE][0-9]+(.[0-9]+))*$ ]];
-                then s="$s,$1" ;
-                else s="$s,\"${1//\"/\\\"}\"" ;
+            *)
+                if [ -z "${BASH_VERSION}${ZSH_VERSION}${KSH_VERSION}" ]; then
+                    if [[ "$1" =~ ^[+-]?[0-9]+(.[0-9]+)*([eE][0-9]+(.[0-9]+))*$ ]];
+                    then s="$s,$1" ;
+                    else s="$s,\"${1//\"/\\\"}\"" ;
+                    fi
+                else
+                    s="$(printf "%s" "$z" | awk -v s="$s" '{if($0 ~ /^[+-]?[0-9]+(.[0-9]+)*([eE][0-9]+(.[0-9]+))*$/){ s= s "," $0 ; }else{ gsub("\"","\\\"",$0);  s=s "," $0; }}END{print s}')"
                 fi
                 ;;
         esac
@@ -500,10 +505,18 @@ json_dict(){
             true|false|null|\{*\}|\[*\]|\"*)
                 printf '  %s: %s' "$(json_escape "$key")" "$value" ;;
             *)
-                if [[ "$value" =~ ^[+-]?[0-9]+(.[0-9]+)*([eE][0-9]+(.[0-9]+))*$ ]]; then
-                    printf '  %s: %s' "$(json_escape "$key")" "$value"
+                if [ -z "${BASH_VERSION}${ZSH_VERSION}${KSH_VERSION}" ]; then
+                    if [[ "$value" =~ ^[+-]?[0-9]+(.[0-9]+)*([eE][0-9]+(.[0-9]+))*$ ]]; then
+                            printf '  %s: %s' "$(json_escape "$key")" "$value"
+                    else
+                        printf '  %s: %s' "$key" "$(json_escape "$value")"
+                    fi
                 else
-                    printf '  %s: %s' "$key" "$(json_escape "$value")"
+                    if [ "$(printf "%s" "$value" | awk '{if ($0 ~ /^[+-]?[0-9]+(.[0-9]+)*([eE][0-9]+(.[0-9]+))*$/){print "1";}else{print "0";} }' )" = "1" ]; then
+                        printf '  %s: %s' "$(json_escape "$key")" "$value"
+                    else
+                        printf '  %s: %s' "$key" "$(json_escape "$value")"
+                    fi
                 fi
             esac
             continue
@@ -536,10 +549,18 @@ json_dict_compact(){
             true|false|null|\{*\}|\[*\]|\"*)
                 printf '%s:%s' "$(json_escape "$key")" "$value" ;;
             *)
-                if [[ "$value" =~ ^[+-]?[0-9]+(.[0-9]+)*([eE][0-9]+(.[0-9]+))*$ ]]; then
-                    printf '%s:%s' "$(json_escape "$key")" "$value"
+                if [ -z "${BASH_VERSION}${ZSH_VERSION}${KSH_VERSION}" ]; then
+                    if [[ "$value" =~ ^[+-]?[0-9]+(.[0-9]+)*([eE][0-9]+(.[0-9]+))*$ ]]; then
+                            printf '  %s: %s' "$(json_escape "$key")" "$value"
+                    else
+                        printf '  %s: %s' "$key" "$(json_escape "$value")"
+                    fi
                 else
-                    printf '%s:%s' "$key" "$(json_escape "$value")"
+                    if [ "$(printf "%s" "$value" | awk '{if ($0 ~ /^[+-]?[0-9]+(.[0-9]+)*([eE][0-9]+(.[0-9]+))*$/){print "1";}else{print "0";} }' )" = "1" ]; then
+                        printf '  %s: %s' "$(json_escape "$key")" "$value"
+                    else
+                        printf '  %s: %s' "$key" "$(json_escape "$value")"
+                    fi
                 fi
             esac
             continue
@@ -578,66 +599,66 @@ json_dict_compact(){
 # out_color_false = "\033[7;31m"
 
 # TODO:array
-json_awk_color1(){
-    local IFS=$' '
-    A=(
-    -v out_color_key="\033[0;35m"
-    -v out_color_string="\033[0;34m"
-    -v out_color_number="\033[0;32m"
-    -v out_color_null="\033[0;33m"
-    -v out_color_true="\033[7;32m"
-    -v out_color_false="\033[7;31m"
-    )
-    echo "${A[*]}"
-}
+# json_awk_color1(){
+#     local IFS=$' '
+#     A=(
+#     -v out_color_key="\033[0;35m"
+#     -v out_color_string="\033[0;34m"
+#     -v out_color_number="\033[0;32m"
+#     -v out_color_null="\033[0;33m"
+#     -v out_color_true="\033[7;32m"
+#     -v out_color_false="\033[7;31m"
+#     )
+#     echo "${A[*]}"
+# }
 
 # TODO: Using JSON
 # TODO: array
-json_table(){
-    local n="${1:?Provide colume number}"
-    shift
-    local arr=() final=() idx=0 line IFS
+# json_table(){
+#     local n="${1:?Provide colume number}"
+#     shift
+#     local arr=() final=() idx=0 line IFS
 
-    if [ $# -gt 0 ]; then
-        for line in "$@"; do
-            (( idx ++ ))
-            arr+=("$line")
-            if [ "$idx" -eq "$n" ]; then
-                final+=("$(json_array "${arr[@]}")")
-                arr=()
-                idx=0
-            fi
+#     if [ $# -gt 0 ]; then
+#         for line in "$@"; do
+#             (( idx ++ ))
+#             arr+=("$line")
+#             if [ "$idx" -eq "$n" ]; then
+#                 final+=("$(json_array "${arr[@]}")")
+#                 arr=()
+#                 idx=0
+#             fi
 
-        done
-    else
-        while read -r line; do
-            (( idx ++ ))
-            arr+=("$line")
-            if [ "$idx" -eq "$n" ]; then
-                final+=("$(json_array "${arr[@]}")")
-                arr=()
-                idx=0
-            fi
-        done
-    fi
-    json_array "${final[@]}"
-}
+#         done
+#     else
+#         while read -r line; do
+#             (( idx ++ ))
+#             arr+=("$line")
+#             if [ "$idx" -eq "$n" ]; then
+#                 final+=("$(json_array "${arr[@]}")")
+#                 arr=()
+#                 idx=0
+#             fi
+#         done
+#     fi
+#     json_array "${final[@]}"
+# }
 
-json_attrlist(){
-    local arr=() final=() idx=0 line IFS var
-    eval var="\$${idx}"
-    while read -r line; do
-        (( idx ++ ))
-        arr+=("$var=$line")
-        if [ "$idx" -eq "$#" ]; then
-            final+=("$(json_dict "${arr[@]}")")
-            arr=()
-            idx=0
-        fi
-    done
+# json_attrlist(){
+#     local arr=() final=() idx=0 line IFS var
+#     eval var="\$${idx}"
+#     while read -r line; do
+#         (( idx ++ ))
+#         arr+=("$var=$line")
+#         if [ "$idx" -eq "$#" ]; then
+#             final+=("$(json_dict "${arr[@]}")")
+#             arr=()
+#             idx=0
+#         fi
+#     done
 
-    json_array "${final[@]}"
-}
+#     json_array "${final[@]}"
+# }
 
 
 # Move to json library
@@ -662,7 +683,7 @@ json_from_kv(){
 
         if echo "$PARSE_KEY_STR" | grep -q "$k"; then
             # TODO: using float
-            if [[ "$v" =~ ^[1-9]+([0-9])*$ ]] || [ "$v" = true ] || [ "$v" = false ]; then
+            if [ "$(printf "%s" "$v" | awk '{if ($0 ~ /^[1-9]+([0-9])*$/){print "1";}else{print "0";} }' )" = "1" ] || [ "$v" = true ] || [ "$v" = false ]; then
                 printf '  "%s": %s' "$k" "$v"
                 continue
             fi

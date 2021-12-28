@@ -1,6 +1,7 @@
 {
     "files.defaultLanguage": "shellscript",
     "files.associations": {
+        "image/Dockerfile": "Dockerfile",
         "*.json": "json",
         "*.md": "markdown",
         "*": "shellscript",

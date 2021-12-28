@@ -43,6 +43,11 @@ elif    [ -n "$BASH_VERSION" ]; then    ___X_CMD_CUR_SHELL="bash"; shopt -s expa
 elif    [ -n "$KSH_VERSION" ];  then    ___X_CMD_CUR_SHELL="ksh"
 fi
 
+# To prevent dash inline environment problem
+___x_cmd_source(){
+    . "$@"
+}
+
 TMPDIR=${TMPDIR:-$(dirname "$(mktemp -u)")/}    # It is posix standard. BUT NOT set in some cases.
 
 if [ -z "$___X_CMD_ROOT" ]; then
@@ -169,7 +174,7 @@ A
                     rm "$CACHE"
                     ___XRC_UDPATE=1
                     ___X_CMD_XRC_MODULE_IMPORTED=
-                    . "$___X_CMD_ROOT"/xrc/latest
+                    ___x_cmd_source "$___X_CMD_ROOT"/xrc/latest
                 fi
             )
             ;;
@@ -288,7 +293,7 @@ A
             fi
         fi
 
-        ___X_CMD_ENABLE_AUTO_RUN="" . "$___X_CMD_WHICH_ONE_RESULT"
+        ___X_CMD_ENABLE_AUTO_RUN="" ___x_cmd_source "$___X_CMD_WHICH_ONE_RESULT"
         ___X_CMD_XRC_MODULE_IMPORTED="$___X_CMD_XRC_MODULE_IMPORTED
 $___X_CMD_WHICH_ONE_RESULT"
 

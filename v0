@@ -45,7 +45,7 @@ A
 
 ___xrc_run(){
     local ___xrc_run_filepath="${1:?filepath}";        shift
-    ___X_CMD_ENABLE_AUTO_RUN=1 . "$___xrc_run_filepath" "$@"
+    ___X_CMD_ENABLE_AUTO_RUN=1 ___x_cmd_source "$___xrc_run_filepath" "$@"
 
     # local ___xrc_module_name="${___xrc_run_filepath##*/}"
 
@@ -676,10 +676,10 @@ ___x_cmd_shell_exec(){
     local shell="${1:?Provide shell}"
     shift
     if [ -x "/bin/$shell" ]; then
-        # "/bin/$shell" $X_CMD_SRC_PATH/boot && . "$@"
+        # "/bin/$shell" $X_CMD_SRC_PATH/boot && ___x_cmd_source "$@"
         "/bin/$shell" "$@"
     elif [ -x "/usr/bin/$shell" ]; then
-        # "/usr/bin/$shell" $X_CMD_SRC_PATH/boot && . "$@"
+        # "/usr/bin/$shell" $X_CMD_SRC_PATH/boot && ___x_cmd_source "$@"
         "/usr/bin/$shell" "$@"
     else
         command "$shell" "$@"
@@ -738,24 +738,26 @@ ___x_cmd_main_otherwise(){
 }
 
 ___x_cmd_ws(){
+    local X_DISABLE_WORKSPACE_EXECUTION_CONFIRMATION=1
+
     local TGT
 
     if [ -z "$1" ]; then
-        if TGT="$(___x_cmd_search_path . ".x-cmd/latest")"; then
-            ___x_cmd_exe_workspace "$TGT/.x-cmd/latest"
+        if TGT="$(___x_cmd_search_path ___x_cmd_source ".x-cmd/ws")"; then
+            ___x_cmd_exe_workspace "$TGT/.x-cmd/ws"
             return
         else
-            printf "%s\n" "Cannot find .x-cmd/latest" >&2
+            printf "%s\n" "Cannot find .x-cmd/ws" >&2
             return 1
         fi
     fi
 
     local RESOURCE_NAME="$1"; shift
-    if TGT="$(___x_cmd_search_path . ".x-cmd/$RESOURCE_NAME")"; then
-        ___x_cmd_exe_workspace "$TGT/.x-cmd/$RESOURCE_NAME" "$@"
+    if TGT="$(___x_cmd_search_path ___x_cmd_source ".x-cmd/ws")"; then
+        ___x_cmd_exe_workspace "$TGT/.x-cmd/ws" "$RESOURCE_NAME" "$@"
         return
-    elif TGT="$(___x_cmd_search_path . ".x-cmd/latest")"; then
-        ___x_cmd_exe_workspace "$TGT/.x-cmd/latest" "$RESOURCE_NAME" "$@"
+    elif TGT="$(___x_cmd_search_path ___x_cmd_source ".x-cmd/$RESOURCE_NAME")"; then
+        ___x_cmd_exe_workspace "$TGT/.x-cmd/$RESOURCE_NAME" "$@"
         return
     else
         printf "Workspace Resource Not found: %s\n" "$RESOURCE_NAME" >&2
@@ -900,9 +902,8 @@ ___x_cmd_main(){
                                                 done
                                                 ;;
         _x_cmd_advise_json)                     ___x_cmd_x_cmd_advise_json "$@" ;;
-        ws)                                     X_DISABLE_WORKSPACE_EXECUTION_CONFIRMATION=1 ___x_cmd_ws "$@" ;;
         wsroot)                                 ___x_cmd_workspace_root "$@" ;;
-        cowsay)                                 xrc cowsay/v0 && cowsay "$@" ;;
+        ws)                                     ___x_cmd_ws "$@" ;;
         *)                                      ___x_cmd_main_otherwise "$subcmd" "$@" ;;
 
     esac

@@ -51,7 +51,7 @@ ___x_cmd_dev_pkg_mod(){
     local mod
     git prune
 
-    dev_mod_ls "$@" | \
+    ___x_cmd_dev_pkg_lsmod "$@" | \
     while read -r mod; do
         if [ -e "mod/$mod" ]; then
             ___x_cmd_dev_pkg_pull "$mod"
@@ -61,16 +61,16 @@ ___x_cmd_dev_pkg_mod(){
     done
 }
 
-___x_cmd_dev_pkg_lsfile(){
+___x_cmd_dev_pkg_lsfile()(
     cd "$(x wsroot)/mod" || return
 
-    dev_mod_ls "$@" | (
+    ___x_cmd_dev_pkg_lsmod "$@" | (
         cd "$(x wsroot)/mod" && \
         while read -r line; do
-            x dev mod lsfile "$line"
+            ( cd "$line" && ___x_cmd_dev_mod_lsfile | x arg1 printf "%s/%s\n" "$line" )
         done
     )
-}
+)
 
 ___x_cmd_dev_pkg_tgz()(
     case "${1:-all}" in
@@ -83,7 +83,7 @@ ___x_cmd_dev_pkg_tgz()(
 
     cd "$WSROOT/mod" &&
     mkdir -p "$WSROOT/dist" &&
-        eval "tar czvf $scope.tgz $(x lsfile "$scope" | tr '\n' ' ')" &&
+        eval "tar czvf $scope.tgz $(___x_cmd_dev_pkg_lsfile "$scope" | tr '\n' ' ')" &&
         mv $scope.tgz "$WSROOT/dist/$scope.tgz" &&
         ls -alh "$WSROOT/dist/$scope.tgz"
 )
@@ -99,10 +99,31 @@ ___x_cmd_dev_pkg_tar()(
 
     cd "$WSROOT/mod" &&
     mkdir -p "$WSROOT/dist" &&
-        eval "tar cvf $scope.tar $(x lsfile "$scope" | tr '\n' ' ')" &&
+        eval "tar cvf $scope.tar $(___x_cmd_dev_pkg_lsfile "$scope" | tr '\n' ' ')" &&
         mv $scope.tar "$WSROOT/dist/$scope.tar" &&
         ls -alh "$WSROOT/dist/$scope.tar"
 )
+
+___x_cmd_dev_pkg_7z()(
+    case "${1:-all}" in
+        core)       scope=core ;;
+        all)        scope=all ;;
+        *)          return 1 ;;
+    esac
+
+    WSROOT="$(x wsroot)"
+
+    cd "$WSROOT/mod" &&
+    mkdir -p "$WSROOT/dist" &&
+        eval "7z a $WSROOT/dist/all.7z $(___x_cmd_dev_pkg_lsfile "$scope" | tr '\n' ' ')" &&
+        mv $scope.7z "$WSROOT/dist/$scope.7z" &&
+        ls -alh "$WSROOT/dist/$scope.7z"
+)
+
+___x_cmd_dev_pkg_wc(){
+    cd "$(x wsroot)/mod" &&
+        ___x_cmd_dev_pkg_lsfile "$@" | xargs wc | sort -n -r | less
+}
 
 ___x_cmd_dev_pkg(){
 
@@ -113,6 +134,7 @@ subcommand:
     tgz         "compress modules of core/all/<special-release> into <name>.tgz"
     tar         "add modules"
     lsfile      ""
+    wc          "count"
 A
     param:run
 

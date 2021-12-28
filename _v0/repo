@@ -22,7 +22,7 @@ subcommands:
         return 0
     fi
     
-    "gt_repo_${PARAM_SUBCMD}" "$@"
+    "gt_repo_${PARAM_SUBCMD}" "$@" 
 }
 
 _gt_repo()(
@@ -58,6 +58,7 @@ option:
     --paths                 "repo path"                     <>=""
     #n                      "repo names"
 '
+
     param:run
 
     local private
@@ -86,10 +87,7 @@ option:
             $data
 A
             if [ -n "$repo_id" ];then
-                ui tf "true" "Creating repo $name success
-- repo_id:$repo_id
-- url:$url
-- repo_owner:$repo_owner" 
+                ui tf "true" "Creating repo $name success" "- repo_id:$repo_id" "- url:$url" "- repo_owner:$repo_owner" 
             else
                 gt_log error "Creating repo failure: $name. Code is $code. " 
             fi

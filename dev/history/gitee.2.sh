@@ -39,7 +39,7 @@ gt.token.dump(){
 
     local name=${2:-"default"}
     
-    local TOKEN_PATH="$HOME/.x-cmd.com/x-bash/gitee/TOKEN/$name"
+    local TOKEN_PATH="$HOME/.x-cmd/x-bash/gitee/TOKEN/$name"
     mkdir -p "$(dirname $TOKEN_PATH)"
 
     echo "dumping token to $name. Filepath is: $TOKEN_PATH" >&2

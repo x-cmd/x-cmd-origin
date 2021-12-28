@@ -1257,6 +1257,22 @@ NR==4 {
         exit_now(1)
     }
 
+    if( arg_arr[1] == "_has_subcmd" ){
+        for(i=1; i<=subcmd_arr[ LEN ]; ++i){
+            if( subcmd_arr[i] == arg_arr[2] ){
+                print "return 0"
+                exit_now(0)
+            }
+        }
+        print "return 1"
+        exit_now(1)
+    }
+
+    if( arg_arr[1] == "_dryrun" ){
+
+        exit_now(0)
+    }
+
     if ( arg_arr[1] == "_x_cmd_advise_json" ) {
         generate_advise_json()
         # debug(CODE)

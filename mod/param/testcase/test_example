@@ -1,0 +1,34 @@
+#! /bin/sh
+
+xrc param/v0
+
+aaa(){
+    param:dsl <<A
+option:
+    -y|--fsdfsd|-o          "Test regex arg1"  <regex_arg1>=888  =~  "[0-9]+"
+    -z                      "Test regex arg2"
+    #1                      "Test rest argument #1 when exist option and flag"
+    #2                      "Test rest argument #1 when exist option and flag"
+subcommand:
+    bbb                     "this is a bbb"
+A
+    param:run
+
+    echo "${y} ${z} $1 $2"
+
+    # echo "aaa $1 $2 $3 $4"
+}
+
+aaa _has_subcmd ccc
+echo $?
+
+aaa _has_subcmd bbb
+echo $?
+
+
+# # option with argumrnt
+# aaa -r xxxxx -y 77777
+# # option with no argumrnt -> flag
+# aaa -y -c -d
+# # subcommand
+# aaa bbb ccc

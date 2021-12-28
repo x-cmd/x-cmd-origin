@@ -1,5 +1,0 @@
-# xsh
-
-mkdir -p ~/.x-cmd/dev
-cp -rf latest _v0 ~/.x-cmd/dev
-

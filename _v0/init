@@ -12,8 +12,8 @@ A
     param:run
 
     if [ -z "$PARAM_SUBCMD" ]; then
-        ___x_cmd_dev_init help
-        return 0
+        ___x_cmd_dev_init_xproj "$@"
+        return
     fi
 
     "___x_cmd_dev_init_$PARAM_SUBCMD" ${1:+"$@"}
@@ -40,4 +40,16 @@ ___x_cmd_dev_init_vscode(){
 
 ___x_cmd_dev_init_license(){
     xrc cat dev/_v0/LICENSE
+}
+
+___x_cmd_dev_init_xproj(){
+
+    local folder="${1:-$(pwd)}"
+    local repo="${2:-$(basename "$folder")}"
+
+    echo "Initialize x project. [folder=$folder]   [reponame=$repo]"
+
+    ___x_cmd_dev_init_license
+    ___x_cmd_dev_init_vscode
+    # ___x_cmd_dev_init_gitignore
 }

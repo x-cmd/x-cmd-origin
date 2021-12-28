@@ -743,7 +743,7 @@ ___x_cmd_ws(){
     local TGT
 
     if [ -z "$1" ]; then
-        if TGT="$(___x_cmd_search_path ___x_cmd_source ".x-cmd/ws")"; then
+        if TGT="$(___x_cmd_search_path . ".x-cmd/ws")"; then
             ___x_cmd_exe_workspace "$TGT/.x-cmd/ws"
             return
         else
@@ -753,10 +753,10 @@ ___x_cmd_ws(){
     fi
 
     local RESOURCE_NAME="$1"; shift
-    if TGT="$(___x_cmd_search_path ___x_cmd_source ".x-cmd/ws")"; then
+    if TGT="$(___x_cmd_search_path . ".x-cmd/ws")"; then
         ___x_cmd_exe_workspace "$TGT/.x-cmd/ws" "$RESOURCE_NAME" "$@"
         return
-    elif TGT="$(___x_cmd_search_path ___x_cmd_source ".x-cmd/$RESOURCE_NAME")"; then
+    elif TGT="$(___x_cmd_search_path . ".x-cmd/$RESOURCE_NAME")"; then
         ___x_cmd_exe_workspace "$TGT/.x-cmd/$RESOURCE_NAME" "$@"
         return
     else

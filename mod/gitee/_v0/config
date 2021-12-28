@@ -21,14 +21,14 @@ subcommands:
 gt_config_which() {
     param:void
     local O="${O:-GITEE_DEFAULT}"
-    echo "$HOME/.x-cmd.com/config/x-bash/app.gitee.config/$O"
+    echo "$HOME/.x-cmd/.config/x-bash/app.gitee.config/$O"
 }
 
 # TODO:config 
 gt_config_save() {
     param:void
     local O="${O:-GITEE_DEFAULT}"
-    local ___gitee_path="${1:-$HOME/.x-cmd.com/config/x-bash/app.gitee.config/$O}"
+    local ___gitee_path="${1:-$HOME/.x-cmd/.config/x-bash/app.gitee.config/$O}"
     [ ! -e "$___gitee_path" ] && mkdir -p "$___gitee_path##*/"
     param_default dump "gitee_$O">"$___gitee_path" && ui tf "true" "Config $O saved in path: $___gitee_path" && return
     gt_log error "gt config save Fail"
@@ -38,7 +38,7 @@ gt_config_save() {
 gt_config_load() {
     param:void
     local O="${O:-GITEE_DEFAULT}"
-    local ___gitee_path="${1:-$HOME/.x-cmd.com/config/x-bash/app.gitee.config/$O}"
+    local ___gitee_path="${1:-$HOME/.x-cmd/.config/x-bash/app.gitee.config/$O}"
     [ ! -f "$___gitee_path" ] && gt_log error "ERROR:There is no history config" && return
     param_default load "gitee_$O" "$___gitee_path"
     param_default dump "gitee_$O"

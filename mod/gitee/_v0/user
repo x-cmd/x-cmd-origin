@@ -52,10 +52,7 @@ options:
     ___json_awk_get name=.login html_url=.html_url types=.type <<A
     $data
 A
-    [ -n "$name" ] && ui tf "true" "success
-- name:$name
-- url:$html_url
-- type:$types"
+    [ -n "$name" ] && ui tf "true" "success" "- name:$name" "- url:$html_url" "- type:$types"
 }
 
 # https://gitee.com/api/v5/swagger#/getV5UserRepos
@@ -75,15 +72,21 @@ options:
     --direction     "direction"         <>:direction="desc"
 '
     param:run
-    ui table func ___gt_table "\"\$(O=$O ___gt_get_multi \"/v5/user/repos\" visibility affiliation sort direction)\"" \
-        . id full_name ownerName=owner.name updatedTime="updated_at"
+    if [ -t 1 ]; then
+        ui table func ___gt_table "\"\$(O=$O ___gt_get_multi \"/v5/user/repos\" visibility affiliation sort direction)\"" \
+            . id full_name ownerName=owner.name updatedTime="updated_at"
+    else
+        ___gt_get_multi "/v5/user/repos" visibility affiliation sort direction
+    fi
 }
 
 # https://gitee.com/api/v5/swagger#/getV5Emails
 gt_user_email(){
     param:void
-    ui table func ___gt_table "\"\$(O=$O ___gt_get_multi \"/v5/emails\")\"" \
-       . email state
+    [ -t 1 ] && ui table func ___gt_table "\"\$(O=$O ___gt_get_multi \"/v5/emails\")\"" \
+        . email state && return
+
+    ___gt_get_multi "/v5/emails"
 }
 
 gt_user_issue(){

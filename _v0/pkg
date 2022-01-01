@@ -125,6 +125,13 @@ ___x_cmd_dev_pkg_wc(){
         ___x_cmd_dev_pkg_lsfile "$@" | xargs wc | sort -n -r | less
 }
 
+___x_cmd_dev_pkg_pub(){
+
+   ___x_cmd_dev_pkg_mod "$@" && ___x_cmd_dev_pkg_tgz "$@" && ___x_cmd_dev_mod_push
+    x push
+}
+
+
 ___x_cmd_dev_pkg(){
 
     param:dsl <<A
@@ -135,6 +142,13 @@ subcommand:
     tar         "add modules"
     lsfile      ""
     wc          "count"
+    pub         "publish the package"
+
+    init        "init"
+
+    pull        "pull"
+    push        "push"
+    name        "get workspace name from git config"
 A
     param:run
 
@@ -142,6 +156,16 @@ A
         ___x_cmd_dev_pkg help
         return 1
     fi
+
+    case "$PARAM_SUBCMD" in
+        pull|push|name)
+            "___x_cmd_dev_ws_$PARAM_SUBCMD" "$@"
+            return
+            ;;
+        init)
+            "___x_cmd_dev_init" "$@"
+            return
+    esac
 
     "___x_cmd_dev_pkg_${PARAM_SUBCMD}" "$@"
 

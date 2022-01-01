@@ -15,4 +15,5 @@ cross_env_test() {
 }
 
 cross_env_test
+dict_log info "Testing : local"
 . ./testcase/v0_test

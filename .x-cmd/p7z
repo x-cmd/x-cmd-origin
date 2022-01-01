@@ -1,6 +1,0 @@
-# all_7z(){
-#     cd "$WSROOT/mod" && \
-#         mkdir -p dist \
-#         eval "7z a $WSROOT/dist/all.tar.7z $(all_ls | tr '\n' ' ')" \
-#         ls -alh dist/all.tar.7z
-# }

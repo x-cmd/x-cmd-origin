@@ -1,4 +1,0 @@
-#! /usr/bin/env xsh
-
-x mod all && x tgz && git add . && git commit -m ...
-x push

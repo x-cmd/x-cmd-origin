@@ -1,5 +1,0 @@
-# xsh
-
-x dev pkg "$@"
-
-

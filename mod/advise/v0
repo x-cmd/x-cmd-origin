@@ -451,7 +451,7 @@ ___advise_man_update(){
         url="https://raw.githubusercontent.com/x-cmd/advise/main/dist/all.tgz"
     fi
 
-    if ___x_cmd_curl "$url"; then
+    if ___X_CMD_CURL_UPDATE=1 ___x_cmd_curl "$url"; then
         [ -d "$srcfolder" ] && rm -rf "$srcfolder"
         mkdir -p "$srcfolder"
         tar xvf "$CACHE" -C "$srcfolder"

@@ -20,7 +20,8 @@ ui(){
             command -v ___ui_table >/dev/null || xrc ui/_v0/table;        
             ___ui_table  "$@"
             ;;
-        select)               
+        #TODO: need to review
+        select|choice|sel)               
             shift
             command -v ___x_cmd_ui_select >/dev/null || xrc ui/_v0/select
             ___x_cmd_ui_select "$@"

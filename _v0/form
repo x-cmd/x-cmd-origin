@@ -3,6 +3,7 @@
 # Section: form app
 
 xrc assert/v0
+xrc ui/_v0/region
 
 
 # dict
@@ -49,7 +50,7 @@ ___x_cmd_ui_prompt_form_draw(){
     local answer
 
     {
-        case "$q_focus-$(dict @x_ui_prompt_form get "$q_current" 4)" in
+        case "$q_focus-$(dict @x_ui_prompt_form get "$q_current" "4")" in
             0-=)
                 printf "%s\n\n" "Press <ENTER> to JUMP into selection. <Ctrl-D> to Exit. Arrow <UP> and <DOWN> to navigate. "
             ;;
@@ -67,11 +68,11 @@ ___x_cmd_ui_prompt_form_draw(){
             ;;
         esac
 
+        local question_type
         for i in $(seq "$q_count"); do
-            local question_type
-            question_type="$(dict @x_ui_prompt_form get "$i" 4)"
-            question="$(dict @x_ui_prompt_form get "$i" 1)"
-            answer="$(dict @x_ui_prompt_form get "$i" answer)"
+            question_type="$(dict @x_ui_prompt_form get "$i" "4")"
+            question="$(dict @x_ui_prompt_form get "$i" "1")"
+            answer="$(dict @x_ui_prompt_form get "$i" "answer")"
 
         
             # if [ -z "$answer" ] && [ "$question_type" != = ]; then
@@ -104,7 +105,7 @@ ___x_cmd_ui_prompt_form_draw(){
                 if [ "$question_type" = = ]; then
                     printf "\033[36;1m%-16s %s\033[0m\n" "$question:" "$(printf "%s\033[7m%s\033[0m" "$answer" " ")"
 
-                    for j in $(seq 5 "$(dict @x_ui_prompt_form get "$i" argc)"); do
+                    for j in $(seq 5 "$(dict @x_ui_prompt_form get "$i" "argc")"); do
                         if [ "$((j-4))" = "$answer" ]; then
                             printf "  \033[32;7;4m%s. %s\033[0m\n" $((j-4)) "$(dict @x_ui_prompt_form get "$i" "$j")"
                         else
@@ -128,16 +129,17 @@ ___x_cmd_ui_prompt_form_main(){
     local arg
 
     xrc dict
+
     for arg in "$@"; do
         case "$arg" in
             --) 
-                dict @x_ui_prompt_form put $q_count argc $arg_count
+                dict @x_ui_prompt_form put "$q_count" "argc" "$arg_count"
                 q_count=$((q_count + 1))
                 arg_count=0    
                 ;;
             *)
                 arg_count=$((arg_count + 1))
-                dict @x_ui_prompt_form put $q_count $arg_count "$arg"
+                dict @x_ui_prompt_form put "$q_count" "$arg_count" "$arg"
         esac
     done
 
@@ -145,18 +147,18 @@ ___x_cmd_ui_prompt_form_main(){
     local j
     for i in $(seq $q_count); do
         local default
-        default="$( dict @x_ui_prompt_form get "$i" 3 )"
-        if [ "$( dict @x_ui_prompt_form get "$i" 4 )" = = ]; then
+        default="$( dict @x_ui_prompt_form get "$i" "3" )"
+        if [ "$( dict @x_ui_prompt_form get "$i" "4" )" = = ]; then
             local answer=1
-            for j in $(seq 5 "$(dict @x_ui_prompt_form get "$i" argc)"); do
+            for j in $(seq 5 "$(dict @x_ui_prompt_form get "$i" "argc")"); do
                 if [ "$default" = "$( dict @x_ui_prompt_form get "$i" "$j" )" ]; then
                     answer=$(( j - 4 ))
                     break
                 fi
             done
-            dict @x_ui_prompt_form put "$i" answer "$answer"
+            dict @x_ui_prompt_form put "$i" "answer" "$answer"
         else
-            dict @x_ui_prompt_form put "$i" answer "$default"
+            dict @x_ui_prompt_form put "$i" "answer" "$default"
         fi
     done
 
@@ -181,16 +183,16 @@ ___x_cmd_ui_prompt_form_main(){
                             q_current=$(___ui_prompt_ui_inc "$q_current" $q_count)
                         fi
                     else
-                        case "$(dict @x_ui_prompt_form get "$q_current" 4)" in
+                        case "$(dict @x_ui_prompt_form get "$q_current" "4")" in
                             =)   
                                 { 
                                     local tmp_answer
-                                    tmp_answer=$(dict @x_ui_prompt_form get "$q_current" answer)
+                                    tmp_answer=$(dict @x_ui_prompt_form get "$q_current" "answer")
                                     if [ -z "$tmp_answer" ]; then
                                         # default answer
-                                        tmp_answer="$(dict @x_ui_prompt_form get "$q_current" 3)"
+                                        tmp_answer="$(dict @x_ui_prompt_form get "$q_current" "3")"
                                     fi
-                                    tmp_answer_max=$(dict @x_ui_prompt_form get "$q_current" argc)
+                                    tmp_answer_max=$(dict @x_ui_prompt_form get "$q_current" "argc")
                                     tmp_answer_max=$((tmp_answer_max - 4))
                                     if [ "$___X_CMD_UI_GETCHAR_CHAR" = UP ]; then
                                         tmp_answer=$(___ui_prompt_ui_dec "${tmp_answer}" $tmp_answer_max)
@@ -211,9 +213,9 @@ ___x_cmd_ui_prompt_form_main(){
                     fi ;;
                 DELETE) 
                     local tmp_answer
-                    tmp_answer=$(dict @x_ui_prompt_form get "$q_current" answer)
+                    tmp_answer=$(dict @x_ui_prompt_form get "$q_current" "answer")
                     tmp_answer="${tmp_answer%?}"
-                    dict @x_ui_prompt_form put "$q_current" answer "$tmp_answer"
+                    dict @x_ui_prompt_form put "$q_current" "answer" "$tmp_answer"
                     ;;
                 *)
                     # TODO: using a significant OK to exit.
@@ -223,8 +225,8 @@ ___x_cmd_ui_prompt_form_main(){
 
                     if [ "$q_focus" -ne 0 ]; then
                         local tmp_answer
-                        tmp_answer=$(dict @x_ui_prompt_form get "$q_current" answer)
-                        if [ "$(dict @x_ui_prompt_form get "$q_current" 4)" = = ]; then
+                        tmp_answer=$(dict @x_ui_prompt_form get "$q_current" "answer")
+                        if [ "$(dict @x_ui_prompt_form get "$q_current" "4")" = = ]; then
                             case "$___X_CMD_UI_GETCHAR_TYPE" in
                                 ascii-digit)   
                                     tmp_answer="${tmp_answer}${___X_CMD_UI_GETCHAR_CHAR}" ;;
@@ -235,7 +237,7 @@ ___x_cmd_ui_prompt_form_main(){
                                     tmp_answer="${tmp_answer}${___X_CMD_UI_GETCHAR_CHAR}" ;;
                             esac
                         fi
-                        dict @x_ui_prompt_form put "$q_current" answer "$tmp_answer"
+                        dict @x_ui_prompt_form put "$q_current" "answer" "$tmp_answer"
                     fi
             esac
 
@@ -250,8 +252,8 @@ ___x_cmd_ui_prompt_form_main(){
 # "
             for i in $(seq "$q_count"); do
                 printf "%s%s%s%s" \
-                    "$(dict @x_ui_prompt_form get "$i" 2)" "$___X_CMD_UI_REGION_SEPERATOR" \
-                    "$(dict @x_ui_prompt_form get "$i" answer)" "$___X_CMD_UI_REGION_SEPERATOR" >&3
+                    "$(dict @x_ui_prompt_form get "$i" "2")" "$___X_CMD_UI_REGION_SEPERATOR" \
+                    "$(dict @x_ui_prompt_form get "$i" "answer")" "$___X_CMD_UI_REGION_SEPERATOR" >&3
             done
         fi
 
@@ -281,8 +283,8 @@ ___x_cmd_ui_prompt_form(){
 }
 
 # ___x_cmd_ui_prompt_form \
-#     "Access type" atype public = private public -- \
-#     "Repo Name" repo "" =~ abc1[0-9]+   -- \
-#     "User name" user "" =~ 12[0-9]+
+#     "Accesstype" atype public = private public "--" \
+#     "RepoName" repo "" "=~" "abc1[0-9]+"   "--" \
+#     "Username" user "" "=~" "12[0-9]+"
 
 # EndSection

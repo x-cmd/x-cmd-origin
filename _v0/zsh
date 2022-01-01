@@ -4,7 +4,8 @@
 # maintainer:   Li Junhao
 
 # Section: Life Cycle
-
+# DICT_KEYS_SEP=","
+# DICT_SEP="-"
 ___dict_make(){
     local O="${O:?Please provide object name}"
     unset "___X_BASH_DICT_$O"
@@ -25,7 +26,7 @@ ___dict_dump(){
 
     IFS="${DICT_SEP}"
     for key val in $(eval echo "\"\${(kv)___X_BASH_DICT_$O}\""); do
-        printf "%s${DICT_SEP}%s${DICT_SEP}" "$key" "$val"
+        printf "%s${DICT_SEP}%s${DICT_SEP}" "${key#*${DICT_KEYS_SEP}}" "$val"
         i=$((i+1))
     done
     printf "%s" "$i"
@@ -40,7 +41,7 @@ ___dict_load(){
     while :; do
         read -d "${DICT_SEP}" -r key || return 0
         read -d "${DICT_SEP}" -r val || return 0
-        eval "___X_BASH_DICT_${O}[\$key]=\"\$val\""
+        eval "___X_BASH_DICT_${O}[\$DICT_KEYS_SEP\$key]=\"\$val\""
     done
 }
 
@@ -61,7 +62,7 @@ ___dict_get(){
 
     : "${O:?Please provide object name}"
     local IFS="${DICT_KEYS_SEP}"
-    local key="$*"
+    local key="$DICT_KEYS_SEP$*"
 
     local s
     s="$(eval printf %s "\"\${___X_BASH_DICT_${O}[\$key]}\"")"
@@ -83,7 +84,7 @@ ___dict_put(){
     local IFS="${DICT_KEYS_SEP}"
     local key="$*"
     local val="${key##*${DICT_KEYS_SEP}}"
-    key="${key%${DICT_KEYS_SEP}*}"
+    key="$DICT_KEYS_SEP${key%${DICT_KEYS_SEP}*}"
     eval "___X_BASH_DICT_${O}[\$key]"="\"\$val\"" 2>/dev/null || ___dict_make "$O"; eval "___X_BASH_DICT_${O}[\$key]"="\"\$val\""
 }
 
@@ -97,7 +98,7 @@ ___dict_scope(){
     : "${O:?Please provide object name}"
     local IFS="${DICT_KEYS_SEP}"
     local s
-    s=$(printf "%s${DICT_KEYS_SEP}" "$*")
+    s=$(printf "${DICT_KEYS_SEP}%s${DICT_KEYS_SEP}" "$*")
 
     local key
     local i=0
@@ -122,7 +123,7 @@ ___dict_remove(){
     : "${O:?Please provide object name}"
     local IFS="${DICT_KEYS_SEP}"
     local s
-    s=$(printf "%s" "$*")
+    s=$(printf "${DICT_KEYS_SEP}%s" "$*")
 
     IFS="${DICT_SEP}"
 
@@ -150,7 +151,7 @@ ___dict_drop(){
     : "${O:?Please provide object name}"
     local IFS="${DICT_KEYS_SEP}"
     local s
-    s=$(printf "%s" "$*")
+    s=$(printf "${DICT_KEYS_SEP}%s" "$*")
 
     IFS="${DICT_SEP}"
 
@@ -178,7 +179,7 @@ ___dict_grep(){
 
     for key in eval "\${\!$O[@]}"; do
         if [[ "$key" =~ $s ]]; then
-            eval "echo \"___X_BASH_DICT_\$O[\$key]\""
+            eval "echo \"___X_BASH_DICT_\$O[\$DICT_KEYS_SEP\$key]\""
             break
         fi
     done
@@ -200,7 +201,7 @@ ___dict_iter(){
     local val
 
     for key in eval "\${\!$O[@]}"; do
-        val="$(eval "\${___X_BASH_DICT_\$O[\$key]}")"
+        val="$(eval "\${___X_BASH_DICT_\$O[\$DICT_KEYS_SEP\$key]}")"
         eval "$fun"
     done
 }

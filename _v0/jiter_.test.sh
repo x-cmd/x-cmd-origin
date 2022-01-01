@@ -18,12 +18,12 @@ f1(){
         }
     }
     END{
-        # print \"---\" _[S q(1) S q(\"b\") S q(6) ]
-        # print(_[ jkey(1, \"b\", 6) ])
-        # print jget(_, \"1.b.6\")
-        # print jget(_, \"1.a\")
-        # print jget(_, \".b.6\")
-        # print jget(_, \".c.a\")
+        print \"---\" _[S q(1) S q(\"b\") S q(6) ]
+        print(_[ jkey(1, \"b\", 6) ])
+        print jget(_, \"1.b.6\")
+        print jget(_, \"1.a\")
+        print jget(_, \".b.6\")
+        print jget(_, \".c.a\")
         print json_stringify_machine(_, \".b\")
     }
     "

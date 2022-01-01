@@ -1,20 +1,4 @@
 # xsh
 
-case "$1" in
-    --help|help)
-        x dev ws --help
-        x dev pkg --help
-        return 1
-        ;;
-    # _advise_json
-esac
+x dev pkg "$@"
 
-op="$1"
-
-if x dev ws _has_subcmd "$op"; then
-    x dev ws "$@"
-elif x dev pkg _has_subcmd "$op"; then
-    x dev pkg "$@"
-else
-    :
-fi

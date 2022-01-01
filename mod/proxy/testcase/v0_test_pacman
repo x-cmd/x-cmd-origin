@@ -1,0 +1,28 @@
+#! /bin/sh
+
+test_proxy_pacman(){
+    . ~/.x-cmd/xrc/latest
+    . ./testcase/v0_test_base
+    
+    proxy_log info "Testing proxy pacman replace to install curl"
+    x proxy pacman replace
+    pacman add curl
+
+    proxy_log info "Testing proxy pacman rollback to install vim"
+    x proxy pacman rollback
+    pacman add vim
+}
+
+test_cross_env() {
+    for i in Manjaro ArcoLinux Archlabs Archman EndeavourOS RebornOS Chakra Artix BlackArch; do
+        proxy_log info "Testing : $i"
+        docker run -it -v  ~/.x-cmd/:/root/.x-cmd/ -v "$(pwd)":/pd archlinux:"${i}" \
+            bash -c "cd pd && . ./testcase/v0_test_pacman && \
+            test_proxy_pacman"
+    done
+}
+
+dbash() {
+    docker run -it -v  ~/.x-cmd/:/root/.x-cmd/ -v "$(pwd)":/pd archlinux \
+        bash -c "printf \". ~/.x-cmd/xrc/latest\" >/root/.bashrc && cd pd && bash"
+}

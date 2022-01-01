@@ -25,6 +25,7 @@ subcommands:
     yum                     "setting the yum mirror for centos/redhat"
     brew                    "setting the homebrew mirror"
     apk                     "setting the apk mirror for alpine"
+    pacman                  "setting the pacman mirror"
 A
     param:run
 
@@ -45,7 +46,7 @@ A
 # Section: plugins
 
 # TODO: It is unnecessary to source the plugin file at the first time.
-for i in brew apt pip npm go apk yum cargo gem; do
+for i in brew apt pip npm go apk yum cargo gem pacman; do
     xrc "proxy/_v0/$i"
 done
 

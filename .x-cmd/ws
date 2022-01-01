@@ -1,5 +1,14 @@
 # xsh
 
+case "$1" in
+    --help|help)
+        x dev ws --help
+        x dev pkg --help
+        return 1
+        ;;
+    # _advise_json
+esac
+
 op="$1"
 
 if x dev ws _has_subcmd "$op"; then

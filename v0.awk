@@ -26,6 +26,10 @@ function exit_print(exit_code){
 }
 
 function panic_error(msg){
+    if( DRYRUN_FLAG == true ){
+        print "return 1"
+        exit_now(1)
+    }
     print FG_LIGHT_RED "error: " UI_END msg "\nFor more information try " FG_BLUE "--help" UI_END > "/dev/stderr"
     print "return 1 2>/dev/null || exit 1 2>/dev/null"
     exit_now(1)
@@ -860,6 +864,9 @@ function get_space(space_len,
 }
 
 function cut_line(_line,_space_len,_option_line,_len_line,_max_len_line,_option_after_len,_option_after_arr_len){
+    if( COLUMNS == "" ){
+        return _line
+    }
     _option_line = ""
     _option_after_arr_len = 0
     _len_line = length(_line)
@@ -916,7 +923,6 @@ function generate_option_help(         _option_help, i, j, k, option_list, flag_
             if (length(_opt_help_doc) > _max_len) _max_len = length(_opt_help_doc)
             _opt_help_doc_arr[ i ] = _opt_help_doc
         }
-
         # Generate help doc.
         _option_help = _option_help "\nFLAGS:\n"
         for (i=1; i<=flag_list[ LEN ]; ++i) {
@@ -1081,7 +1087,6 @@ function print_helpdoc(exit_code,
     if (0 != subcmd_arr[ LEN ]) {
         HELP_DOC = HELP_DOC generate_subcommand_help()
     }
-
     print "printf %s " " " quote_string(HELP_DOC)
     if (exit_code == "")    exit_code = 0
     print "return " exit_code
@@ -1210,7 +1215,6 @@ function generate_advise_json(      indent, indent_str,
 
     ADVISE_JSON = quote_string(ADVISE_JSON)
     gsub(/\002/, "\"", ADVISE_JSON)
-
     print "printf \"%s\" " ADVISE_JSON
     print "return 126"
 }
@@ -1225,7 +1229,6 @@ NR==4 {
     gsub("\n", "\004", arguments)
     arg_arr_len = split(arguments, arg_arr, ARG_SEP)
     arg_arr[ LEN ] = arg_arr_len
-
     for (i=1; i<=arg_arr[ LEN ]; ++i) {
         gsub("\004", "\n", arg_arr[ i ])
     }
@@ -1269,7 +1272,13 @@ NR==4 {
     }
 
     if( arg_arr[1] == "_dryrun" ){
-
+        DRYRUN_FLAG = true
+        IS_INTERACTIVE = false
+        for(i=1; i < arg_arr[ LEN ]; ++i){
+            arg_arr[i]=arg_arr[i+1]
+        }
+        handle_arguments()
+        print "return 0"
         exit_now(0)
     }
 

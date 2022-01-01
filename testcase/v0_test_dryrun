@@ -1,0 +1,31 @@
+# shellcheck shell=sh disable=SC2039,SC2142,SC3043
+
+aaa(){
+    param:dsl <<A
+option:
+    -y|--fsdfsd|-o          "Test regex arg1"  <regex_arg1>=888  =~  "[0-9]+"
+    -z                      "Test regex arg2"
+    #1                      "Test rest argument #1 when exist option and flag"
+    #2                      "Test rest argument #1 when exist option and flag"
+subcommand:
+    bbb                     "This is a bbb"
+A
+    param:run
+
+    echo "y: ${y}"
+}
+
+test_dryrun(){
+    assert_stdout "aaa _dryrun -y qwe;echo \$?" <<A
+1
+A
+
+    assert_stdout "aaa _dryrun -y 123;echo \$?" <<A
+0
+A
+
+    assert_stdout "aaa -y 777" <<A
+y: 777
+A
+
+}

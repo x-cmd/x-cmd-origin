@@ -1,5 +1,3 @@
-#!/bin/sh
-
-[ -f "$HOME/.x-cmd/.boot/boot" ] && . "$HOME/.x-cmd/.boot/boot"
+# shellcheck shell=sh disable=SC3043 #xrc
 
 . ./testcase/v0_test

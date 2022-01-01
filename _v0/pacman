@@ -1,0 +1,113 @@
+# shellcheck shell=sh disable=SC3043
+# Refer: https://mirrors.tuna.tsinghua.edu.cn/help/archlinux/
+
+proxy_pacman(){
+    param:dsl <<A
+subcommands:
+    url             "Provide url of mirror candidates"
+    get             "Get current registry"
+    replace|set     "Setting the mirror"
+    rollback        "Rollback the source to the old one configured"
+A
+    param:run
+
+    if ! command -v pacman >/dev/null; then
+        proxy_log error "command not found: pacman, you should install pacman in your system."
+        return 1
+    elif [ -n "$PARAM_SUBCMD" ]; then
+        "proxy_pacman_${PARAM_SUBCMD}" "$@"
+    else
+        proxy_log info "Current Registry is:    " >&2
+        proxy_pacman get 
+        proxy_pacman _param_help_doc  >&2
+    fi
+}
+
+proxy_pacman_get(){
+    param:void
+    cat /etc/pacman.d/mirrorlist
+}
+
+proxy_pacman_url(){
+    param:dsl <<A
+subcommands:
+    qinghua|qh|tsinghua|tuna        "TUNA mirror"
+    ustc                            "USTC mirror"
+    aliyun                          "aliyun mirror"
+    bfsu                            "BFSU mirror"
+A
+    param:run
+
+    case "${PARAM_SUBCMD:-ustc}" in
+        qinghua|qh|tsinghua|tuna)   printf "https://mirrors.tuna.tsinghua.edu.cn/archlinux/";;
+        ustc)                       printf "https://mirrors.ustc.edu.cn/archlinux/"         ;;
+        aliyun)                     printf "https://mirrors.aliyun.com/archlinux/"          ;;
+        bfsu)                       printf "https://mirrors.bfsu.edu.cn/archlinux/"         ;;
+        *)                          printf "Unrecognized source name"; return 1
+    esac
+}
+
+proxy_pacman_replace(){
+    param:dsl <<A
+subcommands:
+    qinghua|qh|tsinghua|tuna        "TUNA mirror"
+    ustc                            "USTC mirror"
+    aliyun                          "aliyun mirror"
+    bfsu                            "BFSU mirror"
+A
+    param:run
+
+    local url
+    if url="$(proxy_pacman_url "${PARAM_SUBCOM:-tuna}")";then
+        proxy_log info "Setting proxy_pacman mirror :
+        $url"
+
+        local src_path
+        src_path="/etc/pacman.d/mirrorlist"
+        ___proxy_backup /etc/pacman.d/mirrorlist pacman
+
+        local tmp
+        tmp="$(cat $src_path)"
+
+        if [ "$(id -u)" -ne 0 ]; then
+        proxy_log info "using sudo"
+            printf "%s" "" | sudo awk -v tmp="$tmp" 'BEGIN { tmp=tmp "\nServer = https://mirrors.tuna.tsinghua.edu.cn/archlinux/$repo/os/$arch";print tmp}' | sudo tee "$src_path"
+            sudo pacman -Syy
+        else
+            printf "%s" "" | awk -v tmp="$tmp" 'BEGIN { tmp=tmp "\nServer = https://mirrors.tuna.tsinghua.edu.cn/archlinux/$repo/os/$arch";print tmp}' > "$src_path"
+            pacman -Syy
+        fi      
+    fi
+
+}
+
+proxy_pacman_rollback(){
+    # param:void
+    param:dsl <<A
+advise:
+    #1          x proxy pacman rollback ls
+options:
+    #1          "use the selected file to rollback"
+subcommand:
+    ls          "list all file you can rollback"
+A
+    param:run
+
+    if [ -n "$PARAM_SUBCMD" ]; then
+        proxy_pacman_rollback_"${PARAM_SUBCMD}" "$@"
+        return
+    fi
+
+    if [ "$(id -u)" -ne 0 ]; then
+        proxy_log info "using sudo"
+        sudo ___proxy_rollback /etc/pacman.d/mirrorlist pacman "$1"
+    else
+        ___proxy_rollback /etc/pacman.d/mirrorlist pacman "$1"
+    fi 
+}
+
+proxy_pacman_tutorial(){
+    param:void
+    cat <<A
+A
+}

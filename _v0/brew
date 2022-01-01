@@ -75,25 +75,36 @@ A
     url="$(proxy_brew_url "${PARAM_SUBCMD:-ustc}")"
     proxy_log info "Setting proxy_brew mirror:"
     proxy_log info "    url: $url"
-    
-    local s
-    s="export HOMEBREW_BOTTLE_DOMAIN=$url/homebrew-bottles"
-    eval "$s"
 
+    sys_name="$(xrc os && os name)"
+    local core_url
+    local s
+    s="export HOMEBREW_BOTTLE_DOMAIN=$url"
     case "$PARAM_SUBCMD" in
         tuna|tsinghua|qh|bfsu|tencent)    url="$url"/git/homebrew ;;
         *) ;;
     esac
-
+    case "$sys_name" in 
+        darwin)
+            s=s"/homebrew-bottles"
+            eval "$s"
+            core_url="$url/homebrew-core.git"
+        ;;
+        linux)
+            s=s"/linuxbrew-bottles"
+            eval "$s"
+            core_url="$url/linuxbrew-core.git"
+        ;;
+    esac
     git -C "$(brew --repo)" remote set-url origin "$url/brew.git"
-    git -C "$(brew --repo homebrew/core)" remote set-url origin "$url/homebrew-core.git"
+    git -C "$(brew --repo homebrew/core)" remote set-url origin "$core_url"
     git -C "$(brew --repo homebrew/cask)" remote set-url origin "$url/homebrew-cask.git"
 
     proxy_log "git -C \"$(brew --repo)\" remote set-url origin $url/brew.git"
-    proxy_log "git -C \"$(brew --repo homebrew/core)\" remote set-url origin $url/homebrew-core.git"
+    proxy_log "git -C \"$(brew --repo homebrew/core)\" remote set-url origin $core_url"
     proxy_log "git -C \"$(brew --repo homebrew/cask)\" remote set-url origin $url/homebrew-cask.git"
     proxy_log "$s"
-
+    
     local i
     for i in $HOME/.zshrc $HOME/.bashrc $HOME/.kshrc; do
         if [ ! -f "$i" ]; then

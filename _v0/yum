@@ -1,7 +1,7 @@
 # shellcheck shell=sh disable=SC3043
 
 # For centos users
-# Reference: https://blog.csdn.net/qq_33657251/article/details/107526842
+# Reference: https://mirrors.tuna.tsinghua.edu.cn/help/centos-vault/
 
 proxy_yum(){
     param:dsl <<A
@@ -68,12 +68,28 @@ A
     local version_id
     xrc os && os r - version_id
     case "$version_id" in
+        *5*)
+            minorver=5.11
+            sed -e 's|^mirrorlist=|#mirrorlist=|g' \
+                -e "s|^#baseurl=http://mirror.centos.org/centos/\$releasever|baseurl=${url}/centos-vault/
+            $minorver|g" \
+                -i.bak \
+            ${src_dir}/CentOS-*.repo
+            ;;
+        *6*)
+            minorver=6.10
+            sed -e 's|^mirrorlist=|#mirrorlist=|g' \
+                -e "s|^#baseurl=http://mirror.centos.org/centos/\$releasever|baseurl=${url}/centos-vault/
+            $minorver|g" \
+                -i.bak \
+            ${src_dir}/CentOS-*.repo
+            ;;
         *7*)
             sed -e 's|^mirrorlist=|#mirrorlist=|g' \
-            -e "s|^#baseurl=http://mirror.centos.org/altarch/|baseurl=${url}/centos-altarch/|g" \
-            -e "s|^#baseurl=http://mirror.centos.org/\$contentdir/|baseurl=${url}/centos-altarch/|g" \
-            -i.bak \
-            ${src_dir}/CentOS-*.repo
+                -e "s|^#baseurl=http://mirror.centos.org/altarch/|baseurl=${url}/centos-altarch/|g" \
+                -e "s|^#baseurl=http://mirror.centos.org/\$contentdir/|baseurl=${url}/centos-altarch/|g" \
+                -i.bak \
+                ${src_dir}/CentOS-*.repo
             ;;
         *8*) 
             sed -e "s|^mirrorlist=|#mirrorlist=|g" \

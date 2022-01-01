@@ -49,7 +49,6 @@ function cut_info_line(info, space_len, color,
 
 function handle_title(title){
     printf("\033[0;40m%s\033[1;40m", get_space(COLUMNS))
-    # printf("\033[1;33;40m%s\033[0;40m", "")
     printf("\033[1;32;40m%s: \033[0;40m", title)
     return int(strlen_without_color(title)+2)
 }

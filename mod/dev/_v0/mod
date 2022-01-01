@@ -1,75 +1,5 @@
-# shellcheck shell=sh
+# shellcheck shell=sh disable=SC3043,2120
 
-___x_cmd_dev_mod_name(){
-    local name
-    name=$(___x_cmd_dev_mod_geturl)
-    name="${name%.git}"
-
-    case "$#" in
-        0)      printf "%s\n" "${name%.git}" ;;
-        1)      [ "$1" != "-" ] && eval "$1=\"\${name%/*}\"" ;;
-        2)
-                [ "$1" != "-" ] && eval "$1=\"\${name%/*}\""
-                [ "$2" != "-" ] && eval "$2=\"\${name#*/}\""
-    esac
-}
-
-
-___x_cmd_dev_mod_geturl(){
-    git config --worktree --get-regexp "remote[a-z\.]+.url" | awk '
-
-    BEGIN { exit_code=1; }
-    {
-        url=$2
-        match(url, /x-((bash)|(cmd))\/[a-zA-Z0-9_-]+\.git$/)
-        if (RLENGTH > 0) {
-            print substr(url, RSTART, RLENGTH)
-            exit_code=0
-            exit(0)
-        }
-    }
-    END{
-        exit(exit_code)
-    }
-    '
-}
-
-___x_cmd_dev_mod_add_source(){
-    local url
-    url="$(___x_cmd_dev_mod_geturl)" || {
-        printf "Cannot find"
-        return
-    }
-
-    git remote remove gitee 2>/dev/null
-    git remote add gitee "git@gitee.com:$url"
-
-    git remote remove github 2>/dev/null
-    git remote add github "git@github.com:$url"
-}
-
-___x_cmd_dev_mod_pull(){
-    ___x_cmd_dev_mod_add_source || return
-
-    local branch
-    branch="${1:-"$(git branch --show-current)"}"
-
-    if [ -z "$___X_CMD_IN_CHINA_NET" ]; then
-        git pull github "$branch"
-    else
-        git pull gitee "$branch"
-    fi
-}
-
-___x_cmd_dev_mod_push(){
-    ___x_cmd_dev_mod_add_source || return
-
-    local branch
-    branch="${1:-"$(git branch --show-current)"}"
-
-    git push gitee "$branch"
-    git push github "$branch"
-}
 
 ___x_cmd_dev_mod_lsfile0()(
     IFS="
@@ -151,13 +81,17 @@ ___x_cmd_dev_mod(){
 
     param:dsl <<A
 subcommand:
-    pull        "pull module"
-    push        "push module"
     lsfile      "ls file to p"
     lsfile0     "ls file to p"
     cpfile      "cp file to home folder"
     wc          "wc"
     devi        "container"
+
+    init        "init"
+
+    pull        "pull"
+    push        "push"
+    name        "get workspace name from git config"
 A
     param:run
 
@@ -166,6 +100,15 @@ A
         return 1
     fi
 
-    "___x_cmd_dev_mod_$PARAM_SUBCMD" "$@"
+    case "$PARAM_SUBCMD" in
+        pull|push|name)
+            "___x_cmd_dev_ws_$PARAM_SUBCMD" "$@"
+            return
+            ;;
+        init)
+            "___x_cmd_dev_init" "$@"
+            return
+    esac
 
+    "___x_cmd_dev_mod_$PARAM_SUBCMD" "$@"
 }

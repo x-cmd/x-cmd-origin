@@ -1,3 +1,13 @@
 # xsh
 
-x dev mod "$@"
+if x dev mod _has_subcmd "$1"; then
+    x dev mod "$@"
+elif x dev init _has_subcmd "$1"; then
+    x dev init "$@"
+else
+    x dev mod --help
+    x dev init --help
+    return 1
+fi
+
+

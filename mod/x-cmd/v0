@@ -765,6 +765,22 @@ ___x_cmd_ws(){
     fi
 }
 
+
+___x_cmd_ws_(){
+    local X_DISABLE_WORKSPACE_EXECUTION_CONFIRMATION=1
+
+    local RESOURCE_NAME="$1"; shift
+
+    local TGT
+    if TGT="$(___x_cmd_search_path . ".x-cmd/$RESOURCE_NAME")"; then
+        ___x_cmd_exe_workspace "$TGT/.x-cmd/$RESOURCE_NAME" "$@"
+        return
+    else
+        printf "Workspace Resource Not found: %s\n" "$RESOURCE_NAME" >&2
+        return 1
+    fi
+}
+
 ___x_cmd_cd(){
     xrc x_fs/v0 && ___x_cmd_cd "$@"
 }
@@ -904,6 +920,7 @@ ___x_cmd_main(){
         _x_cmd_advise_json)                     ___x_cmd_x_cmd_advise_json "$@" ;;
         wsroot)                                 ___x_cmd_workspace_root "$@" ;;
         ws)                                     ___x_cmd_ws "$@" ;;
+        _ws)                                    ___x_cmd_ws_ "$@" ;;
         *)                                      ___x_cmd_main_otherwise "$subcmd" "$@" ;;
 
     esac

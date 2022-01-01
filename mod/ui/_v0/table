@@ -14,18 +14,17 @@ ___ui_table(){
         +)          shift; ___ui_table_read      "$@"       ;;
         jsonfmt)    shift; ___ui_table_json_to_table "$@"   ;;
         func)       shift; ___ui_table_out_func  "$@"       ;;
-        *)          shift; ___ui_table_out3      "$@"       ;;
+        *)          [ $# -gt 0 ] && shift; ___ui_table_out3      "$@"       ;;
     esac
 }
 
 
-___X_CMD_UI_TABLE_DEFAULT_SIZE=0
+___X_CMD_UI_TABLE_DEFAULT=0
 ___ui_table_read(){
     
     local O="${O:-___X_CMD_UI_TABLE_DEFAULT}"
 
     eval "___X_CMD_UI_TABLE_DEFAULT_ROW_$O=\$((___X_CMD_UI_TABLE_DEFAULT_ROW_$O+1))"
-
     local ttt
     eval "ttt=\"\${___X_CMD_UI_TABLE_DEFAULT_COL_$O}\""
     if [ "${ttt:-0}" -lt $# ]; then
@@ -236,7 +235,7 @@ ___ui_table_out_func(){
     local EXIT_OP=${EXIT_OP:-"ENTER,CREATE,DELETE"}
     EXIT_OP=",$EXIT_OP,"
 
-    # stty -echo
+    stty -echo
     exec 3>&1
     {
         # { cat; printf "\n"; } | ___x_cmd_ui_region_send
@@ -327,7 +326,7 @@ ___ui_table_out_func(){
     exec 3>&-
 
     # tput cvvis
-    # stty echo
+    stty echo
     printf "\033[34h\033[?25h" >&2
 }
 
@@ -336,16 +335,15 @@ ___ui_table_out_func(){
 
 # ui table -
 # ui table + B%USER               PID  %CPU %MEM      VSZ    RSS   TT  STAT STARTED      TIME COMMAND
-# for i in {1..6}; do
+# # for i in $(seq 2); do
 #     ui table + edwinjhlee       45694  69.7  3.2 12906080 542124   "??"  R    "三02下午" 2171:02.57 "com.docker.hyperkit -A -u -F vms/0/hyperkit.pid -c 4 -m 8192M -s 0:0,hostbridge -s"
 #     ui table + _windowserver    24773   9.6  0.9  9289004 146772   "??"  Ss   "29 521"  2827:26.66 "/System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer -daemo"
 #     ui table + edwinjhlee       40627   9.1  0.8  9704844 133228   "??"  Ss   "25 621"  351:58.88 "/Applications/Visual Studio Code.app/Contents/MacOS/Electron /Users/edwinjhlee/x-b"
-#     ui table + edwinjhlee       81250   5.9  1.7 57448804 293384   "??"  S    "2:25下午"  18:21.02 "/Applications/Visual Studio Code.app/Contents/Frameworks/Code Helper (Renderer).app"
-#     ui table + edwinjhlee       81250   5.9  1.7 57448804 293384   "??"  S    "2:25下午"  18:21.02 "/Applications/Visual Studio Code.app/Contents/Frameworks/Code Helper (Renderer).app"
-#     ui table + edwinjhlee       99999   5.9  1.7 57448804 293384   "??"  S    "2:25下午"  18:21.02 "/Applications/Visual Studio Code.app/Contents/Frameworks/Code Helper (Renderer).app"
-# done
+#     ui table + edwinjhlee       81250   5.9  1.7 57448804 293384   "??"  S    "2:25下午"  18:21.02 "/Applications/Visual Studio Code.app/Contents/Frameworks/Code Helper (Renderer).app1"
+#     ui table + edwinjhlee       81250   5.9  1.7 57448804 293384   "??"  S    "2:25下午"  18:21.02 "/Applications/Visual Studio Code.app/Contents/Frameworks/Code Helper (Renderer).app2"
+#     ui table + edwinjhlee       99999   5.9  1.7 57448804 293384   "??"  S    "2:25下午"  18:21.02 "/Applications/Visual Studio Code.app/Contents/Frameworks/Code Helper (Renderer).app3"
+# # done
 # ui table
-
 
 # prepare_data(){
 #     ui table jsonfmt .table.abc name age gender math=score.math <<A

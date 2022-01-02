@@ -6,7 +6,7 @@
         "**/*.md": "markdown",
         "**/*.yml": "yaml",
         "**/LICENSE": "TXT",
-        "**/*": "shellscript",
+        "**/*": "shellscript"
     },
     "files.trimTrailingWhitespace": true,
     "editor.detectIndentation": true,
@@ -36,7 +36,7 @@
             "underline": false,
             "backgroundColor": "transparent",
             "bold": false,
-            "italic": false,
+            "italic": false
         },
         {
             "tag": "?",
@@ -46,7 +46,7 @@
             "backgroundColor": "transparent",
             "bold": false,
             "italic": false
-        },
+        }
     ],
     // "editor.tokenColorCustomizations": {
     //     "comments": "#00ff95af"

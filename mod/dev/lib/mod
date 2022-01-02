@@ -1,6 +1,6 @@
 # shellcheck shell=sh disable=SC3043,2120
 
-
+# Section: lsfile install
 ___x_cmd_dev_mod_lsfile0()(
     IFS="
 "
@@ -10,6 +10,7 @@ ___x_cmd_dev_mod_lsfile0()(
     local i
     for i in \
         latest v* _v*/* _v*/**/* \
+        lib/**/* \
         third-party/* third-party/*/.* third-party/**/* third-party/**/*/* third-party/**/*/*/* \
         lib/* lib/**/*
     do
@@ -28,7 +29,7 @@ ___x_cmd_dev_mod_lsfile()(
     fi
 )
 
-___x_cmd_dev_mod_cpfile_tmp(){
+___x_cmd_dev_mod_install_tmp(){
     local src="$2"
     local dst="$1/$src"
     mkdir -p "$(dirname "$dst")"
@@ -36,7 +37,7 @@ ___x_cmd_dev_mod_cpfile_tmp(){
     cp "$src" "$dst"
 }
 
-___x_cmd_dev_mod_cpfile()(
+___x_cmd_dev_mod_install()(
 
     local current_folder
     current_folder="$(basename "$(x wsroot)")"
@@ -44,19 +45,21 @@ ___x_cmd_dev_mod_cpfile()(
     rm -rf "$current_folder"
     mkdir -p "$current_folder"
 
-    if [ -f "$(x wsroot)/.x-cmd/cpfile" ]; then
+    if [ -f "$(x wsroot)/.x-cmd/install" ]; then
         # TODO: using engine to directly run the local file
-        X_DISABLE_WORKSPACE_EXECUTION_CONFIRMATION=1 x ws cpfile "$@"
+        X_DISABLE_WORKSPACE_EXECUTION_CONFIRMATION=1 x ws install "$@"
     else
-        ___x_cmd_dev_mod_lsfile | x arg1 ___x_cmd_dev_mod_cpfile_tmp "$current_folder"
+        ___x_cmd_dev_mod_lsfile | x arg1 ___x_cmd_dev_mod_install_tmp "$current_folder"
     fi
 )
+
+# EndSection
 
 ___x_cmd_dev_mod_wc(){
     ___x_cmd_dev_mod_lsfile "$@" | xargs wc | sort -n -r | less
 }
 
-
+# Section: devi
 ___x_cmd_dev_mod_devi(){
     local name
     name="$(___x_cmd_dev_mod_name)"
@@ -77,15 +80,66 @@ ___x_cmd_dev_mod_devi(){
     fi
 }
 
+# EndSection
+
+# Section: ls
+
+___x_cmd_dev_mod_getfp(){
+    local filename=modlist
+    local fp
+    fp="$(pwd)/$filename"
+    [ -f "$fp" ] && printf "%s" "$fp" && return
+
+    fp="$(x wsroot)/$filename"
+    [ -f "$fp" ] && printf "%s" "$fp" && return
+
+    return 1
+}
+
+
+___x_cmd_dev_mod_ls_latest(){
+    # ___x_cmd_curl_gitx modlist
+    curl https://gitee.com/x-cmd/x-cmd/raw/main/modlist 2>/dev/null \
+        | ___x_cmd_dev_mod_ls_awk_
+}
+
+___x_cmd_dev_mod_ls_awk_(){
+    awk -v mode="${1:-all}" '
+($0!="")&&($0 !~ /[ ]*#/){
+    mod=$1
+    gsub(/^\+/, "", mod)
+    if (mode == "all") print mod
+    else if (mode == "core") { if ($1 ~ /^\+/) print mod }
+    else if (index(mode, mod) > 0) print mod
+}'
+}
+
+___x_cmd_dev_mod_ls(){
+    local fp="${MODLIST:-""}"
+    if [ -z "$fp" ]; then
+        fp="$(___x_cmd_dev_mod_getfp)" || {
+            printf "Cannot find file modlist. Using ls_latest\n" >&2
+            ___x_cmd_dev_mod_ls_latest
+            return
+        }
+    fi
+
+    ___x_cmd_dev_mod_ls_awk_ "$@" <"$fp"
+}
+
+# EndSection
+
 ___x_cmd_dev_mod(){
 
     param:dsl <<A
 subcommand:
-    lsfile      "ls file to p"
-    lsfile0     "ls file to p"
-    cpfile      "cp file to home folder"
+    ls          "ls mod"
     wc          "wc"
     devi        "container"
+
+    install      "cp file to home folder"
+    lsfile      "ls file to p"
+    lsfile0     "ls file to p"
 
     init        "init"
 
@@ -100,15 +154,16 @@ A
         return 1
     fi
 
-    case "$PARAM_SUBCMD" in
-        pull|push|name)
-            "___x_cmd_dev_ws_$PARAM_SUBCMD" "$@"
-            return
-            ;;
-        init)
-            "___x_cmd_dev_init" "$@"
-            return
-    esac
+    if command -v "___x_cmd_dev_mod_${PARAM_SUBCMD}" >/dev/null; then
+        "___x_cmd_dev_mod_$PARAM_SUBCMD" "$@"
+    else
+        case "$PARAM_SUBCMD" in
+            pull|push|name)
+                "___x_cmd_dev_ws_$PARAM_SUBCMD" "$@"
+                ;;
+            init)
+                "___x_cmd_dev_init" "$@"
+        esac
+    fi
 
-    "___x_cmd_dev_mod_$PARAM_SUBCMD" "$@"
 }

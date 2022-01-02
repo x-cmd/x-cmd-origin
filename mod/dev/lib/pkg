@@ -1,35 +1,6 @@
 # shellcheck shell=sh disable=SC3043
 
-___x_cmd_dev_pkg_lsmod_getfp(){
-    local filename=modlist
-    local fp
-    fp="$(pwd)/$filename"
-    [ -f "$fp" ] && printf "%s" "$fp" && return
-
-    fp="$(x wsroot)/$filename"
-    [ -f "$fp" ] && printf "%s" "$fp" && return
-
-    return 1
-}
-
-___x_cmd_dev_pkg_lsmod(){
-    local fp
-    fp="$(___x_cmd_dev_pkg_lsmod_getfp)" || {
-        printf "Cannot find file modlist.\n" >&2
-        return
-    }
-
-    awk -v mode="${1:-all}" '
-($0!="")&&($0 !~ /[ ]*#/){
-    mod=$1
-    gsub(/^\+/, "", mod)
-    if (mode == "all") print mod
-    else if (mode == "core") { if ($1 ~ /^\+/) print mod }
-    else if (index(mode, mod) > 0) print mod
-}' <"$fp"
-
-}
-
+# Section: module add pull update
 ___x_cmd_dev_pkg_add(){
     local name="${1:?Provide module name}"
     # local position="${2:-"git@gitee.com/x-bash/$name.git"}"
@@ -46,7 +17,7 @@ ___x_cmd_dev_pkg_pull(){
     git subtree pull --prefix="mod/$name" "$position" "$branch" --squash
 }
 
-___x_cmd_dev_pkg_mod(){
+___x_cmd_dev_pkg_update(){
     local IFS
     local mod
     git prune
@@ -61,6 +32,12 @@ ___x_cmd_dev_pkg_mod(){
     done
 }
 
+# EndSection
+
+# Section: information
+
+___x_cmd_dev_pkg_lsmod(){       ___x_cmd_dev_mod_ls "$@";   }
+
 ___x_cmd_dev_pkg_lsfile()(
     cd "$(x wsroot)/mod" || return
 
@@ -71,6 +48,26 @@ ___x_cmd_dev_pkg_lsfile()(
         done
     )
 )
+
+___x_cmd_dev_pkg_install()(
+    cd "$(x wsroot)/mod" || return
+
+    ___x_cmd_dev_pkg_lsmod "$@" | (
+        cd "$(x wsroot)/mod" && \
+        while read -r line; do
+            ( cd "$line" && ___x_cmd_dev_mod_install )
+        done
+    )
+)
+
+___x_cmd_dev_pkg_wc(){
+    cd "$(x wsroot)/mod" &&
+        ___x_cmd_dev_pkg_lsfile "$@" | xargs wc | sort -n -r | less
+}
+
+# EndSection
+
+# Section: tgz tar 7z
 
 ___x_cmd_dev_pkg_tgz()(
     case "${1:-all}" in
@@ -120,35 +117,33 @@ ___x_cmd_dev_pkg_7z()(
         ls -alh "$WSROOT/dist/$scope.7z"
 )
 
-___x_cmd_dev_pkg_wc(){
-    cd "$(x wsroot)/mod" &&
-        ___x_cmd_dev_pkg_lsfile "$@" | xargs wc | sort -n -r | less
-}
+# EndSection
 
 ___x_cmd_dev_pkg_pub(){
-
-   ___x_cmd_dev_pkg_mod "$@" && ___x_cmd_dev_pkg_tgz "$@" && ___x_cmd_dev_mod_push
-    x push
+    ___x_cmd_dev_pkg_update "$@" && ___x_cmd_dev_pkg_tgz "$@" && ___x_cmd_dev_mod_push
+    ___x_cmd_dev_ws_push
 }
-
 
 ___x_cmd_dev_pkg(){
 
     param:dsl <<A
 subcommand:
-    lsmod       "list module"
-    mod         "add module"
-    tgz         "compress modules of core/all/<special-release> into <name>.tgz"
-    tar         "add modules"
-    lsfile      ""
-    wc          "count"
-    pub         "publish the package"
+    install         "install all modules"
 
-    init        "init"
+    update          "update or add module"
+    pub             "publish the package"
+    lsmod           "ls module"
+    lsfile          ""
+    wc              "count"
 
-    pull        "pull"
-    push        "push"
-    name        "get workspace name from git config"
+    tgz             "compress modules of core/all/<special-release> into <name>.tgz"
+    tar             "compress modules"
+
+    init            "init"
+
+    pull            "pull"
+    push            "push"
+    name            "get workspace name from git config"
 A
     param:run
 
@@ -157,16 +152,16 @@ A
         return 1
     fi
 
-    case "$PARAM_SUBCMD" in
-        pull|push|name)
-            "___x_cmd_dev_ws_$PARAM_SUBCMD" "$@"
-            return
-            ;;
-        init)
-            "___x_cmd_dev_init" "$@"
-            return
-    esac
-
-    "___x_cmd_dev_pkg_${PARAM_SUBCMD}" "$@"
+    if command -v "___x_cmd_dev_pkg_${PARAM_SUBCMD}" >/dev/null; then
+        "___x_cmd_dev_pkg_${PARAM_SUBCMD}" "$@"
+    else
+        case "$PARAM_SUBCMD" in
+            pull|push|name)
+                "___x_cmd_dev_ws_$PARAM_SUBCMD" "$@"
+                ;;
+            init)
+                "___x_cmd_dev_init" "$@"
+        esac
+    fi
 
 }

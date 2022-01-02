@@ -3,13 +3,18 @@
 # author:       Li Junhao           l@x-cmd.com
 # maintainer:   Li Junhao
 
+# Section: modules included
 xrc param/v0
 
-xrc dev/_v0/ws
-xrc dev/_v0/mod
-xrc dev/_v0/pkg
+xrc dev/lib/all
 
-xrc dev/_v0/init
+xrc dev/lib/ws
+xrc dev/lib/mod
+xrc dev/lib/pkg
+
+xrc dev/lib/init
+
+# EndSection
 
 # git config --worktree --get-regexp "remote[a-z\.]+.url"
 
@@ -20,6 +25,7 @@ subcommand:
     mod         "modules"
     pkg         "package"
     ws          "workspace"
+    all         "all modules"
 A
     param:run
 
@@ -32,16 +38,34 @@ A
 }
 
 
-x alias pull="x dev mod pull"
-x alias push="x dev mod push"
-x alias lsfile="x dev mod lsfile"
-x alias cpfile="x dev mod cpfile"
-
 # if [ -n "${BASH_VERSION}${ZSH_VERSION}" ] && [ "${-#*i}" != "$-" ]; then
 #     xrc advise/v0
 #     advise dev
 # fi
 
+alias xdev="x dev"
+
 if [ -n "$___X_CMD_ENABLE_AUTO_RUN" ]; then
     ___x_cmd_dev "$@"
 fi
+
+# Section: git
+
+# TODO: we will find a more suitable place for the code below.
+
+alias giss="git status -s"
+alias gip="x dev ws pull"
+alias giP="x dev ws push"
+giam(){
+    local msg="${1:-...}"
+    shift
+    if [ $# -eq 0 ]; then
+        ( cd "$(x wsroot)" && git add . )
+    else
+        git add "$@"
+    fi
+    git commit -m "$msg"
+}
+
+# EndSection
+

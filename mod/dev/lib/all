@@ -1,0 +1,48 @@
+# shellcheck shell=sh disable=SC3043,2120 # xrc
+
+# author:       Li Junhao           l@x-cmd.com
+# maintainer:   Li Junhao
+
+# Section: git
+
+___x_cmd_dev_all(){
+    param:dsl <<A
+subcommand:
+    pull        "pull"
+    push        "push"
+    update      "update"
+    ls          "list modules"
+A
+    param:run
+
+    if [ -z "${PARAM_SUBCMD}" ]; then
+        ___x_cmd_dev_all help
+        return 0
+    fi
+
+    "___x_cmd_dev_all_${PARAM_SUBCMD}" "$@"
+}
+
+___x_cmd_dev_all_clone(){
+    local n
+    ___x_cmd_dev_all_ls | while read -r n; do
+        git clone "git@gitee.com:$n.git"
+    done
+}
+
+___x_cmd_dev_all_update(){
+    local n
+    ___x_cmd_dev_all_ls | while read -r n; do
+        if [ -d "$n" ]; then
+            ( cd $n && git pull origin main && cd - )
+        else
+            git clone "git@gitee.com:x-bash/$n.git"
+        fi
+    done
+}
+
+___x_cmd_dev_all_ls(){
+    ___x_cmd_dev_pkg_lsmod_latest
+}
+
+# EndSection

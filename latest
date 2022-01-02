@@ -3,6 +3,7 @@
 # author:       Li Junhao           l@x-cmd.com
 # maintainer:   Li Junhao
 
+# Section: git facility
 alias gis="git status"
 alias giss="git status -s"
 alias gib="git branch"
@@ -71,13 +72,14 @@ ghclone(){
 gtclone(){
     git clone "git@gitee.com:${1:?Provide url}.git"
 }
+# EndSection
 
-
+# Section: shell
 alias ll="ls -al"
 alias lh="ls -alh"
 
 rmrf(){
-    local 
+    local
     for i in "$@"; do
         case "$i" in
             /)          printf "%s" "Try to 'rm -rf $i'" >&2;       return 1    ;;
@@ -89,8 +91,9 @@ rmrf(){
         rm -rf "$i"
     done
 }
+# EndSection
 
-# K8s
+# Section: k8s
 
 alias kctl=kubectl
 alias k=kctl
@@ -98,4 +101,8 @@ alias kg="kubectl get"
 alias kgp="kg pods"
 alias kgrs="kg rs"
 
-x theme use el
+# EndSection
+
+if [ -z "$X_DEFAULT_THEME" ]; then
+    x theme use "${X_DEFAULT_THEME:-el}"
+fi

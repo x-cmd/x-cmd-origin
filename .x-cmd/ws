@@ -1,13 +1,3 @@
-# xsh
+# xrc
 
-# if x dev mod _has "$1"; then
-#     x dev mod "$@"
-# else
-#     . "$@"
-# fi
-
-
-# echo "$0"
-# echo "$SHELL"
-# type x
 x dev mod "$@"

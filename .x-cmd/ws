@@ -1,4 +1,4 @@
-# xsh
+# xrc
 
 x dev pkg "$@"
 

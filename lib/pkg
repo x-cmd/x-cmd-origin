@@ -126,6 +126,11 @@ ___x_cmd_dev_pkg_pub(){
 
 ___x_cmd_dev_pkg(){
 
+    if [ -f "$(x wsroot)/.x-cmd/$1" ]; then
+        x _ws "$@"
+        return
+    fi
+
     param:dsl <<A
 subcommand:
     install         "install all modules"

@@ -131,6 +131,11 @@ ___x_cmd_dev_mod_ls(){
 
 ___x_cmd_dev_mod(){
 
+    if [ -f "$(x wsroot)/.x-cmd/$1" ]; then
+        x _ws "$@"
+        return
+    fi
+
     param:dsl <<A
 subcommand:
     ls          "ls mod"

@@ -92,8 +92,13 @@ gt_user_email(){
 gt_user_issue(){
     param:scope     "gitee/$O"
     param:dsl       '
+type: 
+    screen = all assigned created
+    group = owner collaborator organization_member enterprise_member admin 
+    sort = created updated pushed full_name
+    direction = desc asc
 options:
-    --filter        "filter(assigned,created,all)"                 <>="assigned"
+    --filter        "filter(assigned,created,all)"                 <>:screen="assigned"
     --state         "state(open,progerssing,closed,rejected)"      <>="open"
     --labels        "labels"                                       <>=""
     --direction     "direction(asc、desc)"                         <>="desc"

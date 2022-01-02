@@ -12,7 +12,8 @@ A
     param:run
 
     if [ -z "$PARAM_SUBCMD" ]; then
-        ___x_cmd_dev_init_xproj "$@"
+        # ___x_cmd_dev_init_xproj "$@"
+        ___x_cmd_dev_init help
         return
     fi
 
@@ -35,11 +36,11 @@ A
 # According project
 ___x_cmd_dev_init_vscode(){
     mkdir -p .vscode
-    xrc cat dev/_v0/settings.json
+    xrc cat dev/_v0/settings.json >"$(x wsroot)/.vscode/settings.json"
 }
 
 ___x_cmd_dev_init_license(){
-    xrc cat dev/_v0/LICENSE
+    xrc cat dev/_v0/LICENSE > "$(x wsroot)/LICENSE"
 }
 
 ___x_cmd_dev_init_xproj(){

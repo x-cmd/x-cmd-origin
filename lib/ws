@@ -68,12 +68,18 @@ ___x_cmd_dev_ws_push(){
 
     local branch
     branch="${1:-"$(git branch --show-current)"}"
+    # git rev-parse --abbrev-ref HEAD
 
     git push gitee "$branch"
     git push github "$branch"
 }
 
 ___x_cmd_dev_ws(){
+
+    if [ -f "$(x wsroot)/.x-cmd/$1" ]; then
+        x _ws "$@"
+        return
+    fi
 
     param:dsl <<A
 subcommand:
@@ -89,6 +95,5 @@ A
     fi
 
     "___x_cmd_dev_ws_$PARAM_SUBCMD" "$@"
-
 }
 

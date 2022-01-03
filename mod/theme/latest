@@ -221,3 +221,5 @@ if ___x_cmd_is_suitable_advise_env; then
 }
 A
 fi
+
+xrc setmain ___x_cmd_theme_control

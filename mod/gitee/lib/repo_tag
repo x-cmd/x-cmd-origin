@@ -37,7 +37,7 @@ gt_repo_tag_add() {
     param:scope     "gitee/$O"
     param:dsl    '
 options:
-    --repo          "Repo name"                 <>
+    --repo          "Repo name"                 <>:repo
     --refs          "starting point name"       <>="master"
     --name          "tag name"                  <>
     --msg           "tag message"               <>=""

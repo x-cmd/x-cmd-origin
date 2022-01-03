@@ -55,11 +55,11 @@ subcommands:
 gt_enterprise_info() {
     param:scope     "gitee/$O"
     param:dsl       '
+
 options:
-    --admin      "list only managed enterprise"
+    --admin      "list only managed enterprise"     <>:bool=false
 '
     param:run
-    admin=${admin:-false}
     if [ "$#" -eq 0 ]; then
         ___gt_get_multi "/v5/user/enterprises" admin
         [ $? -eq 1 ] && return 1
@@ -77,11 +77,10 @@ gt_enterprise_repo_ls() {
 type:
     genre = all public internal private
 options:
-    --repo_type     "type"          <>="all"           =   all public internal private
-    --direct        "direct"
+    --repo_type     "type"          <>:genre="all" 
+    --direct        "direct"        <>:bool="false"
 '
     param:run
-    direct=${direct:-false}
     ui table func ___gt_table "\"\$(O=$O ___gt_get_multi \"/v5/enterprises/${1:?Provide enterprise}/repos\" repo_type direct page per_page)\"" \
         . id full_name ownerName=owner.name updatedTime="updated_at"
 }
@@ -115,9 +114,11 @@ subcommands:
 gt_enterprise_member_ls() {
     param:scope     "gitee/$O"
     param:dsl       '
+type:
+    role = all member admin
 options:
-    --enterprise    "enterprise space address"          <>
-    --role          "role type"                         <>="all"    = all member admin
+    --enterprise    "enterprise space address"          <>:address
+    --role          "role type"                         <>:role="all"
 '
     param:run
 # TODO: | json_table remark role user.login
@@ -129,8 +130,8 @@ gt_enterprise_member_user() {
     param:scope     "gitee/$O"
     param:dsl       '
 options:
-    #1|--enterprise    "enterprise space address"  <>
-    #2|--username      "username:space address"    <>
+    #1|--enterprise    "enterprise space address"  <>:address
+    #2|--username      "username:space address"    <>:name
 '
     param:run
 
@@ -141,10 +142,13 @@ options:
 gt_enterprise_member_add() {
     param:scope     "gitee/$O"
     param:dsl       '
+type:
+    role =  member  outsourced admin
+    mode =  username email
 options:
-    --enterprise|-e    "enterprise"             <>
-    --role            "role"                    <>              =   member  outsourced admin
-    --mode            "username or email"       <>="username"   =   username email
+    --enterprise|-e   "enterprise"              <>:address
+    --role            "role"                    <>:role              
+    --mode            "username or email"       <>:mode="username"
     #n                "real name"
 '
     param:run
@@ -167,7 +171,7 @@ gt_enterprise_member_del() {
     param:scope     "gitee/$O"
     param:dsl       '
 options:
-    --enterprise|-e    "enterprise space address"      <>
+    --enterprise|-e    "enterprise space address"      <>:address
 '
     param:run
 
@@ -195,8 +199,8 @@ gt_enterprise_member_access() {
     param:scope     "gitee/$O"
     param:dsl       '
 options:
-    --enterprise|-e     "Repo owner path"                   <>
-    --username          "username:space address"            <>
+    --enterprise|-e     "Repo owner path"                   <>:address
+    --username          "username:space address"            <>:name
     --role              "role"                              <>="member"     = member outsourced admin
     --name              "real name"                         <>=""
     --active            "Access to corporate resources"

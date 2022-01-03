@@ -29,9 +29,11 @@ A
 gt_repo_release_ls() {
     param:scope     "gitee/$O"
     param:dsl    '
+type:
+    direction = asc  desc
 options:
-    --repo          "Repo name"             <>
-    --direction     "direction(asc,desc)"   <>="asc"
+    --repo          "Repo name"             <>:repo
+    --direction     "direction(asc,desc)"   <>:direction="asc"
 '
     param:run
 
@@ -44,7 +46,7 @@ gt_repo_get_release_by_tag() {
     param:scope     "gitee/$O"
     param:dsl    '
 options:
-    #1|--repo          "Repo name"             <>
+    #1|--repo          "Repo name"             <>:repo
     #2|--tag           "tag name"              <>
 '
     param:run
@@ -60,12 +62,12 @@ gt_repo_release_create() {
     param:scope  "gitee/$O"
     param:dsl    '
 options:
-    #1|--repo              "Repo name"              <>
+    #1|--repo           "Repo name"                 <>:repo
     --tag               "Please provide tag name"   <>
     --name              "Release name"              <>
     --body              "Release Description"       <>
-    --prerelease        "Is release version"        <>="false"
-    --target_commitish  "Default is master"         <>="master"
+    --prerelease        "Is release version"        <>:bool="false"
+    --target_commitish  "Default is master"         <>:name="master"
 '
     param:run
 
@@ -97,11 +99,11 @@ gt_repo_release_update() {
     param:scope  "gitee/$O"
     param:dsl    '
 options:
-    #1|--release        "Release ID"                <>
+    #1|--release        "Release ID"                <>:number
     --tag               "Please provide tag name"   <>
     --name              "Release name"              <>
     --body              "Release Description"       <>
-    --prerelease        "Is release version"        <>="false"
+    --prerelease        "Is release version"        <>:bool="false"
 '
     param:run
 
@@ -115,7 +117,7 @@ gt_repo_release_delete() {
     param:scope  "gitee/$O"
     param:dsl    '
 options:
-    #1|--release        "Release ID"                <>
+    #1|--release        "Release ID"                <>:number
 '
     param:run
 
@@ -128,7 +130,7 @@ gt_repo_release_latest() {
     param:scope     "gitee/$O"
     param:dsl    '
 options:
-    #1|--repo              "Repo name"                                    <>
+    #1|--repo              "Repo name"               <>:repo
 '
     param:run
 
@@ -141,7 +143,7 @@ gt_repo_release_info() {
     param:scope     "gitee/$O"
     param:dsl    '
 options:
-    #1|--release        "Release ID"                <>
+    #1|--release        "Release ID"                <>:number
 '
     param:run
 
@@ -175,7 +177,7 @@ gt_repo_release_attachment_ls() {
     param:scope     "gitee/$O"
     param:dsl    '
 options:
-    #1|--release        "Release ID"                <>
+    #1|--release        "Release ID"                <>:number
 '
     param:run
 
@@ -189,7 +191,7 @@ gt_repo_release_attachment_add() {
     param:scope     "gitee/$O"
     param:dsl    '
 options:
-    #1|--release        "Release ID"                <>
+    #1|--release        "Release ID"                <>:number
 '
     param:run
 
@@ -204,7 +206,7 @@ gt_repo_release_attachment_del() {
     param:scope     "gitee/$O"
     param:dsl    '
 options:
-    #1|--release        "Release ID"                <>
+    #1|--release        "Release ID"                <>:number
 '
     param:run
 

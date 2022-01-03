@@ -42,7 +42,7 @@ gt_org_info() {
     param:dsl       '
 type: 
 options:
-    --admin      "admin"
+    --admin      "admin"       <>:bool
 '
     param:run
 
@@ -62,7 +62,7 @@ gt_org_create() {
     param:scope     "gitee/$O"
     param:dsl       '
 options:
-    #1              "organization name"     <>
+    #1              "organization name"     <>:name
     --org           "organization path"     <>=""
     --description   "description"           <>=""
 '
@@ -153,7 +153,7 @@ gt_org_member_ls() {
     param:scope     "gitee/$O"
     param:dsl       '
 options:
-    #1|--org        "org space address"    <>
+    #1|--org        "org space address"    <>:address
     --role          "Repo name"            <>="all"         = admin member all
 '
     param:run
@@ -164,8 +164,8 @@ gt_org_member_user() {
     param:scope     "gitee/$O"
     param:dsl      '
 options:
-    #1|--org            "org space address"         <>
-    --username          "username:space address"    <>
+    #1|--org            "org space address"         <>:address
+    --username          "username:space address"    <>:name
 '
     param:run
 
@@ -175,9 +175,11 @@ options:
 gt_org_member_add() {
     param:scope     "gitee/$O"
     param:dsl       '
+type: 
+    role = admin member
 options:
-    --org           "org"       <>
-    --role          "role"      <>="member"
+    --org           "org"       <>:address
+    --role          "role"      <>:role="member"
     #n              "username"
 '
     param:run
@@ -204,7 +206,7 @@ gt_org_member_del() {
     param:scope     "gitee/$O"
     param:dsl       '
 options:
-    --org       "org space address"         <>
+    --org       "org space address"         <>:address
     #n          "username"
 '
     param:run

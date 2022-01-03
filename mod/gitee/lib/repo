@@ -45,17 +45,19 @@ gt_repo_create() {
 
     param:scope     "gitee/$O"
     param:dsl       '
+type:
+    access  =   private public
 option:
-    --access                "private,public,innerSource"    <>=private          =   private public
+    --access                "private,public"                <>:access=private
     --description           "description"                   <>=""
     --homepage              "homepage"                      <>=""
     --no_issues             "Provide issue"
     --no_wiki               "Provide wiki"
     --no_comment            "Provide can_comment"
     --no_auto_init          "auto init README"
-    --gitignore_template    "Git Ignore"                    <>=""
-    --license_template      "license"                       <>=""
-    --paths                 "repo path"                     <>=""
+    --gitignore_template    "Git Ignore"                    <>:Ignore=" "
+    --license_template      "license"                       <>:license=" "
+    --paths                 "repo path"                     <>:url_type=""
     #n                      "repo names"
 '
 
@@ -87,7 +89,7 @@ option:
             $data
 A
             if [ -n "$repo_id" ];then
-                ui tf "true" "Creating repo $name success" "- repo_id:$repo_id" "- url:$url" "- repo_owner:$repo_owner" 
+                ui tf "true" "Creating repo $name success" "repo_id:$repo_id" "url:$url" "repo_owner:$repo_owner" 
             else
                 gt_log error "Creating repo failure: $name. Code is $code. " 
             fi
@@ -104,18 +106,20 @@ gt_org_repo_create() {
     # path is null default repo name as path
     param:scope     "gitee/$O"
     param:dsl       '
+type:
+    access  =   private public innerSource
 option:
     --org                   "organization create repo"      <>:name
     --description           "description"                   <>=""
-    --access                "private,public,innerSource"    <>=private          =   private public innerSource
-    --homepage              "homepage"                      <>=""
+    --access                "private,public,innerSource"    <>:access=private
+    --homepage              "homepage"                      <>:url_type=""
     --no_issues             "Provide issue"
     --no_wiki               "Provide wiki"
     --no_comment            "Provide can_comment"
     --no_auto_init          "auto init README"
-    --gitignore_template    "Git Ignore"                    <>=""
-    --license_template      "license"                       <>=""
-    --paths                  "repo path"                    <>=""
+    --gitignore_template    "Git Ignore"                    <>:Ignore=""
+    --license_template      "license"                       <>:license=""
+    --paths                  "repo path"                    <>:url_type=""
     #n                      "repo names"
 '
     param:run
@@ -160,20 +164,22 @@ option:
 gt_enterprise_repo_create() {
     param:scope     "gitee/$O"
     param:dsl       '
+type:
+    access  =   private public innerSource
 option:
     --enterprise            "enterprise space address"          <>
-    --access                "private,public,innerSource"        <>=private          =   private public innerSource
+    --access                "private,public,innerSource"        <>:access=private
     --description           "description"                       <>=""
-    --homepage              "homepage"                          <>=""
-    --paths                 "repo path"                         <>=""
+    --homepage              "homepage"                          <>:url_type=""
+    --paths                 "repo path"                         <>:url_type=""
     --no_issues             "Provide issue"
     --no_wiki               "Provide wiki"
     --no_comment            "Provide can_comment"
     --no_auto_init          "auto init README"
     --outsourced            "Provide outsourced"
-    --gitignore_template    "Git Ignore"                        <>=""
-    --license_template      "license"                           <>=""
-    --project_creator       "Provide project_creator"           <>=""
+    --gitignore_template    "Git Ignore"                        <>:Ignore=""
+    --license_template      "license"                           <>:license=""
+    --project_creator       "Provide project_creator"           <>:name=""
     --members               "Provide members(name or email)"    <>=""
 '
     param:run
@@ -283,7 +289,7 @@ gt_repo_clear() {
     param:scope     "gitee/$O"
     param:dsl       '
 options:
-    #1|--repo          "Repo name"             <>
+    #1|--repo          "Repo name"             <>:repo
 '
     param:run
 

@@ -45,10 +45,6 @@ A
 
 alias xdev="x dev"
 
-if [ -n "$___X_CMD_ENABLE_AUTO_RUN" ]; then
-    ___x_cmd_dev "$@"
-fi
-
 # Section: git
 
 # TODO: we will find a more suitable place for the code below.
@@ -69,3 +65,4 @@ giam(){
 
 # EndSection
 
+xrc setmain ___x_cmd_dev

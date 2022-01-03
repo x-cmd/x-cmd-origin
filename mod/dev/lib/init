@@ -36,11 +36,26 @@ A
 # According project
 ___x_cmd_dev_init_vscode(){
     mkdir -p .vscode
-    xrc cat dev/_v0/settings.json >"$(x wsroot)/.vscode/settings.json"
+    xrc cat dev/lib/settings.json >"$(x wsroot)/.vscode/settings.json"
+
+    local ext
+    for ext in zokugun.explicit-folding \
+        timonwong.shellcheck \
+        aaron-bond.better-comments \
+        hangxingliu.vscode-awk-hint \
+        eamodio.gitlens; do
+
+        code --install-extension "$ext"
+    done
+
+    # code --list-extensions
+    # code --install-extension ms-vscode.cpptools
+    # code --uninstall-extension ms-vscode.csharp
+
 }
 
 ___x_cmd_dev_init_license(){
-    xrc cat dev/_v0/LICENSE > "$(x wsroot)/LICENSE"
+    xrc cat dev/lib/LICENSE > "$(x wsroot)/LICENSE"
 }
 
 ___x_cmd_dev_init_xproj(){

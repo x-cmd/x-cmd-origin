@@ -55,6 +55,23 @@ ___x_cmd_dev_mod_install()(
 
 # EndSection
 
+# Section: pkg
+
+___x_cmd_dev_mod_tgz(){
+    WSROOT="$(x wsroot)"
+
+    local scope
+    scope="$(___x_cmd_dev_ws_name)"
+    scope="${scope#*/}"
+
+    mkdir -p "$WSROOT/dist" &&
+        eval "tar czvf $scope.tgz $(___x_cmd_dev_mod_lsfile | tr '\n' ' ')" &&
+        mv "$scope.tgz" "$WSROOT/dist/$scope.tgz" &&
+        ls -alh "$WSROOT/dist/$scope.tgz"
+}
+
+# EndSection
+
 ___x_cmd_dev_mod_wc(){
     ___x_cmd_dev_mod_lsfile "$@" | xargs wc | sort -n -r | less
 }
@@ -141,6 +158,7 @@ subcommand:
     ls          "ls mod"
     wc          "wc"
     devi        "container"
+    tgz         "package"
 
     install      "cp file to home folder"
     lsfile      "ls file to p"

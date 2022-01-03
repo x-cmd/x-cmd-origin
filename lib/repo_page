@@ -26,7 +26,7 @@ gt_repo_page_info() {
     param:scope     "gitee/$O"
     param:dsl       '
 options:
-    --repo              "Repo name"                 <>
+    --repo              "Repo name"                 <>:repo
 '
     param:run
 
@@ -42,7 +42,7 @@ gt_repo_page_build() {
     param:scope     "gitee/$O"
     param:dsl       '
 options:
-    --repo              "Repo name"                 <>
+    --repo              "Repo name"                 <>:repo
 '
     param:run
 

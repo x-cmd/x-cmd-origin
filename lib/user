@@ -94,17 +94,16 @@ gt_user_issue(){
     param:dsl       '
 type: 
     screen = all assigned created
-    group = owner collaborator organization_member enterprise_member admin 
-    sort = created updated pushed full_name
+    sort = open progerssing closed rejected
     direction = desc asc
 options:
     --filter        "filter(assigned,created,all)"                 <>:screen="assigned"
-    --state         "state(open,progerssing,closed,rejected)"      <>="open"
+    --state         "state(open,progerssing,closed,rejected)"      <>:sort="open"
     --labels        "labels"                                       <>=""
-    --direction     "direction(asc、desc)"                         <>="desc"
+    --direction     "direction(asc、desc)"                         <>:direction="desc"
     --since         "since"                                        <>=""
-    --page          "page"                                         <>=""
-    --per_page      "per_page"                                     <>=""
+    --page          "page"                                         <>:numbers=""
+    --per_page      "per_page"                                     <>:numbers=""
     --schedule      "schedule"                                     <>=""
     --deadline      "deadline"                                     <>=""
     --created_at    "create date"                                  <>=""
@@ -145,8 +144,8 @@ gt_user_key_ls(){
     param:scope     "gitee/$O"
     param:dsl       '
 options:
-    --page        "page"                    <>=1
-    --per_page    "per_page"                <>=20
+    --page        "page"                    <>:number=1
+    --per_page    "per_page"                <>:number=20
 '
     param:run
     ___gt_get "v5/user/keys" page per_page
@@ -156,7 +155,7 @@ gt_user_key_get(){
     param:scope     "gitee/$O"
     param:dsl       '
 options:
-    --id        "provided key id"       <>
+    --id        "provided key id"       <>:number
 '
     param:run
     ___gt_get "v5/user/keys/$id"
@@ -166,7 +165,7 @@ gt_user_key_del(){
     param:scope     "gitee/$O"
     param:dsl       '
 options:
-    --id        "provided key id"           <>
+    --id        "provided key id"           <>:number
 '
     param:run
     ___gt_delete "/v5/user/keys/$id"

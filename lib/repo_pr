@@ -33,15 +33,19 @@ gt_repo_pr_ls() {
 
     param:scope     "gitee/$O"
     param:dsl       '
+type:
+    state = open merged closed all
+    sort  = created updated popularity long-running 
+    direction = desc asc
 options:
     --repo              "Repo name"                                         <>
-    --state             "state"                                             <>="open"
+    --state             "state"                                             <>:state="open"
     --head              "source branch. Format: [username:]<branch>"        <>=""
     --base              "target branch. Format: [username:]<branch>"        <>=""
     --since             "since"                                             <>=""
-    --sort              "sort"                                              <>="created"
-    --direction         "direction"                                         <>="desc"
-    --milestone_number  "milestone id"                                      <>="" 
+    --sort              "sort"                                              <>:sort="created"
+    --direction         "direction"                                         <>:direction="desc"
+    --milestone_number  "milestone id"                                      <>:numbers="" 
     --labels            "labels"                                            <>=""
 '
     param:run
@@ -69,7 +73,7 @@ gt_repo_pr_info() {
     param:scope     "gitee/$O"
     param:dsl       '
 options:
-    #1|--pr             "pr id"
+    #1|--pr             "pr id"     <>:number
 '
     param:run
 
@@ -82,9 +86,11 @@ options:
 gt_repo_pr_log() {
     param:scope     "gitee/$O"
     param:dsl       '
+type:
+    state  = desc asc
 options:
-    #1|--pr             "pr id"                 <>
-    --sort              "sort"                  <>="desc"
+    #1|--pr             "pr id"                 <>:number
+    --sort              "sort"                  <>:state="desc"
 '
     param:run
 
@@ -97,19 +103,18 @@ gt_repo_pr_commit() {
     param:dsl       '
 options:
     #1|--pr             "pr id"                <>
-    --sort              "sort"                 <>="desc"
 '
     param:run
 
     ___parse_pr_init_owner_repo_and_pr
-    ___gt_get "/v5/repos/${owner_repo}/pulls/$pr/commits" sort  
+    ___gt_get "/v5/repos/${owner_repo}/pulls/$pr/commits"  
 }
 
 gt_repo_pr_view() {
     param:scope     "gitee/$O"
     param:dsl       '
 options:
-    #1|--pr             "pr id"
+    #1|--pr             "pr id"         <>:number
 '
     param:run
 
@@ -131,16 +136,16 @@ type:
 options:
     --repo                  "Repo name"                                                     <>:repo 
     --title                 "pr title"                                                      <>
-    --head                  "source branch. Format: [username:]<branch>"                    <>
-    --base                  "target branch. Format: [username:]<branch>"                    <>
+    --head                  "source branch. Format: [username:]<branch>"                    <>:name
+    --base                  "target branch. Format: [username:]<branch>"                    <>:name
     --body                  "pull request content"                                          <>=""
-    --milestone_number      "milestone id"                                                  <>=""
+    --milestone_number      "milestone id"                                                  <>:numbers=""
     --labels                "labels"                                                        <>=""
-    --issue                 "issue id"                                                      <>=""
-    --assignees             "reviewer username list. Format: <username>[,<username>]"       <>=""
-    --testers               "tester username list. Format: <username>[,<username>]"         <>=""
-    --assignees_number      "minimum number of reviewers"                                   <>=""      
-    --testers_number        "minimum test number"                                           <>=""
+    --issue                 "issue id"                                                      <>:numbers=""
+    --assignees             "reviewer username list. Format: <username>[,<username>]"       <>:name=""
+    --testers               "tester username list. Format: <username>[,<username>]"         <>:name=""
+    --assignees_number      "minimum number of reviewers"                                   <>:numbers=""      
+    --testers_number        "minimum test number"                                           <>:numbers=""
     --prune_source_branch   "prune_source_branch"                                           <>:bool=false
 '
     param:run
@@ -154,16 +159,19 @@ options:
 gt_repo_pr_update() {
     local O="${O:-GITEE_DEFAULT}"
     param:scope     "gitee/$O"
+##TODO:state
     param:dsl       '
+type:
+    state = closed 
 options:
     #1|--pr                 "pr number"                                 <>:number
     --title                 "pr title"                                  <>
     --body                  "pull request content"                      <>=""
-    --milestone_number      "milestone number"                          <>=""
+    --milestone_number      "milestone number"                          <>:numbers=""
     --labels                "labels"                                    <>=""
-    --assignees_number      "minimum number of reviewers"               <>=""      
-    --testers_number        "minimum test number"                       <>=""
-    --state                 "state"                                     <>=""
+    --assignees_number      "minimum number of reviewers"               <>:numbers=""      
+    --testers_number        "minimum test number"                       <>:numbers=""
+    --state                 "state"                                     <>:state="closed"
 '
     param:run
 
@@ -175,10 +183,12 @@ options:
 gt_repo_pr_merge() {
     param:scope     "gitee/$O"
     param:dsl       '
+type:
+    merge = squash  merge
 options:
     #1|--pr                 "pr id"                                     <>
-    --merge_method          "merge method(squash,merge)"                <>="merge"
-    --prune_source_branch   "prune source branch"                       <>="false"
+    --merge_method          "merge method(squash,merge)"                <>:merge="merge"
+    --prune_source_branch   "prune source branch"                       <>:bool="false"
     --title                 "title"                                     <>=""
     --description           "description"                               <>=""
 '
@@ -215,8 +225,8 @@ gt_repo_pr_assign_add() {
     param:scope     "gitee/$O"
     param:dsl       '
 options:
-    #1|--pr             "pr id"                                                     <>
-    #2|--assignees     "reviewer username list. Format: <username>[,<username>]"    <>
+    #1|--pr             "pr id"                                                     <>:number
+    #2|--assignees     "reviewer username list. Format: <username>[,<username>]"    <>:name
 '
     param:run
 
@@ -230,8 +240,8 @@ gt_repo_pr_assign_del() {
     param:scope     "gitee/$O"
     param:dsl       '
 options:
-    #1|--pr             "pr id"                                                     <>
-    #2|--assignees     "reviewer username list. Format: <username>[,<username>]"    <>
+    #1|--pr             "pr id"                                                     <>:number
+    #2|--assignees     "reviewer username list. Format: <username>[,<username>]"    <>:name
 '
     param:run
 
@@ -243,8 +253,8 @@ gt_repo_pr_assign_reset() {
     param:scope     "gitee/$O"
     param:dsl       '
 options:
-    #1|--pr             "pr id"                 <>
-    --reset_all         "reset all"
+    #1|--pr             "pr id"                 <>:number
+    --reset_all         "reset all"             <>:bool="false"
 '
     param:run
 
@@ -258,14 +268,13 @@ gt_repo_pr_assign_review() {
     param:scope     "gitee/$O"
     param:dsl       '
 options:
-    #1|--pr         "pr id"                     <>
-    --force         "force"
+    #1|--pr         "pr id"                     <>:number
+    --force         "force"                     <>:bool="false"
 '
     param:run
 
     ___parse_pr_init_owner_repo_and_pr
 
-    force=${force:-false}
     ___gt_post_json "/v5/repos/${owner_repo}/pulls/$pr/review" force  
 }
 
@@ -309,8 +318,8 @@ gt_repo_pr_testers_delete() {
     param:scope     "gitee/$O"
     param:dsl       '
 options:
-    #1|--pr         "pr id"                     <>
-    --testers       "testers username list. Format: <username>[,<username>]"    <>
+    #1|--pr         "pr id"                     <>:number
+    --testers       "testers username list. Format: <username>[,<username>]"    <>:name
 '
     param:run
 
@@ -322,14 +331,13 @@ gt_repo_pr_testers_reset() {
     param:scope     "gitee/$O"
     param:dsl       '
 options:
-    #1|--pr         "pr id"                     <>
-    --reset_all     "reset all"
+    #1|--pr         "pr id"                     <>:number
+    --reset_all     "reset all"                 <>:bool="false"
 '
     param:run
 
     ___parse_pr_init_owner_repo_and_pr
 
-    reset_all=${reset_all:-false}
     ___gt_patch_json "/v5/repos/${owner_repo}/pulls/$pr/testers" reset_all  
 }
 
@@ -337,14 +345,13 @@ gt_repo_pr_testers_test() {
     param:scope     "gitee/$O"
     param:dsl       '
 options:
-    #1|--pr         "pr id"                     <>
-    --force         "force"
+    #1|--pr         "pr id"                     <>:number
+    --force         "force"                     <>:bool="false"
 '
     param:run
 
     ___parse_pr_init_owner_repo_and_pr
 
-    force=${force:-false}
     ___gt_post_json "/v5/repos/${owner_repo}/pulls/$pr/test" force  
 } 
 

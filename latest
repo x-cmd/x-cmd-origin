@@ -1,5 +1,4 @@
-# xrc
-# shellcheck shell=sh disable=SC3043
+# shellcheck shell=sh disable=SC3043 # xrc
 
 # author:       Li Junhao           l@x-cmd.com
 # maintainer:   Li Junhao
@@ -70,3 +69,4 @@ if [ -n "$___X_CMD_ENABLE_AUTO_RUN" ]; then
     cowsay "$@"
 fi
 
+xrc setmain cowsay

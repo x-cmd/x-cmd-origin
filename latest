@@ -46,11 +46,27 @@ A
 
 # Section : run by file: get_engine_by_file* and run_by_file*
 
-___xrc_run(){
-    local ___xrc_run_filepath="${1:?filepath}";        shift
-    ___X_CMD_ENABLE_AUTO_RUN=1 ___x_cmd_source "$___xrc_run_filepath" "$@"
+___x_cmd_xrc_run(){
+    local fp="${1:?filepath}"; shift
 
-    # local ___xrc_module_name="${___xrc_run_filepath##*/}"
+    local main
+    if ! main="$(___x_cmd_ldict_get ___X_CMD_XRC_SET_MAIN_DICT "$fp")"; then
+        ___x_cmd_xrc_source_file "$fp" # xrc
+        local code=$?
+        if ! main="$(___x_cmd_ldict_get ___X_CMD_XRC_SET_MAIN_DICT "$fp")"; then
+            return "$code"
+        fi
+    fi
+
+    "$main" "$@"
+}
+
+___x_cmd_source_run(){
+    local ___x_cmd_x_source_run_filepath="${1:?filepath}";        shift
+
+    ___x_cmd_source "$___x_cmd_x_source_run_filepath" "$@"
+
+    # local ___xrc_module_name="${___x_cmd_x_source_run_filepath##*/}"
 
     # if command -v "___x_cmd_${___xrc_module_name}" >/dev/null; then
     #     "___x_cmd_${___xrc_module_name}" "$@"
@@ -66,18 +82,15 @@ ___xrc_run(){
     # fi
 }
 
-___x_cmd_xrc_run(){
-    ___xrc_run "$@"
-}
-
 ___x_cmd_xsh_run()(
-    ___xrc_run "$@"
+    ___x_cmd_source_run "$@"
 )
 
 ___x_cmd_run_with_engine(){
     local engine="${1:?Please provide engine}";
     local filepath="${2:?Please provide filepath}";        shift 2
     case "$engine" in
+        source)     ___x_cmd_source_run "$filepath" "$@";;
         xrc)        ___x_cmd_xrc_run "$filepath" "$@";;
         xsh)        ___x_cmd_xsh_run "$filepath" "$@";;
         7z)         ___x_cmd_main 7z x "$filepath" "$@"      ;;
@@ -88,8 +101,9 @@ ___x_cmd_run_with_engine(){
 ___x_cmd_get_engine_by_file_header(){
     local filepath="${1:?Please provide filepath}"; shift
     case "$(head -n1 "$filepath")" in
-        *xsh*)          printf "%s" xsh             ;;
+        *source*)       printf "%s" source          ;;
         *xrc*)          printf "%s" xrc             ;;
+        *xsh*)          printf "%s" xsh             ;;
         *python*)       printf "%s" python          ;;
         *perl*)         printf "%s" perl            ;;
         *ruby*)         printf "%s" ruby            ;;
@@ -167,7 +181,7 @@ ___x_cmd_run_by_file(){
     if engine="$(___x_cmd_get_engine_by_file "$filepath")"; then
         ___x_cmd_run_with_engine "$engine" "$filepath" "$@"
     else
-        ___x_cmd_run_with_engine xrc "$filepath" "$@"
+        ___x_cmd_run_with_engine source "$filepath" "$@"
     fi
 }
 
@@ -579,7 +593,7 @@ ___x_cmd_alias_info(){
     local item="${DATA#*$___X_CMD_ALIAS_SEP${name}${___X_CMD_ALIAS_ITEM_SEP}}"
     ___X_CMD_ALIAS_EXEC_EXIST=
     if [ "$item" = "$DATA" ]; then
-        return
+        return 1
     fi
 
     ___X_CMD_ALIAS_EXEC_EXIST=1
@@ -594,8 +608,11 @@ ___x_cmd_alias_print(){
     local code
     local desc
 
-    ___x_cmd_alias_info "$@"
-    printf "%s    %s       %s\n" "$name" "$code" "$desc"
+    if ___x_cmd_alias_info "$@"; then
+        printf "%s    %s       %s\n" "$name" "$code" "$desc"
+        return
+    fi
+    return 1
 }
 
 # EndSection
@@ -728,11 +745,13 @@ ___x_cmd_main_otherwise(){
     local p
     if ___x_cmd_which_one "$subcmd"; then
         p="$___X_CMD_WHICH_ONE_RESULT"
-        if [ "$___X_CMD_UNTRUSTED_RESOURCE" = "workspace" ]; then
-            ___x_cmd_exe_workspace "$p" "$@"
-        else
-            ___x_cmd_run_by_file "$p" "$@" # 2>/dev/null
-        fi
+        case "$___X_CMD_WHICH_ONE_RESOURCE_TYPE" in
+            workspace)      ___x_cmd_exe_workspace "$p" "$@" ;;
+            local)          ___x_cmd_run_by_file "$p" "$@" ;;
+            hub)            ___x_cmd_run_by_file "$p" "$@" ;;
+            official)
+                ___x_cmd_run_by_file "$p" "$@" ;;
+        esac
         return
     else
         printf "%s" "Error" >&2
@@ -819,9 +838,7 @@ ___x_cmd_main(){
         cd)                                     ___x_cmd_cd "$@";;
 
         man)        ;;
-        tldr)                                   xrc tldr/v0 && tldr "$@" ;;
         advise)                                 xrc advise/v0 && advise "$@" ;;
-        proxy)                                  xrc proxy/latest && proxy "$@" ;;
         env)        ;;
 
         login)                                  ( xrc hub/v0 && ___x_cmd_hub login "$@" ) ;;

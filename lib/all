@@ -11,6 +11,7 @@ subcommand:
     pull        "pull"
     push        "push"
     update      "update"
+    clone       "clone"
     ls          "list modules"
 A
     param:run
@@ -26,7 +27,7 @@ A
 ___x_cmd_dev_all_clone(){
     local n
     ___x_cmd_dev_all_ls | while read -r n; do
-        git clone "git@gitee.com:$n.git"
+        git clone "git@gitee.com:x-bash/$n.git"
     done
 }
 
@@ -42,7 +43,7 @@ ___x_cmd_dev_all_update(){
 }
 
 ___x_cmd_dev_all_ls(){
-    ___x_cmd_dev_pkg_lsmod_latest
+    ___x_cmd_dev_mod_ls "$@"
 }
 
 # EndSection

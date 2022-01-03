@@ -103,6 +103,6 @@ alias kgrs="kg rs"
 
 # EndSection
 
-if [ -z "$X_DEFAULT_THEME" ]; then
-    x theme use "${X_DEFAULT_THEME:-el}"
+if [ -n "$___X_CMD_THEME_NAME" ]; then
+    x theme use el
 fi

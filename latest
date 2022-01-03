@@ -53,7 +53,7 @@ TMPDIR=${TMPDIR:-$(dirname "$(mktemp -u)")/}    # It is posix standard. BUT NOT 
 if [ -z "$___X_CMD_ROOT" ]; then
     ___X_CMD_ROOT="$HOME/.x-cmd"           # boot will be placed in "$HOME/.x-cmd/boot"
     ___xrc_log debug "Setting env ___X_CMD_ROOT: $___X_CMD_ROOT"
-    mkdir -p "$___X_CMD_ROOT" || return 1 || exit 1
+    [ -d "$___X_CMD_ROOT" ] || mkdir -p "$___X_CMD_ROOT" || return 1 || exit 1
     PATH="$___X_CMD_ROOT/.bin:$PATH"
 fi
 
@@ -90,18 +90,23 @@ ___X_CMD_BRANCH=main
 ___x_cmd_mirror(){
     local fp="$___X_CMD_ROOT/.source.mirror.list"
     if [ $# -ne 0 ]; then
-        mkdir -p "$(dirname "$fp")"
         local IFS="
 ";
         printf "%s" "$*" >"$fp"
         return
     fi
-    if [ ! -f "$fp" ]; then
-        ___x_cmd_mirror \
-            "https://raw.githubusercontent.com/x-cmd/x-cmd/$___X_CMD_BRANCH/mod/%s" \
-            "https://gitee.com/x-cmd/x-cmd/raw/$___X_CMD_BRANCH/mod/%s"
+
+    # TODO: what if the mirror file is wrong or empty? ... We should have a solution for that.
+    if [ -f "$fp" ]; then
+        cat "$fp"
+        return
     fi
-    cat "$fp"
+
+    tee "$fp" <<A
+https://raw.githubusercontent.com/x-cmd/x-cmd/$___X_CMD_BRANCH/mod/%s
+https://gitee.com/x-cmd/x-cmd/raw/$___X_CMD_BRANCH/mod/%s
+A
+
 }
 
 if [ "$___X_CMD_IN_CHINA_NET" = 1 ]; then
@@ -117,6 +122,10 @@ esac
 # EndSection
 
 # Section: main entrance
+
+___x_cmd_xrc_set_main(){
+    ___X_CMD_XRC_SET_MAIN="${1:?Provide function}"
+}
 
 # shellcheck disable=SC1091
 xrc(){
@@ -188,6 +197,8 @@ A
             x log "$@" ;;
         ls)
             ls "$___X_CMD_ROOT" ;;  # If tar.gz, using tar ls. If folder, ls $folder
+        setmain)
+            ___x_cmd_xrc_set_main "$@" ;;
         reload)
             if [ "$#" -gt 0 ]; then
                 local ___X_CMD_XRC_RELOAD=1
@@ -233,6 +244,146 @@ A
 }
 # EndSection
 
+# Section: ldict
+___X_CMD_LDICT(){
+    local op="$1"; shift
+    case "$op" in
+        put)        ___x_cmd_ldict_put "$@" ;;
+        get)        ___x_cmd_ldict_get "$@" ;;
+        keys)       ___x_cmd_ldict_keys "$@" ;;
+        print)      ___x_cmd_ldict_print "$@" ;;
+        *)
+            printf "Show help for ldict\n" >&2
+            return 1
+    esac
+}
+
+alias ldict="___X_CMD_LDICT"
+
+___X_CMD_LDICT_SEP="$(printf "\001")"
+___X_CMD_LDICT_KVSEP="$(printf "\002")"
+
+___x_cmd_ldict_put(){
+    local name="${1:?Provide dict name}"
+    local key="${2:?Provide key}"
+    local value="${3:?Provide value}"
+
+    ___x_cmd_ldict_rm "$name" "$key"
+
+    eval "___X_CMD_LDICT_${name}=\"\${___X_CMD_LDICT_${name}:-\${___X_CMD_LDICT_SEP}}\${key}\${___X_CMD_LDICT_KVSEP}\${value}\${___X_CMD_LDICT_SEP}\""
+}
+
+___x_cmd_ldict_rm(){
+    local name="${1:?Provide dict name}"
+    local key="${2:?Provide key}"
+
+    local tmp
+    eval "tmp=\"\${___X_CMD_LDICT_${name}#*\${___X_CMD_LDICT_SEP}\${key}\${___X_CMD_LDICT_KVSEP}*\${___X_CMD_LDICT_SEP}}\""
+    if eval [ \"\$tmp\" != \"\$"___X_CMD_LDICT_${name}"\" ]; then
+        eval "___X_CMD_LDICT_${name}=\"\${___X_CMD_LDICT_${name}%%\${___X_CMD_LDICT_SEP}\${key}\${___X_CMD_LDICT_KVSEP}*}\${___X_CMD_LDICT_SEP}\${tmp}\""
+        return 0
+    fi
+    return 1
+}
+
+___x_cmd_ldict_has(){
+    local name="${1:?Provide dict name}"
+    local key="${2:?Provide key}"
+
+    local tmp
+    eval "tmp=\"\${___X_CMD_LDICT_${name}#*\${___X_CMD_LDICT_SEP}\${key}\${___X_CMD_LDICT_KVSEP}*\${___X_CMD_LDICT_SEP}}\""
+    eval [ \"\$tmp\" != \"\$"___X_CMD_LDICT_${name}"\" ]
+}
+
+___x_cmd_ldict_get(){
+    local name="${1:?Provide dict name}"
+    local key="${2:?Provide key}"
+
+    local tmp
+
+    eval "tmp=\"\${___X_CMD_LDICT_${name}#*\${___X_CMD_LDICT_SEP}\${key}\${___X_CMD_LDICT_KVSEP}}\""
+
+    if eval [ \"\$tmp\" != \"\$"___X_CMD_LDICT_${name}"\" ]; then
+        printf "%s" "${tmp%%${___X_CMD_LDICT_SEP}*}"
+    else
+        return 1
+    fi
+}
+
+___x_cmd_ldict_keys(){
+    local name="${1:?Provide dict name}"
+    eval printf \"%s\" \"\$"___X_CMD_LDICT_${name}"\" | awk -v RS="$___X_CMD_LDICT_SEP" -v FS="${___X_CMD_LDICT_KVSEP}" '
+NR!=1{
+    print $1
+}'
+}
+
+___x_cmd_ldict_print(){
+    local name="${1:?Provide dict name}"
+    eval printf \"%s\" \"\$"___X_CMD_LDICT_${name}"\" | awk -v RS="$___X_CMD_LDICT_SEP" -v FS="${___X_CMD_LDICT_KVSEP}" '
+NR!=1{
+    print $1 " = " $2
+}'
+}
+
+# EndSection
+
+# Section: llist
+___x_cmd_llist(){
+    local op="$1"; shift
+    case "$op" in
+        init)           ___x_cmd_llist_init "$@" ;;
+        shift)          ___x_cmd_llist_shift "$@" ;;
+        unshift)        ___x_cmd_llist_unshift "$@" ;;
+        push)           ___x_cmd_llist_push "$@" ;;
+        pop)            ___x_cmd_llist_pop "$@" ;;
+        has)            ___x_cmd_llist_has "$@" ;;
+        print)          ___x_cmd_llist_print "$@" ;;
+        *)
+            printf "Show help for llist\n" >&2
+            return 1
+    esac
+}
+
+alias llist="___x_cmd_llist"
+
+___x_cmd_llist_init(){
+    local name="${1:?Provide list name}"
+    eval "___x_cmd_llist_$name=\"\${___X_CMD_LDICT_SEP}\""
+}
+
+___x_cmd_llist_push(){
+    local name="${1:?Provide list name}"
+    local value="${2:?Provide value}"
+
+    eval "___X_CMD_LLIST_${name}=\"\${___X_CMD_LLIST_${name}:-\${___X_CMD_LDICT_SEP}}\${value}\${___X_CMD_LDICT_SEP}\""
+}
+
+___x_cmd_llist_unshift(){
+    local name="${1:?Provide list name}"
+    local value="${2:?Provide value}"
+
+    eval "___X_CMD_LLIST_${name}=\"\${___X_CMD_LDICT_SEP}\${value}\${___X_CMD_LLIST_${name}:-\${___X_CMD_LDICT_SEP}}\""
+}
+
+___x_cmd_llist_has(){
+    local name="${1:?Provide dict name}"
+    local value="${2:?Provide key}"
+
+    local part1
+    eval "part1=\"\${___X_CMD_LLIST_${name}#*\${___X_CMD_LDICT_SEP}\${value}\${___X_CMD_LDICT_SEP}}\""
+    eval [ \"\$part1\" != \"\$"___X_CMD_LLIST_${name}"\" ]
+}
+
+___x_cmd_llist_print(){
+    local name="${1:?Provide dict name}"
+    eval printf \"%s\" \"\$"___X_CMD_LLIST_${name}"\" | awk -v RS="$___X_CMD_LDICT_SEP" '
+NR!=1{
+    print $1
+}'
+}
+# EndSection
+
 # Section: main entrance helper
 ___x_cmd_xrc_cat(){
     local file
@@ -248,7 +399,9 @@ ___x_cmd_xrc_cat(){
     done
 }
 
-___X_CMD_XRC_MODULE_IMPORTED=""
+___X_CMD_XRC_MODULE_IMPORTED="
+"
+
 ___x_cmd_xrc_source_file(){
     local ___X_CMD_WHICH_ONE_RESULT
     local ___X_CMD_LOCAL_XRCPATH
@@ -263,7 +416,7 @@ ___x_cmd_xrc_source_file(){
         fi
 
         # Ask whether using http or outside resource.
-        if [ -n "$___X_CMD_UNTRUSTED_RESOURCE" ] && [ -z "$NOWARN" ]; then
+        if [ "$___X_CMD_WHICH_ONE_RESOURCE_TYPE" = http ] && [ -z "$NOWARN" ]; then
 
             # We should do it before ___x_cmd_which_one
             printf "Sourcing script from untrusted location: %s\n" "$___X_CMD_LOCAL_XRCPATH"
@@ -284,20 +437,32 @@ A
             fi
         fi
 
-        if [ -z "$___X_CMD_XRC_RELOAD" ]; then
-            if [ "${___X_CMD_XRC_MODULE_IMPORTED#*
+        ___x_cmd_xrc_source_file_main "$___X_CMD_WHICH_ONE_RESULT"
+    done
+}
+
+___x_cmd_xrc_source_file_main(){
+    ___X_CMD_WHICH_ONE_RESULT="${1:?Provide exact file}"
+
+    if [ -z "$___X_CMD_XRC_RELOAD" ]; then
+        if [ "${___X_CMD_XRC_MODULE_IMPORTED#*
 "$___X_CMD_WHICH_ONE_RESULT"
 *}" != "${___X_CMD_XRC_MODULE_IMPORTED}" ]; then
-                [ $# -gt 0 ] && shift
-                continue    # exited already. skip
-            fi
+            return    # exited already. skip
         fi
+    fi
 
-        ___X_CMD_ENABLE_AUTO_RUN="" ___x_cmd_source "$___X_CMD_WHICH_ONE_RESULT"
-        ___X_CMD_XRC_MODULE_IMPORTED="$___X_CMD_XRC_MODULE_IMPORTED
-$___X_CMD_WHICH_ONE_RESULT"
+    ___X_CMD_XRC_MODULE_IMPORTED="
+${___X_CMD_WHICH_ONE_RESULT}${___X_CMD_XRC_MODULE_IMPORTED}"
 
-    done
+    ___X_CMD_XRC_SET_MAIN=
+    ___x_cmd_source "$___X_CMD_WHICH_ONE_RESULT"
+
+    if [ -n "$___X_CMD_XRC_SET_MAIN" ]; then
+        ___x_cmd_ldict_put ___X_CMD_XRC_SET_MAIN_DICT "${___X_CMD_WHICH_ONE_RESULT}" "${___X_CMD_XRC_SET_MAIN}"
+        # TODO: rename module
+        ___X_CMD_XRC_SET_MAIN=
+    fi
 }
 
 ___x_cmd_curl_gitx(){   # Simple strategy
@@ -368,15 +533,16 @@ ___x_cmd_which_one(){
     ___X_CMD_WHICH_ONE_RESULT=
 
     local TGT
-    ___X_CMD_UNTRUSTED_RESOURCE=
+    ___X_CMD_WHICH_ONE_RESOURCE_TYPE=official
     case "$RESOURCE_NAME" in
         /*)
+            ___X_CMD_WHICH_ONE_RESOURCE_TYPE=local
             ___xrc_log debug "Resource recognized as local file: $RESOURCE_NAME"
             ___X_CMD_WHICH_ONE_RESULT="$RESOURCE_NAME"
             return 0
             ;;
         http://*|https://*)
-            ___X_CMD_UNTRUSTED_RESOURCE=http
+            ___X_CMD_WHICH_ONE_RESOURCE_TYPE=http
             ___xrc_log debug "Resource recognized as http resource: $RESOURCE_NAME"
 
             TGT="$___X_CMD_ROOT/.http_resource/BASE64-URL-$(printf "%s" "$RESOURCE_NAME" | base64 | tr -d '\r\n')"
@@ -389,13 +555,14 @@ ___x_cmd_which_one(){
             ;;
         *@*/*)
             xrc hub/v0
-            ___xcmd_hub_file_which "$RESOURCE_NAME"     # Will set ___X_CMD_UNTRUSTED_RESOURCE=1 if from unknow source
+            ___xcmd_hub_file_which "$RESOURCE_NAME"     # Will set ___X_CMD_WHICH_ONE_RESOURCE_TYPE=1 if from unknow source
             ;;
         ./*|../*)
             ___xrc_log debug "Resource recognized as local file with relative path: $RESOURCE_NAME"
             local tmp
             if tmp="$(cd "$(dirname "$RESOURCE_NAME")" || exit 1; pwd)"; then
-                ___X_CMD_UNTRUSTED_RESOURCE="$tmp/$(basename "$RESOURCE_NAME")"
+                ___X_CMD_WHICH_ONE_RESOURCE_TYPE=local
+                ___X_CMD_WHICH_ONE_RESULT="$tmp/$(basename "$RESOURCE_NAME")"
                 return 0
             else
                 ___xrc_log warn "Local file not exists: $RESOURCE_NAME"
@@ -408,7 +575,7 @@ ___x_cmd_which_one(){
                 [ -f "$RESOURCE_NAME" ] && ___X_CMD_WHICH_ONE_RESULT="$RESOURCE_NAME" && return      # local file
 
                 if TGT="$(___x_cmd_search_path . ".x-cmd/$RESOURCE_NAME")"; then
-                    ___X_CMD_UNTRUSTED_RESOURCE=workspace
+                    ___X_CMD_WHICH_ONE_RESOURCE_TYPE=workspace
                     ___X_CMD_WHICH_ONE_RESULT="$TGT/.x-cmd/$RESOURCE_NAME"
                     return                   # .x-cmd
                 fi
@@ -438,6 +605,7 @@ ___x_cmd_which_one(){
 
 # Section: Instance management.
 
+# TODO: We could use list to replace this facility.
 # ___x_cmd_instance_add class object
 ___x_cmd_instance_new(){
     local name="${2:?Provide object name}"

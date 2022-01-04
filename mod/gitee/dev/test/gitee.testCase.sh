@@ -1,7 +1,7 @@
 # shellcheck shell=sh
 # shellcheck disable=SC2039,3043
 source ./v0
-xrc  param/v0 json/v0 str/v0 http/v0 assert/v0
+xrc  param/latest json/latest str/latest http/latest assert/latest
 
 test_gitee() {
     echo "gitee开始测试"

@@ -123,7 +123,7 @@ if [ -z "$DO_NOT_INIT_GITEE_DEFAULT" ]; then
 fi
 
 if [ -z "$XRC_NO_ADVISE" ] && [ -n "${BASH_VERSION}${ZSH_VERSION}" ] && [ "${-#*i}" != "$-" ]; then
-    xrc advise/v0
+    xrc advise/latest
     advise gt
 fi
 

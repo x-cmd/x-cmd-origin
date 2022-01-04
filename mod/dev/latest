@@ -4,7 +4,7 @@
 # maintainer:   Li Junhao
 
 # Section: modules included
-xrc param/v0
+xrc param/latest
 
 xrc dev/lib/all
 

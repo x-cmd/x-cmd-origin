@@ -223,7 +223,7 @@ ___ui_table_out3(){
 
 ___ui_table_json_to_table(){
     local keyname="$1"; shift
-    xrc json/v0
+    xrc json/latest
 
     local IFS
     IFS="$(printf "\001")"

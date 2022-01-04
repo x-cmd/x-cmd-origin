@@ -280,7 +280,7 @@ ___x_cmd_ui_prompt_question_draw(){
     } | ___x_cmd_ui_region_send
 }
 
-xrc assert/v0
+xrc assert/latest
 
 ___x_cmd_ui_prompt_question_main(){
     exec 3>&1

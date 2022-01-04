@@ -3,7 +3,7 @@
 # author:       Li Junhao           l@x-cmd.com    edwinjhlee.github.io
 # maintainer:   Li Junhao
 
-xrc param/v0
+xrc param/latest
 
 ___X_CMD_PROXY_BACKUP_DIR="$___X_CMD_ROOT/proxy/.backup"
 

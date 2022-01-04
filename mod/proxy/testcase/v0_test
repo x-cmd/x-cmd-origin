@@ -8,7 +8,7 @@ x log proxy
 xrc proxy
 
 if [ -n "${BASH_VERSION}${ZSH_VERSION}" ]; then
-    xrc advise/v0
+    xrc advise/latest
     advise rm proxy
     proxy_log "advise proxy time: "
     time advise proxy

@@ -4,8 +4,8 @@
 # Desgin by Li Junhao and his friends in Zhongshan, Guangdong, China.
 # Please visit https://github.com/x-bash/http for LICENSE.
 
-xrc dict/v0
-xrc param/v0
+xrc dict/latest
+xrc param/latest
 xrc str
 
 http() {
@@ -634,7 +634,7 @@ ___http_graphql() {
 }
 
 ___http_cli(){
-    xrc ps1env/v0
+    xrc ps1env/latest
     ps1env init "http >"
     ps1env alias + "http"
     ps1env alias :h "http help"
@@ -649,7 +649,7 @@ A
 }
 
 if [ -n "${BASH_VERSION}${ZSH_VERSION}" ] && [ "${-#*i}" != "$-" ]; then
-    xrc advise/v0
+    xrc advise/latest
     advise http
 fi
 

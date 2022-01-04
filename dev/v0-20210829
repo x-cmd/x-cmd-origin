@@ -4,7 +4,7 @@
 # author:       Li Junhao           l@x-cmd.com         edwinjhlee.github.io
 # maintainer:   Li Junhao
 # @src std/dict  # @src std/oo # std/dict -> std/list -> std/oo
-xrc dict/v0
+xrc dict/latest
 
 http() {
     local op
@@ -541,7 +541,7 @@ ___http_graphql() {
 }
 
 ___http_quick(){
-    xrc ps1env/v0
+    xrc ps1env/latest
     ps1env init "http >"
     ps1env alias + "http"
     ps1env alias :h "http help"
@@ -582,6 +582,6 @@ A
 }
 
 if [ -n "${BASH_VERSION}${ZSH_VERSION}" ] && [ "${-#*i}" != "$-" ]; then
-    xrc advise/v0
+    xrc advise/latest
     advise http
 fi

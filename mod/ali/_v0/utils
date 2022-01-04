@@ -23,7 +23,7 @@ ali_region(){
     fi
 }
 
-xrc json/v0
+xrc json/latest
 
 ___json_awk_str_compact(){
     awk -v RS="$(printf "\001")" "$___X_CMD_JSON_AWK_SRC"'
@@ -45,7 +45,7 @@ ___ali_zone_tablesrc(){
     ___ali_zone | ui table jsonfmt .Zones.Zone ID=ZoneId 名=LocalName
 }
 
-xrc param/v0
+xrc param/latest
 
 ali_zone(){
     param:void

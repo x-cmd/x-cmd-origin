@@ -3,7 +3,7 @@
 # author:       Li Junhao           l@x-cmd.com    edwinjhlee.github.io
 # maintainer:   Li Junhao
 
-xrc os/v0
+xrc os/latest
 
 x log init static_build
 

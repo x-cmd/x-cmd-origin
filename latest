@@ -11,7 +11,7 @@ ___x_cmd_proxy(){
 }
 
 if ___x_cmd_is_suitable_advise_env; then
-    xrc advise/v0
+    xrc advise/latest
     advise proxy
 fi
 

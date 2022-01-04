@@ -1,4 +1,4 @@
-# shellcheck shell=sh disable=SC3043
+# shellcheck shell=sh disable=SC3043 # xrc
 
 xrc param/v0
 
@@ -164,7 +164,9 @@ A
     esac
 }
 
-if [ -z "$XRC_NO_ADVISE" ] && [ -n "${BASH_VERSION}${ZSH_VERSION}" ] && [ "${-#*i}" != "$-" ]; then
-    xrc advise/v0
+if ___x_cmd_is_suitable_advise_env; then
+    xrc advise/latest
     advise zuz
 fi
+
+xrc setmain zuz

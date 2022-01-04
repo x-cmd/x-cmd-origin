@@ -120,7 +120,7 @@ ___x_cmd_dev_pkg_7z()(
 # EndSection
 
 ___x_cmd_dev_pkg_pub(){
-    ___x_cmd_dev_pkg_update "$@" && ___x_cmd_dev_pkg_tgz "$@" && git add .
+    ___x_cmd_dev_pkg_update "$@" && ___x_cmd_dev_pkg_tgz "$@" && git add . && git commit -m ...
     ___x_cmd_dev_ws_push
 }
 

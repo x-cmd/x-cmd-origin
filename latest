@@ -554,7 +554,7 @@ ___x_cmd_which_one(){
             fi
             ;;
         *@*/*)
-            xrc hub/v0
+            xrc hub/latest
             ___xcmd_hub_file_which "$RESOURCE_NAME"     # Will set ___X_CMD_WHICH_ONE_RESOURCE_TYPE=1 if from unknow source
             ;;
         ./*|../*)
@@ -735,7 +735,7 @@ alias xdev="x dev"
 
 if ___x_cmd_is_suitable_advise_env; then
     ___xrc_log debug "Using module advise for completion."
-    xrc advise/v0 && advise init xrc && advise init x
+    xrc advise/latest && advise init xrc && advise init x
     # load all advise json from advise dir
     advise load
 fi

@@ -100,7 +100,7 @@ A
 # IFS=$'\n'; echo "${a[*]}"
 
 str_selftest(){
-    xrc doctest/v0
+    xrc doctest/latest
     doctest "${BASH_SOURCE[0]}"
 }
 
@@ -679,7 +679,7 @@ A
 }
 
 if [ -n "${BASH_VERSION}${ZSH_VERSION}" ] && [ "${-#*i}" != "$-" ]; then
-    xrc advise/v0
+    xrc advise/latest
     advise str
 fi
 

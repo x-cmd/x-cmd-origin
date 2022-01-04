@@ -5,7 +5,7 @@
 
 alias param='{ eval "$(_param_main "$@")"; }'
 
-xrc dict/v0
+xrc dict/latest
 
 PARAM_AWK_PATH="$(xrc which param/v0.awk)"
 # PARAM_AWK_PATH=./v0.awk

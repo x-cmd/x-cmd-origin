@@ -12,7 +12,7 @@
 # Section 6: param subcmd
 ############################
 
-xrc dict/v0
+xrc dict/latest
 
 # Section 1: Global definitions
 ############################
@@ -184,7 +184,7 @@ ___param_eval_echo(){
 
 alias param:debug='local IFS; ___param_eval_echo "$(_param_main "$@"  )"'
 if [ "${-#*i}" != "$-" ]; then
-    xrc ui/v0
+    xrc ui/latest
 fi
 
 # TODO: our goal, 6ms

@@ -29,7 +29,7 @@ ___ui_prompt_question(){
     local answer="${2:?Answer variable}"
     shift 2
 
-    xrc assert/v0
+    xrc assert/latest
     while :; do
         printf "\033[31;1m? %s >\033[34;1m" "$question"
         if ! ___ui_read "$answer"; then

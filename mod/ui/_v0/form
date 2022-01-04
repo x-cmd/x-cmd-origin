@@ -2,7 +2,7 @@
 
 # Section: form app
 
-xrc assert/v0
+xrc assert/latest
 xrc ui/_v0/region
 
 

@@ -444,15 +444,9 @@ ___advise_man_exists(){
 }
 
 ___advise_man_update(){
-    local CACHE="$___X_CMD_ROOT/.tmp/advise/all.tar.gz"
-    local srcfolder="$___X_CMD_ROOT/.tmp/advise/src"
-
-    local url="https://gitee.com/x-cmd/advise/raw/main/dist/all.tgz"
-    if [ "$___X_CMD_IN_CHINA_NET" != 1 ]; then
-        url="https://raw.githubusercontent.com/x-cmd/advise/main/dist/all.tgz"
-    fi
-
-    if ___X_CMD_CURL_UPDATE=1 ___x_cmd_curl "$url"; then
+    local CACHE="$___X_CMD_ROOT/.tmp/advise/all.tgz"
+    if ___x_cmd_curl_gitx x-cmd advise main "dist/all.tgz" "$CACHE" -; then
+        local srcfolder="$___X_CMD_ROOT/.tmp/advise/src"
         [ -d "$srcfolder" ] && rm -rf "$srcfolder"
         mkdir -p "$srcfolder"
         tar xvf "$CACHE" -C "$srcfolder"

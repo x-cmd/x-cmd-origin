@@ -3,7 +3,7 @@
 # Section : install
 
 ___x_cmd_install(){
-    local subcmd="${1}";    shift
+    local subcmd="${1}";  [ "$#" -gt 0 ] && shift
 
     if [ -z "$subcmd" ]; then
         ___x_cmd_install help
@@ -63,20 +63,12 @@ ___x_cmd_install_run(){
 }
 
 ___x_cmd_install_which(){
-    local ___X_CMD_CURL_UPDATE="${___X_CMD_CURL_UPDATE}"
-
-    local CACHE="$___X_CMD_ROOT/.tmp/install/index.yml"
-
-    if find "$CACHE" -mmin 1h 2>/dev/null 1>&2; then
-        ___X_CMD_CURL_UPDATE=1
+    local cache="$___X_CMD_ROOT/.tmp/install/index.yml"
+    if ___x_cmd_curl_gitx x-cmd install main index.yml "$cache" "${___X_CMD_CURL_UPDATE:-1}"; then
+        printf "%s" "$cache"
+    else
+        return 1
     fi
-
-    local url="https://gitee.com/x-cmd/install/raw/main/index.yml"
-    if [ "$___X_CMD_IN_CHINA_NET" != 1 ]; then
-        url="https://raw.githubusercontent.com/x-cmd/install/main/index.yml"
-    fi
-
-    ___x_cmd_curl "$url" && printf "%s" "$CACHE"
 }
 
 ___x_cmd_install_ls(){
@@ -147,7 +139,7 @@ end{
 }
 
 ___x_cmd_install_update(){
-    ___X_CMD_CURL_UPDATE=1 ___x_cmd_install_which 1>/dev/null && printf "Update success.\n" >&2
+    ___X_CMD_CURL_UPDATE=0 ___x_cmd_install_which 1>/dev/null && printf "Update success.\n" >&2
 }
 
 ___x_cmd_install_name(){

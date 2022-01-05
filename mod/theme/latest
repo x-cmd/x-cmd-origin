@@ -30,21 +30,13 @@ A
 
 ___x_cmd_theme_which(){
     local name="${1:?Provide name}"
+    local cache="$___X_CMD_ROOT/.tmp/theme/$name"
 
-    local ___X_CMD_CURL_UPDATE="${___X_CMD_CURL_UPDATE}"
-
-    local CACHE="$___X_CMD_ROOT/.tmp/theme/$name"
-    if [ "$name" = 'index.yml' ] && [ -z "$(find "$CACHE" -mtime -1 2>/dev/null)" ]; then
-        rm -rf "$CACHE"
-        ___X_CMD_CURL_UPDATE=
+    local expiration=""
+    if [ "$name" = "index.yml" ]; then
+        expiration=1
     fi
-
-    local url="https://gitee.com/x-cmd/theme/raw/main/$name"
-    if [ "$___X_CMD_IN_CHINA_NET" != 1 ]; then
-        url="https://raw.githubusercontent.com/x-cmd/theme/main/$name"
-    fi
-
-    ___x_cmd_curl "$url" && printf "%s" "$CACHE"
+    ___x_cmd_curl_gitx x-cmd theme main "${name}" "$cache" "$expiration" && printf "%s" "$cache"
 }
 
 # EndSection
@@ -110,7 +102,7 @@ END{
     local code=$?
     if [ "$code" != 0 ]; then
         printf "\033[31m%s\033[33m%s\n%s \033[1;36m%s\033[0m\n" \
-            "[x-cmd]: Not found theme in cache." "Check the theme name is exist." \
+            "[x-cmd]: Not found theme in cache." " Check the theme name is exist." \
             "Or you can try run command to update cache." "\`x theme ls\`"
         return $code
     fi
@@ -163,12 +155,9 @@ ___x_cmd_theme_control_font() {
         printf "%s\n" "[x-cmd]: font already installed: $_font_dir"
         return 0
     fi
-    local CACHE="$_font_dir/$_font_name"
-    local url="https://gitee.com/x-cmd/theme/raw/main/font/$_font_name"
-    if [ "$___X_CMD_IN_CHINA_NET" != 1 ]; then
-        url="https://raw.githubusercontent.com/x-cmd/theme/main/font/$_font_name"
-    fi
-    ___x_cmd_curl "$url"
+    local cache="$_font_dir/$_font_name"
+    local expiration=""
+    ___x_cmd_curl_gitx x-cmd theme main "font/$_font_name" "$cache" "$expiration"
     if [ -n "$(command -v fc-cache)" ] ; then
         printf "%s\n" "[x-cmd]: Resetting font cache, this may take a moment..."
         fc-cache -f "$_font_dir"

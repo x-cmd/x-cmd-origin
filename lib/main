@@ -47,7 +47,7 @@ A
 
 # TODO: It is unnecessary to source the plugin file at the first time.
 for i in brew apt pip npm go apk yum cargo gem pacman; do
-    xrc "proxy/_v0/$i"
+    xrc "proxy/lib/$i"
 done
 
 ___proxy_version(){
@@ -60,7 +60,7 @@ ___proxy_exec(){
     local subcmd="${1:?Subcmd}"
     shift
 
-    if xrc "proxy/_v0/$subcmd"; then
+    if xrc "proxy/lib/$subcmd"; then
         proxy_"$subcmd" "$@"
     else
         proxy_log error "Module not found. Autoloading failure."

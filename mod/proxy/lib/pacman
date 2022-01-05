@@ -70,7 +70,7 @@ A
         tmp="$(cat $src_path)"
 
         if [ "$(id -u)" -ne 0 ]; then
-        proxy_log info "using sudo"
+            proxy_log info "using sudo"
             printf "%s" "" | sudo awk -v tmp="$tmp" 'BEGIN { tmp=tmp "\nServer = https://mirrors.tuna.tsinghua.edu.cn/archlinux/$repo/os/$arch";print tmp}' | sudo tee "$src_path"
             sudo pacman -Syy
         else

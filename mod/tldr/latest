@@ -67,18 +67,9 @@ A
 _______X_CMD_TLDR_ROOT="$___X_CMD_ROOT/.tmp/tldr"
 
 ___x_cmd__tldr_download(){
-    local src="${1:?src}"
-    local dst
-    dst="${2:-$1}"
-
-    local CACHE="$_______X_CMD_TLDR_ROOT/$dst"
-
-    local url="https://gitee.com/x-cmd/tldr/raw/main/dist/$src"
-    if [ "$___X_CMD_IN_CHINA_NET" != 1 ]; then
-        url="https://raw.githubusercontent.com/x-cmd/tldr/main/dist/$src"
-    fi
-
-    ___x_cmd_curl "$url" 2>/dev/null
+    local src="${1:?Provide source file}"
+    local dst="${2:-$1}"
+    ___x_cmd_curl_gitx x-cmd tldr main "dist/$src" "$_______X_CMD_TLDR_ROOT/$dst" 2>/dev/null
 }
 
 ___x_cmd_tldr_current(){
@@ -222,8 +213,9 @@ ___x_cmd_tldr_cat(){
         *)
             local tldr_file
             tldr_file="$(eval "$(printf "%s" "$cand" | awk 'BEGIN{ str="ui select \"text\" \"Found: \""; }{ str = str  " " "\"" $0 "\""; }END{ print str; }')" )"
+            tldr_file="$(___x_cmd_tldr_getfile "$tldr_file")"
             if [ -f "$tldr_file" ];then
-                cat "$(___x_cmd_tldr_getfile "$tldr_file")" | awk -v COLUMNS="$COLUMNS" "$(xrc cat $______X_CMD_TLDR_WCWIDTH_AWK)$(cat "$______X_CMD_TLDR_AWK")"
+                cat "$tldr_file" | awk -v COLUMNS="$COLUMNS" "$(xrc cat $______X_CMD_TLDR_WCWIDTH_AWK)$(cat "$______X_CMD_TLDR_AWK")"
                 return 1
             fi
             ;;

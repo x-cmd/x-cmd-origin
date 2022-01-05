@@ -5,6 +5,8 @@
 +awk
 +x_fs
 +dev
++p7zr
++p7z
 
 # basic modules: non dependency
 +str

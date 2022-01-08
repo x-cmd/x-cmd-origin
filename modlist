@@ -7,6 +7,8 @@
 +dev
 +p7zr
 +p7z
++log
++boot
 
 # basic modules: non dependency
 +str

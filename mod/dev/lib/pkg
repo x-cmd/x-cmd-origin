@@ -1,10 +1,18 @@
 # shellcheck shell=sh disable=SC3043
 
+___x_cmd_dev_pkg_gitx(){
+    if [ -z "$___X_CMD_IN_CHINA_NET" ]; then
+        printf "%s\n" "github.com"
+    else
+        printf "%s\n" "gitee.com"
+    fi
+}
+
 # Section: module add pull update
 ___x_cmd_dev_pkg_add(){
     local name="${1:?Provide module name}"
     # local position="${2:-"git@gitee.com/x-bash/$name.git"}"
-    local position="${2:-"https://gitee.com/x-bash/$name.git"}"
+    local position="${2:-"https://$(___x_cmd_dev_pkg_gitx)/x-bash/$name.git"}"
     local branch="${3:-main}"
     git subtree add --prefix="mod/$name" "$position" "$branch" --squash
 }
@@ -12,7 +20,7 @@ ___x_cmd_dev_pkg_add(){
 ___x_cmd_dev_pkg_pull(){
     local name="${1:?Provide module name}"
     # local position="${2:-"git@gitee.com/x-bash/$name.git"}"
-    local position="${2:-"https://gitee.com/x-bash/$name.git"}"
+    local position="${2:-"https://$(___x_cmd_dev_pkg_gitx)/x-bash/$name.git"}"
     local branch="${3:-main}"
     git subtree pull --prefix="mod/$name" "$position" "$branch" --squash
 }

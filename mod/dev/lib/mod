@@ -8,12 +8,13 @@ ___x_cmd_dev_mod_lsfile0()(
     cd "$(x wsroot)" || exit
 
     local i
-    for i in \
-        latest v* _v*/* _v*/**/* \
-        lib/**/* \
-        third-party/* third-party/*/.* third-party/**/* third-party/**/*/* third-party/**/*/*/* \
-        lib/* lib/**/*
-    do
+    ___x_cmd_glob file latest \
+        "v*" \
+        "_v*/**" \
+        "lib/**" \
+        "third-party/**" \
+        "lib/**" | \
+    while read -r i; do
         [ "$i" != "${i#*_test*}" ] && continue
         # [ "$i" != "${i%.test}" ] && continue
         [ -f "$i" ] && printf "%s\n" "$i"

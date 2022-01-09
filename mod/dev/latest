@@ -1,7 +1,6 @@
 # shellcheck shell=sh # xrc
 
 # author:       Li Junhao           l@x-cmd.com
-# maintainer:   Li Junhao
 
 # Section: modules included
 xrc param/latest

@@ -4,8 +4,8 @@ ___x_cmd_dev_init(){
     param:dsl <<A
 subcommand:
     gitignore|git       "git ignore"
-    vscode              "git ignore"
-    xcmd                "git ignore"
+    vscode              "vscode"
+    xcmd                "xcmd"
     license             "license"
     xproj               "x project"
 A
@@ -35,7 +35,7 @@ A
 # TODO: vscode project
 # According project
 ___x_cmd_dev_init_vscode(){
-    mkdir -p .vscode
+    mkdir -p "$(x wsroot)/.vscode"
     xrc cat dev/lib/settings.json >"$(x wsroot)/.vscode/settings.json"
 
     local ext

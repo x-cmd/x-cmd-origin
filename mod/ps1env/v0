@@ -27,7 +27,7 @@ A
 
 # Section: advise
 
-xrc advise/v0
+xrc advise/latest
 advise ps1env
 
 ___x_cmd_ps1env_init(){

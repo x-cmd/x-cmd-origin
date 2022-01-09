@@ -3,106 +3,36 @@
 # author:       Li Junhao           l@x-cmd.com
 # maintainer:   Li Junhao
 
-# Section: git facility
-alias gis="git status"
-alias giss="git status -s"
-alias gib="git branch"
 
-gia(){
-    if [ $# -eq 0 ]; then
-        git add .
-    else
-        git add "$@"
-    fi
-}
+___x_cmd_el_xrc_lib(){ xrc "el/lib/${1:?Provide module}"; }
+x marg1 ___x_cmd_el_xrc_lib <<A
+alpine
+code
+container
+git
+k8s
+udpn
+utils
+wubi
+A
 
-gisy(){
-    giam "$@"
-    git status -s
-    printf "\nEnter to continue. Other to abort: > " >&2
-    local key
-    read -r key
-    if [ "$key" != "" ]; then
-        printf "%s" "Abort. Because read $key" >&2
-        return 1
-    fi
+# x marg1 - xrc el/lib/\$1 <<A
+# alpine
+# code
+# container
+# git
+# k8s
+# udpn
+# utils
+# wubi
+# A
 
-    x push || giP
-}
++ xdk
+alias xdk=xdk  # xdk="x dk"
+alias l='x ll'
 
-giam(){
-    local msg="${1:-...}"
-    shift
-    if [ $# -eq 0 ]; then
-        git add .
-    else
-        git add "$@"
-    fi
-    git commit -m "$msg"
-}
-
-gicm(){
-    git commit -m "${1:-...}"
-}
-
-gip(){
-    if [ -f "$(x wsroot)/.x-cmd/pull" ]; then
-        x pull
-    else
-        git pull origin "$(git rev-parse --abbrev-ref HEAD)"
-    fi
-}
-
-# shellcheck disable=SC2120
-giP(){
-    if [ -f "$(x wsroot)/.x-cmd/push" ]; then
-        x push
-    else
-        git push origin "${1:-"$(git rev-parse --abbrev-ref HEAD)"}"
-    fi
-}
-
-# TODO: x gh clone
-ghclone(){
-    git clone "git@github.com:${1:?Provide url}.git"
-}
-
-# git clone gh://x-bash/x-cmd
-# TODO: x gt clone
-gtclone(){
-    git clone "git@gitee.com:${1:?Provide url}.git"
-}
-# EndSection
-
-# Section: shell
-alias ll="ls -al"
-alias lh="ls -alh"
-
-rmrf(){
-    local
-    for i in "$@"; do
-        case "$i" in
-            /)          printf "%s" "Try to 'rm -rf $i'" >&2;       return 1    ;;
-            /bin)       printf "%s" "Try to 'rm -rf $i'" >&2;       return 1    ;;
-            /usr)       printf "%s" "Try to 'rm -rf $i'" >&2;       return 1    ;;
-            /home)      printf "%s" "Try to 'rm -rf $i'" >&2;       return 1    ;;
-            /var)       printf "%s" "Try to 'rm -rf $i'" >&2;       return 1    ;;
-        esac
-        rm -rf "$i"
-    done
-}
-# EndSection
-
-# Section: k8s
-
-alias kctl=kubectl
-alias k=kctl
-alias kg="kubectl get"
-alias kgp="kg pods"
-alias kgrs="kg rs"
-
-# EndSection
-
-if [ -n "$___X_CMD_THEME_NAME" ]; then
-    x theme use el
+if [ -z "$___X_CMD_THEME_NAME" ]; then
+    x theme try el
 fi
+
+x boot mod ask el

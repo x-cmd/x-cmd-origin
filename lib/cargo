@@ -2,7 +2,7 @@
 
 # https://cargo.budshome.com/reference/source-replacement.html#:~:text=目前国内%20cargo,镜像源有：中国科学技术大学源、上海交通大学源、清华大学源，以及%20rustcc%20社区源%E3%80%82
 
-proxy_cargo(){
+___x_cmd_proxy_cargo(){
     param:dsl <<A
 subcommands:
     url               "Provide url of mirror candidates"
@@ -16,15 +16,15 @@ A
         proxy_log error "command not found: cargo, you should install cargo in your system."
         return 1
     elif [ -n "$PARAM_SUBCMD" ]; then
-        "proxy_cargo_${PARAM_SUBCMD}" "$@"
+        "___x_cmd_proxy_cargo_${PARAM_SUBCMD}" "$@"
     else
         proxy_log info "Current cargo mirror: "
-        proxy_cargo get
-        proxy_cargo _param_help_doc  >&2
+        ___x_cmd_proxy_cargo get
+        ___x_cmd_proxy_cargo _param_help_doc  >&2
     fi
 }
 
-proxy_cargo_url(){
+___x_cmd_proxy_cargo_url(){
     param:dsl <<A
 subcommands:
     tuna           "TUNA mirror"
@@ -40,17 +40,17 @@ A
         sjtu)       printf "https://mirrors.sjtug.sjtu.edu.cn/git/crates.io-index/"       ;;
         *)
             printf "Unknown mirror: %s" "$PARAM_SUBCMD" >&2
-            proxy_cargo_url _param_help_doc  >&2
+            ___x_cmd_proxy_cargo_url _param_help_doc  >&2
         ;;
     esac
 }
 
-proxy_cargo_get(){
+___x_cmd_proxy_cargo_get(){
     param:void
     cargo config -Z unstable-options get | grep registry
 }
 
-proxy_cargo_replace() {
+___x_cmd_proxy_cargo_replace() {
     param:dsl <<A
 subcommands:
     tuna           "TUNA mirror"
@@ -69,7 +69,7 @@ A
     local src
     src=${PARAM_SUBCMD:-tuna}
 
-    if url="$(proxy_cargo_url "$src")"; then
+    if url="$(___x_cmd_proxy_cargo_url "$src")"; then
         proxy_log info "Setting proxy_apt mirror :
     $url"
         printf %s "[source.crates-io]
@@ -82,7 +82,7 @@ registry = \"$url\"
     fi
 }
 
-proxy_cargo_rollback() {
+___x_cmd_proxy_cargo_rollback() {
     param:dsl <<A
 advise:
     #1          x proxy cargo rollback ls
@@ -94,19 +94,19 @@ A
     param:run
 
     if [ -n "$PARAM_SUBCMD" ]; then
-        proxy_cargo_rollback_"${PARAM_SUBCMD}" "$@"
+        ___x_cmd_proxy_cargo_rollback_"${PARAM_SUBCMD}" "$@"
         return
     else
         ___proxy_rollback "$HOME/.cargo/config" cargo "$1"
     fi    
 }
 
-proxy_cargo_rollback_ls() {
+___x_cmd_proxy_cargo_rollback_ls() {
     param:void
     ___proxy_rollback_ls cargo
 }
 
-proxy_cargo_tutorial(){
+___x_cmd_proxy_cargo_tutorial(){
     param:void
     cat <<A
 A

@@ -2,7 +2,7 @@
 # reference https://zhuanlan.zhihu.com/p/90508170
 # gem sources --add https://gems.ruby-china.com/ --remove https://rubygems.org/
 
-proxy_gem(){
+___x_cmd_proxy_gem(){
     param:dsl <<A
 subcommand:
     url        "Provide url of mirror candidates"
@@ -16,16 +16,16 @@ A
         proxy_log error "command not found: gem, you should install gem in your system."
         return 1
     elif [ -n "$PARAM_SUBCMD" ]; then
-        "proxy_gem_${PARAM_SUBCMD}" "$@"
+        "___x_cmd_proxy_gem_${PARAM_SUBCMD}" "$@"
     else
         proxy_log info "Current mirror is: "
-        proxy_gem get
-        proxy_gem _param_help_doc  >&2
+        ___x_cmd_proxy_gem get
+        ___x_cmd_proxy_gem _param_help_doc  >&2
     fi
 
 }
 
-proxy_gem_url(){
+___x_cmd_proxy_gem_url(){
     param:dsl <<A
 subcommand:
     ruby-china|cn           "ruby china mirror"
@@ -37,16 +37,16 @@ A
         # https://gems.ruby-china.com
         ruby-china|cn)          printf https://gems.ruby-china.com                  ;;
         official)               printf https://rubygems.org                         ;;
-        *)                      proxy_gem_url _param_help_doc >&2                   ;;
+        *)                      ___x_cmd_proxy_gem_url _param_help_doc >&2                   ;;
     esac
 }
 
-proxy_gem_get(){
+___x_cmd_proxy_gem_get(){
     param:void
     gem sources -l | grep "http"
 }
 
-proxy_gem_set() {
+___x_cmd_proxy_gem_set() {
     param:dsl <<A
 subcommand:
     ruby-china|cn           "ruby china mirror"
@@ -55,22 +55,22 @@ A
     param:run
 
     local url
-    if url="$(proxy_gem_url "${PARAM_SUBCMD:-ruby-china}")"; then
-        printf "Setting proxy_gem mirror:\n    %s\n" "$url" >&2
+    if url="$(___x_cmd_proxy_gem_url "${PARAM_SUBCMD:-ruby-china}")"; then
+        printf "Setting ___x_cmd_proxy_gem mirror:\n    %s\n" "$url" >&2
 
-        for i in $(proxy_gem_get); do
+        for i in $(___x_cmd_proxy_gem_get); do
             gem sources -r "$i"
         done
         gem sources --add "$url"
     fi
 }
 
-proxy_gem_unset() {
+___x_cmd_proxy_gem_unset() {
     param:void
-    proxy_gem_set   official
+    ___x_cmd_proxy_gem_set   official
 }
 
-proxy_gem_tutorial(){
+___x_cmd_proxy_gem_tutorial(){
     param:void
     cat <<A
 A

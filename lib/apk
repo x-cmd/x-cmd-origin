@@ -3,7 +3,7 @@
 # For alpine users
 # Reference: https://blog.csdn.net/qq_33657251/article/details/107526842
 
-proxy_apk(){
+___x_cmd_proxy_apk(){
     param:dsl <<A
 subcommands:
     url             "Provide url of mirror candidates"
@@ -16,14 +16,14 @@ A
         proxy_log error "command not found: apk, you should install apk in your system."
         return 1
     elif [ -n "$PARAM_SUBCMD" ]; then
-        "proxy_apk_${PARAM_SUBCMD}" "$@"
+        "___x_cmd_proxy_apk_${PARAM_SUBCMD}" "$@"
     else
         proxy_log error "Unknown subcommand: $PARAM_SUBCMD"
-        proxy_apk _param_help_doc  >&2
+        ___x_cmd_proxy_apk _param_help_doc  >&2
     fi
 }
 
-proxy_apk_url(){
+___x_cmd_proxy_apk_url(){
     param:dsl <<A
 subcommands:
     ustc           "USTC mirror"
@@ -36,12 +36,12 @@ A
         official)   printf "dl-cdn.alpinelinux.org" ;;
         *)          
                     printf "Unknown mirror: %s" "$PARAM_SUBCMD" >&2
-                    proxy_apk_url _param_help_doc  >&2
+                    ___x_cmd_proxy_apk_url _param_help_doc  >&2
                     ;;
     esac
 }
 
-proxy_apk_replace() {
+___x_cmd_proxy_apk_replace() {
     param:dsl <<A
 subcommands:
     ustc           "USTC mirror"
@@ -53,10 +53,10 @@ A
     src_path=/etc/apk/repositories
     ___proxy_backup "$src_path" apk
 
-    sed -i "s/$(proxy_apk_url official)/$(proxy_apk_url "${PARAM_SUBCMD:-ustc}")/g" "$src_path"
+    sed -i "s/$(___x_cmd_proxy_apk_url official)/$(___x_cmd_proxy_apk_url "${PARAM_SUBCMD:-ustc}")/g" "$src_path"
 }
 
-proxy_apk_rollback() {
+___x_cmd_proxy_apk_rollback() {
     param:dsl <<A
 advise:
     #1          x proxy apk rollback ls
@@ -68,7 +68,7 @@ A
     param:run
 
     if [ -n "$PARAM_SUBCMD" ]; then
-        proxy_apk_rollback_"${PARAM_SUBCMD}" "$@"
+        ___x_cmd_proxy_apk_rollback_"${PARAM_SUBCMD}" "$@"
         return
     fi
 
@@ -80,12 +80,12 @@ A
     fi 
 }
 
-proxy_apk_rollback_ls() {
+___x_cmd_proxy_apk_rollback_ls() {
     param:void
     ___proxy_rollback_ls apk
 }
 
-proxy_apk_tutorial(){
+___x_cmd_proxy_apk_tutorial(){
     param:void
     cat <<A
 A

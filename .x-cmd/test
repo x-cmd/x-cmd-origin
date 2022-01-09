@@ -1,8 +1,7 @@
-# shellcheck shell=sh disable=SC1072 #xrc
 
 x log init param
 param_log info "copy all files from ./* to ~/.x-cmd/param/"
-cp -r ./* ~/.x-cmd/param/
+x ws install
 
 dbash() {
     docker run -it -v  ~/.x-cmd/:/root/.x-cmd/ -v "$(pwd)":/pd "bash:$1" \

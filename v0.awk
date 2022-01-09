@@ -36,7 +36,7 @@ function panic_error(msg){
 }
 
 function panic_param_define_error( msg ){
-    print FG_LIGHT_RED "param define error: " UI_END msg "\nFor more information try to read the demo in " FG_BLUE "https://gitee.com/x-bash/param/blob/master/testcases/v0_test" UI_END > "/dev/stderr"
+    print FG_LIGHT_RED "param define error: " UI_END msg "\nFor more information try to read the demo in " FG_BLUE "https://gitee.com/x-bash/param/blob/main/testcase/v0_test" UI_END > "/dev/stderr"
     print "return 1 2>/dev/null || exit 1 2>/dev/null"
     exit_now(1);
 }
@@ -91,6 +91,11 @@ function quote_string(str){
     return "\"" str "\""
 }
 
+function single_quote_string(str){
+    gsub(/'/, "'\"'\"'", str)
+    return "'" str "'"
+}
+
 function str_unquote(str){
     gsub(/\\"/, "\"", str)
     return substr(str, 2, length(str)-2)
@@ -131,7 +136,7 @@ function append_code(code){
 # TODO: check whether all of the invocator correctly quote the value
 function append_code_assignment(varname, value) {
     append_code( "local " varname " >/dev/null 2>&1" )
-    append_code( varname "=" value )
+    append_code( varname "=" single_quote_string( value ) )
 }
 
 function append_query_code(varname, description, typestr){
@@ -479,7 +484,7 @@ function handle_optarg_declaration(optarg_definition, optarg_id,
     # debug( "handle_optarg_declaration:\t" optarg_definition_token1 )
 
     if (! match( optarg_definition_token1, /^<[-_A-Za-z0-9]*>/) ) {
-        panic_param_define_error("Unexecpted optarg declaration: \n" optarg_definition)
+        panic_param_define_error("Unexpected optarg declaration: \n" optarg_definition)
     }
 
     optarg_name = substr( optarg_definition_token1, 2, RLENGTH-2 )
@@ -1146,7 +1151,7 @@ function generate_advise_json(      indent, indent_str,
             option_id = tmp[1]
         }
 
-        for (j=2; j<tmp_len; ++j) {
+        for (j=2; j<=tmp_len; ++j) {
             advise_map[ option_id ] = advise_map[ option_id ] " " tmp[j]
         }
         advise_map[ option_id ] = str_trim( advise_map[ option_id ] )
@@ -1234,7 +1239,6 @@ NR==4 {
     }
 
     # Optimization
-
     append_code_assignment( "PARAM_SUBCMD", "" )
     if ( (EXISTS_REQUIRED_OPTION == false) && (subcmd_map[ subcmd_id_lookup[ arg_arr[1] ] ] != "") ) {
         split(subcmd_id_lookup[ arg_arr[1] ], _tmp, "|")
@@ -1325,7 +1329,7 @@ function arg_typecheck_then_generate_code(option_id, optarg_id, arg_var_name, ar
 
     _ret = assert( optarg_id, arg_var_name, arg_val )
     if ( _ret == true ) {
-        append_code_assignment( arg_var_name, quote_string( arg_val ) )
+        append_code_assignment( arg_var_name, arg_val )
     } else if ( false == IS_INTERACTIVE ) {
         panic_error( _ret )
     } else {
@@ -1353,7 +1357,7 @@ function handle_arguments_restargv_typecheck(is_interative, i, argval, is_dsl_de
             }
         } else {
             # TODO: XXX
-            append_query_code(  "_X_BASH_PARAM_ARG_" i,
+            append_query_code(  "_X_CMD_PARAM_ARG_" i,
                 option_arr[ _option_id KSEP OPTION_DESC ],
                 oparr_join( _optarg_id KSEP OPTARG_OPARR )      )
             return false
@@ -1376,7 +1380,7 @@ function handle_arguments_restargv_typecheck(is_interative, i, argval, is_dsl_de
         }
     } else {
         # TODO: XXX
-        append_query_code(  "_X_BASH_PARAM_ARG_" i,
+        append_query_code(  "_X_CMD_PARAM_ARG_" i,
             option_arr[ _option_id KSEP OPTION_DESC ],
             oparr_join( _optarg_id KSEP OPTARG_OPARR )          )
         return false
@@ -1392,13 +1396,12 @@ function handle_arguments_restargv(         final_rest_argv_len, i, nth_rule, ar
     }
 
     _need_set_arg = false
-    for ( i=1; i<=final_rest_argv_len; ++i ) {
-
-        if ( i <= arg_arr[ LEN ] ) {
+    for ( i=1; i<=final_rest_argv_len; ++i) {
+        if ( i <= arg_arr[ LEN ]) {
             arg_val = arg_arr[ i ]
             # To set the input value and continue
             if ( true != handle_arguments_restargv_typecheck( IS_INTERACTIVE, i, arg_val, false ) ) {
-                set_arg_namelist[ i ] = "_X_BASH_PARAM_ARG_" i
+                set_arg_namelist[ i ] = "_X_CMD_PARAM_ARG_" i
                 _need_set_arg = true
             }
 
@@ -1406,18 +1409,17 @@ function handle_arguments_restargv(         final_rest_argv_len, i, nth_rule, ar
             tmp = option_arr[ option_id KSEP OPTION_NAME ]
             gsub(/^--?/, "", tmp)
             if( tmp != "" ) {
-                append_code_assignment( tmp, quote_string( arg_val ) )
+                append_code_assignment( tmp, arg_val )
                 set_arg_namelist[ i ] = tmp
                 _need_set_arg = true
             } else {
-                append_code_assignment( "_X_BASH_PARAM_ARG_" i , quote_string( arg_val ) )
-                set_arg_namelist[ i ] = "_X_BASH_PARAM_ARG_" i
+                append_code_assignment( "_X_CMD_PARAM_ARG_" i , arg_val )
+                set_arg_namelist[ i ] = "_X_CMD_PARAM_ARG_" i
                 _need_set_arg = true
             }
 
             continue
         } else {
-
             option_id = option_alias_2_option_id[ "#" i ]
             named_value = rest_arg_named_value[ option_id ]
 
@@ -1431,16 +1433,15 @@ function handle_arguments_restargv(         final_rest_argv_len, i, nth_rule, ar
             }
 
             arg_val = option_arr[ option_id KSEP 1 KSEP OPTARG_DEFAULT ]
-
             if (arg_val == OPTARG_DEFAULT_REQUIRED_VALUE) {
                 # Don't define a default value
                 # TODO: Why can't exit here???
                 if (false == IS_INTERACTIVE)   return panic_required_value_error( option_id )
 
-                append_query_code( "_X_BASH_PARAM_ARG_" i,
+                append_query_code( "_X_CMD_PARAM_ARG_" i,
                     option_arr[ option_id KSEP OPTION_DESC ],
                     oparr_join( optarg_id KSEP OPTARG_OPARR )   )
-                set_arg_namelist[ i ] = "_X_BASH_PARAM_ARG_" i
+                set_arg_namelist[ i ] = "_X_CMD_PARAM_ARG_" i
                 _need_set_arg = true
                 continue
             } else {
@@ -1450,12 +1451,12 @@ function handle_arguments_restargv(         final_rest_argv_len, i, nth_rule, ar
                 tmp = option_arr[ option_id KSEP OPTION_NAME ]
                 gsub(/^--?/, "", tmp)
                 if( tmp != "" ) {
-                    append_code_assignment( tmp, quote_string( arg_val ) )
+                    append_code_assignment( tmp, arg_val )
                     set_arg_namelist[ i ] = tmp
                     _need_set_arg = true
                 } else {
-                    append_code_assignment( "_X_BASH_PARAM_ARG_" i , quote_string( arg_val ) )
-                    set_arg_namelist[ i ] = "_X_BASH_PARAM_ARG_" i
+                    append_code_assignment( "_X_CMD_PARAM_ARG_" i , arg_val )
+                    set_arg_namelist[ i ] = "_X_CMD_PARAM_ARG_" i
                     _need_set_arg = true
                 }
             }
@@ -1479,12 +1480,10 @@ function handle_arguments(          i, j, arg_name, arg_name_short, arg_val, opt
     # append_code( "local PARAM_SUBCMD" )     # Avoid the external environment influence.
 
     arg_arr_len = arg_arr[ LEN ]
-
     i = 1
     while (i <= arg_arr_len) {
 
         arg_name = arg_arr[ i ]
-
         # ? Notice: EXIT: Consider unhandled arguments are rest_argv
         if ( arg_name == "--" )  break
 
@@ -1493,7 +1492,6 @@ function handle_arguments(          i, j, arg_name, arg_name_short, arg_val, opt
         }
 
         option_id     = option_alias_2_option_id[arg_name]
-
         if ( option_id == ""  ) {
             if (arg_name ~ /^-[^-]/) {
                 arg_name = substr(arg_name, 2)
@@ -1572,12 +1570,6 @@ function handle_arguments(          i, j, arg_name, arg_name_short, arg_val, opt
 
     check_required_option_ready()
 
-    # What if the rest_argv is empty?
-    if (i > arg_arr_len ) {
-        append_code("set --")
-        return
-    }
-
     # if subcommand declaration exists
     if ( HAS_SUBCMD == true ) {
         if (subcmd_map[ subcmd_id_lookup[ arg_arr[i] ] ] == "") {
@@ -1597,11 +1589,11 @@ function handle_arguments(          i, j, arg_name, arg_name_short, arg_val, opt
         final_rest_argv[ LEN ] = arg_arr_len - i + 1
     }
 
-    tmp = final_rest_argv[ LEN ]
-
+    #Remove the processed arg_arr and move the arg_arr back forward
     for ( j=i; j<=arg_arr_len; ++j ) {
         arg_arr[ j-i+1 ] = arg_arr[j]
     }
+    arg_arr[ LEN ]=arg_arr[ LEN ]-i+1
 
     handle_arguments_restargv()
 }

@@ -1,4 +1,4 @@
-# shellcheck shell=sh
+# shellcheck shell=sh # xrc
 # shellcheck disable=SC2039,SC3043
 
 # Desgin by Li Junhao and his friends in Zhongshan, Guangdong, China.

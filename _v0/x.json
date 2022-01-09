@@ -1,0 +1,74 @@
+{
+    "boot": {
+        "cat": null,
+        "which|w": null,
+        "mod": {
+            "add|+": null,
+            "del|-": "x initrc mod ls",
+            "ls": null
+        }
+    },
+    "config": {
+        "tab": null,
+        "ssh": null,
+        "sshd": null
+    },
+    "man": {},
+    "env": {},
+    "login": {},
+    "register": {},
+    "token": {},
+    "hub": {
+        "file": {
+            "ls": null,
+            "which": "x hub file ls",
+            "upload": "x hub file ls",
+            "share": "x hub file ls",
+            "private": "x hub file ls"
+        },
+        "login": null,
+        "register": null,
+        "token": null
+    },
+    "log": {
+        "init": {},
+        "timestamp": {
+            "on": {},
+            "off": {}
+        },
+        "#n": "xrc x-cmd/_v0/log && ___x_cmd_log_completer"
+    },
+    "upgrade": {},
+    "clear": {},
+    "reinstall": {},
+    "z": null,
+    "uz": null,
+    "sh|bash|zsh|fish|ksh|dash|ash": "___advise_ls",
+    "jar": "___advise_ls",
+    "java": "___advise_ls",
+    "pip|pip3": "___advise_ls",
+    "python|py|python3|py3": "___advise_ls",
+    "nvm": null,
+    "javascript|js|node": "___advise_ls",
+    "npm": null,
+    "npx": null,
+    "ts": null,
+    "ruby|rb": null,
+    "lua": null,
+    "jq": null,
+    "yq": null,
+    "cat|du": "___advise_ls",
+    "ls|ll|cd": "___advise_ls",
+    "ps|procs": null,
+    "nmap": null,
+    "ncat": null,
+    "nping": null,
+    "traceroute": null,
+    "sqlite": null,
+    "run": {},
+    "search_path": {},
+    "which": {},
+    "wsroot": {},
+    "#1": "___x_cmd_list_resource",
+    "#n": "___advise_get_result 1"
+}

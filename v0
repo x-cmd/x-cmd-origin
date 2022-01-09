@@ -10,7 +10,6 @@
 # example of dict
 #   dict put key1 value1
 #   dict :a put key2 value2
-x log init dict
 dict(){
     local op="${1:?Provide op}"
     local O=${op#@}
@@ -20,7 +19,7 @@ dict(){
         shift
     else
         op="${2:-help}"
-        shift 2 1>/dev/null 2>&1
+        [ $# -gt 1 ] && shift 2
     fi
 
     case "$op" in
@@ -394,7 +393,7 @@ fi
 
 if [ -z "$XRC_NO_ADVISE" ] && [ -n "${BASH_VERSION}${ZSH_VERSION}" ] && [ "${-#*i}" != "$-" ]; then
     # if you use xrc that you must have advise
-    # xrc advise/v0
+    # xrc advise/latest
     advise dict
 fi
 

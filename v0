@@ -43,7 +43,7 @@ _7zd_which(){
     fi
 
     p7zr_log debug "Downloading: $url/$exe"
-    if CACHE="$target/$exe" ___x_cmd_curl "$url/$exe"; then
+    if CACHE="$target/$exe" ___x_cmd_curl_gitx static-build "p7zip" main "bin/$exe" "$target/$exe"; then
         chmod +x "$target/$exe" && printf "%s" "$target/$exe"
     else
         p7zr_log error "Fail to download: $url/$exe"

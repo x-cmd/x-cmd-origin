@@ -1,0 +1,40 @@
+# shellcheck shell=sh disable=SC3043 #xsh
+
+x log init install
+install_log info "copy all files from ./* to ~/.x-cmd/install/"
+cp -r ./* ~/.x-cmd/install/
+
+CMD="x install update"
+
+cross_env_test() {
+    # for i in bash:3 bash:4 bash:5 ; do
+    #     install_log info "Testing : " "$i"
+    #     docker run -it -v  ~/.x-cmd/:/root/.x-cmd/ -v "$(pwd)":/pd "${i}" bash -c ". ~/.x-cmd/xrc/latest && cd pd && $CMD"
+    # done
+
+    for i in xcmd/alpine xcmd/debian ; do
+        install_log info "Testing : " "$i"
+        docker run -it -v  ~/.x-cmd/:/root/.x-cmd/ -v "$(pwd)":/pd "${i}" sh -c ". ~/.x-cmd/xrc/latest && cd pd && $CMD"
+    done
+}
+
+install_log info "Testing : $1"
+case "$1" in
+    local)
+        eval "$CMD"
+        ;;
+    cross)
+        x test local
+        cross_env_test
+        ;;
+    bash:3|bash:4|bash:5)
+        docker run -it -v  ~/.x-cmd/:/root/.x-cmd/ -v "$(pwd)":/pd "$1" bash -c ". ~/.x-cmd/xrc/latest && cd pd && $CMD"
+        ;;
+    alpine|ubuntu)
+        docker run -it -v  ~/.x-cmd/:/root/.x-cmd/ -v "$(pwd)":/pd "$1" sh -c ". ~/.x-cmd/xrc/latest && cd pd && $CMD"
+        ;;
+    *)
+        echo "Usage: x test {cross|local|bash:3|bash:4|bash:5|alpine|ubuntu}"
+        return 1
+        ;;
+esac

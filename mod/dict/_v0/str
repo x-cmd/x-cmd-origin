@@ -7,7 +7,6 @@
 
 ___dict_make(){
     local O="${O:?Please provide object name}"
-    dict_log "Making dictionary: $O"
     ___x_cmd_instance_add "dict" "$O"
     eval "___X_BASH_DICT_$O=0"
 }

@@ -10,8 +10,8 @@ xrc http param json str ui ccmd
 _gt_xrc(){
     local i
     for i in "$@"; do
-    # xrc "gitee/lib/$i"
-    . "lib/$i"
+    xrc "gitee/lib/$i"
+    # . "lib/$i"
     done
 }
 

@@ -22,7 +22,7 @@ ___x_cmd_dev_ws_geturl(){
     BEGIN { exit_code=1; }
     {
         url=$2
-        match(url, /x-((bash)|(cmd))\/[a-zA-Z0-9_-]+\.git$/)
+        match(url, /x-((bash)|(cmd))\/[a-zA-Z0-9_-]+((\.git)|())$/)
         if (RLENGTH > 0) {
             print substr(url, RSTART, RLENGTH)
             exit_code=0

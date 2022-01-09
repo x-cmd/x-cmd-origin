@@ -1,4 +1,4 @@
-# shellcheck shell=bash
+# shellcheck shell=bash # xrc
 
 # author:       Li Junhao           l@x-cmd.com    edwinjhlee.github.io
 # maintainer:   Li Junhao
@@ -6,7 +6,7 @@
 # https://stackoverflow.com/questions/1527049/how-can-i-join-elements-of-an-array-in-bash
 # join_ws also works
 
-str(){
+___x_cmd_str(){
     local op
     if [ -z "$1" ]; then
         op=help
@@ -683,3 +683,4 @@ if [ -n "${BASH_VERSION}${ZSH_VERSION}" ] && [ "${-#*i}" != "$-" ]; then
     advise str
 fi
 
+xrc setmain ___x_cmd_str

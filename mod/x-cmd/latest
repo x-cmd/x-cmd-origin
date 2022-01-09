@@ -8,7 +8,8 @@ ___x_cmd_list_resource(){
 cowsay
 theme
 tldr
-advise"
+advise
+install"
 }
 
 # Section : Unfinished ___x_cmd_official_which
@@ -199,6 +200,125 @@ ___x_cmd_abspath(){
     fi
 }
 
+# x glob abc*
+# glob file directory
+# TODO: notice, the glob pattern is actually a regex pattern with ** and * extension. For example, dot is refer as any character, rather than actual .
+alias glob=___x_cmd_glob
+
+___x_cmd_globu(){
+    ___x_cmd_glob "$@" | sort | uniq
+}
+
+___x_cmd_glob(){
+    if [ $# -eq 1 ]; then
+        ___x_cmd_glob file "$@"
+        return
+    fi
+
+    local op="${1}"; shift
+
+    case "$op" in
+        all|dir|file)       ;;
+        *)                  ___x_cmd_glob file "$op" "$@";  return ;;
+    esac
+
+    while [ $# -gt 0 ]; do
+        local pattern="${1:?Please provide pattern}";   shift
+        local a
+        a="$(printf "" | awk -v pattern="${pattern}" '
+        function handle(elem){
+            gsub(/\*\*/, "([^/]+/){0,}[^/]+", elem)
+            gsub(/\*/, "[^/]+", elem)
+            return elem
+        }
+
+        BEGIN{
+            arrl = split(pattern, arr, /\//)
+            if (arrl == 1) {
+                print ""
+                print "^" handle(pattern) "$"
+            } else {
+                folder = ""
+                for (i=1; i<=arrl; ++i) {
+                    if (arr[i] ~ /\*/)  break
+                    if (i == 1)         folder = arr[i]
+                    else                folder = folder "/" arr[i]
+                }
+                print folder
+                pat = ""
+                for (; i<=arrl; ++i) {
+                    arr[i] = handle(arr[i])
+                    if (pat == "")      pat = arr[i]
+                    else                pat = pat "/" arr[i]
+                }
+                pat = "^" pat "$"
+                print pat
+            }
+        }')"
+        local folder="${a%
+*}"
+        pattern="${a#*
+}"
+
+
+        (
+            if [ -n "$folder" ]; then
+                [ -d "$folder" ] || return
+                eval cd "$folder"
+            fi
+
+            case "$op" in
+                all)        find . ;;
+                dir)        find . -type dir ;;
+                file)       find . -type f ;;
+                *)          printf "Please provide argument.\n" >&2; return ;;
+            esac |\
+            awk -v pattern="$pattern" -v prefix="$folder" '
+                BEGIN { if (prefix != "") prefix = prefix "/"; }
+                {
+                    if ( ($0 !~ /^[ \t]+$/) && ($0 !~ /:$/)) {
+                        tgt = substr($0, 3)
+                        if (match(tgt, pattern)) {
+                            print prefix tgt
+                        }
+                    }
+                }
+            '
+        )
+    done
+
+}
+
+# EndSection
+
+# Section: man
+
+# Reference: https://github.com/Valloric/dotfiles/blob/master/less/LESS_TERMCAP
+
+# termcap terminfo
+# ks      smkx      make the keypad send commands
+# ke      rmkx      make the keypad send digits
+# vb      flash     emit visual bell
+# mb      blink     start blink
+# md      bold      start bold
+# me      sgr0      turn off bold, blink and underline
+# so      smso      start standout (reverse video)
+# se      rmso      stop standout
+# us      smul      start underline
+# ue      rmul      stop underline
+
+___x_cmd_man() {
+    LESS_TERMCAP_md="${___X_CMD_THEME_MD:-"$(printf '\e[01;31m')"}" \
+    LESS_TERMCAP_me="${___X_CMD_THEME_ME:-"$(printf '\e[0m')"}" \
+    LESS_TERMCAP_us="${___X_CMD_THEME_US:-"$(printf '\e[01;04;32m')"}" \
+    LESS_TERMCAP_ue="${___X_CMD_THEME_UE:-"$(printf '\e[0m')"}" \
+    LESS_TERMCAP_so="${___X_CMD_THEME_SO:-"$(printf '\e[45;93m')"}" \
+    LESS_TERMCAP_se="${___X_CMD_THEME_SE:-"$(printf '\e[0m')"}" \
+    GROFF_NO_SGR=1 \
+    command man "$@"
+}
+alias man=___x_cmd_man
+
 # EndSection
 
 # Section : Find And Execute at .x-cmd folder
@@ -325,7 +445,7 @@ ___x_cmd_dust(){
     xrc static-build && static_build_init dust dust ___x_cmd_dust && ___x_cmd_dust  "$@"
 }
 
-___x_cmd_sqlite3(){
+___x_cmd_sqlite(){
     xrc static-build && static_build_init sqlite3 sqlite3 ___x_cmd_sqlite3 && ___x_cmd_sqlite3  "$@"
 }
 
@@ -333,8 +453,16 @@ ___x_cmd_procs(){
     xrc static-build && static_build_init procs procs ___x_cmd_procs && ___x_cmd_procs  "$@"
 }
 
-___x_cmd_bat(){
+___x_cmd_bat_(){
     xrc static-build && static_build_init bat bat ___x_cmd_bat && ___x_cmd_bat      "$@"
+}
+
+___x_cmd_bat(){
+    if [ "$#" -ne 0 ]; then
+        ___x_cmd_bat_ "$@"
+    else
+        ___x_cmd_bat_ "--help"
+    fi
 }
 
 # EndSection
@@ -617,7 +745,7 @@ ___x_cmd_alias_print(){
 
 # EndSection
 
-# Section : x main function
+# Section: varset
 
 ___x_cmd_varset(){
     local _______variable_name="${1}"
@@ -650,8 +778,39 @@ ___x_cmd_varset_without_end(){
     eval "$_______variable_name=\"\$result\""
 }
 
+# EndSection
+
+# Section: args
+
 ___x_cmd_arg_line(){
-    awk -v every="${1:-1}" '
+
+    local every="$1"; shift
+    local IFS
+    IFS="$(printf "\001")"
+    local NW
+    NW="$(printf "\002")"
+
+    {
+        printf "%s" "$*" | tr "\n" "$NW"
+        printf "\n"
+        cat
+    } | awk -v every="$every" '
+
+NR==1{
+    argl = split($0, argv, "\001")
+
+    for (i=1; i<=argl; ++i) {
+        gsub("\002", "\n", argv[i])
+        gsub(/\\/, "\\\\\\", argv[i])
+        gsub("\"", "\\\"", argv[i])
+        # TODO: Awk will have a warning about "$" and the solution: throw it to "2>/dev/null"
+        gsub(/\$/, "\\\$", argv[i])
+        argv[i] = "\\\"" argv[i] "\\\""
+        if (argstr == "") argstr = argv[i]
+        else argstr = argstr " " argv[i]
+    }
+    print argstr
+}
 
 function printcode( len ){
     count = 0
@@ -664,7 +823,7 @@ function printcode( len ){
     print code
 }
 
-{
+NR>1{
     arrl = split($0, arr, /[ \t]+/)
     for (i=1; i<=arrl; ++i) {
         count ++
@@ -678,19 +837,70 @@ function printcode( len ){
 END {
     if (count > 0) printcode( count )
 }
-'
+' 2>/dev/null
 
+}
+
+___x_cmd_args_let(){
+    code="$*"
+}
+
+___x_cmd_args_funeach(){
+    if [ -z "$APPEND_ARG" ]; then
+        eval "$code"
+    else
+        eval "$code" \"\$@\"
+    fi
 }
 
 ___x_cmd_args(){
-    local n="$1"; shift
+    local n="$1"; [ $# -gt 0 ] && shift
     local IFS=" "
 
-    ___x_cmd_arg_line "$n" | while read -r line; do
-        eval \"\$@\" "$line"
+    local APPEND_ARG=1
+    if [ "$1" = - ]; then
+        APPEND_ARG=
+        shift
+    fi
+
+    local code=""
+    ___x_cmd_arg_line "$n" "$@" | while read -r line; do
+        if [ -z "$code" ]; then
+            # code="$line"
+            eval ___x_cmd_args_let "$line"
+            continue
+        fi
+        eval ___x_cmd_args_funeach "$line"
     done
 }
 
+___x_cmd_margs(){
+    local n="$1"; [ $# -gt 0 ] && shift
+    local IFS=" "
+
+    local APPEND_ARG=1
+    if [ "$1" = - ]; then
+        APPEND_ARG=
+        shift
+    fi
+
+    local code=""
+    eval "$(
+    ___x_cmd_arg_line "$n" "$@" | while read -r line; do
+        if [ -z "$code" ]; then
+            code="$line"
+            printf "%s %s\n" ___x_cmd_args_let "$line"
+            continue
+        fi
+        printf "%s %s\n" ___x_cmd_args_funeach "$line"
+    done
+    )"
+
+}
+
+# EndSection
+
+# Section : x main function
 
 ___x_cmd_shell_exec(){
     local shell="${1:?Provide shell}"
@@ -820,8 +1030,6 @@ ___x_cmd_main(){
         alias)                                  ___x_cmd_alias      ___x_cmd "$@"   ;;
         unalias)                                ___x_cmd_unalias    ___x_cmd "$@"   ;;
 
-        boot)                                   ( xrc x-cmd/_v0/boot && ___x_cmd_boot "$@"; ) ;;
-
         conjoin)                                ___x_cmd_eval_concurrent_join "$@" ;;
         con)                                    ___x_cmd_eval_concurrent_assign "$@" ;;
 
@@ -830,20 +1038,15 @@ ___x_cmd_main(){
 
         args)                                   ___x_cmd_args "$@"      ;;
         arg1)                                   ___x_cmd_args 1 "$@"    ;;
-        arg2)                                   ___x_cmd_args 2 "$@"    ;;
-        arg3)                                   ___x_cmd_args 3 "$@"    ;;
+        margs)                                  ___x_cmd_margs "$@"     ;;
+        marg1)                                  ___x_cmd_margs 1 "$@"   ;;
 
-        install)                                xrc install/v0 && ___x_cmd_install "$@" ;;
+        cd)                                     ___x_cmd_cd "$@" ;;
 
-        cd)                                     ___x_cmd_cd "$@";;
-
-        man)        ;;
-        advise)                                 xrc advise/latest && advise "$@" ;;
-        env)        ;;
+        man)                                    ___x_cmd_man "$@" ;;
+        env)                                    ;;
 
         login)                                  xrc hub/latest && ___x_cmd_hub login "$@" ;;
-
-        log)                                    xrc x-cmd/_v0/log && ___x_cmd_log "$@" ;;
 
         upgrade)
                                                 ___XRC_UDPATE=1
@@ -860,8 +1063,6 @@ ___x_cmd_main(){
         z)                                      (   xrc zuz && zuz z "$@"   ) ;;
         uz)                                     (   xrc zuz && zuz uz "$@"  ) ;;
 
-        ubu|alp|deb|cen|bus)                    (   xrc xdk/v0 && xdk "$subcmd" "$@" ) ;;
-        docker|dk|xdk)                          (   xrc xdk/v0 && xdk "$@" )   ;;
         sh|bash|zsh|fish|ksh|dash|ash)          ___x_cmd_shell_exec "$subcmd" "$@" ;;
 
         jar)                                    java -jar "$@" ;;
@@ -893,19 +1094,15 @@ ___x_cmd_main(){
 
         7zr)                                    ( xrc p7zr/v0   &&  p7zr "$@" )     ;;
         7z)                                     ( xrc p7z/v0    &&  p7z "$@" )      ;;
-        ls)                                     ___x_cmd_ls         "$@"             ;;
-        ll)                                     ___x_cmd_exa  -l    "$@"             ;;
-        ps)                                     ___x_cmd_procs      "$@"             ;;
-        du)                                     ___x_cmd_dust       "$@"             ;;
-        sqlite3)                                ___x_cmd_sqlite3    "$@"             ;;
-        cat)
-                                                if [ "$#" -ne 0 ]; then
-                                                    ___x_cmd_bat "$@"
-                                                else
-                                                    ___x_cmd_bat "--help"
-                                                fi
-                                                ;;
-        bw)                                     ___x_cmd_bw         "$@"             ;;
+
+        ls)                                     ___x_cmd_ls         "$@"            ;;
+        ll)                                     ___x_cmd_exa  -l    "$@"            ;;
+        ps)                                     ___x_cmd_procs      "$@"            ;;
+        du)                                     ___x_cmd_dust       "$@"            ;;
+        sqlite)                                 ___x_cmd_sqlite     "$@"            ;;
+        cat)                                    ___x_cmd_bat        "$@"            ;;
+        bw)                                     ___x_cmd_bw         "$@"            ;;
+
         jq)
                                                 if [ "$#" -ne 0 ]; then
                                                     ___x_cmd_jq "$@"
@@ -913,17 +1110,18 @@ ___x_cmd_main(){
                                                     ___x_cmd_jq "--help"
                                                 fi
                                                 ;;
-        yq)                                     ___x_cmd_yq         "$@"             ;;
-        curl)                                   ___x_cmd_static_build_curl  "$@"     ;;
-        openssl|ssl)                            ___x_cmd_openssl    "$@"             ;;
-        tmux)                                   ___x_cmd_tmux       "$@"             ;;
-        git)                                    ___x_cmd_git        "$@"             ;;
-        nmap)                                   ___x_cmd_nmap       "$@"             ;;
-        ncat)                                   ___x_cmd_ncat       "$@"             ;;
-        nping)                                  ___x_cmd_nping      "$@"             ;;
-        traceroute)                             ___x_cmd_traceroute "$@"             ;;
-        run)                                    ___x_cmd_run_by_file "$@"            ;;
-        search_path)                            ___x_cmd_search_path "$@"            ;;
+        yq)                                     ___x_cmd_yq         "$@"            ;;
+        # TODO: we will rename ___x_cmd_curl to make room for it
+        curl)                                   ___x_cmd_static_build_curl  "$@"    ;;
+        openssl|ssl)                            ___x_cmd_openssl    "$@"            ;;
+        tmux)                                   ___x_cmd_tmux       "$@"            ;;
+        git)                                    ___x_cmd_git        "$@"            ;;
+        nmap)                                   ___x_cmd_nmap       "$@"            ;;
+        ncat)                                   ___x_cmd_ncat       "$@"            ;;
+        nping)                                  ___x_cmd_nping      "$@"            ;;
+        traceroute)                             ___x_cmd_traceroute "$@"            ;;
+        run)                                    ___x_cmd_run_by_file "$@"           ;;
+        search_path)                            ___x_cmd_search_path "$@"           ;;
         which|w)                                local p
                                                 for p in "$@"; do
                                                     if ! ___x_cmd_which_one "$p"; then
@@ -947,125 +1145,7 @@ ___x_cmd_main(){
 
 # Section : advise.json
 ___x_cmd_x_cmd_advise_json(){
-    cat <<A
-{
-  "boot": {
-      "cat": null,
-      "which|w": null,
-      "mod": {
-          "add|+": null,
-          "del|-": "x initrc mod ls",
-          "ls": null
-      }
-  },
-  "install": {
-      "ls": "--- list all software",
-      "update": "--- update",
-      "get": {
-          "#1": "x install name",
-          "#desc": "get software installation command"
-      },
-      "run": {
-          "#1": "x install name",
-          "#desc": "run software installation command"
-      },
-      "#1": "x install name"
-  },
-  "config": {
-      "tab": null,
-      "ssh": null,
-      "sshd": null
-  },
-  "man": { },
-  "env": { },
-  "login": { },
-  "register": { },
-  "token": { },
-  "hub": {
-      "file": {
-          "ls": null,
-          "which": "x hub file ls",
-          "upload": "x hub file ls",
-          "share": "x hub file ls",
-          "private": "x hub file ls"
-      },
-      "login": null,
-      "register": null,
-      "token": null
-  },
-  "log": {
-      "init": { },
-      "timestamp": {
-          "on": { },
-          "off": { }
-      },
-      "#n": "xrc x-cmd/_v0/log && ___x_cmd_log_completer"
-  },
-  "upgrade": { },
-  "clear": { },
-  "reinstall": { },
-  "z": null,
-  "uz": null,
-  "ubu|alp|deb|cen|bus": {
-      "alias": { },
-      "run": {
-          "centos": { },
-          "ubuntu": { },
-          "alpine": { },
-          "busybox": { }
-      },
-      "exec": { },
-      "empower": { },
-      "centos": { },
-      "ubuntu": { },
-      "alpine": { },
-      "busybox": { }
-  },
-  "docker|dk|xdk": {
-      "alias": { },
-      "run": {
-          "centos": { },
-          "ubuntu": { },
-          "alpine": { },
-          "busybox": { }
-      },
-      "exec": { },
-      "empower": { },
-      "centos": { },
-      "ubuntu": { },
-      "alpine": { },
-      "busybox": { }
-  },
-  "sh|bash|zsh|fish|ksh|dash|ash": "___advise_ls",
-  "jar": "___advise_ls",
-  "java": "___advise_ls",
-  "pip|pip3": "___advise_ls",
-  "python|py|python3|py3": "___advise_ls",
-  "nvm": null,
-  "javascript|js|node": "___advise_ls",
-  "npm": null,
-  "npx": null,
-  "ts": null,
-  "ruby|rb": null,
-  "lua": null,
-  "jq": null,
-  "yq": null,
-  "cat|du": "___advise_ls",
-  "ls|ll|cd": "___advise_ls",
-  "ps|procs": null,
-  "nmap": null,
-  "ncat": null,
-  "nping": null,
-  "traceroute": null,
-  "sqlite3": null,
-  "run": { },
-  "search_path": { },
-  "which": { },
-  "wsroot": { },
-  "#1": "___x_cmd_list_resource",
-  "#n": "___advise_get_result 1"
-}
-A
+    xrc cat x-cmd/_v0/x.json
     return 126
 }
 # EndSection

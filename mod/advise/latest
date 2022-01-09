@@ -265,8 +265,15 @@ ___advise_get_result(){
 ___advise_main(){
     local func="${1:?Provide function name}"
     local filepath="${2}"
+    local dist_filename="${3}"
     local advise_json_dir="${TMPDIR%/}/.x-cmd/advise_auto_json"
-    local tmp_filepath=${advise_json_dir}/$func
+    local tmp_filepath
+    if [ -n "$dist_filename" ]; then
+        tmp_filepath=${advise_json_dir}/$dist_filename
+    else
+        tmp_filepath=${advise_json_dir}/$func
+    fi
+
     [ ! -d "$advise_json_dir" ] && mkdir -p "$advise_json_dir"
 
     if [ "-" = "$filepath" ]; then
@@ -294,16 +301,6 @@ ___advise_main(){
     else
         compdef "___advise_completer" "$func"
     fi
-}
-
-___advise_load(){
-    for i in "${TMPDIR%/}"/.x-cmd/advise_auto_json/* ; do
-        if [ -z "$ZSH_VERSION" ];then
-            complete -F "___advise_completer" "${i##*/}"
-        else
-            compdef "___advise_completer" "${i##*/}"
-        fi
-    done
 }
 
 ___advise_update(){

@@ -4,21 +4,18 @@ cp -r ./* ~/.x-cmd/proxy/
 
 # as import
 xrc assert
+x log init proxy
 x log proxy
 xrc proxy
 
 if [ -n "${BASH_VERSION}${ZSH_VERSION}" ]; then
     xrc advise/latest
-    advise rm proxy
+    advise rm ___x_cmd_proxy
     proxy_log "advise proxy time: "
-    time advise proxy
+    time advise ___x_cmd_proxy
 fi
 
 # Section: Run test
-
-if [ -n "${BASH_VERSION}${ZSH_VERSION}" ]; then
-    test_proxy_advise_json
-fi
 
 case $1 in
     apt|apk|yum)

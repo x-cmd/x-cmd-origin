@@ -1,7 +1,7 @@
 # shellcheck shell=sh disable=SC3043
 # Reference: 
 
-proxy_apt(){
+___x_cmd_proxy_apt(){
     param:dsl <<A
 subcommand:
     url            "Provide url of mirror candidates"
@@ -14,14 +14,14 @@ A
         proxy_log error "command not found: apt or apt-get, you should install apt in your system."
         return 1
     elif [ -n "$PARAM_SUBCMD" ]; then
-        proxy_apt_"${PARAM_SUBCMD}" "$@"
+        ___x_cmd_proxy_apt_"${PARAM_SUBCMD}" "$@"
     else
         proxy_log error "Unknown subcommand: $PARAM_SUBCMD"
-        proxy_apt _param_help_doc  >&2
+        ___x_cmd_proxy_apt _param_help_doc  >&2
     fi
 }
 
-proxy_apt_url(){
+___x_cmd_proxy_apt_url(){
     param:dsl <<A
 subcommand:
     ali                 "aliyun mirror url"
@@ -32,12 +32,12 @@ A
     case "$PARAM_SUBCMD" in
         ali)                    printf mirrors.aliyun.com                  ;;
         tuna)                   printf mirrors.tuna.tsinghua.edu.cn        ;;
-        *)                      proxy_apt_url _param_help_doc >&2          ;;
+        *)                      ___x_cmd_proxy_apt_url _param_help_doc >&2          ;;
     esac
 }
 
 # TODO: Just replace the original text, maybe not the best way.
-proxy_apt_replace() {
+___x_cmd_proxy_apt_replace() {
     param:dsl <<A
 subcommand:
 
@@ -48,8 +48,8 @@ A
 
     # TODO: Some problem in ubuntu 12.04
     local url
-    if url="$(proxy_apt_url "${PARAM_SUBCMD:-tuna}")"; then
-        proxy_log info "Setting proxy_apt mirror :
+    if url="$(___x_cmd_proxy_apt_url "${PARAM_SUBCMD:-tuna}")"; then
+        proxy_log info "Setting ___x_cmd_proxy_apt mirror :
     $url"
 
         local src_path
@@ -71,7 +71,7 @@ A
 
 # Rollback from the last backup file.
 # Get the last backup file from the backup directory.
-proxy_apt_rollback() {
+___x_cmd_proxy_apt_rollback() {
     param:dsl <<A
 advise:
     #1          x proxy apt rollback ls
@@ -83,7 +83,7 @@ A
     param:run
 
     if [ -n "$PARAM_SUBCMD" ]; then
-        proxy_apt_rollback_"${PARAM_SUBCMD}" "$@"
+        ___x_cmd_proxy_apt_rollback_"${PARAM_SUBCMD}" "$@"
         return
     fi
 
@@ -95,7 +95,7 @@ A
     fi 
 }
 
-proxy_apt_tutorial(){
+___x_cmd_proxy_apt_tutorial(){
     param:void
     cat <<A
 A

@@ -3,7 +3,7 @@
 # For centos users
 # Reference: https://mirrors.tuna.tsinghua.edu.cn/help/centos-vault/
 
-proxy_yum(){
+___x_cmd_proxy_yum(){
     param:dsl <<A
 subcommands:
     url             "Provide url of mirror candidates"
@@ -16,14 +16,14 @@ A
         proxy_log error "command not found: yum, you should install yum in your system."
         return 1
     elif [ -n "$PARAM_SUBCMD" ]; then
-        proxy_yum_"${PARAM_SUBCMD}" "$@"
+        ___x_cmd_proxy_yum_"${PARAM_SUBCMD}" "$@"
     else
         proxy_log error "Unknown subcommand: $PARAM_SUBCMD"
-        proxy_yum _param_help_doc  >&2
+        ___x_cmd_proxy_yum _param_help_doc  >&2
     fi
 }
 
-proxy_yum_url(){
+___x_cmd_proxy_yum_url(){
     param:dsl <<A
 subcommands:
     ustc           "USTC mirror"
@@ -38,12 +38,12 @@ A
         official)   printf "http://mirror.centos.org" ;;
         *)          
                     printf "Unknown mirror: %s" "$PARAM_SUBCMD" >&2
-                    proxy_yum_url _param_help_doc  >&2
+                    ___x_cmd_proxy_yum_url _param_help_doc  >&2
                     ;;
     esac
 }
 
-proxy_yum_replace() {
+___x_cmd_proxy_yum_replace() {
     param:dsl <<A
 subcommands:
     ustc           "USTC mirror"
@@ -59,7 +59,7 @@ A
     local url
     local src
     src=${PARAM_SUBCMD:-ustc}
-    if ! url="$(proxy_yum_url "$src")"; then
+    if ! url="$(___x_cmd_proxy_yum_url "$src")"; then
         proxy_log error "Failed to get url of mirror: $src"
     fi
     proxy_log info "Setting proxy_apt mirror :
@@ -109,7 +109,7 @@ A
     yum makecache
 }
 
-proxy_yum_rollback() {
+___x_cmd_proxy_yum_rollback() {
     param:dsl <<A
 advise:
     #1          x proxy yum rollback ls
@@ -121,7 +121,7 @@ A
     param:run
 
     if [ -n "$PARAM_SUBCMD" ]; then
-        proxy_yum_rollback_"${PARAM_SUBCMD}" "$@"
+        ___x_cmd_proxy_yum_rollback_"${PARAM_SUBCMD}" "$@"
         return
     fi
 
@@ -135,12 +135,12 @@ A
     fi  
 }
 
-proxy_yum_rollback_ls() {
+___x_cmd_proxy_yum_rollback_ls() {
     param:void
     ___proxy_rollback_ls yum
 }
 
-proxy_yum_tutorial(){
+___x_cmd_proxy_yum_tutorial(){
     param:void
     cat <<A
 A

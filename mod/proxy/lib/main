@@ -3,11 +3,9 @@
 # author:       Li Junhao           l@x-cmd.com    edwinjhlee.github.io
 # maintainer:   Li Junhao
 
-xrc param/latest
-
 ___X_CMD_PROXY_BACKUP_DIR="$___X_CMD_ROOT/proxy/.backup"
-
-proxy(){
+xrc param
+___x_cmd_proxy(){
     param:dsl <<A
 subcommands:
     set                     "Setting proxy in local shell environments: http_proxy, https_proxy"
@@ -31,7 +29,7 @@ A
 
     if [ -z "$PARAM_SUBCMD" ]; then
         proxy_log error "subcommand required"
-        proxy _param_help_doc  >&2
+        ___x_cmd_proxy _param_help_doc  >&2
         return
     fi
 

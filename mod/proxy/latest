@@ -3,16 +3,15 @@
 # author:       Li Junhao           l@x-cmd.com
 # maintainer:   Li Junhao
 
-x log init proxy
-
 ___x_cmd_proxy(){
+    x log init proxy
     xrc proxy/lib/main
-    proxy "$@"
+    ___x_cmd_proxy "$@"
 }
+
+xrc setmain ___x_cmd_proxy
 
 if ___x_cmd_is_suitable_advise_env; then
     xrc advise/latest
-    advise proxy
+    advise ___x_cmd_proxy "" proxy
 fi
-
-xrc setmain ___x_cmd_proxy

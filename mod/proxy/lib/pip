@@ -6,7 +6,7 @@
 # proxy gem auto ...
 # proxy auto
 
-proxy_pip(){
+___x_cmd_proxy_pip(){
     param:dsl <<A
 subcommands:
     url        "Provide url of mirror candidates"
@@ -20,20 +20,20 @@ A
         proxy_log error "command not found: pip, you should install pip in your system."
         return 1
     elif [ -n "$PARAM_SUBCMD" ]; then
-        "proxy_pip_${PARAM_SUBCMD}" "$@"
+        "___x_cmd_proxy_pip_${PARAM_SUBCMD}" "$@"
     else
         proxy_log info "Current Registry is:    " >&2
-        proxy_pip get 
-        proxy_pip _param_help_doc  >&2
+        ___x_cmd_proxy_pip get 
+        ___x_cmd_proxy_pip _param_help_doc  >&2
     fi
 }
 
-proxy_pip_get(){
+___x_cmd_proxy_pip_get(){
     param:void
     pip config get global.index-url
 }
 
-proxy_pip_url(){
+___x_cmd_proxy_pip_url(){
     param:dsl <<A
 subcommands:
     qinghua|qh|tsinghua|tuna        "TUNA mirror"
@@ -59,7 +59,7 @@ A
     esac
 }
 
-proxy_pip_set(){
+___x_cmd_proxy_pip_set(){
     param:dsl <<A
 subcommands:
     qinghua|qh|tsinghua|tuna        "TUNA mirror"
@@ -72,7 +72,7 @@ A
     param:run
 
     local url
-    if url="$(proxy_pip_url "$PARAM_SUBCMD")"; then
+    if url="$(___x_cmd_proxy_pip_url "$PARAM_SUBCMD")"; then
         pip config set global.index-url "$url"
     else
         proxy_log error "Unrecognized source name"
@@ -80,12 +80,12 @@ A
     fi
 }
 
-proxy_pip_unset(){
+___x_cmd_proxy_pip_unset(){
     param:void
     pip config unset global.index-url
 }
 
-proxy_pip_tutorial(){
+___x_cmd_proxy_pip_tutorial(){
     param:void
     cat <<A
 A

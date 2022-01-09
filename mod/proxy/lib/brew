@@ -6,7 +6,7 @@
 # Reference: https://brew.idayer.com/guide/change-source/
 # Reference: https://zhuanlan.zhihu.com/p/90508170
 
-proxy_brew(){
+___x_cmd_proxy_brew(){
     param:dsl <<A
 subcommand:
     url         "Provide url of mirror candidates"
@@ -20,15 +20,15 @@ A
         proxy_log error "command not found: brew, you should install brew in your system."
         return 1
     elif [ -n "$PARAM_SUBCMD" ]; then
-        "proxy_brew_${PARAM_SUBCMD}" "$@"
+        "___x_cmd_proxy_brew_${PARAM_SUBCMD}" "$@"
     else
         proxy_log info "Current mirror is: "
-        proxy_brew get
-        proxy_brew _param_help_doc  >&2
+        ___x_cmd_proxy_brew get
+        ___x_cmd_proxy_brew _param_help_doc  >&2
     fi
 }
 
-proxy_brew_url(){
+___x_cmd_proxy_brew_url(){
     param:dsl <<A
 subcommand:
     tuna|tsinghua|qh        "Qinghua"
@@ -46,18 +46,18 @@ A
         ustc)                   printf https://mirrors.ustc.edu.cn ;;
         tencent)                printf http://mirrors.cloud.tencent.com  ;;
         aliyun|ali)             printf https://mirrors.aliyun.com/homebrew  ;;
-        *)                      proxy_brew_url _param_help_doc >&2                 ;;
+        *)                      ___x_cmd_proxy_brew_url _param_help_doc >&2                 ;;
     esac
 }
 
-proxy_brew_get(){
+___x_cmd_proxy_brew_get(){
     param:void
     git -C "$(brew --repo)" remote get-url origin
     git -C "$(brew --repo homebrew/core)" remote get-url origin
     git -C "$(brew --repo homebrew/cask)" remote get-url origin
 }
 
-proxy_brew_set(){
+___x_cmd_proxy_brew_set(){
     param:dsl <<A
 option:
     --verbose|-v            "Print the directories checked and git operations performed."
@@ -72,8 +72,8 @@ A
     param:run
 
     local url
-    url="$(proxy_brew_url "${PARAM_SUBCMD:-ustc}")"
-    proxy_log info "Setting proxy_brew mirror:"
+    url="$(___x_cmd_proxy_brew_url "${PARAM_SUBCMD:-ustc}")"
+    proxy_log info "Setting ___x_cmd_proxy_brew mirror:"
     proxy_log info "    url: $url"
 
     sys_name="$(xrc os && os name)"
@@ -131,7 +131,7 @@ A
     fi
 }
 
-proxy_brew_unset(){
+___x_cmd_proxy_brew_unset(){
     param:dsl <<A
 option:
     --verbose|-v            "Print the directories checked and git operations performed."
@@ -170,7 +170,7 @@ A
     fi
 }
 
-proxy_brew_tutorial(){
+___x_cmd_proxy_brew_tutorial(){
     param:void
     cat <<A
 A

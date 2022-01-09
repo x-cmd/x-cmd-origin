@@ -1,7 +1,7 @@
 # shellcheck shell=sh disable=SC3043
 # Reference: https://www.jianshu.com/p/0deb70e6f395
 
-proxy_npm(){
+___x_cmd_proxy_npm(){
     param:dsl <<A
 subcommand:
     url         "Provide url of mirror candidates"
@@ -15,16 +15,16 @@ A
         proxy_log error "command not found: npm, you should install npm in your system."
         return 1
     elif [ -n "$PARAM_SUBCMD" ]; then
-        "proxy_npm_${PARAM_SUBCMD}" "$@"
+        "___x_cmd_proxy_npm_${PARAM_SUBCMD}" "$@"
     else
         proxy_log info "Current Registry is:    "
-        proxy_npm get
-        proxy_npm _param_help_doc  >&2
+        ___x_cmd_proxy_npm get
+        ___x_cmd_proxy_npm _param_help_doc  >&2
     fi
 
 }
 
-proxy_npm_url(){
+___x_cmd_proxy_npm_url(){
     param:dsl <<A
 subcommand:
     aliyun|ali              "Ali mirror"
@@ -35,16 +35,16 @@ A
     case "$PARAM_SUBCMD" in
         aliyun|ali)             printf https://registry.npm.taobao.org/             ;;
         official)               printf https://registry.npmjs.org/                  ;;
-        *)                      proxy_npm_url _param_help_doc >&2                   ;;
+        *)                      ___x_cmd_proxy_npm_url _param_help_doc >&2                   ;;
     esac
 }
 
-proxy_npm_get(){
+___x_cmd_proxy_npm_get(){
     param:void
     npm config get registry
 }
 
-proxy_npm_set() {
+___x_cmd_proxy_npm_set() {
     param:dsl <<A
 subcommand:
     aliyun|ali              "Ali mirror"
@@ -53,17 +53,17 @@ A
     param:run
 
     local url
-    url="$(proxy_npm_url "${PARAM_SUBCMD:-aliyun}")"
-    printf "Setting proxy_npm mirror:\n    %s\n\n" "$url" >&2
+    url="$(___x_cmd_proxy_npm_url "${PARAM_SUBCMD:-aliyun}")"
+    printf "Setting ___x_cmd_proxy_npm mirror:\n    %s\n\n" "$url" >&2
     npm config set registry "$url"
 }
 
-proxy_npm_unset() {
+___x_cmd_proxy_npm_unset() {
     param:void
-    proxy_npm_set   official
+    ___x_cmd_proxy_npm_set   official
 }
 
-proxy_npm_tutorial(){
+___x_cmd_proxy_npm_tutorial(){
     param:void
     cat <<A
 A

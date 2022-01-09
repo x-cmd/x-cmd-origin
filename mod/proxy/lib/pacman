@@ -1,7 +1,7 @@
 # shellcheck shell=sh disable=SC3043
 # Refer: https://mirrors.tuna.tsinghua.edu.cn/help/archlinux/
 
-proxy_pacman(){
+___x_cmd_proxy_pacman(){
     param:dsl <<A
 subcommands:
     url             "Provide url of mirror candidates"
@@ -15,20 +15,20 @@ A
         proxy_log error "command not found: pacman, you should install pacman in your system."
         return 1
     elif [ -n "$PARAM_SUBCMD" ]; then
-        "proxy_pacman_${PARAM_SUBCMD}" "$@"
+        "___x_cmd_proxy_pacman_${PARAM_SUBCMD}" "$@"
     else
         proxy_log info "Current Registry is:    " >&2
-        proxy_pacman get 
-        proxy_pacman _param_help_doc  >&2
+        ___x_cmd_proxy_pacman get 
+        ___x_cmd_proxy_pacman _param_help_doc  >&2
     fi
 }
 
-proxy_pacman_get(){
+___x_cmd_proxy_pacman_get(){
     param:void
     cat /etc/pacman.d/mirrorlist
 }
 
-proxy_pacman_url(){
+___x_cmd_proxy_pacman_url(){
     param:dsl <<A
 subcommands:
     qinghua|qh|tsinghua|tuna        "TUNA mirror"
@@ -47,7 +47,7 @@ A
     esac
 }
 
-proxy_pacman_replace(){
+___x_cmd_proxy_pacman_replace(){
     param:dsl <<A
 subcommands:
     qinghua|qh|tsinghua|tuna        "TUNA mirror"
@@ -58,8 +58,8 @@ A
     param:run
 
     local url
-    if url="$(proxy_pacman_url "${PARAM_SUBCOM:-tuna}")";then
-        proxy_log info "Setting proxy_pacman mirror :
+    if url="$(___x_cmd_proxy_pacman_url "${PARAM_SUBCOM:-tuna}")";then
+        proxy_log info "Setting ___x_cmd_proxy_pacman mirror :
         $url"
 
         local src_path
@@ -81,7 +81,7 @@ A
 
 }
 
-proxy_pacman_rollback(){
+___x_cmd_proxy_pacman_rollback(){
     # param:void
     param:dsl <<A
 advise:
@@ -94,7 +94,7 @@ A
     param:run
 
     if [ -n "$PARAM_SUBCMD" ]; then
-        proxy_pacman_rollback_"${PARAM_SUBCMD}" "$@"
+        ___x_cmd_proxy_pacman_rollback_"${PARAM_SUBCMD}" "$@"
         return
     fi
 
@@ -106,7 +106,7 @@ A
     fi 
 }
 
-proxy_pacman_tutorial(){
+___x_cmd_proxy_pacman_tutorial(){
     param:void
     cat <<A
 A

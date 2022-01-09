@@ -275,6 +275,7 @@ start_test() {
 . ./testcase/v0_test_subcmd
 . ./testcase/v0_test_param_default
 . ./testcase/v0_test_ui
+. ./testcase/v0_test_quote
 . ./testcase/v0_test_has_subcmd
 . ./testcase/v0_test_dryrun
 
@@ -283,6 +284,7 @@ start_test ./testcase/v0_test_namelist
 start_test ./testcase/v0_test_subcmd
 start_test ./testcase/v0_test_param_default
 start_test ./testcase/v0_test
+start_test ./testcase/v0_test_quote
 start_test ./testcase/v0_test_has_subcmd
 start_test ./testcase/v0_test_dryrun
 

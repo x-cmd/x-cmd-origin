@@ -7,10 +7,12 @@ aaa(){
 option:
     -y|--fsdfsd|-o          "Test regex arg1"  <regex_arg1>=888  =~  "[0-9]+"
     -u|--usdasd|-p          "Test regex arg2"  <regex_arg2>=123  =~  "[0-9]+"
+    --license               "Test regex arg3"  <regex_arg3>=""   =   "MulanPSL-2.0" "0BSD" "AFL-3.0" "AGPL-3.0" ""  "XXXX License"
     -z                      "Test regex arg3"
-    -m                      "Test regex arg4"
     #1                      "Test rest argument #1 when exist option and flag"
     #2                      "Test rest argument #2 when exist option and flag"
+    #3|--regex_arg3|-s      "Repo name 3"        <>:repo
+    #4                      "Repo name 4"        <>:repo
 subcommand:
     bbb                     "This is a bbb"
 A
@@ -18,10 +20,17 @@ A
 
     # echo "y: ${y}"
     # echo "test continue"
-    echo "-y: ${y}\n-z: ${z}\n#1: $1\n#2: $2"
+    echo "-y: ${y}\n-u: ${u}\n-z: ${z}\n#1: $1\n#2: $2\n#3: $3\n#4: $4"
 }
 
-aaa -z -y 123 dd gg
+aaa --regex_arg3 33 11 22
+# aaa --regex_arg3 33 44 55 50
+# aaa --regex_arg3 33
+# aaa 11 22 33 44
+# aaa 11 22
+# aaa
+
+# aaa -z -y 123 dd gg
 
 # aaa _has_subcmd ccc
 # echo $?

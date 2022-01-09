@@ -39,9 +39,13 @@ ___x_cmd_ui_region_update(){
         done | {
             # awk  "$(cat $(xrc which awk/_v0/ui.awk)  $___X_CMD_UI_REGION_AWK)"
             # awk -f "$___X_CMD_UI_REGION_AWK"
-            LC_ALL=en_US.UTF-8 USE=str,ui ___x_cmd_awk file "$___X_CMD_UI_REGION_AWK"
+            ___x_cmd_ui_region_update_awk
         }
     }
+}
+
+___x_cmd_ui_region_update_awk(){
+    LC_ALL=en_US.UTF-8 USE=str,wcwidth,ui ___x_cmd_awk file "$___X_CMD_UI_REGION_AWK"
 }
 
 region_run(){

@@ -57,7 +57,7 @@ static_build_which(){
                     for i in $(seq "$size"); do
                         # suffix="$(printf "%03s" "$i")" # Not work in gnu bash
                         suffix="$(printf "%3s" "$i" | tr " " 0)"
-                        if ! ___x_cmd_curl_gitx static-build "${repo}" main "bin/$exe.7z" "$target/$exe.7z.$suffix" "$exe.7z.$suffix"; then
+                        if ! ___x_cmd_curl_gitx static-build "${repo}" main "bin/$exe.7z.$suffix" "$target/$exe.7z.$suffix"; then
                             static_build_log warn "Download failure in $exe.7z.$suffix" >&2
                             return 1
                         fi

@@ -110,20 +110,27 @@ function jiter_after_tokenize(jobj, text,       _arr, _arrl, _i){
 }
 
 function ___json_range_trick(arr, max){
-    if (arr[1] == "") arr[1] = 1
-    if (arr[2] == "") {
-        if (arr[1] > 0) {
-            arr[2] = max
-        } else {
-            arr[2] = 1
-        }
-    }
     if (arr[3] == "") {
-        if (arr[1] > arr[2]) {
+        if (arr[1] > arr[2] && arr[1] > 0 && arr[2] > 0) {
             arr[3] = -1
         } else {
             arr[3] = 1
         }
+    }
+    if (arr[1] == "") {
+        if (arr[3] > 0) arr[1] = 1
+        else arr[1] = max
+    }
+    if (arr[1] < 0) {
+        arr[1] = (arr[1] + max) % max + 1
+    }
+    if (arr[2] == "") {
+        if (arr[3] > 0) arr[2] = max
+        else arr[2] = 1
+    }
+    if (arr[2] < 0) {
+        if (arr[3] > 0) arr[2] = max + arr[2]
+        else arr[2] = max + arr[2] + 2
     }
 }
 
@@ -225,26 +232,33 @@ function _jjoin(arr, jpath, range, sep1, _keyl, _key, sep2,
         _end = int(_range[2])
         _start = int(_range[1])
     }
+    # if (_keyl < 1) {
+    #     for (_i=_start; _i<=_end; _i = _i + _step) {
+    #         # TODO: arr[ _kp S "\"" _i "\"" ] is null
+    #         printf("%s", arr[ _kp S "\"" _i "\"" ])
+    #         if (_i<_end) printf(sep1)
+    #     }
+    #     return
+    # }
+    if (_step > 0) {
+        for (_i=_start; _i <= _end; _i = _i + _step) {
+            printf("%s", jjoin_str_unquote2( arr[ _kp S "\"" _i "\"" S _key[1] ] ) )
+            for (_j=2; _j<=_keyl; ++_j) {
+                printf(sep2 "%s", jjoin_str_unquote2( arr[ _kp S "\"" _i "\"" S _key[_j] ] ) )
+            }
 
-    if (_keyl < 1) {
-        for (_i=_start; _i<=_end; _i = _i + _step) {
-            # TODO: arr[ _kp S "\"" _i "\"" ] is null
-            printf("%s", arr[ _kp S "\"" _i "\"" ])
             if (_i<_end) printf(sep1)
         }
-        return
-    }
-
-
-    for (_i=_start; _i<=_end; _i = _i + _step) {
-
-        printf("%s", jjoin_str_unquote2( arr[ _kp S "\"" _i "\"" S _key[1] ] ) )
-        for (_j=2; _j<=_keyl; ++_j) {
-            printf(sep2 "%s" , jjoin_str_unquote2( arr[ _kp S "\"" _i "\"" S _key[_j] ] ) )
+    } else {
+        for (_i=_start; _i >= _end; _i = _i + _step) {
+            printf("%s", jjoin_str_unquote2( arr[ _kp S "\"" _i "\"" S _key[1] ] ) )
+            for (_j=2; _j<=_keyl; ++_j) {
+                printf(sep2 "%s", jjoin_str_unquote2( arr[ _kp S "\"" _i "\"" S _key[_j] ] ) )
+            }
+            if (_i>_end) printf(sep1)
         }
-
-        if (_i<_end) printf(sep1)
     }
+
 }
 
 

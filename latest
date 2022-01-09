@@ -44,6 +44,7 @@ ___x_cmd_theme_which(){
 # Section: subcmd
 
 ___x_cmd_theme_control_ls() {
+    param:void
     local fp
     if fp="$(___x_cmd_theme_which index.yml)"; then
         awk '{ print $2; }' <"$fp"
@@ -54,12 +55,21 @@ xrc theme/_v0/lib
 xrc theme/_v0/style
 
 ___x_cmd_theme_control_use(){
+    param:dsl <<A
+advise:
+    #1          awk '{ print \\\$2; }' <\\\$___X_CMD_ROOT/.tmp/theme/index.yml
+options:
+    #1          "return theme list name"
+A
+    param:run
+
     local name="${1:-ys}"
     ___x_cmd_theme_control_try "$name" && \
         x boot rc add "x-theme" "xrc theme && ___x_cmd_theme_control try $name"
 }
 
 ___x_cmd_theme_control_unset(){
+    param:void
     local ___X_CMD_ROOT_RC="$___X_CMD_ROOT/.boot/rc"
     if [ ! -f "$___X_CMD_ROOT_RC" ]; then
         printf "%s\n" "The configuration file does not exist,unset failed"
@@ -70,6 +80,14 @@ ___x_cmd_theme_control_unset(){
 }
 
 ___x_cmd_theme_control_try(){
+    param:dsl <<A
+advise:
+    #1          awk '{ print \\\$2; }' <\\\$___X_CMD_ROOT/.tmp/theme/index.yml
+options:
+    #1          "return theme list name"
+A
+    param:run
+
     local name="${1}"
     case "$name" in
         ys|"")
@@ -120,6 +138,7 @@ ___x_cmd_theme_control_rollback(){
 }
 
 ___x_cmd_theme_control_zinit(){
+    param:void
     local _have_loaded_theme
     _have_loaded_theme=$([ -f "$___X_CMD_ROOT/.boot/rc" ] && x boot rc ls | grep 'x-theme')
     # load theme
@@ -139,6 +158,7 @@ ___x_cmd_theme_control_use_plugin() {
 }
 
 ___x_cmd_theme_control_font() {
+    param:void
     local _font_dir
     local _font_name
     if [ "$(uname)" = "Darwin" ]; then
@@ -190,25 +210,9 @@ ___x_cmd_theme_control_get_current_background_color(){
 
 # EndSection
 
-if [ -n "$___X_CMD_ENABLE_AUTO_RUN" ]; then
-    ___x_cmd_theme_control "$@"
-fi
-
 if ___x_cmd_is_suitable_advise_env; then
-    advise theme - <<A
-{
-    "ls": "--- list all theme",
-    "use": {
-        "#1": "awk '{ print \$2; }' <\$___X_CMD_ROOT/.tmp/theme/index.yml",
-        "#desc": "use theme when starting the shell"
-    },
-    "try": {
-        "#1": "awk '{ print \$2; }' <\$___X_CMD_ROOT/.tmp/theme/index.yml",
-        "#desc": "try theme"
-    },
-    "unset": "--- unset last theme"
-}
-A
+    xrc advise/latest
+    advise ___x_cmd_theme_control "" theme
 fi
 
 xrc setmain ___x_cmd_theme_control

@@ -86,8 +86,8 @@ END {
 ___x_cmd_cd_iter()(
     local root="$1"
     local iter_path="$2"
-
-    ___x_cmd_cd_origin "$root"
+ 
+    ___x_cmd_cd_origin "$root" 2>/dev/null
 
     local cur="${iter_path%%/*}"
     
@@ -249,7 +249,7 @@ A
             ___X_CMD_CD_HISTORY="$(printf "%s" "$___X_CMD_CD_HISTORY" | awk "$___X_CMD_AWK_CODE")"
             ___x_cmd_cd_choose "$(printf "%s" "$___X_CMD_CD_HISTORY" | grep "${p#-}")"
             ;;
-    esac   
+    esac
 }
 
 ___x_cmd_cd_advise_candidates(){

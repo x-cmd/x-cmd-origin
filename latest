@@ -41,7 +41,6 @@ zh_TW
 
 xrc ui/v0
 
-
 ___x_cmd_tldr(){
     param:dsl <<A
 subcommands:
@@ -69,7 +68,8 @@ _______X_CMD_TLDR_ROOT="$___X_CMD_ROOT/.tmp/tldr"
 ___x_cmd__tldr_download(){
     local src="${1:?Provide source file}"
     local dst="${2:-$1}"
-    ___x_cmd_curl_gitx x-cmd tldr main "dist/$src" "$_______X_CMD_TLDR_ROOT/$dst" 2>/dev/null
+    local expiration="${3:-"1"}"
+    ___x_cmd_curl_gitx x-cmd tldr main "dist/$src" "$_______X_CMD_TLDR_ROOT/$dst" "$expiration" 2>/dev/null
 }
 
 ___x_cmd_tldr_current(){
@@ -88,23 +88,21 @@ ___x_cmd_tldr_current(){
 ___x_cmd__tldr_download_pages()(
     local version="${1:?Provide version}"
     local page_lang="${2:?pages}"
-    if [ -d "$_______X_CMD_TLDR_ROOT/$version/$page_lang" ]; then
-        printf "pages already exists.\n" >&2
-        return
+    if [ ! -d "$_______X_CMD_TLDR_ROOT/$version/$page_lang" ]; then
+        mkdir -p "$_______X_CMD_TLDR_ROOT/$version/$page_lang"
     fi
 
-    mkdir -p "$_______X_CMD_TLDR_ROOT/$version/$page_lang"
-    if ! ___x_cmd__tldr_download "$version/$page_lang.tgz" "$version/$page_lang/$page_lang.tgz"; then
+    if ! ___x_cmd__tldr_download "$version/$page_lang.tgz" "$version/$page_lang/$page_lang.tgz" "0"; then
         printf "%s\n" "Fail to update $page_lang." >&2
         return 1
     fi
-
     if cd "$_______X_CMD_TLDR_ROOT/$version/$page_lang" && tar xvf "$page_lang.tgz" 2>/dev/null; then
         printf "Version already UPDATED to %s.\n" "$version" >&2
     fi
 )
 
 ___x_cmd_tldr_update()(
+    param:void
     if ! ___X_CMD_CURL_UPDATE=1 ___x_cmd__tldr_download index.yml; then
         printf "%s\n" "Fail to update index.yml." >&2
         return 1
@@ -135,6 +133,14 @@ ___x_cmd_tldr_current_or_update(){
 
 ______X_CMD_TLDR_LANG_PREFERED="${______X_CMD_TLDR_LANG_PREFERED:-en}"
 ___x_cmd_tldr_lang(){
+    param:dsl <<A
+advise:
+    #1          ___x_cmd_tldr_lang
+options:
+    #1          "use the selected file to rollback"
+A
+    param:run
+
     if [ "$#" -eq 0 ]; then
         printf "%s" "$______X_CMD_TLDR_LANG"
         return
@@ -166,6 +172,7 @@ ___x_cmd_tldr_lsname(){
 }
 
 ___x_cmd_tldr_ls()(
+    param:void
     local version
     version="$(___x_cmd_tldr_current_or_update)" || return
 
@@ -194,6 +201,13 @@ ___x_cmd_tldr_exact()(
 )
 
 ___x_cmd_tldr_cat(){
+    param:dsl <<A
+advise:
+    #1          ___x_cmd_tldr_lsname
+options:
+    #1          "use the selected file to rollback"
+A
+    param:run
 
     cand="$( ___x_cmd_tldr_exact "$@" )"
     local num
@@ -223,23 +237,9 @@ ___x_cmd_tldr_cat(){
 }
 # EndSection
 
-# TODO: Maybe x-cmd can use this advise json. And then we can remove this from x-cmd.
 if ___x_cmd_is_suitable_advise_env; then
-    xrc advise
-    advise tldr - <<A
-{
-    "update": "--- Update",
-    "ls": "--- list all possible commands",
-    "lang": {
-        "#1": "___x_cmd_tldr_lang",
-        "#desc": "Set Prefered language or show languange candidates"
-    },
-    "cat": {
-        "#1": "___x_cmd_tldr_lsname",
-        "#desc": "Concatenate tldr file to standard output"
-    }
-}
-A
+    xrc advise/latest
+    advise ___x_cmd_tldr "" tldr
 fi
 
 xrc setmain ___x_cmd_tldr

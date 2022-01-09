@@ -198,10 +198,6 @@ ___x_cmd_ui_table_control(){
     # LC_ALL=en_US.UTF-8  awk "$(xrc cat ui/_v0/wcwidth.awk)$(cat $___X_CMD_UI_TABLE_CONTROL_AWK_PATH)"
 }
 
-___x_cmd_ui_region_update_table(){
-    LC_ALL=en_US.UTF-8 USE=str,ui ___x_cmd_awk file "$___X_CMD_UI_REGION_AWK"
-}
-
 # EXIT_OP=
 ___ui_table_out3_contain_exit_op(){
     # local EXIT_OP=${EXIT_OP:-""}
@@ -241,10 +237,10 @@ ___ui_table_out_func(){
         # { cat; printf "\n"; } | ___x_cmd_ui_region_send
         { eval "$@"; printf "\n"; } | ___x_cmd_ui_region_send
         printf "VIEW %s %s\n" "$(ui rows)" "$(ui cols)" | ___x_cmd_ui_region_send
-
+        
         local SPACE=
         printf "UPDATE\n"
-        printf "VIEW %s %s\n" "$(ui rows)" "$(ui cols)"
+        printf "VIEW %s %s\n" "$(ui rows)" "$(ui cols)" 
 
         while region_getchar; do
 
@@ -321,7 +317,7 @@ ___ui_table_out_func(){
         # Notice: Meaningless but important.
         printf "\n"
 
-    } | ___x_cmd_ui_table_control | ___x_cmd_ui_region_update_table
+    } | ___x_cmd_ui_table_control | ___x_cmd_ui_region_update_awk
 
     exec 3>&-
 
@@ -332,17 +328,16 @@ ___ui_table_out_func(){
 
 
 # EndSection
-
 # ui table -
 # ui table + B%USER               PID  %CPU %MEM      VSZ    RSS   TT  STAT STARTED      TIME COMMAND
-# # for i in $(seq 2); do
+# for i in $(seq 6); do
 #     ui table + edwinjhlee       45694  69.7  3.2 12906080 542124   "??"  R    "三02下午" 2171:02.57 "com.docker.hyperkit -A -u -F vms/0/hyperkit.pid -c 4 -m 8192M -s 0:0,hostbridge -s"
 #     ui table + _windowserver    24773   9.6  0.9  9289004 146772   "??"  Ss   "29 521"  2827:26.66 "/System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer -daemo"
 #     ui table + edwinjhlee       40627   9.1  0.8  9704844 133228   "??"  Ss   "25 621"  351:58.88 "/Applications/Visual Studio Code.app/Contents/MacOS/Electron /Users/edwinjhlee/x-b"
 #     ui table + edwinjhlee       81250   5.9  1.7 57448804 293384   "??"  S    "2:25下午"  18:21.02 "/Applications/Visual Studio Code.app/Contents/Frameworks/Code Helper (Renderer).app1"
 #     ui table + edwinjhlee       81250   5.9  1.7 57448804 293384   "??"  S    "2:25下午"  18:21.02 "/Applications/Visual Studio Code.app/Contents/Frameworks/Code Helper (Renderer).app2"
 #     ui table + edwinjhlee       99999   5.9  1.7 57448804 293384   "??"  S    "2:25下午"  18:21.02 "/Applications/Visual Studio Code.app/Contents/Frameworks/Code Helper (Renderer).app3"
-# # done
+# done
 # ui table
 
 # prepare_data(){

@@ -28,7 +28,7 @@ function output(text, width,
     OUTPUT_LINE_COUNT = 0
     for (i=1; i<=line_arr_len; i++) {
         line = line_arr[i]
-        line_len = length( str_remove_style(line) )
+        line_len = wcswidth( str_remove_style(line) )
         if (line_len == 0) {
             OUTPUT_LINE_COUNT = OUTPUT_LINE_COUNT + 1
             return_text = return_text str_rep(" ", width) "\n"

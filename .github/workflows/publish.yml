@@ -12,8 +12,8 @@ jobs:
       - name: install x-cmd && setup ssh publish
         run:  |
               eval "$(curl https://get.x-cmd.com/dev)" || true
+              git clone git@gitee.com:x-cmd/x-cmd.git && cd x-cmd || exit
               x gh-action ssh "$SSH_PRIVATE_KEY" agent-zero 0@x-cmd.com || true
-              git clone git@gitee.com:x-cmd/x-cmd.git
               xws pub || true
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}

@@ -1,0 +1,23 @@
+name: 'github actions publish x-cmd/dev'
+
+on:
+  workflow_dispatch:
+  # schedule:
+  #   - cron: '30 11 * * *'
+
+jobs:
+  bot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: git checkout
+        uses: actions/checkout@v2
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: install x-cmd && setup ssh publish
+        run:  |
+              eval "$(curl https://get.x-cmd.com/dev)" || true
+              x gh-action ssh "$SSH_PRIVATE_KEY" agent-zero 0@x-cmd.com || true
+              xws pub || true
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}

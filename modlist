@@ -10,6 +10,14 @@
 +log
 +boot
 
+# lang
++python
++java
++perl
++node
++go
++terraform
+
 # basic modules: non dependency
 +str
 +list

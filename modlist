@@ -5,8 +5,7 @@
 +awk
 +x_fs
 +dev
-+p7zr
-+p7z
++p7zip
 +log
 +boot
 
@@ -15,6 +14,7 @@
 +java
 +perl
 +node
++nvm
 +go
 +terraform
 

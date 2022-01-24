@@ -9,6 +9,14 @@
 +log
 +boot
 
++cd
++ls
++cat
++op
++cp
++mv
++sync
+
 # lang
 +python
 +java

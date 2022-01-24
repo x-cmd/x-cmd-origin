@@ -13,9 +13,10 @@
 +ls
 +cat
 +op
++sync
 +cp
 +mv
-+sync
++rm
 
 # lang
 +python

@@ -9,15 +9,17 @@
 +log
 +boot
 
+# resource access operation
 +cd
 +ls
 +cat
 +op
 +sync
 +cp
-+convert
 +rm
 +mv
+
++convert
 
 # lang
 +python

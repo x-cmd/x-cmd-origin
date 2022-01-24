@@ -15,8 +15,9 @@
 +op
 +sync
 +cp
-+mv
++convert
 +rm
++mv
 
 # lang
 +python

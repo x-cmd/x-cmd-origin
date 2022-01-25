@@ -9,21 +9,30 @@
 +log
 +boot
 
+
 # resource access operation
 +cd
 
 +op
 
 +ls
++ll
+
 +cat
++ed
 
 +cp
 +rm
 +mv
-+ed
 
 +sync
+
++trap
+
+# pdf ffmpeg
 +convert
+
+
 
 # lang
 +python

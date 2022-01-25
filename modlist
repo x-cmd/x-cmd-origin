@@ -67,11 +67,14 @@ xdk
 zuz
 el
 
+
 # Apps
 +tldr
 +man
 +proxy
 theme
++ffmpeg
++ff
 
 # web clients
 ali

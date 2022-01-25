@@ -11,14 +11,18 @@
 
 # resource access operation
 +cd
+
++op
+
 +ls
 +cat
-+op
-+sync
+
 +cp
 +rm
 +mv
++ed
 
++sync
 +convert
 
 # lang

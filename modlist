@@ -18,6 +18,7 @@
 
 +ls
 +ll
++du
 
 +cat
 +ed
@@ -32,8 +33,9 @@
 
 # pdf ffmpeg
 +convert
-
-
++pdf
++ff
++ffmpeg
 
 # lang
 +python
@@ -73,8 +75,6 @@ el
 +man
 +proxy
 theme
-+ffmpeg
-+ff
 
 # web clients
 ali

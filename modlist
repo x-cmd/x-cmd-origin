@@ -29,7 +29,7 @@
 
 +sync
 
-+trap
+
 
 # pdf ffmpeg
 +convert
@@ -54,6 +54,7 @@
 +json
 +os
 +cowsay
++trap
 
 # basic modules: dependencies
 +param

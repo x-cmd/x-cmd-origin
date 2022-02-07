@@ -32,7 +32,7 @@
 
 
 # pdf ffmpeg
-convert
++convert
 pdf
 ff
 ffmpeg

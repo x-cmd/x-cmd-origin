@@ -32,13 +32,13 @@
 
 
 # pdf ffmpeg
-+convert
-+pdf
-+ff
-+ffmpeg
-+pandoc
-+magick
-+tesseract
+convert
+pdf
+ff
+ffmpeg
+pandoc
+magick
+tesseract
 
 # lang
 +python

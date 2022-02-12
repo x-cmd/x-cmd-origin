@@ -1,0 +1,72 @@
+# shellcheck shell=sh disable=SC3043 # xrc
+
+# author:       Li Junhao           l@x-cmd.com
+# maintainer:   Li Junhao
+
+
+# https://serverfault.com/questions/93407/what-command-prints-a-string-as-big-ascii-text-art-in-bash
+cowsay(){
+    local IFS
+    local typ="${1:-cow}"
+
+    case "$typ" in
+        help|h) 
+            cat <<A
+cowsay [tux|cow|help]
+A
+        return 1
+        ;;
+        _x_cmd_advise_json) cat <<A
+{
+    "tux": {},
+    "cow": {},
+    "help|h": {}
+}
+A
+        return 126
+        ;;
+
+        cow|tux)  shift;  ;;
+    esac
+        
+    cat <<-A
+ ______________________
+< ${*:-$text} >
+ ----------------------
+A
+
+    case "${typ:-cow}" in
+        tux) cat <<'A'
+   \
+    \
+        .--.
+       |o_o |
+       |:_/ |
+      //   \ \
+     (|     | )
+    /'\_   _/`\
+    \___)=(___/
+A
+    ;;
+
+        *) cat <<'A'
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+A
+    ;;
+    esac
+}
+
+if [ -n "${BASH_VERSION}${ZSH_VERSION}" ] && [ "${-#*i}" != "$-" ]; then
+    xrc advise/latest
+    advise cowsay
+fi
+
+if [ -n "$___X_CMD_ENABLE_AUTO_RUN" ]; then
+    cowsay "$@"
+fi
+
+xrc setmain cowsay

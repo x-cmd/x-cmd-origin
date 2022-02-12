@@ -1,0 +1,229 @@
+# shellcheck shell=sh disable=SC2039,SC1090,SC3043,SC2263 # xrc
+
+# author:       Li Junhao           l@x-cmd.com
+# maintainer:   Li Junhao
+
+___x_cmd_hub(){
+    local subcmd="$1";  shift
+    case "$subcmd" in
+        file)           ___x_cmd_hub_file "$@" ;;
+        login)          ___x_cmd_hub_login "$@" ;;
+        register)       ___x_cmd_hub_register "$@" ;;
+        token)          ___x_cmd_hub_token "$@" ;;
+    esac
+}
+
+# Section: account
+
+___XCMD_SERVICE_URL="http://47.115.207.205"
+# ___XCMD_SERVICE_URL="https://hub.x-cmd.com"
+# ___XCMD_SERVICE_URL="http://127.0.0.1:3000"
+
+___x_cmd_hub_login(){
+    local email="${1}"
+    if [ -z "$email" ]; then
+        printf "%s" "Email: "
+        read -r email
+    fi
+
+    local result
+    result="$(curl "$___XCMD_SERVICE_URL/api/v0/account/login/$email" 2>/dev/null)"
+    # printf "Result: %s\n" "$result" >&2
+
+    if [ "${result#ERR=}" = "$result" ]; then
+        ___x_cmd_hub_verify "$email"
+    else
+        printf "%s\n" "$result"
+    fi
+}
+
+___x_cmd_hub_register(){
+    local email=${1:-""}
+    if [ -z "$email" ]; then
+        printf "%s" "Email: "
+        read -r email
+    fi
+
+    local result
+    result="$(curl "$___XCMD_SERVICE_URL/api/v0/account/register/$email" 2>/dev/null)"
+    local msg=${result#ERR=}
+
+    if [ "$msg" = "$result" ]; then
+        ___x_cmd_hub_verify "$email"
+    else
+        printf "%s\n" "$result"
+    fi
+}
+
+___x_cmd_hub_verify(){
+    local email="${1:?email}"
+
+    local code
+    printf "%s" "Code: "
+    read -r code
+
+    result="$(curl "$___XCMD_SERVICE_URL/api/v0/account/verify/$email/$code" 2>/dev/null)"
+
+    local token=${result#TOKEN=}
+    if [ "$token" != "$result" ]; then
+        mkdir -p "$___X_CMD_ROOT/.env"
+        printf "%s" "$email" > "$___X_CMD_ROOT/.env/.me"
+        printf "%s" "$token" > "$___X_CMD_ROOT/.env/.token"
+        printf "%s\n" "Login Success."
+    else
+        printf "%s\n" "$result"
+    fi
+}
+
+mkdir -p "$___X_CMD_ROOT/.env"
+
+# shellcheck disable=SC2120
+___x_cmd_hub_token(){
+    if [ -z "$1" ]; then
+        cat "$___X_CMD_ROOT/.env/.token" 2>/dev/null
+    else
+        if [ "$1" = "${1#*/}" ]; then
+            printf "%s" "${1%/*}" > "$___X_CMD_ROOT/.env/.me"
+            printf "%s" "${1#*/}" > "$___X_CMD_ROOT/.env/.token"
+            return
+        fi
+
+        local res
+        if res=$(___xcmd_curl "$___XCMD_SERVICE_URL/api/v0/token/info/email?token=$(___x_cmd_hub_token)"); then
+            printf "%s" "$res" > "$___X_CMD_ROOT/.env/.me"
+            printf "%s" "$1" > "$___X_CMD_ROOT/.env/.token"
+        fi
+    fi
+}
+
+___x_cmd_hub_login_user(){
+    cat "$___X_CMD_ROOT/.env/.me" 2>/dev/null
+}
+
+# EndSection
+
+# Section: file service
+___x_cmd_hub_file(){
+    local subcmd="$1";  shift
+    case "$subcmd" in
+        ls)             ___x_cmd_hub_file_ls "$@" ;;
+        which)           "$@" ;;
+        upload)         ___x_cmd_hub_file_upload "$@" ;;
+        share)          ___x_cmd_hub_file_share "$@" ;;
+        private)        ___x_cmd_hub_file_private "$@" ;;
+    esac
+}
+
+___x_cmd_hub_file_ls(){
+    local respath="${1:-@me/}"
+    respath="$(___x_cmd_hub_file_normalize_respath "$respath")"
+
+    # curl \
+    #     "$___XCMD_SERVICE_URL/api/v0/file/ls?token=$(___x_cmd_hub_token)&res=${respath}" 2>/dev/null
+
+    local res
+    res="$(curl \
+        "$___XCMD_SERVICE_URL/api/v0/file/ls?token=$(___x_cmd_hub_token)&res=${respath}" 2>/dev/null)"
+
+    printf "%s" "$res" | x jq -r .[]
+
+}
+
+___x_cmd_hub_file_which(){
+    local respath="${1:?Provide respath}"
+    # case "$respath" in
+    #     @me/*|@i/*|@/*)
+    #         local user
+    #         user=$(___x_cmd_hub_login_user)
+    #         if [ -z "$user" ]; then
+    #             printf "Cannot not find out login user for resource: %s" "$respath" >&2
+    #             return 1
+    #         fi
+    #         respath="$user/${respath#@*/}"
+    # esac
+
+    respath="$(___x_cmd_hub_file_normalize_respath "$respath")"
+
+    local CACHE="${___X_CMD_ROOT%/}/${respath#/}"
+    if ___xcmd_curl "$___XCMD_SERVICE_URL/api/v0/file/cat?token=$(___x_cmd_hub_token)&res=${respath}"; then
+        printf "%s" "$CACHE"
+    else
+        printf "Failed: %s" "$CACHE" 2>/dev/null
+        return 1
+    fi
+}
+
+___x_cmd_hub_file_normalize_respath(){
+    local respath="${1}"
+    case "$respath" in
+        @me/*|@i/*|@/*)
+            local user
+            user=$(___x_cmd_hub_login_user)
+            if [ -z "$user" ]; then
+                printf "Cannot not find out login user for resource: %s" "$respath" >&2
+                return 1
+            fi
+            printf "%s" "$user/${respath#@*/}"
+            ___X_CMD_WHICH_ONE_RESOURCE_TYPE=me@hub
+            ;;
+        *@*)
+            ___X_CMD_WHICH_ONE_RESOURCE_TYPE=hub
+            printf "%s" "$respath" ;;
+        *)
+            ___X_CMD_WHICH_ONE_RESOURCE_TYPE=hub
+            printf "%s" "$(___x_cmd_hub_login_user)/${respath#/}" ;;
+    esac
+}
+
+___x_cmd_hub_file_upload(){
+    local localfp="${1:?Provide local file}"
+
+    [ ! -f "$localfp" ] && {
+        printf "File Not Existed: %s\n" "$localfp" >&2
+        return
+    }
+
+    local respath="${2:?Please provide path}"
+    respath="$(___x_cmd_hub_file_normalize_respath "$respath")"
+
+    curl \
+        -F "file=@$localfp" \
+        "$___XCMD_SERVICE_URL/api/v0/file/upload?token=$(___x_cmd_hub_token)&res=${respath}" 2>/dev/null
+    printf "\n"
+}
+
+___x_cmd_hub_file_share(){
+    local respath="${1:?Please provide path}"
+    respath="$(___x_cmd_hub_file_normalize_respath "$respath")"
+
+    curl "$___XCMD_SERVICE_URL/api/v0/file/share/true?token=$(___x_cmd_hub_token)&res=${respath}" 2>/dev/null
+    printf "\n"
+}
+
+___x_cmd_hub_file_private(){
+    local respath="${1:?Please provide path}"
+    respath="$(___x_cmd_hub_file_normalize_respath "$respath")"
+
+    curl "$___XCMD_SERVICE_URL/api/v0/file/share/false?token=$(___x_cmd_hub_token)&res=${respath}" 2>/dev/null
+    printf "\n"
+}
+
+# EndSection
+
+___x_cmd_x_cmd_advise_json(){
+    cat <<A
+{
+    "upload": {
+        "#1": "___advise_ls",
+        "#2": [ "@me/" ]
+    },
+    "share": [ "@me/" ],
+    "public": [ "@me/" ],
+    "private": [ "@me/" ],
+    "ls": [ "@me/" ]
+}
+A
+    return 126
+}
+
+xrc setmain ___x_cmd_hub

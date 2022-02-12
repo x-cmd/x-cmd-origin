@@ -1,0 +1,58 @@
+# shellcheck shell=sh disable=SC3043,SC2164     # xrc
+
+# author:       Li Junhao           l@x-cmd.com
+# license:      GPLv3
+
+xrc static-build/lib/staticbin os
+
+___x_cmd_pandoc(){
+    ___x_cmd_staticbin_init \
+        ___x_cmd_pandoc \
+        "$___X_CMD_ROOT/.bin/pandoc" \
+        pandoc \
+        "$(___x_cmd_pandoc_bin_download_url)" \
+        &&(
+            cd "$___X_CMD_ROOT/.bin/pandoc" && {
+                chmod +x pandoc
+            }
+        )&& ___x_cmd_pandoc "$@"
+}
+
+# Section: detail
+
+#  https://github.com/jgm/pandoc/releases/download/2.17.0.1/pandoc-2.17.0.1-macOS.zip
+#  https://github.com.cnpmjs.org/jgm/pandoc/releases/download/2.17.0.1/pandoc-2.17.0.1-macOS.zip
+#  TODO: provide gitcode
+
+___x_cmd_pandoc_bin_download_url(){
+    local sys
+    sys="$(os rname)-$(os arch)"
+    local p
+    case "$sys" in
+        Darwin-*)
+            p="2.17.0.1/pandoc-2.17.0.1-macOS.zip"
+            ;;
+        win-*)
+            p="2.17.0.1/pandoc-2.17.1.1-windows-x86_64.zip"
+            ;;
+        linux-amd64)
+            p="2.17.0.1/pandoc-2.17.1.1-linux-amd64.tar.gz"
+            ;;
+        linux-arm64)
+            p="2.17.0.1/pandoc-2.17.1.1-linux-arm64.tar.gz"
+            ;;
+        *)
+            printf "System Not Supported: %s\n" "$sys" >&2
+            return 1
+    esac
+
+    if [ -z "$___X_CMD_WHICHNET" ]; then
+        printf "%s/%s" "https://github.com/jgm/pandoc/releases/download" "$p"
+    else
+        printf "%s/%s" "https://download.fastgit.org/jgm/pandoc/releases/download" "$p"
+    fi
+}
+
+# EndSection
+
+xrc setmain ___x_cmd_pandoc

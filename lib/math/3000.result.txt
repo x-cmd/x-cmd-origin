@@ -1,0 +1,1680 @@
+0	as so us his say sea see sex six sue use yes case ease easy wise
+00	size
+0	cause house sauce whose
+00	essay issue seize
+0	accuse
+00	access
+0000	assess
+00	squeeze
+000	success
+1	ad at do it to
+01	sad set sit
+1	act aid cat cut day die due eat etc hat hit hot out tax tea the tie toe too toy two wet yet
+01	cast cost east host seat seed side site stay suit used west
+1	acid aide auto cite city coat code hate head heat hide idea quit they wait what wide with wood
+001	asset
+01	aside coast exist south sweet waste
+1	ahead exact quiet quite quote twice white youth
+0001	assist
+1	exceed
+01	society succeed suicide
+001	associate
+2	in no on
+02	sin son sun
+2	any can new now one own win
+02	snow soon zone
+2	nice once when wine
+02	asian scene since
+2	honey ocean
+002	season
+02	cousin
+2	anyway unique
+0002	session
+02	science occasion sequence
+3	am me my aim him may mix
+03	same seem some swim
+3	come home whom
+003	assume
+03	somehow
+4	or
+04	sir
+4	air car cry ear era her our raw row war
+04	sure user
+4	area care core crew hair hear here hero hire hour race rice wear wire year your
+04	score swear
+4	aware iraqi occur where
+004	assure
+04	secure soccer source square
+4	acquire
+5	law lay lie low oil
+05	sale slow soil soul
+5	clue coal cool heel hole holy
+05	scale slice usual
+5	cycle equal wheel while whole
+05	easily sexual social
+6	jew joy she
+06	such
+6	cash each shoe show wash wish coach couch juice which choice
+7	go ok
+07	ask ski sky
+7	age ago gay guy key
+07	sake seek sick sigh
+7	cake cook high huge okay wage wake weak week quick weigh cookie highway
+8	if of fee few fix via
+08	safe save
+8	face have view wave wife heavy voice
+9	be by pc up box boy buy cap cop cup hip pay pie
+09	soup
+9	cope copy hope pace wipe
+09	scope space sweep
+9	peace piece
+09	escape
+9	occupy
+10	its aids this thus these those ethics
+11	add dad odd data date dead diet duty text that
+011	state study
+11	death today tooth
+011	estate steady studio
+11	decade decide tactic educate without adequate
+12	dna ten deny down teen than then thin tiny tone town twin
+012	stone
+12	dance action ethnic within wooden
+0012	sustain
+012	section question
+12	audience
+012	existence
+00012	assistance
+0012	association
+13	item team them time theme
+0013	system
+013	custom wisdom
+13	outcome academic
+14	dry try
+014	star stir
+14	dare dear deer door draw tear tire tour tree true
+014	stair stare store story
+14	actor extra other their there three throw tower trace water
+0014	sister
+014	sector
+14	author either theory
+014	history
+14	weather whether
+014	historic
+15	deal tail tale tool
+015	steal steel style
+15	daily delay hotel ideal actual widely exactly quietly catholic
+16	dish catch teach touch watch
+016	switch
+17	dig dog deck edge take
+017	stage stake stick stock
+17	thick tough though
+18	tv active advice device executive
+19	tap tip top
+019	step stop
+19	deep tape tube type topic tobacco
+20	news nose
+020	sense
+20	noise
+21	and end net nod not nut
+021	sand send
+21	hand into need next note onto unit want wind
+021	sound
+21	count index wound
+021	second senate
+21	county notice window account anxiety
+22	nine none onion union anyone enhance
+23	name enemy income economy economic
+24	nor near honor owner
+024	senior
+24	cancer inquiry nowhere
+024	scenario
+24	anywhere
+25	only newly uncle council
+26	enjoy
+027	sing sink song
+27	hang neck wing
+027	swing
+27	young enough
+027	housing
+029	snap
+30	ms mouse music
+31	mad math meat meet mode mood myth media mouth
+031	smooth
+31	comedy
+031	somewhat
+32	man main many mean menu mine moon human money woman
+032	someone
+32	examine mexican
+33	mom
+34	mr mere more humor mayor camera
+034	somewhere
+35	mail male meal
+035	smile
+35	e-mail
+36	much
+37	make
+037	smoke
+37	image
+38	move movie
+39	map camp maybe
+40	rise rose arise crazy horse raise yours
+040	series
+40	course
+040	serious
+40	curious whereas exercise
+41	art red rid
+041	sort
+41	card hard hurt rate read ride road root word yard award court crowd earth heart radio ratio react ready route worth write
+0041	assert
+041	sacred scared secret
+41	create critic reduce
+041	security
+41	accurate
+42	run corn earn iron rain warn
+042	screen
+43	arm army room warm cream crime
+043	scream
+44	rare
+044	sorry
+44	carry worry career require
+45	rail real rely role rule early relax
+045	surely
+45	circle racial
+045	israeli
+45	crucial
+46	rich rush crash irish reach
+046	search
+47	rock urge work argue crack rough courage
+48	roof
+048	serve survey
+48	review
+048	service surface
+48	receive
+49	rub arab crop rope wrap recipe
+50	also else lose
+050	sales
+50	close loose always
+51	let lot old
+051	salt
+51	cold hold lady late lead load loud wild
+051	salad slide solid
+51	cloud could elect elite would yield
+051	select
+51	health locate wealth
+0051	assault
+51	healthy holiday quality wealthy
+051	household
+52	lawn lean line loan alone clean clinic
+052	silence
+53	claim
+053	islamic
+53	welcome
+054	solar
+54	clear color layer lower
+054	salary
+54	lawyer
+55	all ill
+055	sell
+55	ally call cell hall hell hill wall well will yell allow hello local
+055	slowly
+55	yellow
+055	usually
+55	alcohol equally
+57	leg lack lake like lock look luck walk clock laugh lucky league legacy
+058	self
+58	half leaf life live love
+058	slave solve
+58	alive leave qualify
+59	lab lap lip
+059	slip
+59	club help
+059	sleep asleep
+60	chase cheese choose
+61	jet shit shot shut shade sheet shoot shout shadow
+62	join chain shine chance
+063	scheme
+64	jury chair share shore shower
+65	jail
+065	school
+66	jewish
+67	joke check cheek shake shock
+68	chef chief achieve
+69	job chip ship shop cheap shape
+70	gas gaze
+71	get god kid gate good
+071	sight
+71	eight guide ought height weight
+72	gun
+072	sign skin
+72	gain gene knee know again
+0072	assign
+72	agency
+73	game
+74	gear gray grow
+074	sugar
+74	agree eager
+75	goal ugly galaxy highly weekly quickly
+77	egg kick
+78	give
+79	gap keep
+80	vs focus
+81	fat fit
+081	soft
+81	fact fade fate feed food foot vote avoid faith video
+081	safety soviet
+82	fan fun even fine oven
+082	seven
+82	fence heaven
+84	far for ever fair fear fire four free over vary very cover every fewer force
+084	severe
+84	viewer however
+85	fly fail feel file flee flow fuel awful civil value
+085	useful
+85	heavily vehicle
+00085	successful
+86	fish
+88	off five coffee office
+90	bus base busy pose abuse basic pause phase expose
+090	species
+90	because
+91	bad bed bet bit but pet pot put
+091	spot
+91	beat bite boat body boot both path poet
+091	speed
+91	about habit photo
+091	aspect
+91	accept beauty except expect
+0091	suspect
+91	exhibit capacity
+92	ban pan
+092	spin
+92	bean bone open pain pine upon cabin phone piano weapon
+93	pm boom poem become
+94	bar per bear beer bury pair peer poor pour pray pure
+094	super
+94	buyer power price
+094	whisper
+95	able blow blue bowl pale pile play pole pool below cable place couple police policy
+095	special
+96	push beach
+096	speech
+97	bag big back bake bike book buck pack page peak pick
+097	speak
+98	above
+098	specific
+99	pop baby pipe happy
+100	toss tissue disease
+101	dust test taste outside
+102	dozen citizen decision
+104	desire
+107	desk task
+0108	satisfy
+110	odds
+0110	status
+111	detect
+0112	sudden
+112	cotton
+0112	station
+112	edition
+0112	situation
+112	education
+114	doctor editor theater educator withdraw
+115	title total
+0115	settle
+115	detail
+116	attach
+117	attack
+121	tend tent
+0121	stand
+121	extend extent twenty accident
+000121	assistant
+127	tank thank thing think tongue
+0127	existing
+127	exciting
+131	admit tomato
+0131	estimate
+134	admire
+0134	customer
+134	democracy
+0136	stomach
+137	damage
+140	others decrease otherwise
+141	dirt
+0141	start
+141	dirty third tired trade treat truth
+0141	street
+141	direct thirty threat throat toward treaty
+0141	yesterday
+141	authority
+142	turn train
+0142	eastern western southern historian
+143	term
+0143	storm
+143	drama dream
+0143	stream
+143	extreme
+145	trail trial truly
+0145	historical
+147	dark drag drug track trick truck
+0147	strike stroke storage
+147	through
+148	drive derive
+149	drop trip
+0149	strip
+149	tribe troop therapy
+151	adult athlete utility athletic
+152	decline italian headline
+154	dealer declare
+155	tall tell
+0155	still
+155	actually
+157	talk dialogue
+158	twelve
+162	technique
+164	teacher
+171	tight ticket thought
+174	degree category
+180	advise
+181	defeat devote divide deficit activity advocate
+182	define advance
+184	divorce whatever
+0188	staff stuff
+191	debt adapt adopt depth doubt
+0191	stupid
+191	debate depict deputy
+194	taxpayer
+195	table
+0195	stable
+195	deeply double typical
+201	honest inside
+202	consequence
+203	consume
+204	answer ensure
+205	unusual
+211	indeed united conduct contact context indicate
+212	indian nation notion contain
+0212	sanction sentence
+212	canadian continue
+214	enter entry under center entire hunter nature wander winter wonder
+0214	senator
+214	another century counter country neither
+215	until handle
+0215	scandal
+215	initial
+00215	essential
+218	native
+0218	scientific
+221	ancient connect
+222	announce
+224	inner winner
+225	annual
+230	economics
+234	anymore
+235	animal
+240	nurse increase
+241	north concert concrete
+242	concern
+244	narrow
+245	nearly
+247	energy encourage
+248	nerve
+249	nearby
+250	analyze
+251	include conclude
+252	online
+254	nuclear
+0255	occasionally
+257	unlike
+264	injury
+271	naked night
+272	engine
+274	anger angry
+0274	singer
+274	hungry
+275	angle
+0275	single
+277	engage
+281	invite
+282	convince
+284	never whenever
+285	novel
+291	nobody anybody concept
+295	enable unable
+300	mass mess miss
+301	most must
+302	musician
+303	museum
+304	measure
+305	muscle musical
+307	mask
+311	method
+312	motion emotion medicine
+313	medium
+314	meter motor mother mixture
+315	metal model mutual medical
+316	match
+321	mind month mount amount minute
+0000321	assessment
+324	minor
+325	mainly meanwhile
+327	among manage
+0331	summit
+331	commit
+332	common
+0334	summer
+334	memory
+340	mrs
+0341	smart
+342	american
+344	marry
+345	moral merely miracle
+347	mark emerge
+0354	similar
+355	mall
+0355	small smell
+357	milk
+362	machine
+364	major
+371	might
+372	imagine
+374	maker
+379	makeup
+390	campus impose compose
+391	empty impact compete
+0391	somebody
+392	combine company accompany
+394	compare embrace
+395	imply
+0395	sample simple simply symbol
+395	employ complex example employee
+400	cross across crisis
+401	rest request
+402	reason horizon
+404	resource
+0405	seriously
+407	risk
+410	criticize
+411	credit
+412	retain certain routine creation reaction
+413	rhythm
+414	order rather reader retire writer quarter creature criteria
+0414	secretary
+415	hardly article radical critical
+417	heritage
+418	creative
+421	round around recent
+424	corner
+427	rank ring range wrong orange hearing
+431	armed remote
+432	remain ceremony
+438	remove
+441	record correct recruit worried
+444	error horror carrier
+445	rural rarely
+448	arrive
+450	realize release
+451	world relate reality
+452	airline
+455	roll really recall
+458	relief
+461	reject
+470	works
+471	right
+472	origin region organic
+473	regime
+474	worker
+0474	surgery
+475	roughly
+480	refuse
+481	craft
+482	revenue
+484	refer river recover recovery
+485	rifle reveal careful
+487	refugee
+0488	survive
+491	rapid
+0491	script
+491	repeat
+492	urban carbon european
+495	reply replace
+500	less loss class classic
+501	last list lost least lawsuit
+504	closer elsewhere
+505	closely
+510	lots clothes
+512	latin
+0512	solution
+512	election location
+0512	selection
+512	coalition
+514	alter later leader
+0514	soldier
+514	culture leather electric
+517	although
+520	license
+521	land
+0521	island silent
+521	client
+525	clinical colonial
+526	lunch launch
+527	link long lung along ceiling
+531	limit climate
+532	lemon column
+539	climb olympic
+541	already
+542	learn
+545	clearly
+547	large
+551	collect
+0551	so-called
+551	calculate
+552	alliance
+557	college colleague
+571	light
+0571	slight
+575	legal likely
+581	left lift
+584	lover
+0584	silver
+584	welfare
+585	level lovely
+593	album
+594	labor
+595	label
+601	just chest justice
+0615	schedule
+617	judge
+620	chinese
+621	joint
+624	junior
+627	change exchange
+635	chemical
+639	jump
+641	chart shirt short charity
+642	journey
+646	church
+647	shrug charge
+649	sharp
+651	child should chocolate
+0654	scholar
+655	shall shell
+658	shelf
+671	jacket
+672	chicken
+681	shift
+700	kiss guess
+701	ghost guest
+714	gather
+721	kind agent giant agenda genetic weekend
+724	ignore
+0725	signal
+727	gang king knock cooking
+728	knife
+741	grade great guard growth
+742	grain green
+744	grocery
+745	girl garlic
+747	garage
+748	grave
+749	grab group
+751	glad gold guilty
+752	glance
+755	kill
+0755	skill
+758	golf glove
+781	gift
+782	given
+801	fast vast visit
+802	vision
+805	visual
+812	often fiction evidence vacation
+813	victim
+814	after voter factor father future factory feature victory
+0814	software
+815	vital
+821	find fund event found
+822	funny finance
+825	final
+826	finish
+0827	saving
+830	famous
+835	family female
+840	virus freeze various
+841	forth fruit afraid fourth virtue variety everyday
+842	african everyone frequency
+843	farm firm form from frame overcome
+844	everywhere
+845	fairly
+0845	several
+846	fresh
+847	average coverage
+850	false
+851	flat fault field float faculty violate evaluate facility
+852	civilian violence
+853	film flame volume
+854	floor flower failure
+855	fall fill full fully fellow follow valley
+000855	successfully
+856	flesh
+857	flag folk
+858	evolve
+862	fashion
+871	fight
+874	figure
+881	fifth fifty affect effect
+882	efficiency
+884	favor offer
+0884	suffer
+884	affair officer
+885	official
+894	fiber fabric
+900	boss pass basis
+901	best past post beside episode
+902	absence physician
+904	exposure
+905	physical
+911	potato habitat
+912	obtain option between captain exception exhibition occupation
+914	bother poetry powder capture picture
+915	badly capital
+0915	hospital
+916	patch pitch
+920	expense
+921	band bend bind bond pant
+0921	spend
+921	paint point pound behind beyond expand
+0921	husband
+921	beneath cabinet
+922	opinion
+925	panel
+926	bench bunch
+0926	spanish
+927	bank pink being
+0931	submit
+939	bomb
+940	phrase pursue
+941	bird part port
+0941	sport
+941	apart birth board bread broad party pride proud
+0941	spirit spread
+941	abroad breath expert period breathe operate proceed produce
+0941	separate
+941	practice
+942	born burn brain brown experience
+943	prime
+0943	supreme
+944	prior borrow prayer
+945	barely
+946	brush porch
+947	park break brick
+948	brief proof prove privacy perceive
+950	plus please
+951	belt plot
+0951	split
+951	blade blood build pilot plate ability explode
+952	plan plane balance explain
+953	palm blame
+954	player explore
+955	ball bell bill poll pull
+0955	especially
+957	black block
+958	belief believe
+961	object
+0961	subject
+971	pocket
+972	begin
+0974	speaker
+977	package
+980	obvious
+984	before behavior
+990	oppose
+0990	suppose
+992	happen
+994	paper upper appear
+995	apple apply bible
+0995	supply
+995	appeal people public capable
+1000	discuss
+1012	distance
+1014	destroy
+1018	testify
+1021	thousand
+1040	discourse
+1041	desert
+1048	deserve
+1049	describe
+1058	itself
+1072	design
+1074	disagree
+1084	discover discovery
+1091	despite dispute
+1092	teaspoon
+1095	display
+1111	attitude
+1112	addition
+1121	attend
+01121	student
+01125	suddenly
+1125	educational
+01127	setting
+1127	wedding
+1141	attract
+1142	attorney
+1151	detailed
+1155	totally
+1200	witness
+1202	tension extension
+1208	extensive
+1211	identity
+1212	downtown tendency
+1218	identify
+1220	tennis
+1224	dinner
+1225	tunnel
+1227	dining
+1270	thanks
+1271	tonight
+1274	danger teenager
+1301	domestic
+1321	demand document dominate
+1341	democrat democratic
+1344	tomorrow
+1400	dress
+01400	stress
+1400	actress
+1401	trust tourist
+1410	towards
+1412	threaten direction
+1414	director
+01414	structure
+1415	directly
+01416	stretch
+01417	strategy strategic
+1421	trend
+1425	external
+1427	drink
+01427	string strong
+1427	during
+01427	strange
+1427	drawing
+1430	terms
+1431	dramatic
+1435	extremely
+1444	terror
+1471	target tragedy
+01471	straight
+1471	throughout
+1481	draft
+1484	driver therefore
+1485	travel
+1488	traffic
+1495	trouble
+1509	telescope
+1521	talent
+01551	satellite
+1584	deliver delivery
+1592	telephone
+1601	adjust
+1625	technical
+1627	teaching
+1714	daughter together
+1715	digital
+1801	activist
+1802	division
+1804	adviser
+1820	defense
+1821	defend advanced
+1840	diverse
+1859	develop
+1884	differ
+1921	depend
+01951	stability
+1955	typically
+01956	establish
+2001	insist consist
+2004	necessary
+2011	instead
+2012	instance
+2014	consider
+02018	sensitive
+2034	consumer
+2042	insurance
+2054	counselor
+2071	insight
+2094	inspire
+2101	contest
+02101	scientist
+2111	candidate
+2112	condition indication
+2118	initiative
+2120	intense
+2121	intend content incident continued
+2124	container
+2125	national
+2127	hunting nothing anything
+2141	hundred contract introduce
+2142	entrance
+2145	central control natural entirely
+2147	network undergo
+2148	interview
+2155	initially
+002155	essentially
+2185	handful
+2191	anticipate
+2212	connection
+2214	encounter
+2218	incentive
+2221	innocent
+2301	economist
+2340	numerous
+2394	number
+2401	increased
+2421	concerned
+2430	enormous
+2435	normal
+2480	nervous
+2500	unless analysis
+2501	analyst
+2502	conclusion
+2575	unlikely
+2711	negotiate
+2718	negative
+2722	unknown
+2724	engineer
+2727	ongoing
+2756	english
+2794	neighbor
+2801	invest
+2802	invasion confusion
+2812	infection confidence conviction
+2821	infant
+2840	universe
+2841	convert
+2842	conference
+2843	inform confirm uniform
+2851	conflict
+2852	influence
+2858	involve
+3002	mission emission
+3005	missile
+3007	message
+3008	massive
+3014	master mystery
+3015	mostly
+3017	mistake
+3027	amazing
+3053	muslim
+3058	myself himself
+3101	modest
+3112	medication
+3114	matter
+3115	middle
+3125	emotional
+3127	meeting
+03127	something
+03130	sometimes
+3141	moderate
+3142	modern
+3145	material
+3212	mention maintain mountain examination
+3214	monitor
+3215	mental
+3224	manner
+3227	meaning
+3241	minority
+3274	manager
+3311	committee immediate
+3321	moment command comment community communicate
+3333	mm-hmm
+3345	commercial
+3394	member
+3414	murder
+3441	married
+3444	mirror
+3447	marriage
+3471	market
+3472	margin emergency
+3484	moreover
+3500	homeless
+3514	military
+03545	similarly
+3552	million
+3641	majority
+3702	magazine
+3841	comfort
+3900	emphasis emphasize
+003912	assumption
+03913	symptom
+3914	computer
+3948	improve
+3951	complete
+3952	complain
+3954	employer
+3956	accomplish
+3972	campaign
+4001	resist
+4002	russian
+4014	restore
+4041	resort
+4046	research
+4051	result
+4058	herself resolve yourself
+4091	respect
+4101	artist artistic
+4103	criticism
+4112	reduction
+4124	ordinary
+4125	certainly
+4127	rating reading writing according
+4142	return
+4200	awareness
+4215	recently
+4227	warning
+4284	reinforce
+4321	remind romantic
+4325	criminal
+4401	arrest
+4421	current
+04421	surround
+4427	arrange
+4453	curriculum
+4481	aircraft
+4485	arrival
+4512	relation
+4518	relative
+4570	religious
+4572	religion
+4611	architect
+4720	organize recognize
+4725	original regional
+4727	working
+4741	regard
+4751	regulate
+4754	regular
+4769	workshop
+4842	reference
+4843	reform
+4851	reflect
+4855	carefully
+04884	survivor
+04885	survival
+4915	rapidly
+04940	surprise
+4941	report airport corporate
+5002	lesson
+5012	listen
+5014	cluster
+5114	latter letter
+5115	little
+5127	leading clothing
+5131	ultimate
+5141	electricity
+5142	electronic
+5144	literary
+5145	elderly cultural
+5271	length
+5277	language
+5301	almost
+5311	limited
+5321	element eliminate
+5475	largely
+5512	collection
+5518	collective
+5521	excellent
+5527	willing
+5575	illegal
+5590	collapse
+05715	slightly
+5721	legend
+5813	lifetime
+5827	living
+5914	helicopter
+5941	celebrate celebrity
+5944	library
+5945	liberal
+5985	helpful
+6018	justify
+6127	shooting
+6225	channel
+6392	champion
+6394	chamber
+6414	character
+6415	shortly
+6425	journal
+6432	chairman
+6511	childhood
+6514	shelter shoulder
+6914	chapter
+6920	japanese
+7014	gesture
+7152	guideline
+7162	kitchen
+7201	against
+7214	gender
+7215	gently
+7218	cognitive
+7241	generate
+7245	general
+07282	significance
+07321	segment
+7400	grass
+7411	graduate cigarette
+7412	garden
+7421	grand grant ground guarantee
+7427	growing
+7432	german
+7500	glass
+7512	golden
+7554	killer gallery
+7571	highlight
+7595	global
+07701	suggest
+7811	gifted
+8005	vessel
+8014	visitor
+8095	visible
+8142	veteran
+8145	federal
+8210	fantasy
+8212	function
+8214	founder venture
+8225	financial
+8227	evening
+8245	funeral
+8255	finally
+8274	finger
+8354	familiar
+8400	versus
+8401	first forest
+8402	version
+8412	fortune variation
+8413	freedom
+8421	front friend frequent
+8426	french
+8434	farmer former
+8435	formal formula
+8441	forward
+8455	overall
+8457	overlook
+8471	forget
+8472	foreign
+8484	forever
+8491	everybody
+8495	variable
+8512	evolution violation evaluation
+8521	violent
+8527	feeling
+8557	village
+8571	flight
+8584	flavor
+8595	valuable available
+8627	fishing
+8714	fighter
+8812	fifteen
+8818	effective
+8820	offense
+8821	efficient
+08821	sufficient
+8841	afford effort favorite
+9002	passion
+9007	passage
+9010	besides
+9012	position
+09012	substance
+9018	positive
+09021	subsequent
+9048	observe
+9049	absorb
+9051	absolute
+9055	basically physically
+9071	basket
+9100	hypothesis
+9112	button expectation
+9113	bottom
+9114	better butter battery
+9115	battle bottle
+9121	patient
+9143	bedroom bathroom
+9171	budget
+9185	beautiful
+9202	expansion
+9208	expensive
+9212	abandon
+9214	painter boundary
+9227	opening
+9251	penalty
+9281	benefit
+9285	painful
+9321	payment equipment
+9400	press express process
+9401	breast priest persuade
+9402	person prison presence
+9405	precisely
+9411	pretty predict product protect birthday
+9412	burden portion protein abortion operation cooperation
+9414	border brother portray operator producer procedure
+9415	partly
+09415	spiritual
+9415	practical
+9416	british
+9417	bridge
+9421	brand print parent
+9426	branch
+9427	bring
+09427	spring
+9430	promise
+9431	permit promote
+9434	primary
+9441	priority
+9444	barrier
+9445	barrel
+9460	purchase
+9461	project
+9471	bright
+9472	broken
+9480	previous
+9481	profit perfect private provide
+9482	province
+9484	prefer
+9485	briefly profile powerful
+9490	perhaps propose purpose
+9494	proper prepare
+9501	plastic
+09501	specialist
+9502	explosion
+9504	pleasure
+9509	philosophy
+9510	politics
+9512	politician
+9515	political
+9521	blind plant planet plenty
+9527	belong
+9551	bullet
+9552	billion
+9575	biological
+9618	objective
+9805	obviously
+9841	poverty
+09855	specifically
+09901	supposed
+9901	opposite
+9921	appoint
+09941	support
+9941	appreciate
+9942	appearance
+9946	approach
+9948	approve
+9951	capability
+9954	popular
+9955	publicly
+9956	publish
+9994	pepper
+10002	discussion
+10014	disaster
+10121	distant distinct
+10127	testing
+10132	testimony
+10141	district
+10300	dismiss
+10414	disorder
+10724	designer
+010812	satisfaction
+10941	desperate widespread
+10951	disability
+10952	discipline
+10994	disappear
+011010	statistics
+11125	additional
+11212	attention
+011321	statement
+11391	attempt
+11400	address
+11418	attractive
+11432	determine
+11491	attribute
+012127	standing
+012141	standard
+12727	thinking
+12740	dangerous
+13002	admission
+13094	atmosphere
+13202	dimension
+13221	dominant
+13944	temporary
+14112	tradition
+14140	headquarters
+14227	training
+014271	strength
+014274	stranger
+014275	strongly
+14414	territory
+14495	terrible
+014775	struggle
+15021	adolescent
+15802	television
+16257	technology
+18208	defensive
+18212	definition
+18214	adventure
+18215	definitely
+18217	advantage
+18401	diversity
+18842	difference
+18851	difficult difficulty
+20045	necessarily
+20111	constitute
+20121	constant
+20141	construct
+20155	install
+20200	consensus
+20994	newspaper
+21014	industry
+21201	intensity
+21212	intention
+21401	contrast interest
+21412	interaction
+21421	internet
+21425	internal
+21455	naturally
+21485	wonderful
+21491	contribute
+21815	individual
+22141	concentrate
+23212	nomination
+24027	increasing
+24142	northern
+24195	incredible
+24355	normally
+24418	narrative
+24941	incorporate
+25127	including
+27112	negotiation
+27400	congress
+27941	neighborhood
+28014	investor
+28121	confident
+28212	convention
+28401	university
+28405	universal
+28421	confront
+28512	inflation
+28581	involved
+31812	motivation
+32014	minister
+32122	maintenance
+33002	commission
+33115	immediately
+33212	communication
+33214	commander
+34177	mortgage
+34227	morning
+35195	multiple
+36203	mechanism
+37212	imagination
+38321	movement
+39012	composition
+39112	competition
+39114	competitor
+39118	competitive
+39212	combination
+39221	component
+39400	impress
+39402	comparison
+39412	importance
+39511	complicated
+39512	implication
+39515	completely
+39521	complaint
+40012	resistance
+40121	resident
+40295	reasonable
+40395	resemble
+40464	researcher
+40512	resolution
+40580	ourselves
+40920	response
+40921	respond
+41497	quarterback
+42112	orientation
+42227	running
+42270	earnings
+43012	circumstance
+43227	remaining
+43321	recommend
+43394	remember
+44127	recording
+44215	currently
+44321	requirement
+45185	relatively
+45821	relevant
+47014	register
+47212	recognition
+47255	originally
+47321	argument
+47512	regulation
+47545	regularly
+48512	reflection revolution
+49112	reputation
+49115	repeatedly
+049401	surprised
+49412	corporation
+49414	reporter
+49952	republican
+50043	classroom
+51315	ultimately
+51414	literature
+51455	literally
+51469	leadership
+52109	landscape
+53112	limitation
+53214	elementary
+54227	learning
+55200	illness
+57131	legitimate
+58015	lifestyle
+59412	celebration
+59414	laboratory
+62727	changing
+64012	christian
+64140	characterize
+065469	scholarship
+65527	challenge
+68321	achievement
+69927	shopping
+0072321	assignment
+72412	generation
+72455	generally
+72517	knowledge acknowledge
+072821	significant
+74101	greatest
+74155	gradually
+74321	agreement
+75527	killing
+077012	suggestion
+78424	governor
+81200	fitness
+81422	afternoon
+81955	football
+82112	foundation
+82127	finding funding
+82155	eventually
+84127	everything
+84155	virtually
+84214	furniture
+84215	friendly frequently
+84312	formation
+84347	framework
+85214	volunteer
+85527	following
+87127	fighting
+87195	vegetable
+88185	effectively
+88208	offensive
+90000	possess
+90095	possible possibly
+090111	sophisticated
+90200	business
+90484	observer
+90515	absolutely
+90657	psychology
+90955	baseball
+91142	pattern
+91215	potential
+91749	photograph
+092127	spending
+92127	painting
+92322	phenomenon
+93927	bombing
+94002	expression
+94004	pressure
+94014	prosecutor
+94021	present
+94024	prisoner
+94025	personal
+94048	preserve
+94091	prospect
+94101	protest
+94112	production protection
+94121	pretend
+94124	partner
+94127	operating
+94141	portrait
+94154	particular
+94191	participate
+94217	percentage
+94295	principal principle
+94321	experiment
+94345	primarily
+94391	prompt
+94722	pregnancy
+94727	parking
+94743	program
+94802	provision
+94805	previously
+94814	provider
+94815	perfectly
+94821	prevent
+94842	preference
+94843	perform
+94901	proposed
+94905	proposal
+94912	perception
+94941	property
+94945	properly
+94953	problem
+94995	probably
+95127	building
+95155	politically
+95212	explanation
+95271	blanket
+95512	pollution
+95712	obligation
+097032	spokesman
+98421	boyfriend
+99012	opposition
+99221	opponent
+099414	supporter
+99421	apparent
+99485	approval
+99512	population application publication
+99564	publisher
+101212	distinction
+101276	distinguish
+101412	destruction
+101491	distribute
+104912	description
+0115321	settlement
+121812	identification
+130580	themselves
+139414	temperature
+141125	traditional
+141321	treatment
+142012	transition
+142051	translate
+142084	transfer
+142321	tournament
+0142712	strengthen
+143155	dramatically
+143210	tremendous
+144124	extraordinary
+144401	terrorist
+144403	terrorism
+147200	darkness
+182121	defendant
+185927	developing
+188421	different
+192121	dependent
+192127	depending
+194002	depression
+195092	tablespoon
+200121	consistent
+200200	consciousness
+201112	institution
+201215	constantly
+201412	instruction construction consideration
+201414	instructor
+201495	considerable
+203912	consumption
+204818	conservative
+205121	consultant
+210145	industrial
+213944	contemporary
+214011	interested
+214112	introduction
+214840	controversy
+214912	contribution
+214940	enterprise
+214941	interpret
+215515	intellectual
+215572	intelligence
+219212	independence
+221412	concentration
+221500	nonetheless
+228404	anniversary
+240275	increasingly
+272427	engineering
+274121	ingredient
+280171	investigate
+282125	conventional
+284012	conversation
+284312	information
+284321	enforcement
+304321	measurement
+327321	management
+328144	manufacturer
+331321	commitment
+337412	immigration
+337421	immigrant
+339469	membership
+347127	marketing
+384195	comfortable
+390095	impossible
+394002	impression
+394008	impressive
+394121	important
+394208	comprehensive
+395321	implement employment
+401412	restriction
+401421	restaurant
+404812	reservation
+414321	retirement
+434795	remarkable
+451269	relationship
+472012	organization
+474127	regarding
+494021	represent
+0494027	surprising
+514218	alternative
+527143	long-term
+550141	illustrate
+570512	legislation
+617321	judgment
+639269	championship
+640130	christmas
+641401	characteristic
+642501	journalist
+650145	cholesterol
+721532	gentleman
+0728215	significantly
+745145	agricultural
+774008	aggressive
+841434	furthermore
+842169	friendship
+842342	african-american
+852495	vulnerable
+900274	passenger
+900951	possibility
+0901215	substantial
+904812	observation
+906575	psychological
+912155	potentially
+917494	photographer
+926321	punishment
+940121	president
+940225	personnel
+940251	personality
+940255	personally
+940918	perspective
+941321	apartment
+941545	particularly
+941912	participation
+941921	participant
+943002	permission
+943221	permanent prominent
+945521	brilliant
+947221	pregnant
+947400	progress
+947801	breakfast
+948002	profession
+948004	professor
+948432	performance
+949412	proportion preparation
+950122	palestinian
+951843	platform
+952227	planning
+972227	beginning
+977421	background
+994121	opportunity
+994215	apparently
+994315	approximately
+994941	appropriate
+1014912	distribution
+1043212	discrimination
+1320141	demonstrate
+1420843	transform
+1601321	adjustment
+1841027	advertising
+1859321	development
+1884215	differently
+1941321	department
+01956321	establishment
+2011125	institutional constitutional
+2014321	instrument
+2140121	understand
+2140127	interesting
+2142125	international
+2148212	intervention
+2148405	controversial
+2192121	independent
+2740025	congressional
+2801321	investment
+2801712	investigation
+2801714	investigator
+2841215	unfortunately
+2841500	nevertheless
+2842321	environment
+2858321	involvement
+3281427	manufacturing
+3948321	improvement
+4092095	responsible
+4092121	respondent
+4332112	recommendation
+4427321	arrangement
+4741500	regardless
+04940275	surprisingly
+7421314	grandmother
+7421814	grandfather
+7458421	girlfriend
+7842321	government
+8213215	fundamental
+8401412	frustration
+9065701	psychologist
+9071955	basketball
+9401215	presidential
+9402112	presentation
+9404912	prescription
+9412469	partnership
+9480025	professional
+9921321	appointment
+13201412	demonstration administration
+13201414	administrator
+21412321	entertainment
+21494112	interpretation
+28423215	environmental
+40920951	responsibility
+44092121	correspondent
+49402112	representation
+49402118	representative
+142084312	transformation
+142094112	transportation
+214012127	understanding

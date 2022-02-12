@@ -1,0 +1,262 @@
+# shellcheck shell=sh disable=SC3043
+
+eval_echo(){
+    echo "$@" >&2
+    eval "$@"
+}
+
+___ali_region(){
+    ccmd -- aliyun ecs DescribeRegions
+}
+
+___ali_region_tablesrc(){
+    ___ali_region | ui table jsonfmt .Regions.Region Name=LocalName EndPoint=RegionEndpoint ID=RegionId
+}
+
+ali_region(){
+    param:void
+    if [ -t 1 ]; then
+        ui table func ___ali_region_tablesrc
+        # ___ali_region | x jq .Regions.Region | ali_table_json .LocalName .RegionEndpoint .RegionId
+    else
+        ___ali_region | ___json_awk_print_exact .Regions.Region
+    fi
+}
+
+xrc json/latest
+
+___json_awk_str_compact(){
+    awk -v RS="$(printf "\001")" "$___X_CMD_JSON_AWK_SRC"'
+{ data=$0; }
+END {
+    json_parse(data, _)
+    print json_stringify_compact(_, ".Zones.Zone", 2)
+}
+'
+}
+
+# print json_stringify_format(_, json_handle_jpath(\""$1"\"), \"  \")
+
+___ali_zone(){
+    ccmd -- aliyun ecs DescribeZones
+}
+
+___ali_zone_tablesrc(){
+    ___ali_zone | ui table jsonfmt .Zones.Zone ID=ZoneId 名=LocalName
+}
+
+xrc param/latest
+
+ali_zone(){
+    param:void
+    
+    # Using Interactive
+    if [ -t 1 ]; then
+        # aliyun ecs DescribeZones | x jq '.Zones.Zone[] | { LocalName: .LocalName, ZoneId: .ZoneId }' | x jq -s .
+        # ccmd -- aliyun ecs DescribeZones | x jq '.Zones.Zone[] | { LocalName: .LocalName, ZoneId: .ZoneId }' | x jq -s . | ali_table_json .LocalName .ZoneId
+        ui table func ___ali_zone_tablesrc
+    else
+        ___ali_zone | ___json_awk_print_exact .Zones.Zone
+    fi
+}
+
+
+xrc ui
+
+ali_table_json(){
+    local arg
+    local args
+    local title
+    for arg in "$@"; do
+        case "$arg" in
+            .*)     args="$args,$arg"      
+                    title="$title ${arg#.}"      
+                    ;;
+            *=.*)   args="$args,${arg#*=}"
+                    title="$title ${arg%%=.*}"
+                    ;;
+            *)      printf "%s" "Argument Wrong." >&2
+        esac
+    done
+    args="${args#,}"
+
+    local line
+    ui table -
+    IFS="
+"
+    eval ui table + "$title"
+    for line in $(x jq -r ".[] | [ $args ] | map( . | @json) | join(\" \") "); do
+        eval ui table + "$line"
+    done
+    ui table out 6
+}
+
+ali_instance(){
+    param:dsl <<A
+options:
+    --mem       "Memory"        <size>=""
+    --cpu       "CPU"           <core>=""
+    --gpu       "GPU"           <gpu>=0
+A
+    param:run
+    
+    {
+        ccmd -- aliyun ecs DescribeInstanceTypes | x jq .InstanceTypes.InstanceType[] | x jq '
+            def fun: if . == null then "" else . end;
+            . |= . + { credit: .InitialCredit | fun }
+        '
+    } | {
+        if [ -z "$mem" ]; then          cat
+        else                            x jq "if .MemorySize==$mem  then .   else empty end";       fi
+    } | {
+        if  [ -z "$cpu" ];   then       cat
+        else                            x jq "if .CpuCoreCount==$cpu  then .  else empty end";     fi
+    } | {
+        if  [ -z "$gpu" ];   then       cat
+        else                            x jq "if .GPUAmount==$gpu     then .  else empty end";     fi
+    } | x jq -s . | {
+        if [ -t 1 ]; then
+            ali_table_json id=.InstanceTypeId cpu=.CpuCoreCount disk=.DiskQuantity mem=.MemorySize gpu=.GPUAmount .credit
+        else
+            cat
+        fi
+    }
+
+}
+
+
+ali_exactor(){
+    local code="${1:?Provide code}"
+    local msg0="${2:?Provide msg0}"
+    local msgn="${3:?Provide msgn}"
+    shift 3
+
+    local ret
+    ret="$("$code" "$@")"
+    local len
+    len="$(printf "%s" "$ret" | x jq '. | length')"
+
+    case "$len" in
+        0)  ali_log warn "$msg0";;
+        1)  printf "%s" "$ret"; return 0;;
+        *)  ali_log warn "$msgn";;
+    esac
+    return 1
+}
+
+ali_exactor_declare(){
+    local func="${1:?Provide funname}"
+    local msg0="${2:?Provide msg0}"
+    local msgn="${3:?Provide msgn}"
+    local id_eval="${4:?Provide id eval}"
+    eval "${func}_exact(){
+        ali_exactor ${func}_ls \"$msg0\" \"$msgn\" \"\$@\"
+    }
+    
+    ${func}_exactid(){
+        local s
+        if s=\$(${func}_exact \"\$@\"); then
+            printf \"%s\" \"\$s\" | x jq -r '.[0].$id_eval'
+        else
+            return \$?
+        fi
+    }
+    "
+}
+
+echo_eval(){
+    echo "$@"
+    eval "$@"
+}
+
+
+_ali_quicker_run(){
+    # echo "$("$@")"
+    eval "$@"
+    # "$@"
+}
+
+ali_quicker(){
+    local func="${1:?provide func}"
+    local prompt="${2:?Provide prompt}"
+    local reload_function="$3"
+    shift 3
+
+    local filter="$1"
+
+    if [ ! -t 1 ]; then
+        "${func}_ls" ${filter} # ${filter+"$filter"}
+        return
+    fi 
+
+    local interactive_command_help
+    interactive_command_help="$(cat <<A
+
+CLICOMMANDS:
+    r               reload
+    q               quit
+    :               : <SUBCOMMAND> [ ... <args> ]
+    <cmd> [ ... <args> ]
+$(${func} help)
+
+A
+)"
+
+    local s
+    s="$("${func}_ls" $filter)"
+    printf "%s" "$s" | "${func}_ls_format"
+    printf "%s\n" "$interactive_command_help"
+
+    local line
+    while printf "$prompt" && ali_read line; do
+        eval set -- "$line"
+        local cmd=$1;   shift
+        case "$cmd" in
+            h|help)  printf "%s\n" "$interactive_command_help" ;;
+            q)  printf "\n"
+                return 
+                ;;
+            "") continue            ;;
+            r)  ;;
+            :*)  
+                if ! _ali_quicker_run "${func}_${cmd#:}" "$@"; then
+                    continue
+                fi
+                ;;
+            *)  
+                eval "${cmd}" "$@"
+                continue
+        esac
+
+        eval "
+        case \"\${cmd#:}\" in
+            r) ;;
+            $reload_function) ;;  
+            *) continue ;;
+        esac
+        "
+
+        s="$(${func}_ls $filter)"   # TODO: figure out why ${filter+"${filter}"} fails
+        printf "%s" "$s" | "${func}_ls_format"
+    done
+}
+
+ali_quicker2(){
+    param:void
+
+    local cmd="${1:?provide cmd}"
+    shift 1
+
+    local IFS
+    ps1env init "ali $cmd >"
+    ps1env alias % "ali $cmd ls"
+    ps1env alias %h "ali $cmd help"
+    local subcmd
+    while read -r subcmd; do 
+        ps1env alias "%$subcmd" "ali $cmd $subcmd"
+    done <<A
+$(eval ali "$cmd" _param_list_subcmd)
+A
+
+    eval ali "$cmd" ls "\"\$@\""
+}

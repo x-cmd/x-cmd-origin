@@ -1,0 +1,263 @@
+# shellcheck shell=sh disable=SC3043
+
+ali_sg_rule(){
+    param:dsl <<A
+subcommand:
+    ls              "list security group rules"
+    add             "add rule"
+    del             "delete rules"
+    ingress         "ingress"
+    egress          "egress"
+A
+    param:run
+
+    if [ -z "$PARAM_SUBCMD" ]; then
+        if [ $# -eq 0 ]; then
+            ali_sg_rule help
+        else
+            ali_sg_rule_quick "$@"
+        fi
+        return
+    fi
+
+    "ali_sg_rule_$PARAM_SUBCMD" "$@"
+}
+
+
+ali_sg_rule_ls(){
+    param:void
+    if [ ! -t 1 ]; then
+        _ali_sg_rule_ls "$@"
+    else
+        _ali_sg_rule_ls "$@" | ali_sg_rule_ls_format
+    fi
+}
+
+ali_sg_rule_ls_format(){
+    ali_table_json \
+        .short \
+        .Direction \
+        .PortRange \
+        DstCidr=.DestCidrIp \
+        SrcPortR=.SourcePortRange \
+        SrcCidr=.SourceCidrIp \
+        .CreateTime \
+        .Description
+        # .Policy .Priority  
+        # .NicType .IpProtocol
+}
+
+
+ALI_SG_JQ_CODE='
+def fff:    if .SourceGroupId != ""                 then    [ .NicType, .IpProtocol, .PortRange, .DestCidrIp, .SourcePortRange, .SourceGroupId, .Policy, .Priority ]
+            elif .SourcePrefixListId != ""          then    [ .NicType, .IpProtocol, .PortRange, .DestCidrIp, .SourcePortRange, .SourcePrefixListId, .Policy, .Priority ]
+            else                                            [ .NicType, .IpProtocol, .PortRange, .DestCidrIp, .SourcePortRange, .SourceCidrIp, .Policy, .Priority ] end | join("|") ;
+'
+
+# shellcheck disable=SC2120
+_ali_sg_rule_ls(){
+    local id
+    if ! id=$(ali_sg_exactid "${1:?Provide rule regex}"); then
+        return
+    fi
+
+    case $# in
+        1)  aliyun ecs DescribeSecurityGroupAttribute --SecurityGroupId "$id" | x jq "
+                $ALI_SG_JQ_CODE
+                .Permissions.Permission[] |= . + { short: . | fff }
+            " | x jq .Permissions.Permission
+            ;;
+        *)  local regex="${2:-Provide regex pattern}"
+            ali_sg_rule_ls "$1" | x jq "
+                .[] | 
+                if .Description | test(\"$regex\")      then .
+                elif .Priority == $regex                then .
+                else empty end
+            " | x jq -s .
+            ;;
+    esac
+}
+
+# shellcheck disable=SC2120
+_ali_sg_rule_ls_origin(){
+    local id
+    if ! id=$(ali_sg_exactid "${1:?Provide rule regex}"); then
+        return
+    fi
+
+    case $# in
+        1)  aliyun ecs DescribeSecurityGroupAttribute --SecurityGroupId "$id" | x jq '.Permissions.Permission'
+            ;;
+        *)  local regex="${2:-Provide regex pattern}"
+            ali_sg_rule_ls "$1" | x jq "
+                .[] | 
+                if .Description | test(\"$regex\")      then .
+                elif .Priority == $regex                then .
+                else empty end
+            " | x jq -s .
+            ;;
+    esac
+}
+
+ali_sg_rule_str(){
+    x jq "
+        $ALI_SG_JQ_CODE
+        . | fff
+    "
+}
+
+
+# TCP|24|0.0.0.0/0|ACCEPT|HIGH
+
+# ali sg rule add "intranet|TCP|80-91|src-prefix-ip||0.0.0.0/0|accept|1"
+# ali sg rule del "intranet|TCP|80-91|src-prefix-ip||0.0.0.0/0|accept|1"
+
+# ali_sg_rule_parsing "intranet|TCP|80-91|src-prefix-ip||0.0.0.0/0|accept|1"
+ali_sg_rule_parsing(){
+    echo "${1:-Provide}" | awk -v FS='|' '
+BEGIN{
+    false = 0
+    true = 1
+}
+
+function str_startswith(s, tgt){
+    if (substr(s, 1, length(tgt)) == tgt) return true
+    return false
+}
+
+function str_trim(astr){
+    gsub(/^[ \t\b\v\n]+/, "", astr)
+    gsub(/[ \t\b\v\n]+$/, "", astr)
+    return astr
+}
+
+function pprint(name, val){
+    if (val == "") return
+    printf("%s \"%s\" ", name, str_trim(val))
+}
+    
+{
+    $0=str_trim($0)
+
+    if ($0 ~ /^"[^"]+"$/) {
+        $0 = substr($0, 2, length($0)-2)
+    }
+
+    if (($1 != "internet") && ($1 != "intranet")) {
+        
+        if (str_startswith($0, "|") == true) {
+            $0 = "intranet" $0
+        } else {
+            $0 = "intranet|" $0
+        }
+        # print "ffff\t" $0 "\t" $1 "\t" $2 "\t" $3 >"/dev/stderr"
+    }
+    pprint( "--NicType",         $1 )
+    pprint( "--IpProtocol",      $2 )
+
+    if ($3 == "") {
+        if ($2 == "TCP") {
+            $3 = "1/65535"
+        } else {
+            $3 = "-1/-1"
+        }
+    }
+    pprint( "--PortRange",       $3 )
+
+    pprint( "--DestCidrIp",      $4 )
+    pprint( "--SourcePortRange", $5 )
+
+    # if ($6 == "") {
+    #     $6 = "0.0.0.0/0"
+    # }
+    pprint( "--SourceCidrIp",    $6 )
+    pprint( "--Policy",          $7 )
+    pprint( "--Priority",        $8 )
+}
+'
+}
+
+ali_sg_rule_add(){
+    param:void
+    ali_sg_rule_ingress_add "$@"
+}
+
+ali_sg_rule_del(){
+    param:void
+    ali_sg_rule_ingress_del "$@"
+}
+
+ali_sg_rule_ingress(){
+    param:dsl <<A
+subcommand:
+    add             "add ingress rule"
+    del             "delete ingress rules"
+A
+    param:run
+
+    if [ -z "$PARAM_SUBCMD" ]; then
+        ali_sg_rule_ingress help
+        # ali_sg_ingress_quick "$@"
+        return
+    fi
+
+    "ali_sg_rule_ingress_$PARAM_SUBCMD" "$@"
+}
+
+ali_sg_rule_ingress_add(){      param:void; ali_sg_rule_func AuthorizeSecurityGroup "$@";   }
+ali_sg_rule_ingress_del(){      param:void; ali_sg_rule_func RevokeSecurityGroup "$@";      }
+
+ali_sg_rule_egress(){
+    param:dsl <<A
+subcommand:
+    add             "add egress rule"
+    del             "delete egress rules"
+A
+    param:run
+
+    if [ -z "$PARAM_SUBCMD" ]; then
+        ali_sg_quick "$@"
+        return
+    fi
+
+    "ali_sg_rule_egress_$PARAM_SUBCMD" "$@"
+}
+
+ali_sg_rule_egress_add(){       param:void; ali_sg_rule_func AuthorizeSecurityGroupEgress "$@";     }
+ali_sg_rule_egress_del(){       param:void; ali_sg_rule_func RevokeSecurityGroupEgress "$@";        }
+
+ali_sg_rule_egress_add_ssh(){
+    param:void
+    :
+}
+
+ali_sg_rule_egress_add_icmp(){
+    param:void
+    :
+}
+
+ali_sg_rule_func(){
+    local func="${1:-Provide function}"
+    
+    local id
+    if ! id=$(ali_sg_exactid "${2:?Provide rule regex}"); then
+        return
+    fi
+
+    shift 2
+    local rule
+    local rule_args
+    for rule in "$@"; do
+        (
+            if rule_args="$(ali_sg_rule_parsing "${rule}")"; then
+                eval aliyun ecs "$func" --SecurityGroupId "$id" "$rule_args"
+            fi
+        ) || return  
+    done
+}
+
+
+ali_sg_rule_quick(){
+    ali_quicker2 "sg rule" "$@"
+}
+

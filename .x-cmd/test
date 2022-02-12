@@ -1,0 +1,11 @@
+# shellcheck shell=sh disable=SC2039,SC2142,SC3043 # xsh
+
+x ws install
+
+case "$1" in
+    local) . ./testcase/v0_test ;;
+    cross) . ./testcase/v0_cross_env_test ;;
+    *)
+        printf "Usage: x test {cross|local}"
+    ;;
+esac

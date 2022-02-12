@@ -1,0 +1,29 @@
+# shellcheck shell=sh
+
+unalias_c() {
+    unalias c 2> /dev/null
+    echo "Testcase 's alias :\"$(alias c 2> /dev/null)\""
+}
+
+alias_c() {
+    alias c="echo"
+}
+
+use_c() {
+    c "SUCCEED"
+}
+
+test_expand_aliases(){
+    # This alias can't be defined and used in the same parsing unit. Use a function instead.shellcheck(SC2262)
+    unalias_c
+    alias_c
+    echo "Testcase 's alias :\"$(alias c 2> /dev/null)\""
+    # shopt expand_aliases
+    {
+       eval use_c
+    }
+}
+
+# shopt expand_aliases
+test_expand_aliases
+# shopt expand_aliases

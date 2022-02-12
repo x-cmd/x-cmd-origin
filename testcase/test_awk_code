@@ -1,0 +1,55 @@
+# shellcheck shell=sh disable=SC3043
+
+___X_CMD_AWK_CODE_TEST='{
+    if (count > 200) { exit(exit_code); }
+    if (data[$0] == "") {
+        data[$0] = 1
+        print $0
+        count = count + 1
+    } else {
+        exit_code = 1
+    }
+}
+END {
+    exit(exit_code)
+}
+'
+
+___X_CMD_AWK_CODE_TEST2='
+BEGIN {
+    len=0
+    res_len=0
+}
+{
+    data[ len ] = $0
+    len = len + 1
+}
+END {
+    for (j=0; j<len && res_len<200 ; j++) {
+        if (map[ data[ len-j-1 ] ] != "") {
+            continue
+        }
+        map[ data[ len-j-1 ] ] = 1
+        res[ res_len ] = data[ len-j-1 ]
+        res_len = res_len + 1
+    }
+
+    for (j=0; j<res_len; j++) {
+        print res[res_len-j-1]
+    }
+}
+'
+
+___x_cmd_cd_load_history(){
+    ___X_CMD_CD_HISTORY=$(awk "$___X_CMD_AWK_CODE_TEST" <"./testcase/history")
+    printf "%s\n" "$___X_CMD_CD_HISTORY"
+}
+
+time ___x_cmd_cd_load_history
+
+___x_cmd_cd_load_history(){
+    ___X_CMD_CD_HISTORY=$(awk "$___X_CMD_AWK_CODE_TEST2" <"./testcase/history")
+    printf "%s\n" "$___X_CMD_CD_HISTORY"
+}
+
+time ___x_cmd_cd_load_history

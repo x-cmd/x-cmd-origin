@@ -1,0 +1,20 @@
+# shellcheck shell=sh disable=SC3043,SC2164
+
+# author:       Li Junhao           l@x-cmd.com
+# license:      GPLv3
+
+for i in cd ls mv cp rm open; do
+    xrc x_fs/lib/$i
+done
+
+___x_cmd_fs_activate(){
+    alias cd=___x_cmd_cd
+    alias ls=___x_cmd_ls
+    alias mv=___x_cmd_mv
+    alias cp=___x_cmd_cp
+    alias rm=___x_cmd_rm
+    alias open=___x_cmd_open
+}
+
+# xrc x_fs/latest && ___x_cmd_fs_activate
+

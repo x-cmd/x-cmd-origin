@@ -1,0 +1,47 @@
+# shellcheck shell=sh
+# shellcheck disable=SC2039,3043
+
+gt_config(){
+    param:dsl       '
+subcommands:
+    which       "Show current config path"
+    save        "Save the config in memory into file"
+    load        "Load the config from config path"
+'
+    param:run
+
+    if [ -z "$PARAM_SUBCMD" ]; then
+        echo "Command Not Found. Show help." >&2
+        return 0
+    fi
+    
+    "gt_config_${PARAM_SUBCMD}" "$@"
+}
+
+gt_config_which() {
+    param:void
+    local O="${O:-GITEE_DEFAULT}"
+    echo "$HOME/.x-cmd/.config/x-bash/app.gitee.config/$O"
+}
+
+# TODO:config 
+gt_config_save() {
+    param:void
+    local O="${O:-GITEE_DEFAULT}"
+    local ___gitee_path="${1:-$HOME/.x-cmd/.config/x-bash/app.gitee.config/$O}"
+    [ ! -e "$___gitee_path" ] && mkdir -p "$___gitee_path##*/"
+    param_default dump "gitee_$O">"$___gitee_path" && ui tf "true" "Config $O saved in path: $___gitee_path" && return
+    gt_log error "gt config save Fail"
+}
+
+# shellcheck disable=SC2120
+gt_config_load() {
+    param:void
+    local O="${O:-GITEE_DEFAULT}"
+    local ___gitee_path="${1:-$HOME/.x-cmd/.config/x-bash/app.gitee.config/$O}"
+    [ ! -f "$___gitee_path" ] && gt_log error "ERROR:There is no history config" && return
+    param_default load "gitee_$O" "$___gitee_path"
+    param_default dump "gitee_$O"
+    token="$(param_default get "gitee_$O" token)"
+    gt_token "false" "$token" && ui tf "true" "Config $O load from path: $___gitee_path" >&2
+}

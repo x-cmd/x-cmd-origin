@@ -1,0 +1,49 @@
+# shellcheck shell=sh
+# shellcheck disable=SC2039,3043
+
+gt_repo_tag(){
+    param:dsl    '
+subcommands:
+    ls            "list tag"
+    add             "add tag"
+'
+    param:run
+
+    if [ -z "$PARAM_SUBCMD" ]; then
+        gt_log error "subcommand not found. show help."
+        return 0
+    fi
+    
+    "gt_repo_tag_$PARAM_SUBCMD" "$@"
+}
+
+gt_repo_tag_ls() {
+    param:scope     "gitee/$O"
+    param:dsl    '
+options:
+    #1|--repo          "Repo name"                 <>:repo
+'
+    param:run
+
+    gt_param_init_owner_repo
+    ___gt_get "/v5/repos/${owner_repo}/tags"   
+}
+
+
+# #1: owner/repo/master
+# #2: tag_name
+# #3: tag_message
+gt_repo_tag_add() {
+    param:scope     "gitee/$O"
+    param:dsl    '
+options:
+    --repo          "Repo name"                 <>:repo
+    --refs          "starting point name"       <>="master"
+    --name          "tag name"                  <>
+    --msg           "tag message"               <>=""
+'
+    param:run
+    gt_param_init_owner_repo
+    ___gt_post_json "/v5/repos/${owner_repo}/tags" \
+        refs tag_message="$msg" tag_name="$name"  
+}

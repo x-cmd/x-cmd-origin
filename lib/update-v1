@@ -1,0 +1,69 @@
+# shellcheck shell=sh disable=SC2039,SC1090,SC3043,SC2263
+
+___X_CMD_XRC_UPDATE_AWK_PATH="$(xrc which x-bash/xrc/lib/update.awk)"
+___x_cmd_xrc_update_list_dependency(){
+    xrc cat "${1:?Provide module}" 2>/dev/null | awk -f "$___X_CMD_XRC_UPDATE_AWK_PATH"
+    # xrc cat "${1:?Provide module}" 2>/dev/null | awk -f "$(xrc which x-bash/xrc/update/update.awk)"
+}
+
+___x_cmd_xrc_update_core(){
+    CACHE="$___X_CMD_PATH/.tgz/core.tgz" \
+        ___x_cmd_curl_gitx "dist/core.tgz"
+}
+
+___x_cmd_xrc_update()(
+    if [ "$#" -eq 0 ]; then
+        ___x_cmd_xrc_update_core
+        return
+    fi
+
+    if ___x_cmd_is_in_core_tgz "$1"; then
+        ___x_cmd_xrc_update_core
+        return
+    fi
+
+    local IFS
+    local line
+
+    local elem
+    local queue="$1
+"
+
+    local already_update_core_tgz=
+
+    local aliasname
+    while true; do
+        elem="${queue%%
+*}"
+
+        [ "$elem" = "$queue" ] && break
+        [ "$elem" = "" ] && break
+
+        if ___x_cmd_is_in_core_tgz "$elem"; then
+            if [ -z "$already_update_core_tgz" ]; then
+                ___x_cmd_xrc_update_core
+                already_update_core_tgz=1
+            fi
+            continue
+        fi
+
+        queue="${queue#*
+}"
+
+        xrc_log info "___x_cmd_xrc_update: $elem"
+        while read -r line; do
+            [ "$line" = "" ] && break
+            aliasname=$(printf "%s" "$line" | tr "/" "?")
+            if alias "xrc?$aliasname" 1>/dev/null 2>&1; then
+                continue
+            fi
+            alias "xrc?$aliasname"=1
+            queue="${queue}${line}
+"
+        done <<A
+$( ___XRC_UPDATE=1 ___X_CMD_XRC_RELOAD=1 ___x_cmd_xrc_update_list_dependency "$elem" )
+A
+
+    done
+)
+

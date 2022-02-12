@@ -1,0 +1,26 @@
+{
+    "cat": {
+        "#n": "ls $___X_CMD_ROOT | grep -v BASE64",
+        "#desc": "Show the script in text form"
+    },
+    "which": {
+        "#n": "ls $___X_CMD_ROOT | grep -v BASE64",
+        "#desc": "Download lib files and print the local path"
+    },
+    "cache": "--- Provide cache filepath",
+    "clear": "--- Clear the cache",
+    "update": "--- Update file",
+    "ls": "--- Show the cache modules",
+    "upgrade": {},
+    "reload": {},
+    "root": {},
+    "export-all": {},
+    "mirror": {
+        "#n": [
+            "https://x-bash.gitee.io",
+            "https://x-bash.github.io",
+            "https://x-bash.gitlab.io",
+            "https://bitbucket.com/x-bash/x-bash"
+        ]
+    }
+}

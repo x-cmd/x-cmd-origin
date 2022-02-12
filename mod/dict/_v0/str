@@ -1,0 +1,173 @@
+# shellcheck shell=bash
+
+# author:       Li Junhao           l@x-cmd.com    edwinjhlee.github.io
+# maintainer:   Li Junhao
+
+# Section: Life Cycle
+
+___dict_make(){
+    local O="${O:?Please provide object name}"
+    ___x_cmd_instance_add "dict" "$O"
+    eval "___X_BASH_DICT_$O=0"
+}
+
+# alias ___dict_make=____dict_make
+
+___dict_clear(){
+    local O="${O:?Please provide object name}"
+    eval "___X_BASH_DICT_$O=0"
+}
+
+# O=b dload "$( a.dump | dgrep "abc" | dgerp "abc" )"
+
+___dict_dump(){
+    local O="${O:?Please provide object name}"
+    eval printf "%s" "\"\$___X_BASH_DICT_${O}\""
+}
+
+___dict_load(){
+    local O="${O:?Please provide object name}"
+    eval "___X_BASH_DICT_${O}=\"$(cat)\""
+}
+
+# EndSection
+
+# Section: size get put scope remove
+
+___dict_size(){
+    local O="${O:?Please provide object name}"
+    local data
+    data="$(eval printf "%s" "\"\$___X_BASH_DICT_${O}\"")"
+
+    local len
+    len="${data##*${DICT_SEP}}"
+
+    printf "%s" "${len:-0}"
+}
+
+___dict_get(){
+    if [ -z "$O" ]; then
+        _dict_pget "$@"
+        return
+    fi
+
+    : "${O:?Please provide object name}"
+    eval printf "%s" "\"\$___X_BASH_DICT_${O}\"" | _dict_pget "$@"
+}
+
+___dict_put(){
+    if [ -z "$O" ]; then
+        _dict_pput "$@"
+        return
+    fi
+
+    : "${O:?Please provide object name}"
+    local s
+    s="$(eval printf "%s" "\"\$___X_BASH_DICT_${O}\"" | _dict_pput "$@")"
+
+    eval "___X_BASH_DICT_$O=\"\$s\""
+}
+
+___dict_scope(){
+    if [ -z "$O" ]; then
+        _dict_pscope "$@"
+        return
+    fi
+
+    : "${O:?Please provide object name}"
+    eval printf "%s" "\"\$___X_BASH_DICT_${O}\"" | _dict_pscope "$@"
+}
+
+___dict_remove(){
+    if [ -z "$O" ]; then
+        _dict_premove "$@"
+        return
+    fi
+
+    : "${O:?Please provide object name}"
+    local O="${O:?list_name}"
+    local s
+    if s="$(eval printf "%s" "\"\$___X_BASH_DICT_${O}\"" | _dict_premove "$@")"; then
+        eval "___X_BASH_DICT_$O=\"\$s\""
+    else
+        return 1
+    fi
+}
+
+# EndSection
+
+# Section: drop grep iter
+
+___dict_drop(){
+    if [ -z "$O" ]; then
+        _dict_pdrop "$@"
+        return
+    fi
+
+    : "${O:?Please provide object name}"
+    local O="${O:?list_name}"
+    local s
+    if s="$(eval printf "%s" "\"\$___X_BASH_DICT_${O}\"" | _dict_pdrop "$@")"; then
+        eval "___X_BASH_DICT_$O=\"\$s\""
+    else
+        return 1
+    fi
+}
+
+
+___dict_grep(){
+    if [ -z "$O" ]; then
+        _dict_pgrep "$@"
+        return
+    fi
+
+    : "${O:?Please provide object name}"
+    local O="${O:?list_name}"
+    local s
+    if s="$(eval printf "%s" "\"\$${O}\"" | _dict_pgrep "$@" -)"; then
+        eval "___X_BASH_DICT_$O=\"\$s\""
+    else
+        return 1
+    fi
+}
+
+___dict_grepr(){
+    if [ -z "$O" ]; then
+        _dict_pgrepr "$@"
+        return
+    fi
+
+    : "${O:?Please provide object name}"
+    local O="${O:?list_name}"
+    local s
+    if s="$(eval printf "%s" "\"\$___X_BASH_DICT_${O}\"" | _dict_pgrepr "$@" -)"; then
+        eval "___X_BASH_DICT_$O=\"\$s\""
+    else
+        return 1
+    fi
+}
+
+___dict_iter(){
+    local O="${O:?Please provide object name}"
+    local data
+    data="$(eval printf "%s" "\"\$___X_BASH_DICT_${O}\"")"
+
+    local fun="$*" # "$1 \"\$key\" \"\$val\""
+    if [ "$#" -eq 1 ] && command -v "$1"; then
+        fun="$1 \"\$key\" \"\$val\""
+    fi
+
+    local key
+    local val
+
+    while :; do
+        key="${data%%${DICT_SEP}*}"
+        data="${data#*${DICT_SEP}}"
+        val="${data%%${DICT_SEP}*}"
+        data="${data#*${DICT_SEP}}"
+
+        eval "$fun"
+    done
+}
+
+# EndSection

@@ -1,0 +1,19 @@
+#! /bin/sh
+
+xrc assert
+
+x proxy yarn set
+
+assert_stdout "x proxy yarn get" <<A
+https://registry.npm.taobao.org/
+A
+
+assert_stdout "x proxy yarn url ali" <<A
+https://registry.npm.taobao.org/
+A
+
+x proxy yarn unset
+
+assert_stdout "x proxy yarn get" <<A
+https://registry.yarnpkg.com
+A

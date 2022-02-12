@@ -1,0 +1,20 @@
+#! /bin/bash
+
+test_proxy_cargo(){
+    . ~/.x-cmd/xrc/latest
+    . ./testcase/v0_test
+
+    if command -v mdbook >/dev/null ; then
+        cargo uninstall mdbook
+    fi
+    
+    proxy_log info "Testing proxy cargo set to install curl"
+    x proxy cargo replace sjtu
+    cargo install mdbook
+
+    proxy_log info "Testing proxy cargo unset to install vim"
+    x proxy cargo rollback
+    cargo install mdbook
+}
+
+test_proxy_cargo

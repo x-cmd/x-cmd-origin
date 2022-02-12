@@ -1,0 +1,33 @@
+#! /bin/sh
+
+test_proxy_yum(){
+    . ~/.x-cmd/xrc/latest
+    . ./testcase/v0_test
+    
+    proxy_log info "Testing proxy yum replace to install curl"
+    x proxy yum replace
+    yum install -y curl
+
+    proxy_log info "Testing proxy yum rollback to install vim"
+    x proxy yum rollback
+    yum install -y vim
+}
+
+test_cross_env() {
+    # for i in $(seq 5 8) ; do
+    #     proxy_log info "Testing : $i"
+    #     docker run -it -v  ~/.x-cmd/:/root/.x-cmd/ -v "$(pwd)":/pd centos:"${i}" \
+    #         sh -c "cd pd && . ./testcase/v0_test_yum && \
+    #         test_proxy_yum"
+    # done
+
+    proxy_log info "Testing : centos"
+    docker run -it -v  ~/.x-cmd/:/root/.x-cmd/ -v "$(pwd)":/pd xcmd/centos-dev \
+        sh -c "cd pd && . ./testcase/v0_test_yum && \
+        test_proxy_yum"
+}
+
+dbash() {
+    docker run -it -v  ~/.x-cmd/:/root/.x-cmd/ -v "$(pwd)":/pd centos \
+        bash -c "printf \". ~/.x-cmd/xrc/latest\" >/root/.bashrc && cd pd && bash"
+}

@@ -1,0 +1,45 @@
+# shellcheck shell=sh disable=SC3043 # xrc
+
+# author:       Li Junhao           l@x-cmd.com
+
+xrc os/lib/import
+xrc os/lib/release
+
+___x_cmd_os(){
+    local subcmd="${1:?Provide Sub Command}";   shift
+    case "$subcmd" in
+        name)               ___x_cmd_os_name          "$@"    ;;
+        arch)               ___x_cmd_os_arch          "$@"    ;;
+        release)            ___x_cmd_os_release       "$@"    ;;
+        rname)              ___x_cmd_os_release_name  "$@"    ;;
+        *)                  ___x_cmd_os_help          "$@"    ;;
+    esac
+}
+
+if [ -n "${BASH_VERSION}${ZSH_VERSION}" ] && [ "${-#*i}" != "$-" ]; then
+
+    xrc advise
+    advise os - <<A
+{
+    "name": null,
+    "arch": null,
+    "release": null,
+    "rname": null
+}
+A
+
+fi
+
+___x_cmd_os_import ls
+
+___x_cmd_os_help(){
+    cat <<A
+os
+SUBCOMMANDS:
+    name        "provide name"
+    arch        "provide arch information"
+    release     "provide release"
+A
+}
+
+xrc setmain ___x_cmd_os

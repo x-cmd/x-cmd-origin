@@ -1,0 +1,17 @@
+# shellcheck shell=sh disable=SC3043,SC2164 # xrc
+
+# author:       Li Junhao           l@x-cmd.com
+# license:      GPLv3
+
+# Section: main
+
+# Reference: 
+# https://dlcdn.apache.org/pdfbox/3.0.0-alpha2/pdfbox-app-3.0.0-alpha2.jar
+
+___x_cmd_pdf(){
+
+    command java -jar pdf "$@"
+}
+# EndSection
+
+xrc setmain ___x_cmd_pdf

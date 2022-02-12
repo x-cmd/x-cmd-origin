@@ -1,0 +1,92 @@
+# shellcheck shell=sh disable=SC3043,SC2154
+
+
+xrc ali/_v0/vpc_switch
+
+ali_vpc(){
+    param:dsl <<A
+subcommand:
+    ls                  "list"
+    create              "create"
+    del                 "delete"
+    modify              "start instance"
+    attr                "stop instance"
+    switch|sw           "Switcher management"
+A
+    param:run
+    if [ -z "$PARAM_SUBCMD" ]; then
+        ali_vpc_quick "$@"
+        return
+    fi
+
+    "ali_vpc_$PARAM_SUBCMD" "$@"
+}
+
+
+ali_vpc_ls_format(){
+    ali_table_json cidr=.CidrBlock .VpcName .Status .VpcId .VRouterId .CreationTime
+}
+
+ali_vpc_ls(){
+    param:void
+    if [ ! -t 1 ]; then
+        _ali_vpc_ls "$@"
+    else
+        _ali_vpc_ls "$@" | ali_vpc_ls_format
+    fi
+}
+
+# shellcheck disable=SC2120
+_ali_vpc_ls(){
+    case "$#" in
+        0)  aliyun ecs DescribeVpcs | x jq .Vpcs.Vpc ;;
+        1)  local regex="${1:-Provide regex pattern}"
+            _ali_vpc_ls | x jq "
+                .[] | 
+                if      .CidrBlock | test(\"$regex\")       then .
+                elif    .VpcId | test(\"$regex\")           then .
+                elif    .VpcName | test(\"$regex\")       then .
+                else empty end
+            " | x jq -s .
+            ;;
+    esac 
+}
+
+ali_exactor_declare ali_vpc \
+    "No such vpc found." \
+    "Multiple vpc found." \
+    VpcId
+
+ali_vpc_create(){
+    param:dsl <<A
+options:
+    --name          "Provide name"      <name>=""
+    --description   "Description"       <desc>="Create-by-x-cmd-ali-module"
+    --cidr          "Subnet of 172.16.0.0/12, 10.0.0.0/8, 192.168.0.0/16"  
+                                        <cidr>=""
+A
+    param:run
+    
+    name="${name:-"xcmd-ali-v0-vpc-$(date +%y%m%d%H%m)"}"
+
+    # 172.16.0.0/12
+    # 10.0.0.0/8
+    # 192.168.0.0/16
+    eval aliyun ecs CreateVpc \
+        ${name+--VpcName "$name"} \
+        ${description+--Description "$description"} \
+        ${cidr+--CidrBlock "$cidr"}
+}
+
+ali_vpc_del(){
+    param:void
+    local id
+    if id="$(ali_vpc_exactid "$@")"; then
+        ali_log info "Instance ID: $id"
+        aliyun ecs DeleteVpc --VpcId "$id"
+    fi
+}
+
+ali_vpc_quick(){
+    ali_quicker2 vpc "$@"
+}

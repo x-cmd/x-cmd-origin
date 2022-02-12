@@ -1,0 +1,20 @@
+# shellcheck shell=sh disable=SC3043,SC2164     # xrc
+
+# author:       Li Junhao           l@x-cmd.com
+# license:      GPLv3
+
+___x_cmd_cat(){
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            htt*)       x curl "$1"     ;;
+            # TODO: add resource for x path
+            *)          cat "$1"        ;;
+            # If json, use json color
+            # If source file, use language parser
+        esac
+
+        shift
+    done
+}
+
+xrc setmain ___x_cmd_cat

@@ -1,0 +1,9 @@
+
+# 1. build images: alpine
+
+alpine(){
+    :
+}
+
+# bash, dash, ksh, zsh
+

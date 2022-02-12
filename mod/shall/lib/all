@@ -1,0 +1,28 @@
+# shellcheck shell=sh disable=SC2039,3043
+
+___x_cmd_shall_try_exausted(){
+    DOCKER_PLATFORM=linux/arm64
+
+# bash3
+# bash4
+# bash5
+
+    local container_list="
+xcmd/alpine
+xcmd/debian
+xcmd/ubuntu
+xcmd/centos
+xcmd/fedora
+xcmd/opensuse/tumbleweed
+xcmd/archlinux
+xcmd/gentoo/stage3
+"
+
+    local image
+    echo "$container_list" | while read -r image; do
+        docker run -it -v  "$(pwd):/pd/" "${image}" "$@"
+    done
+}
+
+
+

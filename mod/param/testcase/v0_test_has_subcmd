@@ -1,0 +1,28 @@
+# shellcheck shell=sh disable=SC2039,SC2142,SC3043
+
+has_subcmd(){
+    param:dsl <<A
+option:
+    -y|--fsdfsd|-o          "Test regex arg1"  <regex_arg1>=888  =~  "[0-9]+"
+subcommand:
+    bbb                     "This is a bbb"
+A
+    param:run
+
+    echo "y: ${y}"
+}
+
+test_has_subcmd(){
+    assert_stdout "has_subcmd _has_subcmd ccc;echo \$?" <<A
+1
+A
+
+    assert_stdout "has_subcmd _has_subcmd bbb;echo \$?" <<A
+0
+A
+
+    assert_stdout "has_subcmd -y 777" <<A
+y: 777
+A
+
+}

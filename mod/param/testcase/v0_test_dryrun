@@ -1,0 +1,26 @@
+# shellcheck shell=sh disable=SC2039,SC2142,SC3043
+
+dryrun(){
+    param:dsl <<A
+option:
+    -y|--fsdfsd|-o          "Test regex arg1"  <regex_arg1>=888  =~  "[0-9]+"
+A
+    param:run
+
+    echo "y: ${y}"
+}
+
+test_dryrun(){
+    assert_stdout "dryrun _dryrun -y qwe;echo \$?" <<A
+1
+A
+
+    assert_stdout "dryrun _dryrun -y 123;echo \$?" <<A
+0
+A
+
+    assert_stdout "dryrun -y 777" <<A
+y: 777
+A
+
+}

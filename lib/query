@@ -1,0 +1,121 @@
+
+# The work present here should be done by jfreeparse | jawk
+
+# Section: Query: Should be give up
+
+# jo b.b
+___x_cmd_json_query(){
+    local keypath=${1:?Provide variable name}
+
+    local varname=${keypath%%.*}
+    local opv1=".${keypath#*.}"
+
+    [ "$varname" = "$keypath" ] && opv1="."
+    # shift 2
+
+    if [ "$varname" ]; then
+        awk -v op=extract -v opv1="$opv1" -f "$___X_CMD_JSON_AWK_PATH" <<A
+$(eval echo $(printf "%s" \"\$"${varname}"\"))
+A
+    else
+        awk -v op=extract -v opv1="$opv1" -f "$___X_CMD_JSON_AWK_PATH" -
+    fi
+}
+
+: <<'DOCTEST'
+> b=[1,2,3]
+> ___x_cmd_json_values b
+1
+2
+3
+DOCTEST
+___x_cmd_json_values(){
+    local op=values
+    if [ "$1" = "-r" ]; then
+        op="values-r"
+        shift
+    fi
+
+    local keypath=${1:?Provide variable name}
+
+    local varname=${keypath%%.*}
+    local opv1=".${keypath#*.}"
+
+    [ "$varname" = "$keypath" ] && opv1=""
+    # TODO: why？Seems wrong
+    # shift 2
+
+    local s
+    if [ "$varname" ]; then
+        awk -v op="$op" -v opv1="$opv1" -f "$___X_CMD_JSON_AWK_PATH" <<A
+$(eval echo $(printf "%s" \"\$"${varname}"\"))
+A
+    else
+        awk -v op="$op" -v opv1="$opv1" -f "$___X_CMD_JSON_AWK_PATH"
+    fi
+}
+
+: <<'DOCTEST'
+> b={a:1,b:2,c:3}
+> ___x_cmd_json_values b
+a
+b
+c
+DOCTEST
+___x_cmd_json_keys(){
+    local op=keys
+    if [ "$1" = "-r" ]; then
+        op=keys-r
+        shift
+    fi
+
+    local keypath=${1:?Provide variable name}
+
+    local varname=${keypath%%.*}
+    local opv1=".${keypath#*.}"
+
+    [ "$varname" = "$keypath" ] && opv1=""
+    # TODO: why？Seems wrong
+    # shift 2
+
+    local s
+    if [ "$varname" ]; then
+        awk -v op="$op" -v opv1="$opv1" -f "$___X_CMD_JSON_AWK_PATH" <<A
+$(eval echo $(printf "%s" \"\$"${varname}"\"))
+A
+    else
+        awk -v op="$op" -v opv1="$opv1" -f "$___X_CMD_JSON_AWK_PATH"
+    fi
+}
+
+
+: <<'DOCTEST'
+> b=[1,2,3]
+> ___x_cmd_json_length b
+3
+DOCTEST
+___x_cmd_json_length(){
+    local keypath="${1:?Provide variable name}"; shift
+
+    local varname=${keypath%%.*}
+    local opv1=".${keypath#*.}"
+
+    [ "$varname" = "$keypath" ] && opv1="."
+
+    if [ "$varname" ]; then
+        awk -v op=length -v opv1="$opv1" -f "$___X_CMD_JSON_AWK_PATH" <<A
+$(eval echo $(printf "%s" \"\$"${varname}"\"))
+A
+    else
+        awk -v op=length -v opv1="$opv1" -f "$___X_CMD_JSON_AWK_PATH"
+    fi
+}
+
+: <<'DOCTEST'
+> b=[1,2,3]
+> ___x_cmd_json_pop b
+> echo $b # ___x_cmd_json_pop
+[1,2]
+DOCTEST
+
+# EndSection

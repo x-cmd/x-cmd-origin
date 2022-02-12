@@ -1,0 +1,63 @@
+# shellcheck shell=sh # xrc
+
+# author:       Li Junhao           l@x-cmd.com
+
+# Section: modules included
+xrc param/latest
+
+xrc dev/lib/all
+
+xrc dev/lib/ws
+xrc dev/lib/mod
+xrc dev/lib/pkg
+
+xrc dev/lib/init
+xrc dev/lib/try
+
+# EndSection
+
+# git config --worktree --get-regexp "remote[a-z\.]+.url"
+
+___x_cmd_dev(){
+    param:dsl <<A
+subcommand:
+    init        "init"
+    mod         "modules"
+    pkg         "package"
+    ws          "workspace"
+    all         "all modules"
+    try         "do some experiment on all poxis shell"
+A
+    param:run
+
+    if [ -z "${PARAM_SUBCMD}" ]; then
+        ___x_cmd_dev help
+        return 0
+    fi
+
+    "___x_cmd_dev_${PARAM_SUBCMD}" "$@"
+}
+
+alias xdev="x dev"
+
+# Section: git
+
+# TODO: we will find a more suitable place for the code below.
+
+alias giss="git status -s"
+alias gip="x dev ws pull"
+alias giP="x dev ws push"
+giam(){
+    local msg="${1:-...}"
+    shift
+    if [ $# -eq 0 ]; then
+        ( cd "$(x wsroot)" && git add . )
+    else
+        git add "$@"
+    fi
+    git commit -m "$msg"
+}
+
+# EndSection
+
+xrc setmain ___x_cmd_dev

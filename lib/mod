@@ -1,0 +1,198 @@
+# shellcheck shell=sh disable=SC3043,2120
+
+# Section: lsfile install
+___x_cmd_dev_mod_lsfile0()(
+    param:void
+    IFS="
+"
+
+    cd "$(x wsroot)" || exit
+
+    local i
+    ___x_cmd_glob file latest \
+        "v*" \
+        "_v*/**" \
+        "lib/**" \
+        "third-party/**" | \
+    while read -r i; do
+        [ "$i" != "${i#*_test*}" ] && continue
+        # [ "$i" != "${i%.test}" ] && continue
+        [ -f "$i" ] && printf "%s\n" "$i"
+    done
+)
+
+___x_cmd_dev_mod_lsfile()(
+    param:void
+    if [ -f "$(x wsroot)/.x-cmd/lsfile" ]; then
+        # TODO: using engine to directly run the local file
+        X_DISABLE_WORKSPACE_EXECUTION_CONFIRMATION=1 x ws lsfile
+    else
+        ___x_cmd_dev_mod_lsfile0
+    fi
+)
+
+___x_cmd_dev_mod_install_tmp(){
+    local src="$2"
+    local dst="$1/$src"
+    mkdir -p "$(dirname "$dst")"
+    printf "Moving:   %-30s\t%s\n" "$src" "$dst"
+    cp "$src" "$dst"
+}
+
+___x_cmd_dev_mod_install()(
+    param:void
+    local current_folder
+    current_folder="$(basename "$(x wsroot)")"
+    current_folder="$HOME/.x-cmd/$current_folder"
+    rm -rf "$current_folder"
+    mkdir -p "$current_folder"
+
+    if [ -f "$(x wsroot)/.x-cmd/install" ]; then
+        # TODO: using engine to directly run the local file
+        X_DISABLE_WORKSPACE_EXECUTION_CONFIRMATION=1 x ws install "$@"
+    else
+        ___x_cmd_dev_mod_lsfile | x arg1 ___x_cmd_dev_mod_install_tmp "$current_folder"
+    fi
+)
+
+# EndSection
+
+# Section: pkg
+
+___x_cmd_dev_mod_tgz(){
+    param:void
+    WSROOT="$(x wsroot)"
+
+    local scope
+    scope="$(___x_cmd_dev_ws_name)"
+    scope="${scope#*/}"
+
+    mkdir -p "$WSROOT/dist" &&
+        eval "tar czvf $scope.tgz $(___x_cmd_dev_mod_lsfile | sort | uniq | tr '\n' ' ')" &&
+        mv "$scope.tgz" "$WSROOT/dist/$scope.tgz" &&
+        ls -alh "$WSROOT/dist/$scope.tgz"
+}
+
+# EndSection
+
+___x_cmd_dev_mod_wc(){
+    param:void
+    ___x_cmd_dev_mod_lsfile "$@" | xargs wc | sort -n -r | less
+}
+
+# Section: devi
+___x_cmd_dev_mod_devi(){
+    param:void
+    local name
+    name="$(___x_cmd_dev_mod_name)"
+    name="ws-${name%/*}-${name#*/}"
+
+    local id
+    id="$(docker container ls -a -f name=ws-x-bash-dev --quiet)"
+
+    if [ -z "$id" ]; then
+        docker run -it --network host --name "$name" \
+            -v "$HOME/.ssh:/root/.ssh" \
+            -v "$(x wsroot):/$name}" \
+            -v "$(x wsroot):/ws" \
+            xcmd/alpine-dev bash
+    else
+        docker container start "$id"
+        docker container exec -it "$id" bash
+    fi
+}
+
+# EndSection
+
+# Section: ls
+
+___x_cmd_dev_mod_getfp(){
+    local filename=modlist
+    local fp
+    fp="$(pwd)/$filename"
+    [ -f "$fp" ] && printf "%s" "$fp" && return
+
+    fp="$(x wsroot)/$filename"
+    [ -f "$fp" ] && printf "%s" "$fp" && return
+
+    return 1
+}
+
+
+___x_cmd_dev_mod_ls_latest(){
+    # ___x_cmd_curl_gitx modlist
+    curl https://gitee.com/x-cmd/x-cmd/raw/main/modlist 2>/dev/null \
+        | ___x_cmd_dev_mod_ls_awk_
+}
+
+___x_cmd_dev_mod_ls_awk_(){
+    awk -v mode="${1:-all}" '
+($0!="")&&($0 !~ /[ ]*#/){
+    mod=$1
+    gsub(/^\+/, "", mod)
+    if (mode == "all") print mod
+    else if (mode == "core") { if ($1 ~ /^\+/) print mod }
+    else if (index(mode, mod) > 0) print mod
+}'
+}
+
+___x_cmd_dev_mod_ls(){
+    param:void
+    local fp="${MODLIST:-""}"
+    if [ -z "$fp" ]; then
+        fp="$(___x_cmd_dev_mod_getfp)" || {
+            printf "Cannot find file modlist. Using ls_latest\n" >&2
+            ___x_cmd_dev_mod_ls_latest
+            return
+        }
+    fi
+
+    ___x_cmd_dev_mod_ls_awk_ "$@" <"$fp"
+}
+
+# EndSection
+
+___x_cmd_dev_mod(){
+
+    if [ -f "$(x wsroot)/.x-cmd/$1" ]; then
+        x _ws "$@"
+        return
+    fi
+
+    param:dsl <<A
+subcommand:
+    ls          "ls mod"
+    wc          "wc"
+    devi        "container"
+    tgz         "package"
+
+    install      "cp file to home folder"
+    lsfile      "ls file to p"
+    lsfile0     "ls file to p"
+
+    init        "init"
+
+    pull        "pull"
+    push        "push"
+    name        "get workspace name from git config"
+A
+    param:run
+
+    if [ -z "$PARAM_SUBCMD" ]; then
+        ___x_cmd_dev_mod help
+        return 1
+    fi
+
+    if command -v "___x_cmd_dev_mod_${PARAM_SUBCMD}" >/dev/null; then
+        "___x_cmd_dev_mod_$PARAM_SUBCMD" "$@"
+    else
+        case "$PARAM_SUBCMD" in
+            pull|push|name)
+                "___x_cmd_dev_ws_$PARAM_SUBCMD" "$@"
+                ;;
+            init)
+                "___x_cmd_dev_init" "$@"
+        esac
+    fi
+
+}

@@ -1,0 +1,23 @@
+# shellcheck shell=sh disable=SC3043,SC2164
+
+x log init x_fs
+
+cp -r ./* ~/.x-cmd/x_fs/
+
+test_cross_env() {
+    for i in debian alpine centos; do
+        x_fs_log info "Testing : " "$i"
+        docker run -it -v  "$HOME"/.x-cmd/:/root/.x-cmd/ -v "$(pwd)":/pd "${i}" \
+            sh -c ". ~/.x-cmd/xrc/latest && cd pd && . ./testcase/v0_test_base"
+    done
+
+    for i in bash:3 bash:4 bash:5; do
+        x_fs_log info "Testing : " "$i"
+        docker run -it -v  "$HOME"/.x-cmd/:/root/.x-cmd/ -v "$(pwd)":/pd "${i}" \
+            bash -c ". ~/.x-cmd/xrc/latest && cd pd && . ./testcase/v0_test_base"
+    done
+}
+
+# run testcase
+. ./testcase/v0_test_base
+test_cross_env

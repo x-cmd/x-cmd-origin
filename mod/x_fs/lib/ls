@@ -1,0 +1,40 @@
+# shellcheck shell=sh disable=SC3043,SC2164
+
+# author:       Li Junhao           l@x-cmd.com    edwinjhlee.github.io
+# maintainer:   Li Junhao
+# license:      GPLv3
+
+# linux
+
+xrc os
+
+case "$(os name)" in
+    darwin)
+        xrc x_fs/darwin/ls
+        ;;
+    linux)
+        xrc x_fs/linux/ls
+        ;;
+    win)
+        xrc x_fs/win/ls
+        ;;
+esac
+
+# 1. ls local device
+# 2. change to different arguments, like ls :ali/ip, means ali ip ls
+
+
+___x_cmd_fs_ls_1(){
+    if [ "$#" -eq 1 ]; then
+        case "$1" in
+            :*.zip)     ;;
+            :cpu)       ___x_cmd_fs_ls_cpu && return 0;;
+            :mem)       ___x_cmd_fs_ls_mem && return 0;;
+        esac
+    fi
+    return 1
+}
+
+___x_cmd_ls(){
+    ___x_cmd_fs_ls_1 "$@" || command ls "$@"
+}

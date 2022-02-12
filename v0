@@ -1,0 +1,463 @@
+# shellcheck shell=sh disable=SC2039,SC1001
+
+# author:       Li Junhao           l@x-cmd.com    edwinjhlee.github.io
+# maintainer:   Li Junhao
+
+selftest(){
+    xrc std/doctest
+    doctest "${BASH_SOURCE[0]}"
+}
+
+# assert(){
+#     if [ $# -ne 0 ]; then
+#         eval "$*"
+#     else
+#         code=$(cat)
+#         eval "$code"
+#     fi
+
+#     # shellcheck disable=SC2181
+#     if [ "$?" -eq 0 ]; then
+#         return 0
+#     else
+#         echo "$MSG"
+#         return 1
+#     fi
+# }
+
+# assert "$org" =~ [\d]{2} [\d]{4}
+# assert "$repo" = gitee
+
+
+# @assert(){
+#     local value=${!1}
+#     shift
+#     assert "$value" "$@"
+# }
+
+STR_REGEX_SEP="$(printf "\001")"
+str_regex(){
+    # Only dash does not support pattern="${pattern//\\/\\\\}"
+    awk -v FS="${STR_REGEX_SEP}" '{
+        if (match($1, $2))  exit 0
+        else                exit 1
+    }' <<A
+${1}${STR_REGEX_SEP}${2:?str_regex(): Provide pattern}
+A
+}
+
+# design principle:
+# when to use name evaluation?
+# 
+
+: <<'DOCTEST'
+> assert "a1b2c" =~ [0-9]+ [a-z0-9]+ && echo yes
+yes
+> assert "a1b2c" = 123 a1b2 1b2c 2>/dev/null && echo yes
+> assert "a1b2c" = 123 a1b2 a1b2c 1b2c && echo yes
+yes
+> assert 123 =int && echo yes
+yes
+> assert a123 =int 2>/dev/null && echo yes
+> assert a1,a6,a3 =[,] a1 a2 a3 a4 a5 a6 2>/dev/null && echo yes
+yes
+> assert a1,a6,a3 =[,] a1 a2 a3 a4 a5 2>/dev/null && echo yes
+> assert a1,a6,a3 =, a1 a2 a3 a4 a5 a6 2>/dev/null && echo yes
+yes
+> assert a1,a6,a3 =, a1 a2 a3 a4 a5 2>/dev/null && echo yes
+> assert a1,a6,a3 =~[,] a[1-6] 2>/dev/null && echo yes
+yes
+> assert a1,a6,a3 =~[,] a[1-3] 2>/dev/null && echo yes
+DOCTEST
+assert(){
+    # shellcheck disable=SC2016
+    local CHOICE_LIST_MUST_NOT_BE_EMTPY='
+        [ "${#@}" -eq 0 ] && {
+            echo "ERROR: Please provide candidate list right after $op" >&2
+            return 1
+        }
+    '
+
+    local IFS=$'\n' 
+    local datum
+
+    local val="$1" op="$2"; shift 2
+    case "$op" in
+    \=\~)
+        eval "$CHOICE_LIST_MUST_NOT_BE_EMTPY"
+        if ! assert_within_regex "$val" "$@"; then
+            echo "ERROR: '$val' NOT match any regex defined" >&2
+            # param.help.show
+            return 1
+        fi;;
+    \=)
+        eval "$CHOICE_LIST_MUST_NOT_BE_EMTPY"
+        if ! assert_within "$val" "$@"; then
+            # echo "$val" "$@" >&2
+            echo "ERROR: '$val' Not one of the candidate set." >&2
+            # param.help.show
+            return 1
+        fi ;;
+    \=str|\=nullable|\=int)
+
+        if [ "$op" = "=nullable" ]; then
+            if [ -z "$val" ]; then
+                return 0
+            fi
+        fi
+
+        if [ -z "${val}" ]; then
+            echo "ERROR: A non-null value is expected for parameter" >&2
+            # param.help.show
+            return 1
+        fi
+
+        if [ "$op" = "=int" ]; then
+            # if [[ ! "$val" =~ ^[\ \t]*[0-9]+[\ \t]*$ ]]; then
+            if ! str_regex "$val" "^[\ \t]*[0-9]+[\ \t]*$" ; then
+                echo "ERROR: '$val' An integer expected." >&2
+                # param.help.show
+                return 1
+            fi
+        fi
+
+        [ "${#@}" -ne 0 ] && {
+            if ! assert_within "$val" "$@"; then
+                echo "ERROR: '$val' Not inside the $op set." >&2
+                # param.help.show
+                return 1
+            fi 
+        } ;;
+    \=\[?\]|\=?)
+        eval "$CHOICE_LIST_MUST_NOT_BE_EMTPY"
+
+        # if [[ "$op" == '=['?']' ]]; then
+        if str_regex "$op" "^=\[.\]$"; then
+            # IFS=${op:2:1}
+            IFS=$(echo "$op" | tr -d "=[]")
+        else
+            # IFS=${op:1:1}
+            IFS=$(echo "$op" | tr -d "=")
+        fi
+
+        val=$(echo "$val" | tr "$IFS" "\n" )
+        while read -r datum; do
+            assert_within "$datum" "$@" && continue
+            echo "ERROR: ['$val'] After splited with \'$IFS\', element '$datum' does NOT match the string set" >&2
+            # param.help.show
+            return 1
+        done <<A
+$val
+A
+    ;;
+    \=\~\[?\]|\=\~? )
+        eval "$CHOICE_LIST_MUST_NOT_BE_EMTPY"
+
+        # if [[ "$op" == '=~['?']' ]]; then
+        if str_regex "$op" "^=~\[.\]$"; then
+            # IFS=${op:3:1}
+            IFS=$(echo "$op" | tr -d "=~[]")
+        else
+            # IFS=${op:2:1}
+            IFS=$(echo "$op" | tr -d "=~")
+        fi
+
+        val=$(echo "$val" | tr "$IFS" "\n" )
+        while read -r datum; do
+            assert_within_regex "$datum" "$@" && continue
+            echo "ERROR: ['$val']. After splited with \'$IFS\', element '$datum' does NOT match the regex set." >&2
+            # param.help.show
+            return 1
+        done <<A
+$val
+A
+    ;;
+    *)  [ "$op" = "" ] || echo ": TODO: $op" >&2 ;;
+    esac
+
+    return 0
+}
+
+# assert(){
+#     local value="$1"
+#     local op="$2"
+#     shift 2
+#     case "$op" in
+#     =) assert_within "$value" "$@";;
+#     =~) assert_within_regex "$value" "$@";;
+#     *) return 1;;
+#     esac
+# }
+
+: <<'DOCTEST'
+> assert_within 1abc 1abc1 1abc2 && echo yes
+> assert_within 1abc 1abc1 1abc2 1abc abc3 && echo yes
+yes
+DOCTEST
+assert_within(){
+    local c value="$1"
+    shift
+    for c in "$@"; do
+        for v in $value; do
+            if [ "$v" = "$c" ]; then
+                return 0
+            fi
+        done
+    done
+    return 1
+}
+
+
+: <<'DOCTEST'
+> assert_within_regex 1abc 1abc1 1abc2 && echo yes
+> assert_within_regex 1abc 1abc1 1abc2 1abc abc3 && echo yes
+yes
+> assert_within_regex 1abc 1abc1 1abc2 [0-9][a-z]+ abc3 && echo yes
+yes
+DOCTEST
+assert_within_regex(){
+    local c 
+    local value="$1"
+    shift
+    for c in "$@"; do
+        #if [[ "$value" =~ ^($c)$ ]]; then
+        if str_regex "$value" "^($c)$"; then
+            return 0
+        fi
+    done
+    return 1
+}
+
+: <<'DOCTEST'
+> assert_eq 1abc 1abc1 1abc2 2>/dev/null && echo yes
+> assert_eq 1abc 1abc 1abc && echo yes
+yes
+DOCTEST
+assert_eq(){
+    local real="${1:?Real value}"
+    while [ $# -gt 1 ]; do
+        shift
+        if [ "$real" != "$1" ]; then
+            echo "Failed. Expect '$real' equals to '$1'" >&2
+            return 1
+        fi
+    done
+    return 0
+}
+
+assert_stdout(){
+    local e
+    e="$(cat)"
+    assert_eq "$e" "$(eval "$@")"
+}
+
+
+: <<'DOCTEST'
+> assert_t "sleep 1s" 2>/dev/null && echo yes
+yes
+> assert_t "[ 5 -eq 3 ]" 2>/dev/null && echo yes
+> assert_t "[ 3 -eq 3 ]" 2>/dev/null && echo yes
+yes
+DOCTEST
+assert_t(){
+    if eval "$*"; then
+        return 0
+    else
+        echo "${MSG:-"Expect command execution to be true: $*"}" >&2
+        return 1
+    fi
+}
+
+: <<'DOCTEST'
+> assert_f "sleep 1s" 2>/dev/null && echo yes
+> assert_f "[ 5 -eq 3 ]" 2>/dev/null && echo yes
+yes
+> assert_f "[ 3 -eq 3 ]" 2>/dev/null && echo yes
+DOCTEST
+assert_f(){
+    if eval "$*"; then
+        echo "${MSG:-"Expect command execution to be false: $*"}" >&2
+        return 1
+    else
+        return 0
+    fi
+}
+
+# There is two ways to use assert_grep
+# > assert_grep "doctest" 2>/dev/null <"$(xrc_which std/test)" && echo yes
+# yes
+
+: <<'DOCTEST'
+> echo "hello hi" | assert_grep hi 1>/dev/null && echo yes
+yes
+DOCTEST
+assert_grep(){
+    if grep "${1:?Please provide grep pattern}" 1>/dev/null; then
+        return 0
+    else
+        echo "${MSG:-Grep Pattern Failed matching: $1}" >&2
+        return 1
+    fi
+}
+
+: <<'DOCTEST'
+> assert_float 1.2 1.0 1.1 34.1 && echo yes
+yes
+> assert_float 1.2 1.0 1.- 34 2>/dev/null && echo yes
+DOCTEST
+assert_float(){
+    while [ $# -gt 0 ]; do
+        # [[ "$1" =~ ^[\ \t]?[0-9]+(.[0-9]+)?[\ \t]?$ ]] || {
+        str_regex "$1" "^[ \t]*[+-]?[0-9]+(.[0-9]+)?[ \t]*$" || {
+            echo "${MSG:-"Expect var to be of float type: $*"}" >&2
+            return 1
+        }
+        shift
+    done
+    return 0
+}
+
+: <<'DOCTEST'
+> assert_int 1 2 3 " 5 " && echo yes
+yes
+> assert_int 1 2 1.2 3 2>/dev/null && echo yes
+DOCTEST
+assert_int(){
+    while [ $# -gt 0 ]; do
+        # [[ "$1" =~ ^[\ \t]?[0-9]+[\ \t]?$ ]] || {
+        str_regex "$1" "^[+-]?[ \t]?[0-9]+[ \t]?$" || {
+            echo "${MSG:-"Expect var to be of int type: $*"}" >&2
+            return 1
+        }
+        shift
+    done
+    return 0
+}
+
+
+# It cannot pass the test in sh. So. Don't
+: <<'DOCTEST-NO-SH'
+> a=3; b=(1 2 3); c=8; d=(3 8)
+> assert_var_is_array a b c 2>/dev/null && echo yes
+> assert_var_is_array b d && echo yes
+yes
+DOCTEST-NO-SH
+
+if [ "$X_BASH_SRC_SHELL" != "sh" ]; then
+    assert_var_is_array(){
+        while [ $# -gt 0 ]; do
+            if ! declare -p "${1:?Please provide variable name}" 2> /dev/null | grep -q '^declare \-a'; then
+                echo "${MSG:-"Expect var to be of array type: $*"}" >&2
+                return 1
+            fi
+            shift
+        done
+        return 0
+    }
+fi
+
+testFun(){
+    # Do it in usual way
+    local TMP_1 TMP_2
+    TMP_1=$(file.tmp)
+    TMP_2=$(file.tmp)
+    
+    docker run -it ubuntu bash > "$TMP_1"
+    MSG="testFun failed" \
+        assert_grep "work" -- "work" <"$TMP_1"
+    assert_grep "$(line "$TMP_1" 2)" "$TMP_2"
+    MSG="testFun failed for reason like" \
+        assert_grep "$(line "$TMP_1" 3)" "$TMP_2"
+
+    # assert_grep "work" -- "testFun failed" <$TMP_1
+    # assert_grep $(line $TMP_1 2) $TMP_2
+    # assert_grep "$(line $TMP_1 3)" $TMP_2 -- "testFun failed for reason like" 
+
+    # assert_eq 2 $(line $TMP_1 3)
+    # assert_eq 2 $(file.line $TMP_1 3)
+    # assert_eq 2 $(sed -n 3p $TMP_1)
+}
+
+# Example:
+# TIMEOUT=3 MSGURE="Fail if wrong" @ts "work1" testFun1
+# TIMEOUT=3 MSGURE="Fail if wrong" @testsuite "work1" testFun1
+# TIMEOUT=5 @ts "work2" testFun2
+
+
+: <<'DOCTEST'
+> a=3; c=
+> assert_var_not_empty a c && echo yes
+> assert_var_not_empty a && echo yes
+yes
+DOCTEST
+
+: <<'DOCTEST-NO-SH'
+> a=3; b=(1 2 3); c=
+> assert_var_not_empty a b c && echo yes
+> assert_var_not_empty a b && echo yes
+yes
+DOCTEST-NO-SH
+assert_var_not_empty(){
+    for i in "$@"; do
+        eval "[ -n \"\$$i\" ] || return 1"
+    done
+}
+
+# assert_strlen(){
+#     local varname=${1:?Please provide variable name}
+#     local val=${!$varname}
+#     local len=${#val}
+#     local expected_len=${2:?Expected length}
+#     if [ "$len" -eq "$expected_len" ]; then
+#         return 0
+#     else
+#         return 1
+#     fi
+# }
+
+# The following code is ridiculously wrong ...
+# assert_str_eq(){
+#     local val=${!1:?Please provide variable name}
+#     shift
+#     for i in "$@"; do
+#         if [ "$val" = "$i" ]; then
+#             return 0
+#         else
+#             return 1
+#         fi
+#     done
+# }
+
+# assert_str_match_regex(){
+#     local val=${!1:?Please provide variable name}
+#     shift
+#     for i in "$@"; do
+#         if [[ "$val" =~ ^$i$ ]]; then
+#             return 0
+#         else
+#             return 1
+#         fi
+#     done
+# }
+
+assert_nofile(){
+    local i
+    for i in "$@"; do
+        [ -f "$i" ] && return 1
+    done
+    return 0
+}
+
+assert_file(){
+    local i
+    for i in "$@"; do
+        [ -f "$i" ] || return 1
+    done
+}
+
+assert_file_readable(){
+    local i
+    for i in "$@"; do
+        [ -r "$i" ] || return 1
+    done
+}

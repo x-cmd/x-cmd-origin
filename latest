@@ -1,0 +1,8 @@
+# shellcheck shell=sh disable=SC3043 # xrc
+
+# author:       Li Junhao           l@x-cmd.com
+
+___x_cmd_tesseract(){
+    :
+}
+

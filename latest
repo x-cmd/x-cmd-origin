@@ -1,0 +1,11 @@
+# shellcheck shell=sh disable=SC3043 # xrc
+
+# author:       Li Junhao           l@x-cmd.com
+
+xrc node/lib/node
+
+___x_cmd_node(){
+    ___x_cmd_node_inner "$@"
+}
+
+xrc setmain ___x_cmd_node

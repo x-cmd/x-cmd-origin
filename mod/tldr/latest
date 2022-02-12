@@ -1,0 +1,241 @@
+# shellcheck shell=sh disable=SC2039,3043 # xrc
+
+# author:       Li Junhao           l@x-cmd.com    edwinjhlee.github.io
+# maintainer:   Li Junhao
+
+# Section: main
+
+xrc param/latest
+
+______X_CMD_TLDR_AWK="$(xrc which tldr/lib/tldr.awk)"
+______X_CMD_TLDR_WCWIDTH_AWK="$(xrc which ui/_v0/wcwidth.awk)"
+
+______X_CMD_TLDR_LANG="
+en
+bs
+da
+de
+es
+fa
+fr
+hbs
+hi
+id
+it
+ja
+ko
+ml
+nl
+no
+pl
+pt_BR
+pt_PT
+ru
+sv
+ta
+th
+tr
+zh
+zh_TW
+"
+
+xrc ui
+
+___x_cmd_tldr(){
+    param:dsl <<A
+subcommands:
+    update      "Update"
+    ls          "List all possible commands"
+    lang        "Set Prefered language or show languange candidates"
+    cat         "Concatenate tldr file to standard output"
+A
+    param:run
+
+    if [ -z "${PARAM_SUBCMD}" ]; then
+        case "$1" in
+            :*)     ___x_cmd_tldr cat "${1#:}" ;;
+            "")     ___x_cmd_tldr help;;
+            *)      ___x_cmd_tldr cat "$@" ;;
+        esac
+        return
+    fi
+
+    "___x_cmd_tldr_$PARAM_SUBCMD" "$@"
+}
+
+_______X_CMD_TLDR_ROOT="$___X_CMD_ROOT/.tmp/tldr"
+
+___x_cmd__tldr_download(){
+    local src="${1:?Provide source file}"
+    local dst="${2:-$1}"
+    local expiration="${3:-"1"}"
+    ___x_cmd_curl_gitx x-cmd tldr main "dist/$src" "$_______X_CMD_TLDR_ROOT/$dst" "$expiration" 2>/dev/null
+}
+
+___x_cmd_tldr_current(){
+    if [ ! -f "$_______X_CMD_TLDR_ROOT/index.yml" ]; then
+        return 1
+    fi
+
+    local version
+    version="$(cat "$_______X_CMD_TLDR_ROOT/index.yml")"
+    version="${version%%
+*}"
+    version="${version#* }"
+    printf "%s" "$version"
+}
+
+___x_cmd__tldr_download_pages()(
+    local version="${1:?Provide version}"
+    local page_lang="${2:?pages}"
+    if [ ! -d "$_______X_CMD_TLDR_ROOT/$version/$page_lang" ]; then
+        mkdir -p "$_______X_CMD_TLDR_ROOT/$version/$page_lang"
+    fi
+
+    if ! ___x_cmd__tldr_download "$version/$page_lang.tgz" "$version/$page_lang/$page_lang.tgz" "0"; then
+        printf "%s\n" "Fail to update $page_lang." >&2
+        return 1
+    fi
+    if cd "$_______X_CMD_TLDR_ROOT/$version/$page_lang" && tar xvf "$page_lang.tgz" 2>/dev/null; then
+        printf "Version already UPDATED to %s.\n" "$version" >&2
+    fi
+)
+
+___x_cmd_tldr_update()(
+    param:void
+    if ! ___X_CMD_CURL_UPDATE=1 ___x_cmd__tldr_download index.yml; then
+        printf "%s\n" "Fail to update index.yml." >&2
+        return 1
+    fi
+
+    local version
+    version="$(___x_cmd_tldr_current)"
+    version="${version%%
+*}"
+    version="${version#* }"
+
+    ___x_cmd__tldr_download_pages "$version" "pages"
+)
+
+___x_cmd_tldr_current_or_update(){
+    local version
+    if ! version="$(___x_cmd_tldr_current)"; then
+        if ! ___x_cmd_tldr_update; then
+            return 1
+        fi
+        ___x_cmd_tldr_current
+        return
+    else
+        printf "%s" "$version"
+    fi
+}
+
+
+______X_CMD_TLDR_LANG_PREFERED="${______X_CMD_TLDR_LANG_PREFERED:-en}"
+___x_cmd_tldr_lang(){
+    param:dsl <<A
+advise:
+    #1          ___x_cmd_tldr_lang
+options:
+    #1          "use the selected file to rollback"
+A
+    param:run
+
+    if [ "$#" -eq 0 ]; then
+        printf "%s" "$______X_CMD_TLDR_LANG"
+        return
+    fi
+
+    local lang="${1:?Provide langauge}"
+    if [ "$lang" != "en" ]; then
+        local version
+        version="$(___x_cmd_tldr_current_or_update)" || return
+        ___x_cmd__tldr_download_pages "$version" "pages.$lang" || return
+    fi
+    ______X_CMD_TLDR_LANG_PREFERED="$lang"
+    printf "Already setting prefered languange to %s\n" "$______X_CMD_TLDR_LANG_PREFERED" >&2
+}
+
+___x_cmd_tldr_getfile(){
+    local cand="${1:?Provide command}"
+    if [ "$______X_CMD_TLDR_LANG_PREFERED" != en ]; then
+        local fp
+        fp="$_______X_CMD_TLDR_ROOT/$(___x_cmd_tldr_current)/pages.$______X_CMD_TLDR_LANG_PREFERED/$cand"
+        [ -f "$fp" ] && printf "%s" "$fp" && return
+    fi
+
+    printf "%s" "$_______X_CMD_TLDR_ROOT/$(___x_cmd_tldr_current)/$cand"
+}
+
+___x_cmd_tldr_lsname(){
+    ___x_cmd_tldr_ls | awk -v FS=/ '{ print substr($2, 1, length($2)-3); }' | sort | uniq
+}
+
+___x_cmd_tldr_ls()(
+    param:void
+    local version
+    version="$(___x_cmd_tldr_current_or_update)" || return
+
+    if cd "$_______X_CMD_TLDR_ROOT/$version/pages/"; then
+        local cmd="${1}"
+        case "$cmd" in
+            "")     ls */* ;;
+            */*)    ls */* | grep "$cmd" ;;
+            *)      ls */* | grep "\/$cmd" ;;
+        esac
+    fi
+)
+
+___x_cmd_tldr_exact()(
+    local version
+    version="$(___x_cmd_tldr_current_or_update)" || return
+
+    if cd "$_______X_CMD_TLDR_ROOT/$version/"; then
+        local cmd="${1}"
+        case "$cmd" in
+            "")     ls */*/* ;;
+            */*)    ls */*/* | grep "$cmd" ;;
+            *)      ls */*/* | grep "\/$cmd.md" ;;
+        esac
+    fi
+)
+
+___x_cmd_tldr_cat(){
+    param:dsl <<A
+advise:
+    #1          ___x_cmd_tldr_lsname
+options:
+    #1          "use the selected file to rollback"
+A
+    param:run
+
+    cand="$( ___x_cmd_tldr_exact "$@" )"
+    local num
+    num="$(printf "%s" "$cand" | awk 'END{ print NR; }')"
+
+    case $num in
+        0)  printf "Not found.\n" >&2;
+            ___x_cmd_tldr_ls "$@" >&2
+            return 1 ;;
+        1)
+            if [ -t 1 ]; then
+                awk -v COLUMNS="$COLUMNS" "$(xrc cat $______X_CMD_TLDR_WCWIDTH_AWK)$(cat "$______X_CMD_TLDR_AWK")" < "$(___x_cmd_tldr_getfile "$cand")"
+            else
+                cat "$(___x_cmd_tldr_getfile "$cand")"
+            fi
+                ;;
+        *)
+            local text=
+            local tldr_file
+            eval "$(printf "%s" "$cand" | awk 'BEGIN{ str="ui select ,text \"Found: \""; }{ str = str  " " "\"" $0 "\""; }END{ print str; }')"
+            tldr_file="$(___x_cmd_tldr_getfile "$text")"
+            if [ -f "$tldr_file" ];then
+                cat "$tldr_file" | awk -v COLUMNS="$COLUMNS" "$(xrc cat $______X_CMD_TLDR_WCWIDTH_AWK)$(cat "$______X_CMD_TLDR_AWK")"
+                return 1
+            fi
+            ;;
+    esac
+}
+# EndSection
+
+xrc setmain ___x_cmd_tldr

@@ -1,0 +1,41 @@
+# shellcheck shell=sh
+# shellcheck disable=SC2039,3043
+
+# author:       Li Junhao           l@x-cmd.com
+
+xrc param
+
+
+___x_cmd_ff(){
+    local op
+    op="$1"
+    # file to file
+    case "$op" in
+        show)       ___x_cmd_ff_show "$@" ;;
+        convert)    ___x_cmd_ff_convert "$@" ;;
+        play)       ___x_cmd_ff_play "$@" ;;
+        probe)      ___x_cmd_ff_probe "$@" ;;
+        -*)         ___x_cmd_ffmpeg_origin "$@" ;;
+        *)
+            : detect input and output
+            : then convert the input to output
+            ;;
+    esac
+
+}
+
+___x_cmd_ffmpeg_origin(){
+    command ffmpeg "$@"
+}
+
+___x_cmd_ffmpeg_show(){
+    local op
+    op="$1"
+
+    case "$op" in
+        buildconf)      ___x_cmd_ffmpeg_origin -buildconf ;;
+        formats)        ___x_cmd_ffmpeg_origin -formats ;;
+    esac
+
+}
+

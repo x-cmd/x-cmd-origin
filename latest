@@ -1,0 +1,61 @@
+# shellcheck shell=sh disable=SC3043 # xrc
+
+# shellcheck shell=sh
+# author:       Li Junhao           l@x-cmd.com
+
+# Section: main
+
+# TODO: Use Param Generator SYMPOSIS
+xrc param/v0
+___x_cmd_zuz(){
+    param:dsl <<A
+subcommand:
+    z|compress          "compress file"
+    uz|decompress       "decompress zipfile"
+    uzr                 "decompress zipfile then remove the original file"
+    ls                  "list compress inside file"
+A
+    param:run
+    if [ -z "$PARAM_SUBCMD" ] || [ -z "$*" ]; then
+        printf "\n%s\n    %s\n    %s\n    %s\n    %s\n" \
+                "SYMPOSIS:" \
+                "x z   <zipfile> <source...>" \
+                "x uz  <zipfile>" \
+                "x uzr <zipfile>" \
+                "x zl  <zipfile>"
+        ___x_cmd_zuz help
+        return 0
+    fi
+
+    eval "___x_cmd_zuz_$PARAM_SUBCMD" "$@"
+}
+
+# EndSection
+
+# Section: other
+# NOTICE: tar czf - "$@" | split -b "$size" -a 3 - "$target_file."
+# NOTICE: In some environments, split doesnot have -d option. Thus we are using 7zip to compress
+
+x log init zuz
+___x_cmd_zuz_run(){
+    local IFS=' '
+    # shellcheck disable=SC2154
+    zuz_log info "Command to execute => $* $logger_msg"
+    IFS=
+    eval "$@"
+    local exit_code="$?"
+    if [ "$exit_code" != 0 ];then
+        zuz_log debug "$*;Error Code: $exit_code"
+        return $exit_code
+    else
+        return 0
+    fi
+
+}
+# EndSection
+
+xrc zuz/lib/cat zuz/lib/ls zuz/lib/uz zuz/lib/z
+
+# TODO: FIX it
+# @see: https://e.gitee.com/lteam18/issues/kanban?issue=I4S27Y
+# xrc setmain ___x_cmd_zuz

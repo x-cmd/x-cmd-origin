@@ -1,0 +1,217 @@
+# shellcheck shell=sh disable=SC3043 # xrc
+
+# author:       Li Junhao           l@x-cmd.com
+
+# Section : install
+xrc param/latest
+
+___x_cmd_install(){
+    param:dsl <<A
+subcommands:
+    ls          "list all software"
+    get         "get software installation command"
+    run         "run software installation command"
+    update      "update"
+A
+    param:run
+
+    if [ -z "$PARAM_SUBCMD" ]; then
+        case "$1" in
+            "")     printf "%s\n" "
+SYMPOSIS:
+    x install <software>
+    x install ls
+    x install run <software>
+    x install name"
+                    ___x_cmd_install _param_help_doc ;;
+            *)      ___x_cmd_install run "$@" ;;
+        esac
+        return 0
+    fi
+
+    "___x_cmd_install_$PARAM_SUBCMD" "$@"
+}
+
+___x_cmd_install_run(){
+    param:dsl <<A
+advise:
+    #1          ___x_cmd_install_name
+options:
+    #1          "get software name list"
+A
+    param:run
+
+    local YES=
+    case "$1" in
+        -y|--yes)       YES=1; shift
+    esac
+
+    local target
+    if target="$(___x_cmd_install_get "${1:?Provide target}")"; then
+        printf "Executing command:\n> \e[32;1m%s\e[0m\n\n" "$target" >&2
+        if [ -n "$YES" ]; then
+            eval "$target"
+            return
+        fi
+
+        printf "Do you want to continue? Press y to continue, otherwise will abort: " >&2
+        local ch
+        read -r ch
+        if [ "$ch" = y ]; then
+            eval "$target"
+        else
+            printf "Abort becase received non y\n" >&2
+            return 1
+        fi
+    fi
+    shift
+}
+
+___x_cmd_install_which(){
+    local cache="$___X_CMD_ROOT/.tmp/install/index.yml"
+    if ___x_cmd_curl_gitx x-cmd install main index.yml "$cache" "${___X_CMD_CURL_UPDATE:-1}"; then
+        printf "%s" "$cache"
+    else
+        return 1
+    fi
+}
+
+___x_cmd_install_ls(){
+    param:void
+    local CACHE
+
+    if ! CACHE="$(___x_cmd_install_which)"; then
+        printf "Cannot download file.\n" >&2
+        return 1
+    fi
+
+    awk -v pat="${1:-""}" '
+BEGIN {
+    NAME = ""
+    WIDTH = 12
+    SEP="\001"
+    count = 0
+}
+
+function handle(name){
+    if (pat == "" || match(name, pat)) {
+        printf("\033[33m%-12s\t\033[34;1m%s\033[0m\n",   name,        data[name SEP "desc"])
+        printf("%-12s\t%s\n",   " ",         ">    " data[name SEP "cmd"])
+        printf("%-12s\t%s\033[32;3m%s\033[0m\n",   " ",         "ref: ",  data[name SEP "reference"])
+        count = count + 1
+    }
+}
+
+$0!~/^[ ]*#/{
+    leading_space = match($0, /^[ ]+/)
+    leading_space_len = RLENGTH
+
+    if (leading_space_len == -1) {
+        if (NAME != "") {
+            handle(NAME)
+        }
+        NAME = $0
+        gsub(/:$/, "", NAME)
+        gsub(/[ ]+$/, "", NAME)
+        gsub(/^[ ]+/, "", NAME)
+    } else if (leading_space_len == 4) {
+        kw = $1
+        if (kw ~ /:$/) {
+            gsub(/:$/, "", kw)
+        }
+
+        $1 = ""
+        s = $0
+        gsub(/[ ]+$/, "", s)
+        gsub(/^[ ]+/, "", s)
+        data[NAME SEP kw] = s
+    }
+}
+
+end{
+    if (NAME != "") {
+        handle(NAME)
+    }
+
+    if (pat != "") {
+        if (count == 0) exit(1)
+        if (count == 1) exit(0)
+        exit(0) # success
+    }
+}
+
+' <"$CACHE"
+
+}
+
+___x_cmd_install_update(){
+    param:void
+    ___X_CMD_CURL_UPDATE=0 ___x_cmd_install_which 1>/dev/null && printf "Update success.\n" >&2
+}
+
+___x_cmd_install_name(){
+    local CACHE
+    if ! CACHE="$(___x_cmd_install_which)"; then
+        printf "Cannot download file." >&2
+        return 1
+    fi
+    awk '
+$0!~/^[ +#]/ && NF>0 {
+    print substr($0,1,length($0)-1)
+}
+' <"$CACHE"
+}
+
+___x_cmd_install_get(){
+    param:dsl <<A
+advise:
+    #1          ___x_cmd_install_name
+options:
+    #1          "get software name list"
+A
+    param:run
+
+    local CACHE
+    if ! CACHE="$(___x_cmd_install_which)"; then
+        printf "Cannot download file." >&2
+        return 1
+    fi
+
+    local data
+    data="$(___x_cmd_install_ls "^${1:?Provide software name}$")"
+    local cmd
+    if cmd="$(printf "%s\n" "$data" | awk '
+    $1~/^>/{
+        $1="";
+        cmd=$0;
+        count = count + 1;
+    }
+    END{
+        if (count == 1) {
+            gsub(/^[ ]+/, "", cmd)
+            gsub(/[ ]+$/, "", cmd)
+            print cmd
+            exit(0)
+        } else {
+            exit(1)
+        }
+    }
+')";
+    then
+        printf "%s" "$cmd"
+        return 0
+    else
+        printf "%s\n--------\n" "Found multiple commands" >&2
+        printf "%s" "$data" >&2
+        return 1
+    fi
+}
+
+# EndSection
+
+if ___x_cmd_is_suitable_advise_env; then
+    xrc advise/latest
+    advise ___x_cmd_install "" install
+fi
+
+xrc setmain ___x_cmd_install

@@ -1,0 +1,64 @@
+
+SSS="$(cat default.awk json.awk jiter.awk jdict.awk jiparse.awk)"
+
+f1(){
+    awk "$SSS"'
+{
+    pat[1] = q("1")
+    pat[2] = q("d")
+    pat[3] = q("a")
+    patl = 3
+
+
+    par[1] = q("1")
+    par[2] = q("d")
+    par[3] = q("a1")
+    parl = 3
+
+    if ($0 != "") {
+        jiter_eqarr_print( $0, patl, pat)
+        # jiter_eqarr_parse( _, $0, parl, par)
+    }
+
+
+}
+END{
+    print jstr(_)
+}
+'
+}
+
+f(){
+
+{
+    awk "$SSS
+    {
+        printf(\"%s\", json_to_machine_friendly(\$0) )
+    }" | f1
+} <<A
+{
+    "d": {
+        "a1": {
+            "1": 3
+        },
+        "a2": [1,2],
+        "a": {
+            "a11": "aaa"
+        }
+    },
+    "c": {
+        "c1": "12",
+        "c2": {
+            "c21": 12,
+            "c22": [
+                3,
+                4
+            ]
+        }
+    }
+}
+A
+
+}
+
+time f

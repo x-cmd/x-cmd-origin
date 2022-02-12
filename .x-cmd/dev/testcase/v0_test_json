@@ -1,0 +1,128 @@
+# shellcheck shell=bash disable=SC2016
+
+json_stringify(){
+    USE=json
+    # shellcheck disable=SC2016
+    TEST_CODE='
+{
+    data = $0
+}
+
+END{
+    json_parse(data, arr)
+    json_list_push(arr, S q(1) S q("b"), 555)
+    json_dict_push(arr, S q(1) S q(1), q("d"),99)
+
+    # json_list_has(arr, S q(1) S q("b"), 13) ? debug("json_list_has true") : debug("json_list_has false")
+    # print "json_list_rm: " json_list_rm(arr, S q(1) S q("b"), 6)
+    # print "json_list_len: " json_list_len(arr, S q(1) S q("b"))
+    print json_stringify_format(arr, ".", 4)
+
+    # json_dict_has(arr, S q(1), q("d")) ? debug("json_dict_has true") : debug("json_dict_has false")
+    # print "json_dict_get: " json_dict_get(arr, S q(1), q("d"))
+    # print "json_dict_len: " json_dict_len(arr, S q(1))
+    # print "json_dict_rm: " json_dict_rm(arr, S q(1), q("a"))
+    print json_stringify_compact(arr, ".1.b")
+    print json_stringify_machine(arr, ".1.b")
+
+    # print "----"
+    # print json_stringify_format(arr, ".", 4)
+    # print "----"
+    # print json_stringify_format(arr, ".1.c", 4)
+    # print "----"
+    # print json_stringify_format(arr, "", 4)
+    # print "----"
+    # print json_stringify_format(arr, ".1.b", 4)
+}
+'
+    xawk code "${TEST_CODE}" -v RS="\t" <<A
+[
+    {
+        "b": [
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+        ],
+        "a": 9,
+        "c": {
+            "c1": 12,
+            "c2": {
+                "c21": 12,
+                "c22": [
+                        {
+                            "id": 9901486,
+                            "full_name": "x-bash/cloud",
+                            "human_name": "x-bash/cloud",
+                            "url": "https://gitee.com/api/v5/repos/x-bash/cloud",
+                            "namespace": {
+                                "id": 6191490,
+                                "type": "group",
+                                "name": "x-bash",
+                                "path": "x-bash",
+                                "html_url": "https://gitee.com/x-bash"
+                            },
+                            "path": "cloud",
+                            "name": "cloud",
+                            "owner": {
+                                "id": 5625049,
+                                "login": "edwinjhlee",
+                                "type": "User"
+                            },
+                            "description": "用于公有云基础设施管理的命令封装库, tccli, aliyun, aws, sae, google-cloud",
+                            "private": false,
+                            "public": true,
+                            "internal": false,
+                            "assignees": [],
+                            "testers": []
+                        }
+                    ]
+            }
+        }
+    },
+    {
+        "id": 9901471,
+        "full_name": "x-bash/cmd",
+        "human_name": "x-bash/cmd",
+        "url": "https://gitee.com/api/v5/repos/x-bash/cmd",
+        "namespace": {
+            "id": 6191490,
+            "type": "group",
+            "name": "x-bash",
+            "path": "x-bash",
+            "html_url": "https://gitee.com/x-bash"
+        },
+        "path": "cmd",
+        "name": "cmd",
+        "owner": {
+            "id": 5625049,
+            "login": "edwinjhlee",
+            "name": "EL",
+            "avatar_url": "https://portrait.gitee.com/uploads/avatars/user/1875/5625049_edwinjhlee_1590489033.png",
+            "url": "https://gitee.com/api/v5/users/edwinjhlee",
+            "html_url": "https://gitee.com/edwinjhlee",
+            "received_events_url": "https://gitee.com/api/v5/users/edwinjhlee/received_events",
+            "type": "User"
+        },
+        "description": "常用命令的函数封装库 docker, find, git, 等等",
+        "private": false,
+        "public": true,
+        "internal": false,
+        "fork": false,
+        "html_url": "https://gitee.com/x-bash/cmd.git",
+        "ssh_url": "git@gitee.com:x-bash/cmd.git",
+        "assignees_number": 0,
+        "testers_number": 0,
+        "assignees": [],
+        "testers": []
+    }
+]
+A
+}
+
+test_json(){
+    json_stringify
+}
+

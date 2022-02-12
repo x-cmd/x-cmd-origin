@@ -1,0 +1,242 @@
+# shellcheck shell=sh disable=SC3043 # xrc
+# author:       Li Junhao           l@x-cmd.com
+
+# Section: log main
+___x_cmd_log() {
+    if [ $# -eq 0 ]; then
+        ___x_cmd_log -h
+        return
+    fi
+
+    case "$1" in
+        help|-H|-h|--help)
+            ___x_cmd_log_help
+            return 1 ;;
+        init)
+            [ $# -gt 0 ] && shift
+            ___x_cmd_log_init "$@"
+            return ;;
+        timestamp)
+            [ $# -gt 0 ] && shift
+            ___x_cmd_log_timestamp "$@"
+            return ;;
+
+    esac
+
+    local level
+    local level_code
+    local var
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            -*)
+                logger="${1#-}"
+                ___x_cmd_log_set_level "$logger" info 1
+                ;;
+            +*)
+                logger="${1#+}"
+                ___x_cmd_log_set_level "$logger" debug 0
+                ;;
+            *)
+                level="${1#*/}"
+                logger="${1%/*}"
+                case "$level" in
+                    debug|dbg|verbose|v)        level=debug;    level_code=0 ;;
+                    info|INFO|i)                level=info;     level_code=1 ;;
+                    warn|WARN|w)                level=warn;     level_code=2 ;;
+                    error|ERROR|e)              level=error;    level_code=3 ;;
+                    none|n|no)                  level=none;     level_code=4 ;;
+                    *)                          level=debug;    level_code=0 ;;
+                esac
+                ___x_cmd_log_set_level "$logger" "$level" "$level_code"
+        esac
+        shift
+    done
+}
+# EndSection
+
+# Section: init set_level help
+
+___x_cmd_log_init(){
+    local logger_name="${1}"
+
+    local var="___X_CMD_LOG_LEVEL_OF_LOGGER_${logger_name}"
+    eval "${logger_name}_log(){     O=$logger_name ___x_cmd_log_logger_func \"\$@\";   }"
+    O="No Printf" ___x_cmd_log_set_level "$logger_name" info 1
+}
+
+___x_cmd_log_timestamp(){
+    local arg="${1:?Provide timestamp}"
+    case "$arg" in
+        on)     ___X_CMD_LOG_LOGGER_TIMESTAMP_FORMAT="+%H:%M:%S";      return 0   ;;
+        off)    ___X_CMD_LOG_LOGGER_TIMESTAMP_FORMAT= ;                return 0   ;;
+        *)      printf "Try customized timestamp format wit date command:\n"
+                if date "$arg"; then
+                    ___X_CMD_LOG_LOGGER_TIMESTAMP_FORMAT="$arg"
+                    return 0
+                fi
+                return 1    ;;
+    esac
+}
+
+___x_cmd_log_set_level(){
+    local logger_name="${1:?Provide loggername}"
+    local level="${2:?Provide level}"
+    local level_code="${3:?Provide level code}"
+
+    local var="___X_CMD_LOG_LEVEL_OF_LOGGER_${logger_name}"
+    eval "$var=$level_code"
+
+    # local level_name
+    # local on=
+    # for level_name in debug info warn error; do
+    #     [ "$level_name" = "$level" ] && on=1
+    #     if [ -z "$on" ]; then
+    #         alias "${logger_name}:${level_name}"=" : # "
+    #     else
+    #         alias "${logger_name}:${level_name}"="${logger_name}_log ${level_name}"
+    #     fi
+    # done
+
+    # log init no print
+    [ -z "$O" ] && \
+        O="$logger_name" ___x_cmd_log_logger_func info "Level of logger [$logger_name] is set to [$level]"
+}
+
+___x_cmd_log_help(){
+    cat >&2 <<A
+x log     log control facility
+    Usage:
+        x log init [ module ]
+        x log [... +module | -module | module/log-level ]
+Subcommand:
+    init <module>:                  Generate function '<module>_log'
+    timestamp < on | off | <format> >:
+                                    off, default setting. shutdown the timestamp output in log
+                                    on, default format is +%H:%M:%S
+                                    <format>, customized timestamp format like "+%H:%M:%S", "+%m/%d-%H:%M:%S"
+Example:
+    Enable debug log for module json:
+            x log +json          or   x log json
+            x log json/verbose   or   x log json/v
+            x log json/debug     or   x log json/d
+    Dsiable debug log for module json:
+            x log -json
+            x log json/info
+A
+
+}
+
+# EndSection
+
+# Section: logger
+# TODO: To move xrc_log
+___X_CMD_LOG_COLORIZED_TF=
+
+___X_CMD_LOG_LOGGER_TIMESTAMP_FORMAT=      # "+%H:%M:%S"      # Enable Timestamp.
+
+___X_CMD_LOG_COLORIZED_MSG="${___X_CMD_LOG_COLORIZED_MSG:-""}"
+___X_CMD_LOG_COLORIZED_DEBUG="${___X_CMD_LOG_COLORIZED_DEBUG:-"\\033[32m"}"
+___X_CMD_LOG_COLORIZED_INFO="${___X_CMD_LOG_COLORIZED_INFO:-"\\033[36m"}"
+___X_CMD_LOG_COLORIZED_WARN="${___X_CMD_LOG_COLORIZED_WARN:-"\\033[33m"}"
+___X_CMD_LOG_COLORIZED_ERROR="${___X_CMD_LOG_COLORIZED_ERROR:-"\\033[31m"}"
+
+___X_CMD_LOG_COLORIZED_TIMESTAMP_BEGIN="${___X_CMD_LOG_COLORIZED_WARN:-"["}"
+___X_CMD_LOG_COLORIZED_TIMESTAMP_END="${___X_CMD_LOG_COLORIZED_WARN:-"]"}"
+
+___x_cmd_log_logger_func(){
+    local logger="${O:-DEFAULT}"
+    local level="${1:?Please provide logger level}"
+
+    local type_color="$___X_CMD_LOG_COLORIZED_DEBUG"
+    local level_code=0
+    case "$level" in
+        debug|DEBUG|verbose)    level="DBG";    shift ;;
+        info|INFO)              level="INF";    level_code=1;   type_color="$___X_CMD_LOG_COLORIZED_INFO";       shift ;;
+        warn|WARN)              level="WRN";    level_code=2;   type_color="$___X_CMD_LOG_COLORIZED_WARN";       shift ;;
+        error|ERROR)            level="ERR";    level_code=3;   type_color="$___X_CMD_LOG_COLORIZED_ERROR";      shift ;;
+        *)                      level="DBG"     ;;
+    esac
+
+    local msg_color="${___X_CMD_LOG_COLORIZED_MSG:-"$type_color"}"
+    local var="___X_CMD_LOG_LEVEL_OF_LOGGER_${logger}"
+
+    eval "[ $level_code -lt \"\${${var}:-1}\" ]" && return 0
+
+    if [ -z "$___X_CMD_LOG_COLORIZED_TF" ]; then
+        if [ -t 2 ]; then
+            ___X_CMD_LOG_COLORIZED_TF=true
+        else
+            ___X_CMD_LOG_COLORIZED_TF=false
+        fi
+    fi
+
+    local IFS=
+    local timestamp=
+    if [ "$___X_CMD_LOG_COLORIZED_TF" = true ]; then
+        if [ -n "$___X_CMD_LOG_LOGGER_TIMESTAMP_FORMAT" ]; then
+            timestamp="$(date "${___X_CMD_LOG_LOGGER_TIMESTAMP_FORMAT}")"
+            timestamp="${___X_CMD_LOG_COLORIZED_TIMESTAMP_BEGIN}${timestamp}${___X_CMD_LOG_COLORIZED_TIMESTAMP_END} "
+        fi
+
+        if [ $# -eq 0 ]; then
+            printf "${timestamp}\033[1m${type_color}[%s] <%s>:" "$level" "$logger"
+            cat | awk 'NR==1{ print($0) }; NR>=2{ print("> " $0); }; END{ printf("%s", "\033[0m"); }'
+        else
+            printf "${timestamp}\033[1m${type_color}[%s] <%s>: \033[0m${msg_color}%s\033[0m\n" "$level" "$logger" "$*"
+        fi
+    else
+        [ -n "$___X_CMD_LOG_LOGGER_TIMESTAMP_FORMAT" ] && timestamp="$(date "${___X_CMD_LOG_LOGGER_TIMESTAMP_FORMAT}") "
+        if [ $# -eq 0 ]; then
+            printf "${timestamp}[%s] <%s>:" "$level" "$logger"
+            cat | awk 'NR==1{ print($0) }; NR>=2{ print("> " $0); }; }'
+        else
+            printf "${timestamp}[%s] <%s>: %s\n" "$level" "$logger" "$*"
+        fi
+    fi >&2
+}
+# EndSection
+
+# Section: completer, Maybe we can use advise.json to replace it for advise module can support the following function.
+# shellcheck disable=SC3010,SC2154
+___x_cmd_log_completer(){
+
+    case "$cur" in
+        "")
+            printf "%s\n" "+"
+            printf "%s\n" "-"
+            ls "$___X_CMD_ROOT" | grep -v BASE64  | awk '{ print $0 "/"; }'
+            ;;
+        */*)
+            printf "%s\n" "${cur%/*}/debug"
+            printf "%s\n" "${cur%/*}/verbose"
+            printf "%s\n" "${cur%/*}/warn"
+            printf "%s\n" "${cur%/*}/error"
+            ;;
+        +*)   ls "$___X_CMD_ROOT" | grep -v BASE64 | awk '{ print "+" $0; }' ;;
+        -*)   ls "$___X_CMD_ROOT" | grep -v BASE64 | awk '{ print "-" $0; }' ;;
+        *)
+            ls "$___X_CMD_ROOT" | grep -v BASE64 | awk -v cur="$cur" '
+    BEGIN { arr_len=0; }
+    $0~"^"cur{
+        arr_len += 1
+        arr[arr_len] = $0;
+        if ( $0 !~ /\/$/ ) arr[arr_len] = arr[arr_len] "/"
+    }
+    END {
+        if (arr_len != 1) {
+            for (i=1; i<=arr_len; ++i) print arr[i]
+        } else {
+            # It is useful! The completion seemed to pause before "/"
+            print arr[1] "verbose"
+            print arr[1] "debug"
+            print arr[1] "warn"
+            print arr[1] "error"
+        }
+    }
+'
+            ;;
+    esac
+}
+# EndSection
+
+xrc setmain ___x_cmd_log

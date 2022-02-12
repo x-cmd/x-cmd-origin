@@ -1,0 +1,59 @@
+# shellcheck shell=sh disable=SC3043,SC2164     # xrc
+
+# author:       Li Junhao           l@x-cmd.com
+# license:      GPLv3
+xrc zuz
+___x_cmd_staticbin_init(){
+    local funcname="${1:?Provide function name}"
+    shift 1
+
+    local bin
+    bin="$(___x_cmd_staticbin_which "$1" "$2" "$3")" || return 1
+
+    eval "
+    $funcname(){
+        $bin \"\$@\"
+    }
+    "
+}
+
+___x_cmd_staticbin_run(){
+    local bin
+    bin="$(___x_cmd_staticbin_which "$1" "$2" "$3")" || return 1
+
+    shift 3
+    "$bin" "$@"
+}
+
+___x_cmd_staticbin_which(){
+    local cachebin="${1:?Provide default cache bin}"
+    local sysbin="${2:?Sysbin name}"
+    local fun_url="${3:?candidate url generator}"
+    [ -f "$cachebin" ] && printf "%s\n" "$cachebin" && return
+    command -v "$sysbin" 2>/dev/null && return
+    ___x_cmd_staticbin_download "$cachebin" "$fun_url" && chmod +x "$cachebin/$sysbin" && printf "%s\n" "$cachebin/$sysbin" && return
+
+    printf "%s\n" "Cannot find executable file." >&2
+    return 1
+}
+
+___x_cmd_staticbin_download(){
+    local cache="${1:?Provide path}"
+    local fun_url="${2:?Candidate url generator}"
+    local IFS="
+"
+
+    local result
+    if ! result="$(
+        printf "%s\n" "$fun_url" | while read -r url; do
+        if ___x_cmd_httpget "$url" "$cache/${fun_url##*/}" && ___x_cmd_zuz_uz "$cache/${fun_url##*/}" "$cache"; then
+            return 0
+        else
+            printf "%s\n" "$url"
+            return 1
+        fi
+    done
+    )"; then
+        printf "Failed to download from:\n%s\n" "$result"
+    fi
+}

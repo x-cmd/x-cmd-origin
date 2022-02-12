@@ -1,0 +1,240 @@
+# shellcheck shell=sh disable=SC3043 # xrc
+
+# shellcheck shell=sh
+# author:       Li Junhao           l@x-cmd.com
+
+xrc param/v0
+___x_cmd_zuz(){
+    param:dsl <<A
+subcommand:
+    uz|decompress       "unzip"
+    uzr                 "decompress then remove the original file"
+    z|compress          "zip"
+A
+    param:run
+
+    if [ -z "$PARAM_SUBCMD" ]; then
+        ___x_cmd_zuz help
+        return 0
+    fi
+
+    eval "___x_cmd_zuz_$PARAM_SUBCMD" "$@"
+}
+
+# Section: other
+# NOTICE: tar czf - "$@" | split -b "$size" -a 3 - "$target_file."
+# NOTICE: In some environments, split doesnot have -d option. Thus we are using 7zip to compress
+
+x log init zuz
+
+___x_cmd_zuz_run(){
+    local IFS
+    zuz_log info "Command to execute: $*"
+    eval "$@"
+}
+# EndSection
+
+# Section: unzip the zip file
+
+# Reference: https://linuxhint.com/xz_compression_tutorial/
+# Reference: https://blog.csdn.net/example440982/article/details/51712973
+# Reference: https://wangying.sinaapp.com/archives/2574
+___x_cmd_zuz_uz(){
+    local target_file=${1:-filename}
+    local dest_folder="${2:-.}"
+
+    target_file="$( cd "$(dirname "$target_file")" && pwd )"/$(basename "$target_file")
+    mkdir -p "$dest_folder"
+    cd "$dest_folder" || return 1
+
+    case $target_file in
+        *.tar)
+            ___x_cmd_zuz_run tar xvf "$target_file"
+            ;;
+        *.tar.gz)
+            ___x_cmd_zuz_run tar xzvf "$target_file"
+            ;;
+        *.tar.Z)
+            ___x_cmd_zuz_run tar xZvf "$target_file"
+            ;;
+        *.bz2)
+            ___x_cmd_zuz_run tar xjvf "$target_file"
+            ;;
+        *.bz2.*)
+            cat "${target_file%.*}".* | tar xjvf
+            ;;
+        *.tar.Z.*)
+            cat "${target_file%.*}".* | tar xZvf
+            ;;
+        *.tar.gz.*)
+            cat "${target_file%.*}".* | tar xzv
+            ;;
+        *.tar.*)
+            cat "${target_file%.*}".* | tar xvf
+            ;;
+        *.gz)
+            ___x_cmd_zuz_run gunzip -k -d "$target_file"
+            ;;
+        *.xz)
+            # TODO: Figure it out
+            ___x_cmd_zuz_run xz -d "$target_file"
+            ;;
+        *.zip)
+            ___x_cmd_zuz_run x 7z e "$@"
+            # ___x_cmd_zuz_run x unzip "$target_file"
+            # unzip xfv "$target_file" "$@"
+            ;;
+        rar)
+            ___x_cmd_zuz_run x unrar "$target_file"
+            ;;
+        *.7z)
+            ___x_cmd_zuz_run x 7zr x "$target_file"
+            ;;
+    esac && [ -z "$ZUZ_DELETE_AFTER" ] && rm "$target_file"
+}
+
+___x_cmd_zuz_uzr(){
+    ZUZ_DELETE_AFTER=1 ___x_cmd_zuz_uz "$@"
+}
+# EndSection
+
+# Section: list zip file
+___x_cmd_zuz_ls(){
+    local target_file=${1:-filename}; shift
+    case "$target_file" in
+        *.tar)
+            if [ "$size" != 0 ]; then
+                # We should use 7zip
+                ___x_cmd_zuz_run x 7z -v$size "$target_file" "$@"
+            else
+                ___x_cmd_zuz_run tar cvf "$target_file" "$@"
+            fi
+            ;;
+        *.tar.gz)
+            if [ "$size" != 0 ]; then
+                ___x_cmd_zuz_run x 7z -v$size "$target_file" "$@"
+            else
+                ___x_cmd_zuz_run tar czf "$target_file" "$@"
+            fi
+            ;;
+        *.tar.Z)
+            if [ "$size" != 0 ]; then
+                ___x_cmd_zuz_run x 7z -v$size "$target_file" "$@"
+            else
+                ___x_cmd_zuz_run tar cZf "$target_file" "$@"
+            fi
+            ;;
+        *.bz2)
+            if [ "$size" != 0 ]; then
+                ___x_cmd_zuz_run x 7z -v$size "$target_file" "$@"
+            else
+                ___x_cmd_zuz_run tar cjf "$target_file" "$@"
+            fi
+            ;;
+        *.gz)
+            ___x_cmd_zuz_run gzip -c "$@" > "$target_file"
+            ;;
+        *.xz)
+            # We can use 7zip to handle xz ? Little footprint.
+            ___x_cmd_zuz_run xz -c -kz "$@" > "$target_file"
+            ;;
+        *.zip)
+            # Using zip facility
+            # ___x_cmd_zuz_run zip -r "$target_file" "$@"
+            # unzip xfv "$target_file" "$@"
+            ___x_cmd_zuz_run x 7z a -tzip -r "$target_file" "$@"
+            ;;
+        rar)
+            # x unrar
+            echo "Unsupported to compress as rar format." >&2
+            return 1
+            ;;
+        *.7z)
+            if [ "$size" != 0 ]; then
+                ___x_cmd_zuz_run x 7zr a -v$size "$target_file" "$@"
+            else
+                ___x_cmd_zuz_run x 7zr a "$target_file" "$@"
+            fi
+            ;;
+    esac
+}
+# EndSection
+
+# Section: zip the file
+___x_cmd_zuz_z(){
+    param:dsl <<A
+option:
+    --size        ""  <size>=0       =~   [^.]+
+    #1          "target file"
+A
+    param:run
+
+    if [ $# = 0 ]; then
+        ___x_cmd_zuz_z help
+    fi
+
+    local target_file=${1:-filename}; shift
+    case "$target_file" in
+        *.tar)
+            if [ "$size" != 0 ]; then
+                # We should use 7zip
+                ___x_cmd_zuz_run x 7z -v$size "$target_file" "$@"
+            else
+                ___x_cmd_zuz_run tar cvf "$target_file" "$@"
+            fi
+            ;;
+        *.tar.gz)
+            if [ "$size" != 0 ]; then
+                ___x_cmd_zuz_run x 7z -v$size "$target_file" "$@"
+            else
+                ___x_cmd_zuz_run tar czf "$target_file" "$@"
+            fi
+            ;;
+        *.tar.Z)
+            if [ "$size" != 0 ]; then
+                ___x_cmd_zuz_run x 7z -v$size "$target_file" "$@"
+            else
+                ___x_cmd_zuz_run tar cZf "$target_file" "$@"
+            fi
+            ;;
+        *.bz2)
+            if [ "$size" != 0 ]; then
+                ___x_cmd_zuz_run x 7z -v$size "$target_file" "$@"
+            else
+                ___x_cmd_zuz_run tar cjf "$target_file" "$@"
+            fi
+            ;;
+        *.gz)
+            ___x_cmd_zuz_run gzip -c "$@" > "$target_file"
+            ;;
+        *.xz)
+            # We can use 7zip to handle xz ? Little footprint.
+            ___x_cmd_zuz_run xz -c -kz "$@" > "$target_file"
+            ;;
+        *.zip)
+            # Using zip facility
+            # ___x_cmd_zuz_run zip -r "$target_file" "$@"
+            # unzip xfv "$target_file" "$@"
+            ___x_cmd_zuz_run x 7z a -tzip -r "$target_file" "$@"
+            ;;
+        rar)
+            # x unrar
+            echo "Unsupported to compress as rar format." >&2
+            return 1
+            ;;
+        *.7z)
+            if [ "$size" != 0 ]; then
+                ___x_cmd_zuz_run x 7zr a -v$size "$target_file" "$@"
+            else
+                ___x_cmd_zuz_run x 7zr a "$target_file" "$@"
+            fi
+            ;;
+        *)
+            ___x_cmd_zuz_z --help
+            return 1
+            ;;
+    esac
+}
+# EndSection
+
+xrc setmain ___x_cmd_zuz

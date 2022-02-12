@@ -1,0 +1,379 @@
+# shellcheck shell=sh disable=SC3043,SC2120
+
+___x_cmd_ui_region(){
+    local subcmd="$1";  [ "$#" -gt 0 ] && shift
+    case "$subcmd" in
+        autorefresh)                         ___x_cmd_ui_region_autorefresh "$@"                    ;;
+        keyboard)                            ___x_cmd_ui_region_update_with_keyboard "$@"           ;;
+        autorefresh_with_keyboard)           ___x_cmd_ui_region_autorefresh_with_keyboard "$@"      ;;
+        autorefresh_with_keyboard_vc)        ___x_cmd_ui_region_autorefresh_with_keyboard_vc "$@"   ;;
+        send_update)
+            ;;
+        send_env)
+            ;;
+    esac
+}
+
+# Section: send
+# shellcheck disable=SC2120
+xrc ui/lib/getchar
+xrc awk
+
+# ___X_CMD_UI_REGION_AWK="./lib/region.awk"
+___X_CMD_UI_REGION_AWK="$(xrc which ui/lib/region.awk)"
+
+___x_cmd_ui_region_send(){
+    ___x_cmd_ui_region_send_update "$@"
+}
+
+if [ "$(___x_cmd_awk impl)" = "mawk" ]; then
+___X_CMD_UI_REGION_RS="
+"
+___x_cmd_ui_region_send_update(){
+    printf "UPDATE %s %s${___X_CMD_UI_REGION_RS}" "${COLUMNS}" "${LINES}"
+    if [ "$#" -eq 0 ]; then
+        cat
+    else
+        printf "%s" "$*"
+    fi | tr '\n' '\001'
+    printf "%s" "${___X_CMD_UI_REGION_RS}"
+}
+
+___x_cmd_ui_region_send_env(){
+    local tmp
+    tmp="$(printf "\002")"
+    while [ $# -gt 0 ]; do
+        printf "ENV %s${tmp}" "$1"
+        printf "%s" "$(eval printf \"\$"$1"\")"
+        printf "%s" "${tmp}"
+        shift
+    done | tr '\n\002' '\001\n'
+}
+
+___x_cmd_ui_region_send_env_kv(){
+    printf "ENV %s${___X_CMD_UI_REGION_RS}" "$1"
+    printf "%s" "$2" | tr '\n' '\001'
+    printf "%s" "${___X_CMD_UI_REGION_RS}"
+    shift
+}
+else
+___X_CMD_UI_REGION_RS="$(printf "\001")"
+___x_cmd_ui_region_send_update(){
+    printf "UPDATE %s %s${___X_CMD_UI_REGION_RS}" "${COLUMNS}" "${LINES}"
+    if [ "$#" -eq 0 ]; then
+        cat
+    else
+        printf "%s" "$*"
+    fi
+    printf "%s" "${___X_CMD_UI_REGION_RS}"
+}
+
+___x_cmd_ui_region_send_env(){
+    while [ $# -gt 0 ]; do
+        printf "ENV %s${___X_CMD_UI_REGION_RS}" "$1"
+        printf "%s${___X_CMD_UI_REGION_RS}" "$(eval printf \"\$"$1"\")"
+        shift
+    done
+}
+
+___x_cmd_ui_region_send_env_kv(){
+    printf "ENV %s${___X_CMD_UI_REGION_RS}" "$1"
+    printf "%s${___X_CMD_UI_REGION_RS}" "$2"
+    shift
+}
+
+fi
+
+___x_cmd_ui_region_send_screeninfo(){
+    printf "SIZE %s %s${___X_CMD_UI_REGION_RS}" "${COLUMNS}" "${LINES}"
+}
+
+# TODO: sendenv
+
+# EndSection
+
+# Section: region update
+
+___x_cmd_ui_region_update(){
+    # if [ -t 1 ]; then
+    #     ___x_cmd_ui_region_update_ 1>/dev/null
+    # else
+    #     ___x_cmd_ui_region_update_
+    # fi
+    ___x_cmd_ui_region_update_
+}
+
+___x_cmd_ui_region_update_(){
+    ___x_cmd_ui_region_update_awk "$@"
+}
+
+___x_cmd_ui_region_update_awk(){
+    # UI_CURSOR_SAVE = "\0337"
+    # UI_CURSOR_RESTORE = "\0338"
+
+    # restore cursor then clear lines ...
+    trap '
+    printf "\033[34h\033[?25h" >&2;
+    return 130
+    ' INT
+    ___x_cmd_ui_region_update_awk_ "$@"
+}
+
+if [ "$(___x_cmd_awk impl)" = "mawk" ]; then
+___x_cmd_ui_region_update_awk_(){
+    LC_ALL=en_US.UTF-8 USE=str,ui ___x_cmd_awk file "$___X_CMD_UI_REGION_AWK" -W interactive
+}
+else
+___x_cmd_ui_region_update_awk_(){
+    LC_ALL=en_US.UTF-8 USE=str,ui ___x_cmd_awk file "$___X_CMD_UI_REGION_AWK" -v RS="$___X_CMD_UI_REGION_RS"
+}
+fi
+
+# EndSection
+
+# Section: pidofsubshell
+case "$___X_CMD_SHELL" in
+    bash|zsh)
+___x_cmd_pidofsubshell(){
+    $SHELL -c 'printf "%s\n" "$PPID"'
+}
+    ;;
+
+    dash)
+___x_cmd_pidofsubshell(){
+    /bin/dash -c 'printf "%s\n" "$PPID"'
+}
+    ;;
+
+    ash)
+___x_cmd_pidofsubshell(){
+    ash -c 'printf "%s\n" "$PPID"'
+}
+    ;;
+
+    *)
+___x_cmd_pidofsubshell(){
+    "$0" -c 'printf "%s\n" "$PPID"'
+}
+    ;;
+esac
+# EndSection
+
+# Section: run
+___x_cmd_ui_region___run_clear(){
+    # This is useless
+    [ -z "$START" ] && return
+
+    if [ "${___X_CMD_UI_CLEAR_ONEXIT:-yes}" = yes ]; then
+        {
+            case $___X_CMD_SHELL in
+                zsh)
+                    printf "\0338"
+                    ;;
+                bash)
+                    printf "\0338"
+                    printf "\E[J"
+                    ;;
+                *)
+                    printf "\0338"
+                    local i
+                    for i in $(seq $LINES); do
+                        printf "%${COLUMNS}s\n" ""
+                    done
+                    ;;
+            esac
+            printf "\033[34h\033[?25h"
+        } >&2
+    fi
+    stty echo
+
+    START=
+}
+
+___x_cmd_ui_region___run_inner(){
+    stty -echo
+    trap ___x_cmd_ui_region___run_clear INT
+
+    local START=1
+    "$@" | ___x_cmd_ui_region_update
+
+    ___x_cmd_ui_region___run_clear
+}
+
+___x_cmd_ui_region_run(){
+    eval "$(___x_cmd_ui_region___run_inner "$@")"
+}
+# EndSection
+
+# Section: keyboard
+___x_cmd_ui_region___update_with_keyboard_mainloop(){
+    local fun="${1:?Provide handler}"; shift
+
+    while ___x_cmd_ui_getchar; do
+        "$fun" "$@" || break
+    done
+}
+___x_cmd_ui_region_update_with_keyboard(){
+    ___x_cmd_ui_region_run ___x_cmd_ui_region___update_with_keyboard_mainloop "$@"
+}
+# EndSection
+
+# Section: autorefresh
+___x_cmd_ui_region___autorefresh_mainloop(){
+    local fun="${1:?Provide handler}"; shift
+
+    {
+        ___x_cmd_pidofsubshell
+
+        local ticks=1
+        while true; do
+            ticks="$((ticks+1))"
+            # TODO: provide $COLUMNS and $LINES
+            printf "R:%s %s %s\n" "$ticks" "$COLUMNS" "$LINES"
+            sleep "${___X_CMD_UI_REFRESH_INTERVAL:-0.2}"
+        done
+    } | {
+        local PID_OF_UPSUBSHELL
+        read -r PID_OF_UPSUBSHELL
+
+        "$fun" "$@"
+
+        kill -SIGPIPE "$PID_OF_UPSUBSHELL"
+    }
+}
+
+___x_cmd_ui_region_autorefresh(){
+    # eval "$(___x_cmd_ui_region_autorefresh_ "$@")"
+    ___x_cmd_ui_region_run ___x_cmd_ui_region___autorefresh_mainloop "$@"
+}
+
+# EndSection
+
+# Section: autorefresh_with_keyboard
+___x_cmd_ui_region___autorefresh_with_keyboard_mainloop(){
+    local fun="${1:?Provide handler}"; shift
+
+    {
+        ___x_cmd_pidofsubshell
+
+        (
+            local ticks=1
+            while true; do
+                ticks="$((ticks+1))"
+                printf "R:%s:%s:%s%s" "$ticks" "$COLUMNS" "$LINES" "$___X_CMD_UI_REGION_RS"
+                sleep "${___X_CMD_UI_REFRESH_INTERVAL:-0.1}"
+            done
+        ) &
+
+        while ___x_cmd_ui_getchar; do
+            printf "C:%s:%s%s" "${___X_CMD_UI_GETCHAR_TYPE}" "${___X_CMD_UI_GETCHAR_CHAR}" "$___X_CMD_UI_REGION_RS" || break
+        done
+    } | {
+        local PID_OF_UPSUBSHELL
+        read -r PID_OF_UPSUBSHELL
+
+        "$fun" "$@"
+
+        kill -SIGPIPE "$PID_OF_UPSUBSHELL"
+    }
+}
+
+___x_cmd_ui_region_autorefresh_with_keyboard(){
+    # ___x_cmd_ui_region_autorefresh_with_keyboard_ "$@"
+    ___x_cmd_ui_region_run ___x_cmd_ui_region___autorefresh_with_keyboard_mainloop "$@"
+}
+# EndSection
+
+# Section: autorefresh_with_keyboard_vc
+______x_cmd_ui_region____autorefresh_with_keyboard_vc_mainloop(){
+    local controller="${1:?Provide controller function}"
+    local viewer="${2:?Provide viewer function}"
+
+    local ___line
+    {
+        while read -r ___line; do
+
+            ___X_CMD_UI_GETCHAR_TYPE=
+            ___X_CMD_UI_GETCHAR_CHAR=
+
+            case "$___line" in
+                REFRESH)
+                    "$viewer" || break
+                    continue
+                    ;;
+                C:*)
+                    ___line="${___line#C:}"
+                    ___X_CMD_UI_GETCHAR_TYPE="${___line%%:*}"
+                    ___X_CMD_UI_GETCHAR_CHAR="${___line#*:}"
+            esac
+
+            "$controller" || break
+        done
+    }
+}
+
+___x_cmd_ui_region_autorefresh_with_keyboard_vc(){
+        ___x_cmd_ui_region_autorefresh_with_keyboard \
+        ______x_cmd_ui_region____autorefresh_with_keyboard_vc_mainloop "$@"
+}
+# EndSection
+
+# Section: demo
+
+# Example code ...
+
+xrc cowsay
+___ui_region_demo0_(){
+    for percentage in $(seq 1 10); do
+
+        case $(( percentage / 10 % 2 )) in
+            0)
+            style=warn
+            text="Important to say: Percentage is even.
+1
+2"
+;;
+            1)
+            style=error
+            text="Hia hia. Percentage is odd.
+hi";;
+        esac
+
+        # region send to stderr
+        ___x_cmd_ui_region_send_update "
+$(cowsay "$(ui_style warn -- "Hi Good work" "$percentage")" )
+$(cowsay Hi Good work)
+"
+
+        sleep 0.1
+    done
+    local msg="Right now done."
+    ___x_cmd_ui_region_send_env msg
+}
+
+___ui_region_demo0(){
+    xrc cowsay
+    ___x_cmd_ui_region_run ___ui_region_demo0_
+}
+
+
+# ___x_cmd_ui_region_send_update "
+# $(ui_seperator)
+# $(ui_style $style -- Initializing the storage)
+# $(ui_style info -- Prepare the UI "$percentage")
+
+# $(ui_style bold black -- Initializing the storage)
+# $(cowsay "$(ui_style warn -- "Hi Good work" "$percentage")" )
+# $(cowsay Hi Good work)
+# $(ui_style info -- "$text")
+# $(ui_seperator)
+# "
+
+# EndSection
+
+# Section: demo for animate
+
+
+
+# EndSection
+

@@ -1,0 +1,54 @@
+# shellcheck shell=sh disable=SC3043
+
+. ./lib/markdown
+___X_BASH_UI_MARKDOWN_AWK="./lib/markdown.awk"
+
+___ui_markdown(){
+
+    ui_init_lines_columns
+    if [ $# -ne 0 ]; then
+        cat "$@"
+    else
+        cat
+    # fi | command awk -v COLUMNS="$COLUMNS" "$(xrc cat awk/lib/wcwidth.awk)$(cat "$___X_BASH_UI_MARKDOWN_AWK")"
+    fi | command awk -v COLUMNS="$COLUMNS" "$(cat ./lib/wcwidth.awk)$(cat "$___X_BASH_UI_MARKDOWN_AWK")"
+    # command awk -v COLUMNS="$COLUMNS" "$(xrc cat awk/lib/wcwidth.awk)$(cat "$___X_BASH_UI_MARKDOWN_AWK")"
+}
+
+test(){
+    local op="$1";    shift
+    case "$op" in
+        gawk)     ___ui_run_gawk ./dev/test/xx.md      ;;
+        mawk)     ___ui_run_mawk ./dev/test/xx.md      ;;
+        nawk)     ___ui_run_nawk ./dev/test/xx.md      ;;
+    esac
+}
+
+___ui_run_gawk(){
+    ui_init_lines_columns
+    if [ $# -ne 0 ]; then
+        cat "$@"
+    else
+        cat
+    fi | command gawk -v COLUMNS="$COLUMNS" "$(cat ./lib/wcwidth.awk)$(cat "$___X_BASH_UI_MARKDOWN_AWK")"
+}
+___ui_run_mawk(){
+    ui_init_lines_columns
+    if [ $# -ne 0 ]; then
+        cat "$@"
+    else
+        cat
+    fi | command mawk -v COLUMNS="$COLUMNS" "$(cat ./lib/wcwidth.awk)$(cat "$___X_BASH_UI_MARKDOWN_AWK")"
+}
+___ui_run_nawk(){
+    ui_init_lines_columns
+    if [ $# -ne 0 ]; then
+        cat "$@"
+    else
+        cat
+    fi | command nawk -v COLUMNS="$COLUMNS" "$(cat ./lib/wcwidth.awk)$(cat "$___X_BASH_UI_MARKDOWN_AWK")"
+}
+
+___ui_markdown ./testcase/test_all.md
+# ___ui_markdown ./testcase/test_table.md
+___ui_markdown ./testcase/test.md

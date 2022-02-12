@@ -1,0 +1,54 @@
+# shellcheck shell=sh disable=SC1072 #source
+
+test_table(){
+    ui table -
+    ui table + B%USER               PID  %CPU %MEM      VSZ    RSS   TT  STAT STARTED      TIME COMMAND
+    for i in $(seq 12); do
+        ui table + edwinjhlee       45694  69.7  3.2 12906080 542124   "??"  R    "三02下午" 2171:02.57 "com.docker.hyperkit -A -u -F vms/0/hyperkit.pid -c 4 -m 8192M -s 0:0,hostbridge -s"
+        ui table + _windowserver    24773   9.6  0.9  9289004 146772   "??"  Ss   "29 521"  2827:26.66 "/System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer -daemo"
+        ui table + edwinjhlee       40627   9.1  0.8  9704844 133228   "??"  Ss   "25 621"  351:58.88 "/Applications/Visual Studio Code.app/Contents/MacOS/Electron /Users/edwinjhlee/x-b"
+        ui table + edwinjhlee       81250   5.9  1.7 57448804 293384   "??"  S    "2:25下午"  18:21.02 "/Applications/Visual Studio Code.app/Contents/Frameworks/Code Helper (Renderer).app1"
+        ui table + edwinjhlee       81250   5.9  1.7 57448804 293384   "??"  S    "2:25下午"  18:21.02 "/Applications/Visual Studio Code.app/Contents/Frameworks/Code Helper (Renderer).app2"
+        ui table + edwinjhlee       99999   5.9  1.7 57448804 293384   "??"  S    "2:25下午"  18:21.02 "/Applications/Visual Studio Code.app/Contents/Frameworks/Code Helper (Renderer).app3"
+    done
+    ui table
+    printf "%s\n" "___X_CMD_UI_TABLE_final_command: $___X_CMD_UI_TABLE_final_command"
+}
+test_form(){
+    ui form \
+    "Accesstype" atype public "=" private public "--" \
+    "RepoName" repo "" "=~" "abc1[0-9]+"   "--" \
+    "Username" user "" "=~" "12[0-9]+" "--" \
+    "Test multiple line argument" mul_line_arg ""  "--" \
+    "Provide repo name" repo ""  "=~" "abc" "cde" "def" "--" \
+    "Provide two repo name" repo2_1_1 ""  "=" "a\033[33mbc" "cde" "def" "--" \
+    "Provide two repo name" repo2_1_2 ""  "=" "cde"
+    printf "%s\n" "user: $user"
+}
+test_select(){
+    ui select "text" "Please select the app you want to install:"  "Install docker"  "Install k8s" "Install "  "Instaddll k8s"
+}
+
+x log init ui
+ui_log info "Testing : $1"
+xrc ui
+case "$1" in
+    "")
+        ui_log info "copy all files from ./* to ~/.x-cmd/ui/"
+        cp -r ./* ~/.x-cmd/ui
+        . ~/.x-cmd/xrc/latest
+        echo "Usage: x test {copy|bash:3|bash:4|bash:5|alpine|ubuntu|centos|table|form|sel}"
+        ;;
+    table|form|select)
+        test_${1} ;;
+    bash3|bash4|bash5)
+        docker run -it -v "$(pwd)":/ui "xcmd/${1}-dev" bash -i -c "x update nightly && cd ui && x test && x test table"
+        ;;
+    alpine|ubuntu|centos|debian)
+        docker run -it -v "$(pwd)":/ui "xcmd/${1}-dev" sh -i -c "x update nightly  && cd ui && x test && x test table"
+        ;;
+    *)
+        echo "Usage: x test {copy|bash:3|bash:4|bash:5|alpine|ubuntu|centos|table|form|sel}"
+        return 1
+        ;;
+esac

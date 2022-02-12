@@ -1,0 +1,14 @@
+# shellcheck shell=sh disable=SC3043
+
+xrc ui
+
+ui prompt "Username" username2 = abc cde efg
+ui prompt "Username" username
+ui prompt "Access type" access "=~" "[A-Z]{1,3}"
+
+ui prompt q "Username" username1
+ui prompt q "Username" username2
+ui prompt q "Access type" access = "private" "public" "question"
+ui prompt q "Access type" access =~ "private"
+
+ui prompt s "Access type" access = "private" "public" "question"

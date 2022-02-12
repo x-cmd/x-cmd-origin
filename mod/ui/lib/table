@@ -1,0 +1,261 @@
+
+# shellcheck shell=sh disable=SC3043
+
+# author:       Li Junhao           l@x-cmd.com    edwinjhlee.github.io
+# maintainer:   Li Junhao
+
+# Section: main
+___x_cmd_ui_table(){
+    local O="${O:-___X_CMD_UI_TABLE_DEFAULT}"
+    case "${1}" in
+        json)       shift; ___ui_table_json      "$@"       ;;
+        -)          ___ui_table_clear                       ;;
+        +)          shift; ___ui_table_read      "$@"       ;;
+        jsonfmt)    shift; ___ui_table_json_to_table "$@"   ;;
+        func)       shift; eval "$(___ui_table_out_func  "$@" )" ;;
+        *)          [ $# -gt 0 ] && shift; ___ui_table_out3      "$@"       ;;
+    esac
+}
+
+
+___X_CMD_UI_TABLE_DEFAULT=0
+___ui_table_read(){
+
+    local O="${O:-___X_CMD_UI_TABLE_DEFAULT}"
+
+    eval "___X_CMD_UI_TABLE_DEFAULT_ROW_$O=\$((___X_CMD_UI_TABLE_DEFAULT_ROW_$O+1))"
+    local ttt
+    eval "ttt=\"\${___X_CMD_UI_TABLE_DEFAULT_COL_$O}\""
+    if [ "${ttt:-0}" -lt $# ]; then
+        eval "___X_CMD_UI_TABLE_DEFAULT_COL_$O=\$#"
+    fi
+
+    local s
+    local IFS
+    IFS=$(printf "\003")
+    local NR
+    NR=$(printf "\002")
+    s="$(eval echo \"\$"{$O}$NR$*"\")"
+    eval "$O=\"\$s\""
+}
+
+___ui_table_out(){
+    local O="${O:-___X_CMD_UI_TABLE_DEFAULT}"
+
+    local out="${1:-1}"
+
+    if [ "${-#*i}" != "$-" ]; then
+        eval "printf \"%s\" \"\${$O}\"" | \
+            LC_ALL=en_US.UTF-8  awk -v HIGHCOL="${HIGHCOL:-""}" -v HIGHROW="${HIGHROW:-""}" -v out="$out" "$(xrc cat awk/lib/wcwidth.awk)$(xrc cat ui/lib/table.awk)"
+    else
+        eval "printf \"%s\" \"\${$O}\"" | \
+            LC_ALL=en_US.UTF-8  awk -v HIGHCOL="${HIGHCOL:-""}" -v HIGHROW="${HIGHROW:-""}"  -v out="$out" "$(xrc cat awk/lib/wcwidth.awk)$(xrc cat ui/lib/table.awk)"
+    fi
+}
+
+___ui_table_clear(){
+    local O="${O:-___X_CMD_UI_TABLE_DEFAULT}"
+    eval ___X_CMD_UI_TABLE_DEFAULT_ROW_$O=0
+    eval "$O="
+}
+# EndSection
+
+# Section: rearrange the data
+
+___ui_table_json(){
+    local arg
+    local args
+    local title
+    for arg in "$@"; do
+        case "$arg" in
+            .*)     args="$args,$arg"
+                    title="$title ${arg#.}"
+                    ;;
+            *=.*)   args="$args,${arg#*=}"
+                    title="$title ${arg%%=.*}"
+                    ;;
+            *)      printf "%s" "Argument Wrong." >&2
+        esac
+    done
+    args="${args#,}"
+
+    local line
+    ___x_cmd_ui_table -
+    local IFS="
+"
+    eval ___x_cmd_ui_table + "$title"
+    for line in $(x jq -r ".[] | [ $args ] | map( . | @json) | join(\" \") "); do
+        eval ___x_cmd_ui_table + "$line"
+    done
+    ___x_cmd_ui_table out 6
+}
+
+# EndSection
+# . ./lib/region
+xrc ui/lib/region
+xrc ui/lib/getchar
+xrc awk
+
+# Section: table app 1: all data
+
+# 1. Input data is primitive data
+# 2. Input json, then tranfer as primitive data to awk
+# 3. Using instruction to control table
+
+___X_CMD_UI_TABLE_CONTROL_AWK_PATH="$(x which ui/lib/table.control.awk)"
+# ___X_CMD_UI_TABLE_CONTROL_AWK_PATH="./table.control.awk"
+
+if [ "$(___x_cmd_awk impl)" = "mawk" ]; then
+___x_cmd_ui_table_control_awk(){
+    LC_ALL=en_US.UTF-8 USE=str,wcwidth,ui ___x_cmd_awk file "$___X_CMD_UI_TABLE_CONTROL_AWK_PATH" \
+        -v EXIT_OP="$EXIT_OP" -W interactive
+}
+else
+___x_cmd_ui_table_control_awk(){
+    LC_ALL=en_US.UTF-8 USE=str,wcwidth,ui ___x_cmd_awk file "$___X_CMD_UI_TABLE_CONTROL_AWK_PATH" \
+        -v EXIT_OP="$EXIT_OP" -v RS="$___X_CMD_UI_REGION_RS" -v ORS="$___X_CMD_UI_REGION_RS"
+}
+fi
+
+___ui_table_json(){
+    # cat | json_to_table
+    :
+}
+
+___x_cmd_ui_table_control_display(){
+    printf "%s" "$___X_CMD_UI_TABLE_DEFAULT"
+}
+
+___ui_table_out3(){
+    ___ui_table_out_func ___x_cmd_ui_table_control_display
+    # eval "$(___ui_table_out_func ___x_cmd_ui_table_control_display)"
+}
+
+___ui_table_json_to_table(){
+    local keyname="$1"; shift
+    xrc json/latest
+
+    local IFS
+    IFS="$(printf "\001")"
+    SEP1="\002" SEP2="\003" ___json_awk_table_stream "$keyname" "$*"
+}
+
+___x_cmd_ui_table_control(){
+    {
+        "$@" | ___x_cmd_ui_region_send_update
+        cat
+    } | ___x_cmd_ui_table_control_awk
+}
+
+___ui_table_out_func(){
+    ___x_cmd_ui_region_autorefresh_with_keyboard ___x_cmd_ui_table_control "$@"
+}
+
+
+# EndSection
+
+# Section: test1
+
+# ___x_cmd_ui_table -
+# ___x_cmd_ui_table + B%USER               PID  %CPU %MEM      VSZ    RSS   TT  STAT STARTED      TIME COMMAND
+# for i in $(seq 12); do
+#     ___x_cmd_ui_table + edwinjhlee       45694  69.7  3.2 12906080 542124   "??"  R    "三02下午" 2171:02.57 "com.docker.hyperkit -A -u -F vms/0/hyperkit.pid -c 4 -m 8192M -s 0:0,hostbridge -s"
+#     ___x_cmd_ui_table + _windowserver    24773   9.6  0.9  9289004 146772   "??"  Ss   "29 521"  2827:26.66 "/System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer -daemo"
+#     ___x_cmd_ui_table + edwinjhlee       40627   9.1  0.8  9704844 133228   "??"  Ss   "25 621"  351:58.88 "/Applications/Visual Studio Code.app/Contents/MacOS/Electron /Users/edwinjhlee/x-b"
+#     ___x_cmd_ui_table + edwinjhlee       81250   5.9  1.7 57448804 293384   "??"  S    "2:25下午"  18:21.02 "/Applications/Visual Studio Code.app/Contents/Frameworks/Code Helper (Renderer).app1"
+#     ___x_cmd_ui_table + edwinjhlee       81250   5.9  1.7 57448804 293384   "??"  S    "2:25下午"  18:21.02 "/Applications/Visual Studio Code.app/Contents/Frameworks/Code Helper (Renderer).app2"
+#     ___x_cmd_ui_table + edwinjhlee       99999   5.9  1.7 57448804 293384   "??"  S    "2:25下午"  18:21.02 "/Applications/Visual Studio Code.app/Contents/Frameworks/Code Helper (Renderer).app3"
+# done
+# ___x_cmd_ui_table
+
+# prepare_data(){
+#     ___x_cmd_ui_table jsonfmt .table.abc name age gender math=score.math <<A
+# {
+#     "table": {
+#         "abc": [
+#             {
+#                 "name": "Edwin",
+#                 "age": 31,
+#                 "gender": "male",
+#                 "score": {
+#                     "math": 100
+#                 }
+#             },
+#             {
+#                 "name": "Li Junhao",
+#                 "age": 30,
+#                 "gender": "male",
+#                 "score": {
+#                     "math": 95
+#                 }
+#             },
+#             {
+#                 "name": "Junhao",
+#                 "age": 30,
+#                 "gender": "male",
+#                 "score": {
+#                     "math": 900
+#                 }
+#             }
+
+#         ]
+#     }
+
+# }
+
+# A
+# }
+
+# ___x_cmd_ui_table func prepare_data
+
+# EndSection
+
+# Section: other design for encapulation
+
+# ___ui_table_out_jsonsource(){
+#     local srcfunc="$1"; shift
+#     local IFS=" "
+#     eval "$(___ui_table_out_func "$srcfunc | ___ui_table_json_to_table $*")"
+# }
+
+# data(){
+#     cat <<A
+# {
+#     "table": {
+#         "abc": [
+#             {
+#                 "name": "Edwin",
+#                 "age": 31,
+#                 "gender": "male",
+#                 "score": {
+#                     "math": 100
+#                 }
+#             },
+#             {
+#                 "name": "Li Junhao",
+#                 "age": 30,
+#                 "gender": "male",
+#                 "score": {
+#                     "math": 95
+#                 }
+#             },
+#             {
+#                 "name": "Junhao",
+#                 "age": 30,
+#                 "gender": "male",
+#                 "score": {
+#                     "math": 900
+#                 }
+#             }
+
+#         ]
+#     }
+
+# }
+# A
+# }
+
+# ___ui_table_out_jsonsource data .table.abc name age gender math=score.math
+
+# EndSection
+

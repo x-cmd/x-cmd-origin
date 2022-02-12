@@ -1,0 +1,80 @@
+xrc ui/lib/region
+
+___x_cmd_ui_question_draw(){
+    local question="$1"
+    local answer="$2";
+    local right="$3"
+    shift 3
+    {
+        printf "%s: " "$question"
+        if [ -z "$right" ]; then
+            printf "  \033[7m%s\033[0m\n" "$answer"
+        else
+            printf "  \033[32m%s\033[0m\n" "$answer"
+        fi
+    } | ___x_cmd_ui_region_send_update
+}
+
+___x_cmd_ui_question_mainloop(){
+    local question="${1:?Question}"
+    shift 2
+
+    local char
+    local answer
+
+    ___x_cmd_ui_question_draw "$question" "$answer"
+    while region_getchar char; do
+        case "$char" in
+            UP|DN)  continue ;;
+            ENTER)
+                break ;;
+            DELETE)
+                answer="${answer%?}"
+                ;;
+            *)
+                case "$___X_CMD_UI_GETCHAR_TYPE" in
+                    ascii-space|ascii-digit|ascii-letter-*|ascii-symbol-*|UTF8*)
+                        answer="$answer$char" ;;
+                esac
+        esac
+
+        if [ "${#answer}" -eq 5 ]; then
+            ___x_cmd_ui_question_draw "$question" "$answer" 1
+        else
+            ___x_cmd_ui_question_draw "$question" "$answer"
+        fi
+    done
+
+    # Notice: Meaningless but important.
+    ___x_cmd_ui_question_draw "$question" "$answer"
+}
+
+___x_cmd_ui_question(){
+    ___x_cmd_ui_region_run ___x_cmd_ui_question_mainloop "$@"
+}
+
+
+# ui prompt question "Input value" val = "abc" "cde" "def"
+# ui prompt question "Input value" val =~ "[a-c]{1,3}"
+___ui_prompt_question_degrade(){
+    local question="${1:?Question}"
+    local answer="${2:?Answer variable}"
+    shift 2
+
+    xrc assert/latest
+    while :; do
+        printf "\033[31;1m? %s >\033[34;1m" "$question"
+        if ! ___ui_read "$answer"; then
+            printf "%s\n" "Received Exit Signal." >&2
+            return 1
+        fi
+        if eval assert "\"\$$answer\"" "\"\$@\"" 2>/dev/null; then
+            break
+        else
+            # echo continue
+            eval printf "\"Value[%s] doesn't match rule: %s\"" "\"\$$answer\"" "\"\$*\""
+            printf "\n"
+        fi
+    done
+}
+

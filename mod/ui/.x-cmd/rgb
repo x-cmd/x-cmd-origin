@@ -1,0 +1,33 @@
+#! /usr/bin/env xsh
+# shellcheck shell=bash disable=SC1091,SC2034
+
+# Section: Args
+
+. "$(x wsroot)"/v0
+MOCK_TEXT='x_cmd_rgb_color_list'
+
+# EndSection
+
+# Section: run
+
+test_rgb_fg(){
+    for color in {000..255}; do
+        printf "%s: %s\n" \
+            "$color" \
+            "$(ui rgbfg-"$color" "$MOCK_TEXT")" 
+    done
+}
+
+test_rgb_bg(){
+    ${1-balck}
+    for color in {000..255}; do
+        printf "%s: %s\n" \
+            "$color" \
+            "$(ui rgbbg-"$color" "$1" " $MOCK_TEXT ")" 
+    done
+}
+test_rgb_fg
+test_rgb_bg "rgbfg-16"
+
+# EndSection
+

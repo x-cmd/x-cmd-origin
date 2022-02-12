@@ -1,0 +1,16 @@
+f(){
+    stty -echo
+    reset(){
+        printf "zzzz\n" >&2;
+        printf "\033[34h\033[?25h" >&2; 
+        # stty sane;
+        stty echo
+        return 130
+    }
+    for i in $(seq 10);do
+        printf "%s " "test"
+        sleep 1
+        trap reset INT
+    done
+}
+f

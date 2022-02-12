@@ -1,0 +1,37 @@
+
+
+___UI_READER_AWK="$(xrc which ui/lib/reader.awk)"
+
+___ui_simple_send_option_selected(){
+    printf "%s %s\n" "OPTION.SELECTED" "${1:?Provide selected}"
+}
+
+___ui_simple_send_options(){
+    local IFS=','
+    printf "%s\n%s\n" "OPTION_LIST" "$*"
+}
+
+___ui_replace_newline(){
+    awk -v RS="$(printf "\001")" '{
+        gsub("\n", "\001", $0)
+        print($0)
+    }'
+}
+
+___ui_simple_send_article(){
+    local article="$(printf "%s" "$2" | ___ui_replace_newline)"
+    printf "%s %s\n%s\n" "ARTICLE" "$1" "$article"
+}
+
+# CONTENT="" ui reader 3 \
+    # article1 \
+    # article2 \
+    # article3 \
+___ui_simple_reader(){
+    local content="${CONTENT:-""}"
+    local option_list="$*"
+    local IFS=','
+    awk "$___UI_READER_AWK"
+}
+
+

@@ -1,0 +1,15 @@
+
+
+f(){
+    
+        # trap 'echo 123>aaa.txt; return 111' INT
+        for i in `seq 3`; do
+            echo hi
+            ( sleep 10 ) || echo hhh
+        done | {
+        trap 'echo 1' INT
+        cat || echo hhh
+        sleep 3
+    }
+}
+

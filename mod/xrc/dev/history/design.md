@@ -1,4 +1,0 @@
-# 
-
-
-.xrc.config

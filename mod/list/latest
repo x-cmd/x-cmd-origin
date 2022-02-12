@@ -1,7 +1,0 @@
-# shellcheck shell=sh
-
-# author:       Li Junhao           l@x-cmd.com
-# maintainer:   Li Junhao
-# license:      GPLv3
-
-xrc list/v0

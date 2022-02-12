@@ -1,5 +1,0 @@
-#! /usr/bin/env bash
-
-mkdir -p ~/.x-cmd/awk/_v0
-cp -rf _v0/*.awk ~/.x-cmd/awk/_v0/
-cp -rf latest ~/.x-cmd/awk/

@@ -1,7 +1,0 @@
-. ./v0
-
-http make git https://api.git.com
-O=git http qs token token123
-O=git http header content-type application/json
-O=git http header accept application/json
-O=git http header

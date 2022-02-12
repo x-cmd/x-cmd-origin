@@ -1,0 +1,217 @@
+# shellcheck shell=sh
+# shellcheck disable=SC2039,3043
+
+gt_repo_release(){
+    param:dsl    <<A
+subcommands:
+    ls              "list repo's release"
+    create          "create repo release"
+    update          "update release information"
+    delete          "Remove repo release"
+    latest          "get latest release"
+    info            "Show detailed information of repo"
+    attachment      "Attachment management"
+A
+    param:run
+
+    if [ -z "$PARAM_SUBCMD" ]; then
+        gt_log error "Command Not Found. Show help."
+        return 0
+    fi
+    
+    "gt_repo_release_${PARAM_SUBCMD}" "$@"
+}
+
+############################
+# Section 10: Release
+############################
+# https://gitee.com/api/v5/swagger#/getV5ReposOwnerRepoReleases
+gt_repo_release_ls() {
+    param:scope     "gitee/$O"
+    param:dsl    '
+type:
+    direction = asc  desc
+options:
+    --repo          "Repo name"             <>:repo
+    --direction     "direction(asc,desc)"   <>:direction="asc"
+'
+    param:run
+
+    gt_param_init_owner_repo
+
+    ___gt_get "/v5/repos/${owner_repo}/releases" page per_page direction  
+}
+
+gt_repo_get_release_by_tag() {
+    param:scope     "gitee/$O"
+    param:dsl    '
+options:
+    #1|--repo          "Repo name"             <>:repo
+    #2|--tag           "tag name"              <>
+'
+    param:run
+    gt_param_init_owner_repo
+
+    ___gt_get "/v5/repos/${owner_repo}/releases/tags/${tag}"  
+}
+
+# https://gitee.com/api/v5/swagger#/postV5ReposOwnerRepoReleases
+gt_repo_release_create() {
+    local O="${O:-GITEE_DEFAULT}"
+
+    param:scope  "gitee/$O"
+    param:dsl    '
+options:
+    #1|--repo           "Repo name"                 <>:repo
+    --tag               "Please provide tag name"   <>
+    --name              "Release name"              <>
+    --body              "Release Description"       <>
+    --prerelease        "Is release version"        <>:bool="false"
+    --target_commitish  "Default is master"         <>:name="master"
+'
+    param:run
+
+    gt_param_init_owner_repo
+
+    ___gt_post_json "/v5/repos/${owner_repo}/releases" \
+        tag_name="$tag" name body prerelease target_commitish  
+}
+
+
+# Assume pr and owner_repo are environments
+___gt_repo_release_init_owner_repo_and_release_main(){
+    local release_id=${release##*/}
+    owner_repo=${release%$release_id}
+
+    owner_repo="$(___gt_param_normalize_repo "$owner_repo")"
+    release="${release_id}"
+}
+
+alias ___gt_repo_release_init_owner_repo_and_release="
+    local owner_repo
+    ___gt_repo_release_init_owner_repo_and_release_main || return
+"
+
+
+# https://gitee.com/api/v5/swagger#/patchV5ReposOwnerRepoReleasesId
+gt_repo_release_update() {
+    local O="${O:-GITEE_DEFAULT}"
+    param:scope  "gitee/$O"
+    param:dsl    '
+options:
+    #1|--release        "Release ID"                <>:number
+    --tag               "Please provide tag name"   <>
+    --name              "Release name"              <>
+    --body              "Release Description"       <>
+    --prerelease        "Is release version"        <>:bool="false"
+'
+    param:run
+
+    ___gt_repo_release_init_owner_repo_and_release
+    ___gt_patch_json "/v5/repos/${owner_repo}/releases/${release}" \
+        tag_name="$tag" name body prerelease  
+}
+
+gt_repo_release_delete() {
+    local O="${O:-GITEE_DEFAULT}"
+    param:scope  "gitee/$O"
+    param:dsl    '
+options:
+    #1|--release        "Release ID"                <>:number
+'
+    param:run
+
+    ___gt_repo_release_init_owner_repo_and_release
+    ___gt_delete "/v5/repos/${owner_repo}/releases/$release"
+}
+
+gt_repo_release_latest() {
+    local O="${O:-GITEE_DEFAULT}"
+    param:scope     "gitee/$O"
+    param:dsl    '
+options:
+    #1|--repo              "Repo name"               <>:repo
+'
+    param:run
+
+    gt_param_init_owner_repo
+    ___gt_get "/v5/repos/${owner_repo}/releases/latest"  
+}
+
+gt_repo_release_info() {
+    local O="${O:-GITEE_DEFAULT}"
+    param:scope     "gitee/$O"
+    param:dsl    '
+options:
+    #1|--release        "Release ID"                <>:number
+'
+    param:run
+
+    ___gt_repo_release_init_owner_repo_and_release
+    ___gt_get "/v5/repos/${owner_repo}/releases/${release}"  
+}
+
+
+# Section : attachment
+
+gt_repo_release_attachment(){
+    param:dsl    <<A
+subcommands:
+    ls              "list release's attachment"
+    add             "upload attachment"
+    rm              "delete attachment"
+A
+
+    if [ -n "$PARAM_SUBCMD" ]; then
+        gt_log error "Command Not Found. Show help."
+        return 0
+    fi
+
+    "gt_repo_release_attachment_${PARAM_SUBCMD}" "$@"
+}
+
+gt_repo_release_attachment_ls() {
+
+    local O="${O:-GITEE_DEFAULT}"
+
+    param:scope     "gitee/$O"
+    param:dsl    '
+options:
+    #1|--release        "Release ID"                <>:number
+'
+    param:run
+
+    ___gt_repo_release_init_owner_repo_and_release
+}
+
+# Provide multiple files
+gt_repo_release_attachment_add() {
+
+    local O="${O:-GITEE_DEFAULT}"
+    param:scope     "gitee/$O"
+    param:dsl    '
+options:
+    #1|--release        "Release ID"                <>:number
+'
+    param:run
+
+    ___gt_repo_release_init_owner_repo_and_release
+}
+
+# Delete the file in attachment list
+gt_repo_release_attachment_del() {
+
+    local O="${O:-GITEE_DEFAULT}"
+
+    param:scope     "gitee/$O"
+    param:dsl    '
+options:
+    #1|--release        "Release ID"                <>:number
+'
+    param:run
+
+    ___gt_repo_release_init_owner_repo_and_release
+}
+
+# EndSection
+

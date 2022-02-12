@@ -1,0 +1,213 @@
+# shellcheck shell=sh
+# shellcheck disable=SC2039,3043
+
+gt_enterprise(){
+    param:scope     "gitee/$O"
+    param:dsl       '
+subcommands:
+    new             "alias enterprise name"
+    info            "Show information"
+    repo            "List all repos"
+    issue           "List all issues"
+    member          "enterprise member management"
+'
+    param:run
+
+    if [ -z "$PARAM_SUBCMD" ]; then
+        echo "Command Not Found. Show help." >&2
+    fi
+
+    # list issues of user
+    # list projects of user
+
+    "gt_enterprise_${PARAM_SUBCMD}" "$@"
+}
+
+_gt_enterprise()(
+    gt_current_owner "${1:?enterprise name}" "enterprise"
+    shift 1
+    gt_enterprise ${1:+"$@"}
+)
+
+# TODO:?
+gt_enterprise_new() {
+    param:void
+    local enterprise="${1:?Provide enterprise name}"
+    local aliasname="${2:-$reponame}"
+    # shellcheck disable=SC2139
+    alias "$aliasname=\"O=$O _gt_enterprise $enterprise\""
+}
+
+gt_enterprise_repo(){
+    param:dsl       '
+subcommands:
+    ls          "list repo"
+    create      "enterprise repo create"
+'
+    param:run
+    if [ -z "$PARAM_SUBCMD" ]; then
+        gt_log error "Command Not Found. Show help."
+        return 0
+    fi
+    "gt_enterprise_repo_${PARAM_SUBCMD}" "$@"
+}
+
+gt_enterprise_info() {
+    param:scope     "gitee/$O"
+    param:dsl       '
+
+options:
+    --admin      "list only managed enterprise"     <>:bool=false
+'
+    param:run
+    if [ "$#" -eq 0 ]; then
+        ___gt_get_multi "/v5/user/enterprises" admin
+        [ $? -eq 1 ] && return 1
+    else
+        ___gt_get "/v5/enterprises/${1:?Provide enterprise}"
+        [ $? -eq 1 ] && return 1
+    fi
+    return 0
+}
+
+# https://gitee.com/api/v5/swagger#/getV5EnterprisesEnterpriseRepos
+gt_enterprise_repo_ls() {
+    param:scope     "gitee/$O"
+    param:dsl       '
+type:
+    genre = all public internal private
+options:
+    --repo_type     "type"          <>:genre="all" 
+    --direct        "direct"        <>:bool="false"
+'
+    param:run
+    ui table func ___gt_table "\"\$(O=$O ___gt_get_multi \"/v5/enterprises/${1:?Provide enterprise}/repos\" repo_type direct page per_page)\"" \
+        . id full_name ownerName=owner.name updatedTime="updated_at"
+}
+
+# Section : member
+# Should be like this.
+# gt repo member add el:admin
+# gt repo member remove user-a
+# gt repo member add user-b
+
+# gt repo member +el:admin -user-a +user-b
+gt_enterprise_member(){
+    param:dsl       '
+subcommands:
+    ls              "list member"
+    user            "get member user info"
+    add             "add member"
+    del|remove      "Remove member"
+    access          "Change the member access"
+'
+    param:run
+
+    if [ -z "$PARAM_SUBCMD" ]; then
+        gt_log error "subcommand not found. show help."
+        return 0
+    fi
+    
+    "gt_enterprise_member_$PARAM_SUBCMD" "$@"
+}
+
+gt_enterprise_member_ls() {
+    param:scope     "gitee/$O"
+    param:dsl       '
+type:
+    role = all member admin
+options:
+    --enterprise    "enterprise space address"          <>:address
+    --role          "role type"                         <>:role="all"
+'
+    param:run
+# TODO: | json_table remark role user.login
+
+    ___gt_get_multi "/v5/enterprises/${enterprise##*/}/members" role page per_page
+}
+
+gt_enterprise_member_user() {
+    param:scope     "gitee/$O"
+    param:dsl       '
+options:
+    #1|--enterprise    "enterprise space address"  <>:address
+    #2|--username      "username:space address"    <>:name
+'
+    param:run
+
+    ___gt_get_multi "/v5/enterprises/${enterprise}/members/${username}"  
+}
+
+
+gt_enterprise_member_add() {
+    param:scope     "gitee/$O"
+    param:dsl       '
+type:
+    role =  member  outsourced admin
+    mode =  username email
+options:
+    --enterprise|-e   "enterprise"              <>:address
+    --role            "role"                    <>:role              
+    --mode            "username or email"       <>:mode="username"
+    #n                "real name"
+'
+    param:run
+
+    # repo="$(___gt_param_normalize_repo "$repo")" || return 1
+
+    if [ -z "$1" ]; then
+        gt_log error "At least one user’s spatial address or email is needed"
+        return 1
+    fi
+
+    local username
+    for username in "$@"; do
+        ___gt_post_json "/v5/enterprises/${enterprise}/members" \
+         role $mode="$username"  
+    done
+}
+
+gt_enterprise_member_del() {
+    param:scope     "gitee/$O"
+    param:dsl       '
+options:
+    --enterprise|-e    "enterprise space address"      <>:address
+'
+    param:run
+
+    if [ -z "$1" ];then
+        echo "At least one user’s spatial address is needed"
+        return 1
+    fi
+
+    local username
+    local code
+    for username in "$@"; do
+        {
+            ___gt_delete "/v5/enterprises/${enterprise##*/}/members/${username##*/}"
+            code=$?
+            if [ $code -ne 0 ]; then
+                gt_log error "Creating repo failure: $name. Code is $code. "
+                return $code
+            fi
+        }  
+    done
+}
+
+
+gt_enterprise_member_access() {
+    param:scope     "gitee/$O"
+    param:dsl       '
+options:
+    --enterprise|-e     "Repo owner path"                   <>:address
+    --username          "username:space address"            <>:name
+    --role              "role"                              <>="member"     = member outsourced admin
+    --name              "real name"                         <>=""
+    --active            "Access to corporate resources"
+'
+    param:run
+    active=${active:-false}
+    ___gt_put_json "/v5/enterprises/${enterprise##*/}/members/${username##*/}" name role active  
+}
+
+# EndSection

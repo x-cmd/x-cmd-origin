@@ -1,0 +1,73 @@
+# shellcheck shell=sh
+# shellcheck disable=SC2039,3043
+
+############################
+# Section 6: Repo Path & Clone
+############################
+gt_repo_url_http() {
+    param:scope  "gitee/$O"
+    param:dsl    '
+options:
+    #n  "Provide repo list"
+'
+    param:run
+
+    local repo
+    for repo in "$@"; do
+        printf "https://gitee.com/%s.git\n" "$(___gt_param_normalize_repo "$repo")"
+    done
+}
+
+gt_repo_url() {
+    param:void
+    gt_repo_url_ssh ${1:+"$@"}
+}
+
+gt_repo_url_ssh() {
+    param:scope     "gitee/$O"
+    param:dsl       '
+options:
+    #n "Provide repo list"
+'
+    param:run
+
+    local repo
+    for repo in "$@"; do
+        printf "git@gitee.com:%s.git\n" "$(___gt_param_normalize_repo "$repo")"
+    done
+}
+
+gt_repo_clone() {
+    gt_repo_clone_ssh "$@" && return 0
+    gt_repo_clone_https "$@" && return 0
+    return $?
+}
+
+# shellcheck disable=SC2120
+gt_repo_clone_ssh() {
+    param:void
+    git clone "$(gt_repo_url_ssh "$@")"
+}
+
+# shellcheck disable=SC2120
+gt_repo_clone_https() {
+    param:void
+    git clone "$(gt_repo_url_http "$@")"
+}
+
+# https://gitee.com/api/v5/swagger#/postV5ReposOwnerRepoForks
+# TODO Not available Gitee return Not Found Project
+gt_repo_fork() {
+    param:scope    "gitee/$O"
+    param:dsl       '
+options:
+    --repo              "Repo name"                 <>:repo
+    --organization=""   "Provide organization"      <>:org
+'
+    param:run
+
+    local owner_repo
+    owner_repo="$(___gt_param_normalize_repo "$repo")"
+
+    ___gt_post_json "https://gitee.com/api/v5/repos/${owner_repo}/forks" organization
+}

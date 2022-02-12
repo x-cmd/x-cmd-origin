@@ -1,0 +1,28 @@
+# shellcheck shell=sh
+# shellcheck disable=SC2039,3043
+
+# Synchronized token in the x-bash user profile.
+
+# shellcheck disable=SC2120
+gt_token() {
+    param:void
+    local O="${O:-GITEE_DEFAULT}"
+    if [ $# -eq 0 ]; then
+        param_default get "gitee_$O" "token"
+    else
+        if [ "$1" = "false" ];then
+            shift
+            param_default put "gitee_$O" "token" "$@"
+          else
+            param_default put "gitee_$O" "token" "$@"
+            gt_config_save
+        fi
+    fi
+
+    if [ -n "$1" ]; then
+        # setter
+        local token="$1"
+        http "@_x_cmd_x_bash_gitee_${O:-GITEE_DEFAULT}" qs put access_token "$token"
+        http "@_x_cmd_x_bash_gitee_${O:-GITEE_DEFAULT}" body put access_token "$token"
+    fi
+}

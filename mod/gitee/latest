@@ -1,0 +1,129 @@
+# shellcheck shell=sh
+# shellcheck disable=SC2039,3043
+
+# author:       Li Junhao           edwin.jh.lee@gmail.com    edwinjhlee.github.io
+# maintainer:   Li Junhao
+
+xrc http param json str ui ccmd
+
+# TODO: Precompile it into one file.
+_gt_xrc(){
+    local i
+    for i in "$@"; do
+    xrc "gitee/lib/$i"
+    # . "lib/$i"
+    done
+}
+
+_gt_xrc utils config current enterprise issue org  \
+        repo issue repo_member repo_page repo_pr repo_release repo_tag   \
+        repo_utils token user
+
+ 
+x log init gt
+
+param_type    gitee     repo        "=~"   "[-A-Za-z0-9_/]+"      # TODO: make it fit it gitee definition
+param_type    gitee     name        "=~"   "[-A-Za-z0-9_]+"
+param_type    gitee     number      "=~"   "[0-9]+"
+param_type    gitee     numbers     "=~"   "[0-9]+|(\\s&&[^\\f\\n\\r\\t\\v])*"
+param_type    gitee     address     "=~"   "[-A-Za-z0-9_]+|https?://.+"
+param_type    gitee     permission  =       pull   push    admin
+param_type    gitee     bool        =       true   false
+param_type    gitee     Ignore      =  "Actionscript"   "Ada" "Agda" "Android" "Anjuta" "Ansible" "AppEngine" "AppceleratorTitanium" "ArchLinuxPackages" \
+    "Archives" "Autotools" "Backup" "Bazaar" "BricxCC" "C++" "CFWheels" "CMake" "CUDA" "CVS" "CakePHP" "Calabash" "ChefCookbook" \
+    "Clojure" "Cloud9" "CodeIgniter" "CodeKit" "CommonLisp" "Composer" "Concrete5" "Coq" "CraftCMS" "D" "DM" "Dart" "DartEditor" \
+    "Delphi" "Diff" "Dreamweaver" "Dropbox" "Drupal" "EPiServer" "Eagle" "Eclipse" "EiffelStudio" "Elisp" "Elixir" "Elm" "Emacs" \
+    "Ensime" "Erlang" "Espresso" "ExpressionEngine" "ExtJs" "Fancy" "Finale" "FlexBuilder" "Flutter" "ForceDotCom" "Fortran" \
+    "FuelPHP" "GPG" "GWT" "Gcov" "GitBook" "Go" "Godot" "Gradle" "Grails" "Haskell" "IGORPro" "Idris" "Images" "JBoss" "JDeveloper" \
+    "JENKINS_HOME" "JEnv" "Java" "Jekyll" "JetBrains" "Joomla" "Julia" "KDevelop4" "Kate" "KiCad" "Kohana" "Kotlin" "LabVIEW" "Laravel" \
+    "Lazarus" "Leiningen" "LemonStand" "LibreOffice" "Lilypond" "Linux" "Lithium" "Lua" "LyX" "MATLAB" "Magento" "Maven" "Mercurial" \
+    "Mercury" "MetaProgrammingSystem" "Metals" "MicrosoftOffice" "MiniProgram" "ModelSim" "Momentics" "MonoDevelop" "Nanoc" "NetBeans" \
+    "Nim" "Ninja" "Node" "NotepadPP" "OCaml" "Objective-C" "Octave" "Opa" "OpenCart" "OracleForms" "Otto" "PSoCCreator" "Packer" "Patch" \
+    "Perl" "Phalcon" "PlayFramework" "Plone" "Prestashop" "Processing" "PuTTY" "PureScript" "Python" "Qt" "R" "ROS" "Rails" "Raku" \
+    "Redcar" "Redis" "RhodesRhomobile" "Ruby" "Rust" "SBT" "SCons" "SVN" "Sass" "Scala" "Scheme" "Scrivener" "Sdcc" "SeamGen" "SketchUp" \
+    "SlickEdit" "Smalltalk" "Stata" "Stella" "SublimeText" "SugarCRM" "Swift" "Symfony" "SymphonyCMS" "SynopsysVCS" "Tags" "TeX" \
+    "Terraform" "TextMate" "Textpattern" "TortoiseGit" "TurboGears2" "Typo3" "Umbraco" "Unity" "UnrealEngine" "VVVV" "Vagrant" \
+    "Vim" "VirtualEnv" "Virtuoso" "VisualStudio" "VisualStudioCode" "Waf" "WebMethods" "Windows" "WordPress" "Xcode" "XilinxISE" \
+    "Xojo" "Yeoman" "Yii" "ZendFramework" "Zephir" "macOS" " "
+param_type  gitee     license      =   "MulanPSL-2.0" "0BSD" "AFL-3.0" "AGPL-3.0" "Apache-2.0" "Artistic-2.0" "BSD-2-Clause" \
+    "BSD-3-Clause" "BSD-3-Clause-Clear" "BSL-1.0" "CC-BY-4.0" "CC-BY-SA-4.0" "CC0-1.0" "ECL-2.0" "EPL-1.0" "EPL-2.0" \
+    "EUPL-1.1" "EUPL-1.2" "GPL-2.0" "GPL-3.0" "ISC" "LGPL-2.1" "LGPL-3.0" "LPPL-1.3c" "MIT" "MPL-2.0" "MS-PL" "MS-RL" \
+    "MulanPSL-1.0" "MulanPubL-1.0" "MulanPubL-2.0" "NCSA" "OFL-1.1" "OSL-3.0" "PostgreSQL" "UPL-1.0" "Unlicense" "WTFPL" "Zlib" " "
+param_type  gitee     url_type        "=~"  "https?://.+|(\\s&&[^\\f\\n\\r\\t\\v])*"
+param_type  gitee     ISO_time        "=~"  "/^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\.[0-9]+)?(Z|[+-](?:2[0-3]|[01][0-9]):[0-5][0-9])?$/|(\\s&&[^\\f\\n\\r\\t\\v])*"
+
+gt(){
+    param:dsl       '
+subcommand:
+    repo                                    "repo command"
+    issue                                   "issue"
+    pr                                      "pull request"
+    member                                  "repo member"
+    current                                 "set current owner, repo"
+    release                                 "release management"
+    enterprise                              "manage enterprise"
+    org                                     "manage org"
+    tag                                     "repo tag"
+    user                                    "user"
+    config                                  "save, load, which"
+    token                                   "set token"
+    new                                     "new client"
+'
+    param:run
+    if [ -z "${PARAM_SUBCMD}" ]; then
+        echo "Command Not Found. Show help." >&2
+        return 0
+    fi
+
+    case "${PARAM_SUBCMD}" in
+        pr|release|member|tag)                                  "gt_repo_${PARAM_SUBCMD}"   "$@"        ;;
+        *)                                                      "gt_${PARAM_SUBCMD}"  "$@"              ;;
+    esac
+}
+
+
+############################
+# Section 10: Instantiation
+############################
+
+gt_new() {
+    param:void
+    local name="${1:?Provide object name}"
+    # shellcheck disable=SC2139
+    alias "$name=\"O=$name gt\""
+}
+
+gt_make() {
+    param:void
+    local O_ORIGINAL=${1:?Provide client name by O environment}
+
+    # if [ -n "$GITEE_DEFAULT" ] && [ "$O_ORIGINAL" = "GITEE_DEFAULT" ]; then
+    #     echo "Name 'GITEE_DEFAULT' is reserved for internal use."
+    #     return 1
+    # fi
+
+    local O="_x_cmd_x_bash_gitee_$O_ORIGINAL"
+    http "@$O" make  'https://gitee.com/api'
+    http "@$O_ORIGINAL" header type "application/json;charset=utf-8"
+    O=$O_ORIGINAL gt_config_load >/dev/null
+    if [ $? -eq 0 ] && [ -n "$(O="$O_ORIGINAL" gt_token)" ]; then
+        O="$O_ORIGINAL" gt_current_owner
+    else
+        gt_log info "token is null"
+    fi
+    # local TOKEN=${2:-""}
+    # if [ -n "$GITEE_TOKEN" ]; then
+    #     printf "Init token with env GITEE_TOKEN\n" >&2
+    #     O=$O_ORIGINAL gt_token.set "$GITEE_TOKEN"
+    # else    #     gt_config_load default
+    # fi
+}
+if [ -z "$DO_NOT_INIT_GITEE_DEFAULT" ]; then
+    gt_make "GITEE_DEFAULT" && DO_NOT_INIT_GITEE_DEFAULT="true"
+fi
+
+if [ -z "$XRC_NO_ADVISE" ] && [ -n "${BASH_VERSION}${ZSH_VERSION}" ] && [ "${-#*i}" != "$-" ]; then
+    xrc advise/latest
+    advise gt
+fi
+

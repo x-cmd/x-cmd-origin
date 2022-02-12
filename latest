@@ -1,0 +1,20 @@
+# shellcheck shell=sh
+# shellcheck disable=SC2039,3043
+
+# author:       Li Junhao           l@x-cmd.com
+
+___x_cmd_trap(){
+    local op="${1}"
+
+    case "$op" in
+        push)       ;;
+        pop)        ;;
+        cancel)     ;;
+        quote)      ;;
+        *)
+            trap "$@" ;;
+    esac
+
+}
+
+

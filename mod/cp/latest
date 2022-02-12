@@ -1,0 +1,11 @@
+# shellcheck shell=sh disable=SC3043,SC2164     # xrc
+
+# author:       Li Junhao           l@x-cmd.com
+# license:      GPLv3
+
+
+___x_cmd_cp(){
+    cp "$@"
+}
+
+xrc setmain ___x_cmd_cp

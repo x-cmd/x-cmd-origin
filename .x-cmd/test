@@ -1,0 +1,18 @@
+#!/bin/bash
+. ~/.x-cmd/.boot/boot
+
+. ./testcase/v0_test_base
+. ./testcase/v0_test
+
+case $1 in
+    local)
+        test_tldr
+        ;;
+    cross)
+        test_cross_env
+        ;;
+    *)
+        echo "Usage: x test {cross|local}"
+        exit 1
+        ;;
+esac

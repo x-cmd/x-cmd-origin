@@ -1,11 +1,11 @@
 +xrc
 +x-cmd
-+hub
-+install
+hub
+install
 +awk
 +x_fs
 +dev
-+shall
+shall
 +p7zip
 +log
 +boot
@@ -30,7 +30,6 @@
 +sync
 
 
-
 # pdf ffmpeg
 +convert
 pdf
@@ -50,10 +49,10 @@ tesseract
 +terraform
 
 # basic modules: non dependency
-+str
-+list
+str
+list
 +dict
-+assert
+assert
 +json
 +os
 +cowsay
@@ -67,7 +66,7 @@ tesseract
 +ps1env
 
 # modules
-+static-build
+static-build
 +ccmd
 xdk
 zuz
@@ -77,7 +76,7 @@ el
 # Apps
 +tldr
 +man
-+proxy
+proxy
 theme
 
 # web clients

@@ -64,6 +64,8 @@ assert
 +advise
 +ui
 +ps1env
++jo
++tab
 
 # modules
 static-build

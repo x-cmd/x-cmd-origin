@@ -7,7 +7,6 @@ if [ -z "${ZSH_VERSION}${BASH_VERSION}" ]; then
     x log info "advise is only available in 'bash' or 'zsh'."
 else
 
-# It is a nice idea to avoid using the 'xrc which' command multiple times.
 ___ADVISE_AWK_PATH="$(xrc which advise/lib/advise.awk)"
 
 # Section : advise entrance
@@ -59,7 +58,7 @@ advise(){
             if [[ ! "$BASH_VERSION" =~ (^3.*|^4.[0-3]) ]]; then
                 complete -o nosort -F "______adviser_of_$op" "$aliasname"
             else
-                complete -F "___advise_man_completer" "$aliasname"
+                complete -F "______adviser_of_$op" "$aliasname"
             fi
             ;;
         obj-del)
@@ -204,44 +203,6 @@ A
 
 }
 
-___advise_get_result_from_awk(){
-    local result cmd_result
-    local IFS=$'\002'
-    local s="${COMP_WORDS[*]}"
-    s="${s#*"$IFS"}"
-
-    # Handle the case that the last word has "@" or ":" in bash.
-    COMP_LINE="${COMP_WORDS[*]}"
-    local cur_1="${COMP_WORDS[COMP_CWORD-1]}"
-    case "$cur_1" in
-        *@|*:)
-            if [ "${COMP_LINE% }" != "${COMP_LINE}" ]; then
-                s="${s%$cur_1$IFS$cur}"
-                s="${s}${cur_1}$cur"
-            fi
-            ;;
-        *)
-    esac
-
-    IFS=$'\n'
-    result="$(
-        {
-            cat "$filepath"
-            printf "\034%s\034" "$s"
-        } | awk -f "$___ADVISE_AWK_PATH" 2>/dev/null
-    )"
-    local cmd="${result##*\#> }"
-    cmd_result=""
-
-    if [ "$cmd" != "$result" ]; then
-        cmd_result="$(eval "$cmd" 2>/dev/null)"
-        result="${result%%\#> *}"
-    fi
-
-    printf "%s" "$result
-$cmd_result"
-}
-
 ___x_cmd_advise_get_result(){
     local offset="${1:-1}"
     local remain_len=$((COMP_CWORD-offset))
@@ -330,6 +291,44 @@ ___advise_main(){
     else
         compdef "___advise_completer$alias_name" "$comp_word"
     fi
+}
+
+___advise_get_result_from_awk(){
+    local result cmd_result
+    local IFS=$'\002'
+    local s="${COMP_WORDS[*]}"
+    s="${s#*"$IFS"}"
+
+    # Handle the case that the last word has "@" or ":" in bash.
+    COMP_LINE="${COMP_WORDS[*]}"
+    local cur_1="${COMP_WORDS[COMP_CWORD-1]}"
+    case "$cur_1" in
+        *@|*:)
+            if [ "${COMP_LINE% }" != "${COMP_LINE}" ]; then
+                s="${s%$cur_1$IFS$cur}"
+                s="${s}${cur_1}$cur"
+            fi
+            ;;
+        *)
+    esac
+
+    IFS=$'\n'
+    result="$(
+        {
+            cat "$filepath"
+            printf "\034%s\034" "$s"
+        } | awk -f "$___ADVISE_AWK_PATH" 2>/dev/null
+    )"
+    local cmd="${result##*\#> }"
+    cmd_result=""
+
+    if [ "$cmd" != "$result" ]; then
+        cmd_result="$(eval "$cmd" 2>/dev/null)"
+        result="${result%%\#> *}"
+    fi
+
+    printf "%s" "$result
+$cmd_result"
 }
 
 ___advise_update(){

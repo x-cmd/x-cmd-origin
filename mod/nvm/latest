@@ -12,6 +12,7 @@ ___x_cmd_nvm() {
 
             dirname "$_nvm_path"
         )"
+        export NVM_DIR
     fi
 
     # TODO: --no-use not worked in dash. We should consider environment variable instead.

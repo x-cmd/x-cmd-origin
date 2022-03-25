@@ -1,0 +1,65 @@
+# Author:       Li Junhao       l@x-cmd.com             # xrc
+# shellcheck    shell=sh        disable=SC2039,SC3043
+
+___x_cmd_jo(){
+    case "${1:?Provide op}" in
+        data)                                       ___x_cmd_jo_data "$@" ;;
+        fmt)        if [ -t 1 ]; then       COLOR=1 ___x_cmd_jo_fmt "$@"
+                    else                            ___x_cmd_jo_fmt "$@"
+                    fi ;;
+        v|valid)    ;;
+        u|uniq)     ;;
+        color)                              COLOR=1 ___x_cmd_jo_fmt "$@" ;;
+        list|\[)    shift;                          ___x_cmd_jo_wrap ___x_cmd_jo_list "$@" ;;
+        dict|\{)    shift;                          ___x_cmd_jo_wrap ___x_cmd_jo_dict "$@" ;;
+        -)                                          ___x_cmd_jo_wrap ___x_cmd_jo_awk ;;
+
+        #   We will add some query functions and modified function here ...
+        *)
+                    if [ "$#" -eq 0 ]; then         ___x_cmd_jo_wrap ___x_cmd_jo_awk
+                    else    local IFS; printf "%s" "$*" | \
+                                                    ___x_cmd_jo_wrap ___x_cmd_jo_awk
+                    fi
+    esac
+}
+
+___x_cmd_jo_awk(){
+    command awk \
+        -f "$___X_CMD_ROOT/awk/lib/re.awk"  \
+        -f "$___X_CMD_ROOT/jo/lib/normalize.awk"
+}
+
+___x_cmd_jo_wrap(){
+    if [ ! -t 1 ]; then
+        "$@"
+    else
+        "$@" | ___x_cmd_jo_color
+    fi
+}
+
+# Section: subcmd
+
+# arg: indent
+___x_cmd_jo_fmt(){
+    command awk -v INDENT="${INDENT:-2}}" -f "$___X_CMD_ROOT/jo/lib/fmt.awk"
+}
+
+___x_cmd_jo_color(){
+    command awk -v INDENT="${INDENT:-2}}" -f "$___X_CMD_ROOT/jo/lib/color.awk"
+}
+
+___x_cmd_json_data(){
+    ___x_cmd_curl_gitx x-cmd json-test-data main data/one.mb.json "${TMPDIR}/mb1.json"
+    seq "${1:-1}" | x args 1 - cat "${TMPDIR}/mb1.json"
+}
+
+# time ___x_cmd_jo_list 1 2 \"true\" $( ___x_cmd_jo_list 1 2 3)
+if [ -n "${BASH_VERSION}${ZSH_VERSION}${KSH_VERSION}" ]; then
+    . "$___X_CMD_ROOT/jo/lib/list_dict"             # xrc jo/lib/list_dict
+else
+    . "$___X_CMD_ROOT/jo/lib/list_dict_posix"       # xrc jo/lib/list_dict_posix
+fi
+
+# EndSection
+
+xrc setmain ___x_cmd_jo

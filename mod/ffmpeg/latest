@@ -19,7 +19,7 @@ ___x_cmd_ffmpeg_download(){
         ___x_cmd_ffmpeg_download \
         "$___X_CMD_ROOT/.bin/ffmpeg" \
         "$exe" \
-        "$(___x_cmd_pandoc_bin_download_url "$exe")" \
+        "$(___x_cmd_ffmpeg_bin_download_url "$exe")" \
         &&(
             cd "$___X_CMD_ROOT/.bin/ffmpeg" && {
                 chmod +x "$exe"
@@ -27,7 +27,7 @@ ___x_cmd_ffmpeg_download(){
         )&& ___x_cmd_ffmpeg_download "$@"
 }
 
-___x_cmd_pandoc_bin_download_url(){
+___x_cmd_ffmpeg_bin_download_url(){
     local exe="${1:?Provide app name}"
     if [ -z "$___X_CMD_WHICHNET" ]; then
         printf "%s/%s" "https://raw.githubusercontent.com/static-build/ffmpeg/main/bin" "$exe.7z"
@@ -70,4 +70,4 @@ ___x_cmd_ffmpeg_show(){
 
 # EndSection
 
-xrc setmain ___x_cmd_pandoc
+xrc setmain ___x_cmd_ffmpeg_download

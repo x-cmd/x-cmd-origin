@@ -61,6 +61,38 @@ ___x_cmd_definelazyloader(){
     }"
 }
 
+# VAR   SEP    IT
+___x_cmd_trimutil(){
+    eval "
+[ -z \"\$${O}\" ] && return 1
+IT=\"\${${O}%%${SEP:-
+}*}\"
+if [ \"\${IT}\" = \"\${$O}\" ]; then
+    $O=\"\"
+else
+    $O=\"\${${O}#*${SEP:-
+}}\"
+fi
+return 0
+"
+}
+
+# f(){
+#     local IT
+#     local SEP=,
+#     local a
+#     a="abc,cde,eft"
+#     while O=a ___x_cmd_trimutil; do
+#         printf "%s\n" "$IT"
+#     done
+# }
+
+# f
+
+___x_cmd_pidofsubshell(){
+    sh -c 'printf "%s\n" "$PPID"'
+}
+
 # EndSection
 
 # Section 2: get ___X_CMD_SHELL, ___xrc_log, ___x_cmd_source, ___x_cmd_shift1
@@ -100,9 +132,35 @@ ___x_cmd_source(){
     . "$@"
 }
 
+___x_cmd_source_inner(){
+    while [ $# -gt 0 ]; do
+        . "$___X_CMD_ROOT_MOD/$1"
+        shift
+    done
+}
+
+# deprecated
+alias xrc:inner=___x_cmd_source_inner
+
+alias xrc:mod=___x_cmd_source_inner
+
+___x_cmd_source_inner_lib(){
+    local mod="${1:?Provide module name}"; shift
+    while [ $# -gt 0 ]; do
+        . "$___X_CMD_ROOT_MOD/$mod/lib/$1"
+        shift
+    done
+}
+
+# deprecated
+alias xrc:inner:lib=___x_cmd_source_inner_lib
+
+alias xrc:mod:lib=___x_cmd_source_inner_lib
+
+# TODO: xrc_log +xrc
 ___xrc_log(){
     local level="$1"; shift
-    [ "$level" = debug ] && return
+    [ "$level" = debug ] && [ -z "$___X_CMD_XRC_LOG_DEBUG_MODE" ] && return
     printf "[%s]: %s\n" "$level" "$@" 1>&2
 }
 
@@ -110,10 +168,17 @@ ___xrc_log(){
 
 if [ -z "$___X_CMD_ROOT" ]; then
     ___X_CMD_ROOT="$HOME/.x-cmd"           # boot will be placed in "$HOME/.x-cmd/boot"
+    ___X_CMD_ROOT_MOD="$___X_CMD_ROOT"
+    ___X_CMD_ROOT_TMP="$___X_CMD_ROOT/.tmp"
+
     ___xrc_log debug "Setting env ___X_CMD_ROOT: $___X_CMD_ROOT"
     [ -d "$___X_CMD_ROOT" ] || mkdir -p "$___X_CMD_ROOT" || return 1 || exit 1
-    PATH="$___X_CMD_ROOT/.bin:$PATH"
+    PATH="$___X_CMD_ROOT/x-cmd/lib/bin:$PATH"
+    export ___X_CMD_ROOT
+    export PATH
 fi
+
+xrc:mod log/latest
 
 case "$___X_CMD_SHELL" in
     bash|zsh)
@@ -205,7 +270,7 @@ ___x_cmd_httpget() {
         # redirect_path="$(dirname "$cache")/x-bash-temp-download.$RANDOM"
     fi
 
-    printf "URL is %s\n" "$url" >&2
+    ___xrc_log debug "URL is $url"
     if ___x_cmd_httpget_inner "$url" "$redirect_path"; then
         if [ -n "$cache" ]; then
             ___xrc_log debug "Copy the temp file to CACHE file: $cache"
@@ -458,7 +523,8 @@ ___x_cmd_which_one_with_naming(){
         *)
             # TODO: some future work for http
             case "$RESOURCE_NAME" in
-                */*)    ;;
+
+                */*)    ;;  # Should no set alias function when is a path
                 *)      ___X_CMD_WHICH_ONE_NAMING="${RESOURCE_NAME}" ;;     # Only when it is a module name...
             esac
             # ___X_CMD_WHICH_ONE_NAMING="${RESOURCE_NAME##*/}"
@@ -499,7 +565,7 @@ ___x_cmd_which_one(){
             ;;
         *@*/*)
             xrc hub/latest
-            ___xcmd_hub_file_which "$RESOURCE_NAME"     # Will set ___X_CMD_WHICH_ONE_RESOURCE_TYPE=1 if from unknow source
+            ___X_CMD_WHICH_ONE_RESULT="$(___x_cmd_hub_file_which "$RESOURCE_NAME")"     # Will set ___X_CMD_WHICH_ONE_RESOURCE_TYPE=1 if from unknow source
             ;;
         ./*|../*)
             ___xrc_log debug "Resource recognized as local file with relative path: $RESOURCE_NAME"
@@ -724,6 +790,7 @@ A
             if ___x_cmd_httpget_gitx x-cmd "$codesrc" main "dist/all.tgz" "$CACHE" -; then
                 (cd "$___X_CMD_ROOT" && tar xvf "$CACHE")
                 rm "$CACHE"
+                rm "$___X_CMD_ROOT/.boot/boot" && x boot setup
                 ___X_CMD_XRC_MODULE_IMPORTED=
                 ___x_cmd_source "$___X_CMD_ROOT"/xrc/latest
             fi
@@ -857,7 +924,7 @@ if command -v curl >/dev/null; then
     ___x_cmd_httpget_inner(){
         local url="${1:?Provide url}"
         local cache="${2}"
-        ___xrc_log debug curl --dump - --output "$cache" --speed-time 5 --speed-limit 10 "$url"
+        ___xrc_log debug "curl --dump - --output $cache --speed-time 5 --speed-limit 10 $url"
 
         if [ -z "$cache" ]; then
             exec 3>&1

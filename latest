@@ -3,15 +3,27 @@
 # author:       Li Junhao           l@x-cmd.com
 # license:      GPLv3
 
-xrc static-build/staticbin
-
+xrc static-build/lib/staticbin os
 ___x_cmd_magick(){
+    local arch
+    arch="$(os arch)"
+    local osname
+    osname="$(os name)"
+    local exe
+    case "$osname" in
+        win)    exe=magick.x64.exe        ;;
+        *)      exe=magick.${osname}.${arch}  ;;
+    esac
     ___x_cmd_staticbin_init \
-        ___x_cmd_magick \
+        ___x_cmd_magick_download \
         "$___X_CMD_ROOT/.bin/magick" \
-        magick \
-        ___x_cmd_magick_bin_download_url \
-        && ___x_cmd_magick "$@"
+        "$exe" \
+        "$(___x_cmd_pandoc_bin_download_url "$exe")" \
+        &&(
+            cd "$___X_CMD_ROOT/.bin/magick" && {
+                chmod +x "$exe"
+            }
+        )&& ___x_cmd_magick_download "$@"
 }
 
 # Section: detail
@@ -28,35 +40,12 @@ ___x_cmd_magick(){
 
 # https://ftp.acc.umu.se/mirror/imagemagick.org/ftp/binaries/magick
 
-___X_CMD_MAGICK_MIRROR_OFFICIAL="https://download.imagemagick.org/ImageMagick/download/binaries"
-___X_CMD_MAGICK_MIRROR_UMU="https://ftp.acc.umu.se/mirror/imagemagick.org/ftp/binaries"
-
 ___x_cmd_magick_bin_download_url(){
-    local sys
-    sys="$(os rname)-$(os-arch)"
-    local p
-    case "$sys" in
-        Darwin-*)
-            p="ImageMagick-x86_64-apple-darwin20.1.0.tar.gz"
-            ;;
-        win-*)
-            p="ImageMagick-7.1.0-portable-Q16-HDRI-x64.zip"
-            ;;
-        linux-amd64)
-            p="ImageMagick-x86_64-apple-darwin20.1.0.tar.gz"
-            ;;
-        linux-arm64)
-            p="ImageMagick-x86_64-apple-darwin20.1.0.tar.gz"
-            ;;
-        *)
-            printf "System Not Supported: %s\n" "$sys" >&2
-            return 1
-    esac
-
+    local exe="${1:?Provide app name}"
     if [ -z "$___X_CMD_WHICHNET" ]; then
-        printf "%s/%s" "$___X_CMD_MAGICK_MIRROR_OFFICIAL" "$p"
+        printf "%s/%s" "https://raw.githubusercontent.com/static-build/magick/main/bin" "$exe.7z"
     else
-        printf "%s/%s" "$___X_CMD_MAGICK_MIRROR_UMU" "$p"
+        printf "%s/%s" "https://gitcode.net/x-bash/magick/-/raw/master/bin" "$exe.7z"
     fi
 }
 

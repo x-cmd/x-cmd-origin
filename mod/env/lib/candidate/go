@@ -1,0 +1,45 @@
+# shellcheck shell=sh disable=SC2039,SC1090,SC3043,SC2263    # xrc
+
+___x_cmd_env_go_ls(){
+    :
+}
+
+___x_cmd_env_go_la(){
+    :
+}
+
+___x_cmd_env_go_download(){
+    :
+}
+
+___x_cmd_env_go_install(){
+    :
+}
+
+___x_cmd_env_go_uninstall(){
+    :
+}
+
+___x_cmd_env_go_try(){
+    :
+}
+
+___x_cmd_env_go_use(){
+    :
+}
+
+___x_cmd_env_go_ws(){
+    :
+}
+
+___x_cmd_env_go_current(){
+    :
+}
+
+___x_cmd_env_go_which(){
+    :
+}
+
+___x_cmd_env_go_exec(){
+    :
+}

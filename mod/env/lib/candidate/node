@@ -1,0 +1,154 @@
+# shellcheck shell=sh disable=SC2039,SC1090,SC3043,SC2263,SC2120    # xrc
+
+___X_CMD_ENV_NODE_MIRROR="https://nodejs.org/dist"
+
+# Section: full_version, ls_local, ls_remote
+
+___x_cmd_env_node_full_version(){
+    ___x_cmd_env_node_ls_remote "${1:?Provide node version pattern}" "$2" | awk 'END{ if (NR<=0) { exit(1) } else print $1;}'
+}
+
+___x_cmd_env_node_sort_versions(){
+    sort -t. -u -k 1.2,1n -k 2,2n -k 3,3n
+}
+
+___x_cmd_env_node_ls_remote(){
+    local pattern="${1:-""}"
+    local cache_expiration="${2:-1}"
+    local cache_path="$___X_CMD_ENV_PATH/node/cache/version_list"
+
+	___x_cmd_httpget "$___X_CMD_ENV_NODE_MIRROR/index.tab" "$cache_path" "$cache_expiration" 2>/dev/null && \
+    awk -v pattern="$pattern" -v prev_codename="x-cmd" '
+        ((NR>1)&&($1)){
+            codename=$10
+            version=$1
+            if ( (pattern != "") || ( index( version, pattern ) > 0 ) ) {
+                if (codename ~ /^\-?$/)                                 print version
+                else if (codename!="" && codename != prev_codename)     print version, codename, "*"        # The latest version of this code name
+                else                                                    print version, codename
+            }
+            prev_codename=codename
+        }' <"$cache_path" | ___x_cmd_env_node_sort_versions
+}
+
+# EndSection
+
+# Section: download
+
+___x_cmd_env_node_download_archive(){
+
+    local version="${1:?Provide node version}"
+
+    if ___x_cmd_env_util_is_archive_cached node "$version" 2>/dev/null; then
+        env_log info "Archive existed: $version"
+        return 0
+    fi
+
+    local platform
+    local arch
+    {
+        read -r platform
+        read -r arch
+    } <<A
+$(x os name; x os arch)
+A
+
+    local compression='tar.gz'; [ "${platform}" = 'win' ] && compression='zip' # TODO: tar.xz support
+    local archive_path="$___X_CMD_ENV_PATH/node/archive/node-${version}.${compression}"
+    mkdir -p "$(dirname "$archive_path")"
+
+    # TODO: Consider use config instead of code in the future
+    local version_without_v="${version#v}"
+    if [ "$platform-$arch" = "darwin-arm64" ] && [ "${version_without_v%%.*.*}" -lt 16 ]; then
+        env_log warn "You are using darwin arm64, but node $version is not available for this platform. (node < 16.x)"
+        env_log warn "Use x86_64 instead."
+        arch="x64"
+    fi
+
+    # TODO: node <= 0.1.13 does not have a directory
+    local slug="node-${version}-${platform}-${arch}"
+    local archive_url="${___X_CMD_ENV_NODE_MIRROR}/${version}/${slug}.${compression}"
+    if ! curl -L -C - --progress-bar "${archive_url}" -o "${archive_path}"; then
+        rm -rf "${archive_path}"
+        env_log error "Download from ${archive_url} failed."
+        return 1
+    fi
+
+    # TODO: checksum
+
+    env_log info "Downloaded ${archive_url} to ${archive_path}"
+}
+# EndSection
+
+# Section: unpack
+___x_cmd_env_node_unpack_win(){
+    x uz "$archive_path" "$(dirname "$archive_path")" || return 1
+
+    local version_path="${___X_CMD_ENV_PATH}/node/versions/${version}/bin"
+    mkdir -p "${version_path}" && (
+        mv "${archive_unpack_files}/"*/* "${version_path}" || return 1
+        cd "${version_path}" && chmod +x node.exe npm npx
+        # chmod +x "${version_path}"/npx 2>/dev/null
+    )
+}
+
+___x_cmd_env_node_unpack_other(){
+    local version_path="${___X_CMD_ENV_PATH}/node/versions/${version}"
+    tar -xzf "${archive_path}" -C "${archive_unpack_files}" --strip-components 1 || return 1
+    mkdir -p "${version_path}" && mv "${archive_unpack_files}/"* "${version_path}"
+}
+
+___x_cmd_env_node_unpack(){
+    local version="${1:?Provide node version}"
+    local platform
+    local arch
+    {
+        read -r platform
+        read -r arch
+    } <<A
+$(x os name; x os arch)
+A
+    local compression='tar.gz'; [ "${platform}" = 'win' ] && compression='zip' # TODO: tar.xz support
+    local archive_path="$___X_CMD_ENV_PATH/node/archive/node-${version}.${compression}"
+
+    local archive_unpack_files
+    archive_unpack_files="$(dirname "$archive_path")/node-${version}"
+    mkdir -p "$archive_unpack_files"
+
+    case "$platform" in
+        win)    ___x_cmd_env_node_unpack_win    ;;
+        *)      ___x_cmd_env_node_unpack_other  ;;
+    esac
+    local code=$?
+
+    rm -rf "${archive_unpack_files}"
+    env_log info "Done unpacking!"
+    return $code
+}
+
+# EndSection
+
+# Section: ui_catsel
+
+#TODO: Should be optimized
+___x_cmd_env_node_ui_catsel(){
+    case "$#" in
+        0)
+            ___x_cmd_env_node_ls_remote \
+                | awk '{ split($0,arr," "); if(arr[2]!=""){ vmap[arr[2]]=1 }else if(arr[2]==""){ split(arr[1],varr,"."); vmap[varr[1]]=1 } } END{ for(key in vmap){ print key } }'
+            ;;
+        1)
+            ___x_cmd_env_node_ls_remote | grep "$1" | awk '{ split($0,arr,"."); vmap[arr[1]]=1 } END{ for(key in vmap){print key} }'
+            ;;
+        2)
+            ___x_cmd_env_node_ls_remote | grep "$1" | grep "$2" \
+            | awk -v a="$1" -v b="$2" '{ if( a != b){ print $1 }else{ split($0,arr," "); if(arr[2]==""){ vmap[arr[1]]=1 } } } END{ for(key in vmap){ print key } }'
+            ;;
+    esac
+}
+
+# EndSection
+
+___x_cmd_env_node_ws(){
+    :
+}

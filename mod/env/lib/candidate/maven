@@ -1,0 +1,48 @@
+# shellcheck shell=sh disable=SC2039,SC1090,SC3043,SC2263    # xrc
+
+# download
+___x_cmd_env_maven_ls_remote(){
+    local cache_path="$___X_CMD_ENV_PATH/maven/cache/version_list"
+    local cache_expiration=${2:-1}
+
+    ___x_cmd_httpget "https://archive.apache.org/dist/maven/maven-3/" "$cache_path" "$cache_expiration"  && \
+        awk 'match($0, /href="([0-9.]+)\/"/){print(substr($0,52,5))} ' <"$cache_path"
+}
+
+___x_cmd_env_maven_download_archive(){
+    local version="${1:?Provide a version}"
+    local archive_path="$___X_CMD_ENV_PATH/maven/archive/maven-${version}.zip"
+
+
+    if ___x_cmd_env_util_is_archive_cached maven $version 2>/dev/null; then
+        env_log "Maven-$version have existed,download failed "
+        return 0
+    fi
+
+    mkdir -p "$(dirname "${archive_path}")"
+    download_url="https://archive.apache.org/dist/maven/maven-3/${version}/binaries/apache-maven-${version}-bin.zip"
+    env_log info "Downloading $download_url"
+
+    if ! curl --progress-bar --location --retry-max-time 10 --retry 0 "$download_url" --output "$archive_path" ; then
+        env_log error "Download failure from $download_url"
+        return 1
+    fi
+        env_log info "Download Successfully"
+}
+___x_cmd_env_maven_unpack(){
+    local version="${1:?Provide a version}"
+    env_log info "Unpacking: maven ${version}"
+
+    local archive_path="$___X_CMD_ENV_PATH/maven/archive/maven-${version}.zip"
+    x uz "$archive_path" "$(dirname "$archive_path")" || return 1
+
+
+    local archive_unpack_files
+    archive_unpack_files="$(dirname "$archive_path")/apache-maven-$version"
+
+    local versions_path="$___X_CMD_ENV_PATH/maven/versions"
+    mkdir -p "$versions_path/${version}"
+    mv -f "$archive_unpack_files/"* "$versions_path/${version}"
+    rm -rf "$archive_unpack_files"
+
+}

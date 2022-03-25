@@ -1,0 +1,67 @@
+# Author:       Li Junhao           l@x-cmd.com     # xrc
+# shellcheck    shell=sh            disable=SC3043,SC2164,SC3000-SC4000
+
+# license:      GPLv3
+
+# Inject the environment.
+___x_cmd_env_main() {
+    xrc env/lib/main
+    ___x_cmd_env_main "$@"
+}
+
+
+___x_cmd_env_util_add_path(){
+    local dir="${1:?Provide a directory}"
+    local tmp="$PATH:"
+
+    if [ ! -d "$dir" ] ; then
+        printf "%s\n" "Failed to add path: $dir, not a directory" >&2
+        return 1
+    fi
+
+    local tmp0="${tmp%:"$dir":}"
+    if [ "$tmp" = "$tmp0" ]; then
+        PATH="$dir:$PATH"
+    else
+        local tmp1="${tmp##:"$dir":}"
+        PATH="$dir:$tmp0:$tmp1"
+    fi
+}
+
+___x_cmd_env_main_init_file_load(){
+    mkdir -p "$___X_CMD_ROOT/.env/env"
+    if [ ! -f "$___X_CMD_ROOT/.env/env/use" ]; then
+        return
+    fi
+
+    # PATH="$(tr "\n" ":" < "$___X_CMD_ROOT/.env/env/use"):$PATH"
+    # PATH="${PATH#:}"
+    # PATH="${PATH%:}"
+
+    local line
+    while read -r line; do
+        [ -z "$line" ] && continue
+        ___x_cmd_env_util_add_path "$line"
+    done <"$___X_CMD_ROOT/.env/env/use"
+}
+
+___x_cmd_env_main_init_file_load
+
+# Section: advise ls_version
+
+___x_cmd_env_advise_ls_remote_version(){
+    local candidate_idx="${1:-2}"
+    [ -n "$ZSH_VERSION" ] && candidate_idx=$((candidate_idx+1))
+    # TODO:Here, the previous argument should be obtained through the interface provided by advise
+    x env ls -r "${COMP_WORDS[candidate_idx]}"
+}
+
+___x_cmd_env_advise_ls_local_version(){
+    local candidate_idx="${1:-2}"
+    [ -n "$ZSH_VERSION" ] && candidate_idx=$((candidate_idx+1))
+    x env ls "${COMP_WORDS[candidate_idx]}"
+}
+
+# EndSection
+
+xrc setmain ___x_cmd_env_main

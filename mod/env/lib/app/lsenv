@@ -1,0 +1,62 @@
+# shellcheck shell=sh disable=SC3043,SC2164,SC3000-SC4000
+
+xrc ui/lib/region
+xrc ui/lib/varctl
+
+___x_cmd_ui_lsenv(){
+    ___x_cmd_ui_region_autorefresh_with_keyboard ___x_cmd_ui_lsenv_mainloop_awk
+}
+
+___x_cmd_ui_lsenv_mainloop_awk_(){
+    command awk "$@" \
+        -v CANDIDATE="$CANDIDATE" \
+        -f "$___X_CMD_ROOT/awk/lib/default.awk" \
+        -f "$___X_CMD_ROOT/awk/lib/str.awk" \
+        -f "$___X_CMD_ROOT/awk/lib/wcwidth.awk" \
+        -f "$___X_CMD_ROOT/awk/lib/ui.awk" \
+        -f "$___X_CMD_ROOT/ui/lib/theme.awk" \
+        -f "$___X_CMD_ROOT/ui/lib/share.awk" \
+        -f "$___X_CMD_ROOT/env/lib/app/lsenv.awk"
+        # -f "./lib/app/lsenv.awk"
+}
+
+___x_cmd_ui_lsenv_mainloop_awk(){
+    if [ "$(___x_cmd_awk impl)" = "mawk" ]; then
+        ___x_cmd_ui_lsenv_mainloop_awk_ -W interactive "$@"
+    else
+        ___x_cmd_ui_lsenv_mainloop_awk_ "$@"
+    fi
+}
+
+
+CODE="$(xrc cat awk/lib/default.awk awk/lib/json.awk awk/lib/jiter.awk )"
+
+___x_cmd_ui_get_env_ls(){
+    local kp="${1:-"."}"
+    cat | awk -v keypath="$kp" "$CODE"'
+{
+    jiter_print_eqarr_after_tokenize($0, keypath, "\n", "\n")
+}
+' | awk "$CODE"'
+function print_env_ls(item){
+    if ($0 == "") return
+    if ( PRINT_ENV_LS == 0 ) {
+        if (item !~ /^[\[\{:,]$/) {
+            if (item !~ /^[\]\}]$/) print substr(item, 2, length(item)-2)
+            return
+        }
+        PRINT_ENV_LS = 1
+    }
+    jiter_skip( item )
+    if (JITER_SKIP_LEVEL > 0) return
+    PRINT_ENV_LS = 0
+}
+NR>1{
+    print_env_ls($0)
+}
+'
+}
+
+# echo "___X_CMD_UI_LSENV_FINAL_COMMAND: $___X_CMD_UI_LSENV_FINAL_COMMAND"
+# echo "___X_CMD_UI_LSENV_CURRENT_CANDIDATE: $___X_CMD_UI_LSENV_CURRENT_CANDIDATE"
+# echo "___X_CMD_UI_LSENV_CURRENT_VERSION: $___X_CMD_UI_LSENV_CURRENT_VERSION"

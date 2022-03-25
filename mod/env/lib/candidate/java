@@ -1,0 +1,46 @@
+# shellcheck shell=sh disable=SC2039,SC1090,SC3043,SC2263,SC2120    # xrc
+xrc env/lib/sdk
+
+# Section: Java ls_remote and la
+
+___x_cmd_env_java_ls_remote(){
+	___x_cmd_env_sdk_ls_remote java "$@"
+}
+
+# EndSection
+
+# Section: download, unpack
+
+___x_cmd_env_java_download_archive(){
+   ___x_cmd_env_sdk_download_archive java "$@"
+}
+
+___x_cmd_env_java_unpack(){
+	___x_cmd_env_sdk_unpack java "$@"
+}
+
+# EndSection
+
+# Section: ui_catsel
+
+#TODO: Should be optimized
+___x_cmd_env_java_ui_catsel(){
+    case "$#" in
+        0)
+            ___x_cmd_env_java_ls_remote \
+                | awk '{ split($0,arr,"-"); if(arr[2]!=""){ vmap[arr[2]]=1 } } END{ for(key in vmap){print key} }'
+            ;;
+        1)
+            ___x_cmd_env_java_ls_remote | grep "$1" | awk '{ split($0,arr,"."); vmap[arr[1]]=1 } END{ for(key in vmap){print key} }'
+            ;;
+        2)
+            ___x_cmd_env_java_ls_remote | grep "$1" | grep ^"$2" | awk '{ print $1 }'
+            ;;
+    esac
+}
+
+# EndSection
+
+___x_cmd_env_java_ws(){
+    :
+}

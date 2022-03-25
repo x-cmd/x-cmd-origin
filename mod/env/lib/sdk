@@ -1,0 +1,136 @@
+# shellcheck shell=sh disable=SC2039,SC1090,SC3043,SC2263    # xrc
+
+# Section: sdkman utils
+
+___X_CMD_ENV_SDK_PLATFORM="$(xrc os && printf "%s%s" "$(___x_cmd_os name)" "$(___x_cmd_os arch)" | tr '[:lower:]' '[:upper:]' )"
+case $___X_CMD_ENV_SDK_PLATFORM in
+	WIN*)  ___X_CMD_ENV_SDK_PLATFORM=$(uname -s)         ;;
+esac
+
+__sdkman_echo_debug() {
+	env_log debug "$1"
+}
+
+__sdkman_echo() {
+	printf "\033[1;%s\033[0m\n" "$1$2"
+}
+
+__sdkman_echo_red() {
+	__sdkman_echo "31m" "$1"
+}
+
+__sdkman_echo_no_colour() {
+	printf "%s\n" "$1"
+}
+
+__sdkman_echo_yellow() {
+	__sdkman_echo "33m" "$1"
+}
+
+__sdkman_echo_green() {
+	__sdkman_echo "32m" "$1"
+}
+
+__sdkman_echo_cyan() {
+	__sdkman_echo "36m" "$1"
+}
+
+# EndSection
+
+# Section: sdk ls_remote and la
+
+___x_cmd_env_sdk_sort_versions(){
+	sort -t . -n
+}
+
+___x_cmd_env_sdk_ls_remote(){
+    local candidate="${1:?Provide canddidate}"
+	# local pattern="${2:-""}"	# TODO: ls remote filter
+	local cache_expiration="${3:-1}"
+	local cache_path="$___X_CMD_ENV_PATH/$candidate/cache/version_list"
+
+	___x_cmd_httpget "https://api.sdkman.io/2/candidates/$candidate/${___X_CMD_ENV_SDK_PLATFORM}/versions/all" "$cache_path" "$cache_expiration" 2>/dev/null && \
+	awk 'BEGIN{ RS=","} { print $0 }' <"$cache_path" | ___x_cmd_env_sdk_sort_versions | uniq
+}
+
+# EndSection
+
+# Section: download, unpack
+
+___x_cmd_env_sdk_download_archive(){
+	local candidate="${1:?Provide canddidate}"
+    local version="${2:?Provide a version}"
+	if ___x_cmd_env_util_is_archive_cached "$candidate" "$version" 2>/dev/null; then
+        env_log info "Archive existed: $version"
+        return 0
+    fi
+
+	mkdir -p "$___X_CMD_ENV_PATH/$candidate/tmp"
+	mkdir -p "$___X_CMD_ENV_PATH/$candidate/versions"
+
+	local archive_folder="$___X_CMD_ENV_PATH/$candidate/archive"
+	local metadata_folder="$___X_CMD_ENV_PATH/$candidate/var/metadata"
+	mkdir -p "$archive_folder"  "${metadata_folder}"
+
+	local base_name="$candidate-${version}"
+	local zip_archive_target="$___X_CMD_ENV_PATH/$candidate/archive/${base_name}.zip"
+
+	local pre_installation_hook="$___X_CMD_ENV_PATH/$candidate/tmp/hook_pre_${candidate}_${version}.sh"
+
+	env_log debug "Get pre-installation hook: https://api.sdkman.io/2/hooks/pre/$candidate/${version}/${___X_CMD_ENV_SDK_PLATFORM}"
+	curl --silent --location "https://api.sdkman.io/2/hooks/pre/$candidate/${version}/${___X_CMD_ENV_SDK_PLATFORM}" > "$pre_installation_hook"
+	env_log debug "Copy remote pre-installation hook: $pre_installation_hook"
+	. "$pre_installation_hook"
+
+	export local binary_input="$___X_CMD_ENV_PATH/$candidate/tmp/${base_name}.bin"
+	export local zip_output="$___X_CMD_ENV_PATH/$candidate/tmp/$base_name.zip"
+
+	env_log info "Downloading: $candidate ${version}"
+	env_log info "In progress..."
+
+	# download binary
+	local download_url="https://api.sdkman.io/2/broker/download/$candidate/${version}/${___X_CMD_ENV_SDK_PLATFORM}"
+	local headers_file="${metadata_folder}/${base_name}.headers"
+
+	curl --progress-bar --location --retry-max-time 10 --retry 0 "${download_url}" --output "${binary_input}" --dump-header "${headers_file}"
+	env_log debug "Downloaded binary to: ${binary_input} (HTTP headers written to: ${headers_file})"
+
+	local post_installation_hook="$___X_CMD_ENV_PATH/$candidate/tmp/hook_post_${candidate}_${version}.sh"
+
+	env_log debug "Get post-installation hook: https://api.sdkman.io/2/hooks/post/$candidate/${version}/${___X_CMD_ENV_SDK_PLATFORM}"
+	curl --silent --location "https://api.sdkman.io/2/hooks/post/$candidate/${version}/${___X_CMD_ENV_SDK_PLATFORM}" > "$post_installation_hook"
+	env_log debug "Copy remote post-installation hook: ${post_installation_hook}"
+	. "$post_installation_hook"
+	__sdkman_post_installation_hook || return 1
+	env_log debug "Processed binary as: $zip_output"
+	env_log debug "Completed post-installation hook..."
+
+	mv -f "$zip_output" "$zip_archive_target"
+
+	env_log debug "Moved to archive folder: $zip_archive_target"
+	env_log info "Download complete $candidate $version"
+}
+
+___x_cmd_env_sdk_unpack(){
+	local candidate="${1:?Provide canddidate}"
+    local version="${2:?Provide a version}"
+    env_log info "Unpacking: $candidate ${version}"
+
+    local archive_path="$___X_CMD_ENV_PATH/$candidate/archive/$candidate-$version.zip"
+    local archive_unpack_files
+    archive_unpack_files="$(dirname "$archive_path")/$candidate-$version"
+
+	x uz "$archive_path" "$archive_unpack_files" || return 1
+
+    local versions_path="$___X_CMD_ENV_PATH/$candidate/versions"
+	mkdir -p "$versions_path/${version}"
+	mv -f "$archive_unpack_files"/*/* "$versions_path/${version}"
+	rm -rf "$archive_unpack_files"
+	env_log info "Done unpacking!"
+}
+
+# EndSection
+
+___x_cmd_env_sdk_ws(){
+    :
+}

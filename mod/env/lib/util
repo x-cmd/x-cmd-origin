@@ -1,0 +1,91 @@
+# shellcheck shell=sh disable=SC2039,SC1090,SC3043,SC2263    # xrc
+
+___x_cmd_env_util_is_downloaded(){
+    local candidate="${1:?Provide candidate}"
+    local version="${2:?Provide version}"
+
+    if [ ! -d "$___X_CMD_ENV_PATH/${candidate}/versions/${version}" ]; then
+        env_log error "${candidate} of ${version} does not exist !"
+        return 1
+    fi
+    return 0
+}
+
+___x_cmd_env_util_is_archive_cached(){
+    local candidate="${1:?Provide candidate}"
+    local version="${2:?Provide version}"
+
+    if [ -z "$(find "$___X_CMD_ENV_PATH/$candidate/archive" -name "$candidate-$version.*")" ]; then
+        env_log error "The archive of ${candidate} ${version} does not exist !"
+        return 1
+    fi
+
+    return 0
+}
+
+# Section(shims): make_shim_dir
+
+___x_cmd_env_util_shims_which_version(){
+    local candidate="${1:?Provide candidate}"
+
+    local cur
+    cur=$(pwd)
+    while [ ! "$cur" = "" ]; do
+        if [ -f "$cur/.x-cmd/.env/$candidate/version" ]; then
+            version=$(cat "$cur/.x-cmd/.env/$candidate/version")
+            printf "%s\n" "$version"
+            return 0
+        fi
+        cur=${cur%/*}
+    done
+
+    # Not in home directory
+    if [ -f "$___X_CMD_ENV_PATH/$candidate/version" ]; then
+        cat "$___X_CMD_ENV_PATH/$candidate/version"
+        return 0
+    fi
+
+    return 1
+}
+
+___x_cmd_env_util_make_shim_dir(){
+    local candidate="${1:?Provide candidate}"
+    local version="${2:?Provide version}"
+    local version_path=".x-cmd/.env/$candidate/version"
+    local versions_path="$___X_CMD_ENV_PATH/$candidate/versions"
+
+    if [ ! -d "$versions_path/$version" ]; then
+        env_log error "Versions path not found: $versions_path/$version"
+        return 1
+    fi
+
+    rm -rf "${___X_CMD_ENV_PATH}/$candidate/shims"
+    mkdir -p "${___X_CMD_ENV_PATH}/$candidate/shims"
+
+    for name in "${versions_path}/${version}/bin/"* ; do
+        printf "%s\n" "$(cat <<A
+#!/usr/bin/env sh
+set -e
+
+cur=\$(pwd)
+while [ ! "\$cur" = "" ]; do
+    if [ -f "\$cur/$version_path" ]; then
+        version=\$(cat "\$cur/$version_path")
+        exec $versions_path/\$version/bin/${name##*/} "\$@"
+        return 0
+    fi
+    cur=\${cur%/*}
+done
+
+if [ -f $___X_CMD_ENV_PATH/$candidate/version ]; then
+    version=\$(cat $___X_CMD_ENV_PATH/$candidate/version)
+    exec $versions_path/\$version/bin/${name##*/} "\$@"
+    return 0
+fi
+## TODO: no found
+A
+)">"$___X_CMD_ENV_PATH/$candidate/shims/${name##*/}"
+        chmod +x "$___X_CMD_ENV_PATH/$candidate/shims/${name##*/}"
+    done
+}
+# EndSection

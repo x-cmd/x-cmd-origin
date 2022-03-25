@@ -1,0 +1,275 @@
+# shellcheck shell=sh
+# shellcheck disable=SC2039,3043
+
+# define lazy loader
+# ___x_cmd_definelazyloader   ___x_cmd_gt_repo_ls             gt/lib/repo/main
+
+___x_cmd_gt_user(){
+    param:scope     "gitee/$O"
+    param:dsl       '
+subcmd:
+    info        "Show information"
+    repo        "List all repos"
+    email       "Show user email"
+    issue       "List all issues"
+    key         "user key management"
+'
+    param:run
+    if [ -z "$PARAM_SUBCMD" ]; then
+        gt_log warn "Subcmd Not Found."
+        ___x_cmd_gt_user _param_help_doc
+        return 1
+    fi
+
+    # list issues of user
+    # list repo of user
+    ___x_cmd_gt_user_"${PARAM_SUBCMD}" "$@"
+}
+
+# Section: info repo email issue
+# shellcheck disable=SC2154
+___x_cmd_gt_user_info() {
+    param:scope     "gitee/$O"
+    param:dsl       '
+options:
+    #1              "Username, if not set, show the user information of current owner, or owner of this token"
+'
+    param:run
+
+    local owner="$1"
+    local data
+    if [ -z "$owner" ]; then
+        data=$(___x_cmd_gt_http get "/v5/user" )
+    else
+        data=$(___x_cmd_gt_http get "/v5/users/$1")
+    fi
+    printf "%s" "$data" \ |
+    {
+        ___x_cmd_git_json_query_rename name=.login email=.email html_url=.html_url types=.type
+        if [ -n "$name" ]; then
+             ___x_cmd_ui_tf true    "Success" "name: $name" "email: $email" "url: $html_url" "type: $types"
+             return 0
+        else
+             ___x_cmd_ui_tf false   "Couldn't find any data"
+            return 1
+        fi
+    }
+}
+
+# https://gitee.com/api/v5/swagger#/getV5UserRepos
+# ___x_cmd_gt_user_repo_list() {
+___x_cmd_gt_user_repo() {
+    param:scope     "gitee/$O"
+    param:dsl       '
+type:
+    Authority = all public private
+    Group = owner collaborator organization_member enterprise_member admin
+    Sort = created updated pushed full_name
+    Direction = desc asc
+subcmd:
+    ls              "list repo of the designated user"
+options:
+    --visibility    "visibility"        <>:Authority="all"
+    --affiliation   "affiliation"       <>:Group="owner"
+    --sort          "sort"              <>:Sort="created"
+    --direction     "direction"         <>:Direction="desc"
+    --page          "page"              <>:number=1
+    --per_page      "per_page"          <>:number=20
+'
+    param:run
+
+    local url
+    if [ "$#" -gt 0 ]; then
+        url="/v5/users/$1/repos"
+    else
+        url="/v5/user/repos"
+    fi
+
+    if [ -t 1 ]; then
+        if ___ui_table_json Id=.id Name=.name Owner=.owner.login Url=.html_url \
+            -- ___x_cmd_gt_get_multi "$url" visibility affiliation sort direction; then
+            return 0
+        fi
+    else
+        ___x_cmd_gt_get_multi "$url" visibility affiliation sort direction && \
+            return 0
+    fi
+    gt_log error "Couldn't find any data"
+    return 1
+}
+
+# https://gitee.com/api/v5/swagger#/getV5Emails
+___x_cmd_gt_user_email(){
+    param:scope     "gitee/$O"
+    param:dsl       '
+options:
+    --page          "page"                        <>:number=1
+    --per_page      "per_page"                    <>:number=20
+'
+    param:run
+
+    if [ -t 1 ]; then
+        if ___ui_table_json Email=.email State=.state \
+            -- ___x_cmd_gt_get_multi "/v5/emails"; then
+            return 0
+        fi
+    else
+        ___x_cmd_gt_get_multi "/v5/emails" && \
+            return 0
+    fi
+    gt_log error "Couldn't find any data"
+    return 1
+}
+
+___x_cmd_gt_user_issue(){
+    param:scope     "gitee/$O"
+    param:dsl       '
+type:
+    Screen = all assigned created
+    Sort = all open progerssing closed rejected
+    Direction = desc asc
+options:
+    --filter        "filter(assigned,created,all)"                 <>:Screen="assigned"
+    --state         "state(open,progerssing,closed,rejected)"      <>:Sort="open"
+    --direction     "direction(asc、desc)"                         <>:Direction="desc"
+
+    --page          "page"                                         <>:number=1
+    --per_page      "per_page"                                     <>:number=20
+    --labels        "labels"                                       <>=""
+    --since         "since"                                        <>=""
+    --schedule      "schedule"                                     <>=""
+    --deadline      "deadline"                                     <>=""
+    --created_at    "create date"                                  <>=""
+    --finished_at   "finish date"                                  <>=""
+'
+    param:run
+
+    if [ -t 1 ]; then
+        if ___ui_table_json ID=.number State=.issue_state Assigner=.assignee.name \
+            Repo=.repository.full_name Type=.issue_type Title=.title Url=.html_url \
+            -- "___x_cmd_gt_get_multi" "/v5/user/issues" filter state direction labels \
+                since schedule deadline created_at finished_at; then
+            return 0
+        fi
+    else
+        ___x_cmd_gt_get_multi "/v5/user/issues" filter state direction labels \
+                since schedule deadline created_at finished_at && \
+            return 0
+    fi
+    gt_log error "Couldn't find any data"
+    return 1
+}
+
+# EndSection
+
+# Section: key
+
+# generate a key by openssl, then save it in the x-cmd cloud.
+___x_cmd_gt_user_key(){
+    param:scope     "gitee/$O"
+    param:dsl       '
+subcmd:
+    ls          "List all key"
+    add         "Add key"
+    get         "Get one key"
+    del         "Delete key"
+'
+    param:run
+
+    if [ -z "$PARAM_SUBCMD" ]; then
+        gt_log warn "Subcmd Not Found."
+        ___x_cmd_gt_user_key _param_help_doc
+        return 1
+    fi
+
+    # list issues of user
+    # list projects of user
+
+    "___x_cmd_gt_user_key_${PARAM_SUBCMD}" "$@"
+}
+
+___x_cmd_gt_user_key_ls(){
+    param:scope     "gitee/$O"
+    param:dsl       '
+options:
+    --page        "page"                    <>:number=1
+    --per_page    "per_page"                <>:number=20
+'
+    param:run
+
+    if [ -t 1 ]; then
+        if ___ui_table_json Id=.id Title=.title Key=.key Url=.url \
+            -- "___x_cmd_gt_get_multi" "/v5/user/keys"; then
+            return 0
+        fi
+    else
+        ___x_cmd_gt_get_multi "/v5/user/keys" && \
+            return 0
+    fi
+    gt_log error "Couldn't find any data"
+    return 1
+}
+
+# shellcheck disable=SC2154
+___x_cmd_gt_user_key_get(){
+    param:scope     "gitee/$O"
+    param:dsl       '
+options:
+    --id        "provided key id"       <>:number
+'
+    param:run
+
+    ___x_cmd_gt_http get "v5/user/keys/$id" | \
+    {
+        ___x_cmd_git_json_query_rename key=.key
+        if [ -n "$key" ]; then
+            printf "%s" "$key"                        && return 0
+        else
+            gt_log error "Couldn't find key by $id"   && return 1
+        fi
+    }
+}
+
+# shellcheck disable=SC2181
+___x_cmd_gt_user_key_del(){
+    param:scope     "gitee/$O"
+    param:dsl       '
+options:
+    #1|--id        "provided key id"           <>:number
+'
+    param:run
+
+    # TODO:http handle，delete repo return data is null.Status: 204 No Content
+    if ___x_cmd_gt_http delete "/v5/user/keys/$id" >/dev/null; then
+        ___x_cmd_ui_tf true  "Deleted key successfully"
+    else
+        ___x_cmd_ui_tf false "Deleting key failure by $id."
+        return 1
+    fi
+}
+
+# shellcheck disable=SC2154
+___x_cmd_gt_user_key_add(){
+    param:scope     "gitee/$O"
+    param:dsl       '
+options:
+    --key       "add key"                   <>
+    --title     "add key title"             <>
+'
+    param:run
+    local gen_gt_json
+    gen_gt_json="$(param:option2json)"
+
+    ___x_cmd_gt_http post "/v5/user/keys" "$gen_gt_json" | \
+    {
+        ___x_cmd_git_json_query_rename "$data" id=.id title=.title key=.key
+        if [ -n "$id" ]; then
+            ___x_cmd_ui_tf true  "Success" "Id: $id" "title: $title" "key: $key"
+            return 0
+        else
+            ___x_cmd_ui_tf false "Add user key failure."
+            return 1
+        fi
+    }
+}
+

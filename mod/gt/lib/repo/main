@@ -1,0 +1,388 @@
+# shellcheck shell=sh
+# shellcheck disable=SC2039,3043
+
+___x_cmd_gt_repo(){
+    param:scope     "gitee/$O"
+    param:dsl       '
+subcmd:
+    create          "Create repo"
+    ls              "List repo of owner"
+    info            "Show detailed information of repo"
+    update          "Setup repo configure"
+    rm              "Remove repo"
+    clear           "Clear repo"
+    review          "Setup review repo configure"
+    issue           "List repo issue or Show the repo issue info"
+    branch          "repo branch management"
+'
+    param:run
+    if [ -z "$PARAM_SUBCMD" ]; then
+        gt_log warn "Subcmd Not Found."
+        ___x_cmd_gt_repo _param_help_doc
+        return 1
+    fi
+
+    "___x_cmd_gt_repo_${PARAM_SUBCMD}" "$@"
+}
+
+# Section: create
+# shellcheck disable=SC2154
+___x_cmd_gt_repo_create() {
+    local O="${O:-GITEE_DEFAULT}"
+
+    param:scope     "gitee/$O"
+    param:dsl       '
+option:
+    #n                      "repo names"                    <>:RepoName
+
+    --path|-p               "repo path"                     <>=""
+    --description           "description"                   <>=""
+    --homepage              "homepage"                      <>=""
+    --access                "private,public"                <>:RepoAccess=private
+    --gitignore_template    "Git Ignore"                    <>:Ignore=""
+    --license_template      "license"                       <>:License=""
+    --no_issue              "Provide issue"
+    --no_wiki               "Provide wiki"
+    --no_comment            "Provide can_comment"
+    --no_auto_init          "Not auto init README"
+'
+
+    param:run
+    [ $# -eq 0 ] && gt_log error "Repo name is empty" && return 1
+
+    local private
+    case "$access" in
+        public)     private=false ;;
+        private)    private=true ;;
+    esac
+    local name="%%name%%"
+    local gen_gt_json
+    gen_gt_json="$(
+        param:option2json +private -access \
+            has_issues=^no_issue        has_wiki=^no_wiki \
+            can_comment=^no_comment     auto_init=^no_auto_init)"
+
+    # TODO: gen json put name
+    for name in "$@"; do
+        printf "%s" "${gen_gt_json}" | sed s/%%name%%/"${name##%/}"/g | \
+            ___x_cmd_gt_http post "/v5/user/repos" - | \
+            ___x_cmd_gt_repo_create_status_handler
+    done
+}
+
+# shellcheck disable=SC2154
+___x_cmd_gt_repo_create_status_handler() {
+    if [ ! -t 1 ] || [ -n "$ENFORCE_JSON" ]; then
+        cat
+        return
+    fi
+
+    ___x_cmd_git_json_query_rename repo_id=.id url=.html_url repo_owner=.owner.login
+    if [ -n "$repo_id" ]; then
+        ___x_cmd_ui_tf true  "Creating repo $name successfully" "repo_id: $repo_id" "repo_owner: $repo_owner" "url: $url"
+    else
+        ___x_cmd_ui_tf false "Creating repo failure: $name."
+        return 1
+    fi
+}
+
+# ORGANIZATION NAME
+# shellcheck disable=SC2154,SC2034
+# https://gitee.com/api/v5/swagger#/postV5OrgsOrgRepos
+___x_cmd_gt_org_repo_create() {
+    # TODO: I don't know what does path means for an organization repo
+    # path is null default repo name as path
+    param:scope     "gitee/$O"
+    param:dsl       '
+option:
+    #n                      "repo names"
+    --org                   "organization space path"       <>:OrgSpaceName
+
+    --description           "description"                   <>=""
+    --access                "private,public,innerSource"    <>:ExtraAccess=private
+    --homepage              "homepage"                      <>:Address=""
+    --gitignore_template    "Git Ignore"                    <>:Ignore=""
+    --license_template      "license"                       <>:License=""
+    --no_issue              "Provide issue"
+    --no_wiki               "Provide wiki"
+    --no_comment            "Provide can_comment"
+    --no_auto_init          "auto init README"
+    -p|--path               "repo path"                     <>:RepoPath=""
+'
+    param:run
+
+    case "$access" in
+        private)        private=0 ;;
+        public)         private=1 ;;
+        innerSource)    private=2 ;;
+    esac
+
+    local name="%%name%%"
+    local gen_gt_json
+    gen_gt_json="$(
+        param:option2json +private -access \
+            has_issues=^no_issue            has_wiki=^no_wiki \
+            can_comment=^no_comment         auto_init=^no_auto_init )"
+
+    # TODO: owner may be personal
+    for name in "$@"; do
+        printf "%s" "${gen_gt_json}" | sed s/%%name%%/"${name##%/}"/g | \
+            ___x_cmd_gt_http post "/v5/orgs/$org/repos" - | \
+            ___x_cmd_gt_org_repo_create_status_handler
+    done
+}
+
+___x_cmd_gt_org_repo_create_status_handler() {
+    if [ ! -t 1 ] || [ -n "$ENFORCE_JSON" ]; then
+        cat
+        return
+    fi
+
+    ___x_cmd_git_json_query_rename url=.html_url
+    if [ -n "$url" ]; then
+        ___x_cmd_ui_tf true     "Creating repo $name successfully" "url: $url"
+    else
+        ___x_cmd_ui_tf false    "Creating repo failure: $name."
+        return 1
+    fi
+}
+
+# https://gitee.com/api/v5/swagger#/postV5EnterprisesEnterpriseRepos
+# shellcheck disable=SC2154,SC2034
+___x_cmd_gt_enterprise_repo_create() {
+    param:scope     "gitee/$O"
+    param:dsl       '
+type:
+    Access  =   private public innerSource
+option:
+    #n                      "repo names"
+    --enterprise            "enterprise space address"          <>:EnterpriseSpaceName
+
+    --Access                "private,public,innerSource"        <>:EnterpriseRepoAccess=private
+    --description           "description"                       <>=""
+    --homepage              "homepage"                          <>:Address=""
+    --no_issue              "Provide issue"
+    --no_wiki               "Provide wiki"
+    --no_comment            "Provide can_comment"
+    --no_auto_init          "auto init README"
+    --outsourced            "Provide outsourced"
+    --gitignore_template    "Git Ignore"                        <>:Ignore=""
+    --license_template      "license"                           <>:License=""
+    --project_creator       "Provide project_creator"           <>=""
+    --members               "Provide members(name or email)"    <>=""
+    -p|--path               "repo path"                         <>:RepoPath=""
+'
+    param:run
+
+    case "$access" in
+        private)        private=0 ;;
+        public)         private=1 ;;
+        innerSource)    private=2 ;;
+    esac
+    local name="%%name%%"
+    local outsourced="${outsourced:-false}"
+    local gen_gt_json
+    gen_gt_json="$(
+        param:option2json +private -access \
+        has_issues=^no_issue            has_wiki=^no_wiki              outsourced=^^outsourced \
+        can_comment=^no_comment         auto_init=^no_auto_init)"
+
+    for name in "$@"; do
+        printf "%s" "${gen_gt_json}" | sed s/%%name%%/"${name##%/}"/g | \
+            ___x_cmd_gt_http post "/v5/enterprises/${enterprise##*/}/repos" - |
+            ___x_cmd_gt_enterprise_repo_create_status_handler
+    done
+    return 0
+}
+
+___x_cmd_gt_enterprise_repo_create_status_handler() {
+    if [ ! -t 1 ] || [ -n "$ENFORCE_JSON" ]; then
+        cat
+        return
+    fi
+
+    ___x_cmd_git_json_query_rename url=.html_url
+    if [ -n "$url" ]; then
+        ___x_cmd_ui_tf true     "Creating repo $name successfully" "url: $url"
+    else
+        ___x_cmd_ui_tf false    "Creating repo failure: $name."
+        return 1
+    fi
+}
+# EndSection
+
+# Section: list
+# shellcheck disable=SC2154,SC2145
+___x_cmd_gt_repo_ls() {
+    param:void
+    local owner_type
+    if [ $# -eq 0 ];then
+        owner_type=user
+    else
+        local owner="$1"
+        owner_type="$(______x_cmd_gt_owner_type_query "$owner")"
+    fi
+
+    ___x_cmd_gt_"${owner_type}"_repo ls "$@" && return 0
+    return 1
+}
+# EndSection
+
+# Section: update
+
+# shellcheck disable=SC2154,SC2034
+# TODO: https://gitee.com/api/v5/swagger#/patchV5ReposOwnerRepo need to design
+___x_cmd_gt_repo_update() {
+    param:scope     "gitee/$O"
+    param:dsl       '
+type:
+    Access  =   private public
+options:
+    #1|--repo               "Provide owner name and repo name.(default:the current user repo)"      <>:RepoName
+
+    --access                "private,public"                                                        <>:Access=private
+    --name                  "rename repo"                                                           <>=""
+    --path|-p               "repo path"                                                             <>=""
+    --description           "repo description"                                                      <>=""
+    --homepage              "homepage"                                                              <>=""
+    --default_branch        "repo default branch"                                                   <>=""
+    --no_issue              "Provide issue"
+    --no_wiki               "Provide wiki"
+    --no_comment            "Provide can comment"
+    --no_security_hole      "Provide issue security"
+    --no_pull_requests      "Provide pull request"
+    --no_online_edit        "Provide online edit"
+    --no_lightweight_pr     "Provide lightweight pr"
+'
+    param:run
+    [ $# -eq 0 ] && gt_log error "Repo name is empty" && return 1
+
+    local private
+    case "$access" in
+        public)     private=false ;;
+        private)    private=true ;;
+    esac
+    [ -z "$name" ] && name=${repo##*/}
+    ___x_cmd_gt_param_init_owner_repo
+    local gen_gt_json
+    gen_gt_json="$(
+        param:option2json +repo +private -access \
+            has_issues=^no_issue                        has_wiki=^no_wiki \
+            can_comment=^no_comment                     security_hole_enabled=^no_security_hole \
+            pull_requests_enabled=^no_pull_requests     lightweight_pr_enabled=^no_lightweight_pr  \
+            no_online_edit=^no_online_edit)"
+
+    ___x_cmd_gt_http patch "/v5/repos/${owner_repo}" "$gen_gt_json" | \
+    {
+        ___x_cmd_git_json_query_rename url=.html_url
+        if [ -n "$url" ]; then
+            ___x_cmd_ui_tf true     "Update $name successfully" "url: $url"
+        else
+            ___x_cmd_ui_tf false    "Update failure: $name."
+            return 1
+        fi
+    }
+}
+# EndSection
+
+# Section: info
+# shellcheck disable=SC2154
+___x_cmd_gt_repo_info() {
+    param:scope     "gitee/$O"
+    param:dsl       '
+options:
+    #1|--repo          "Provide owner name and repo name.(default:the current user repo)"   <>:RepoName
+'
+    param:run
+
+    # get owner_repo by repo
+    ___x_cmd_gt_param_init_owner_repo
+    ___x_cmd_gt_http get "/v5/repos/${owner_repo}" | \
+    {
+        ___x_cmd_git_json_query_rename id=.id name=.name html_url=.html_url
+        if [ -n "$id" ]; then
+             ___x_cmd_ui_tf true    "Success" "id: $id" "name: $name" "url: $html_url"
+             return 0
+        else
+             ___x_cmd_ui_tf false   "Couldn't find any repo: $owner_repo"
+            return 1
+        fi
+    }
+}
+
+# Section: del & clear
+# https://gitee.com/api/v5/swagger#/deleteV5ReposOwnerRepo
+# shellcheck disable=SC2181,SC2154
+___x_cmd_gt_repo_rm() {
+    # TODO: -y force del
+    param:scope     "gitee/$O"
+    param:dsl       '
+options:
+    #n      "Provide repo list"    <>
+'
+    param:run
+
+    local i
+    for i in "$@"; do
+        ___x_cmd_gt_param_normalize_repo "$i"
+        # TODO:http handle，delete repo return data is null.Status: 204 No Content
+        if ___x_cmd_gt_http delete "/v5/repos/$owner_repo" >/dev/null; then
+            ___x_cmd_ui_tf true  "Deleting repo $i successfully"
+        else
+            ___x_cmd_ui_tf false "Deleting repo failure: $i. Probably because it desn't exists."
+            return 1
+        fi
+    done
+}
+
+# shellcheck disable=SC2181
+___x_cmd_gt_repo_clear() {
+    param:scope     "gitee/$O"
+    param:dsl       '
+options:
+    #1|--repo          "Provide owner name and repo name.(default:the current user repo)"   <>:RepoName
+'
+    param:run
+
+    ___x_cmd_gt_param_init_owner_repo
+
+    # TODO:http handle，delete repo return data is null.Status: 204 No Content
+    if ___x_cmd_gt_http put "/v5/repos/${owner_repo}/clear" >/dev/null; then
+        ___x_cmd_ui_tf true   "Clearing repo ${owner_repo} successfully"
+    else
+        ___x_cmd_ui_tf false  "Clearing repo failure: ${owner_repo}"
+        return 1
+    fi
+}
+# EndSection
+
+# Section: pr review config
+
+# shellcheck disable=SC2154,SC2181
+___x_cmd_gt_repo_review(){
+    param:scope     "gitee/$O"
+    param:dsl       '
+options:
+    #1|--repo             "Provide owner name and repo name.(default:the current user repo)"   <>:RepoName
+    --assignees           "assignees username"                                                 <>:UserName
+    --testers             "testers usrename"                                                   <>:UserName
+    --assignees_number    "number of reviewers"                                                <>:NatureNumber="1"
+    --testers_number      "number of people tested"                                            <>:NatureNumber="1"
+'
+    param:run
+    ___x_cmd_gt_param_init_owner_repo
+    local gen_gt_json
+    gen_gt_json="$(param:option2json)"
+
+    ___x_cmd_gt_http put "/v5/repos/${owner_repo}/reviewer" "$gen_gt_json" | \
+    {
+        ___x_cmd_git_json_query_rename name=.name
+        if [ -n "$name" ]; then
+            ___x_cmd_ui_tf true   "Setuping ${owner_repo} review configure successfully"
+        else
+            ___x_cmd_ui_tf false  "Setuping repo review configure failure: ${owner_repo}"
+            return 1
+        fi
+    }
+}
+# EndSection

@@ -1,0 +1,66 @@
+# shellcheck shell=sh
+# shellcheck disable=SC2039,3043
+# Section : attachment
+
+___x_cmd_gt_repo_release_attachment(){
+    param:dsl    <<A
+subcmd:
+    ls              "List release's attachment"
+    add             "Upload attachment"
+    rm              "Remove attachment"
+A
+
+    if [ -z "$PARAM_SUBCMD" ]; then
+        gt_log warn "Subcmd Not Found."
+        ___x_cmd_gt_repo_release_attachment _param_help_doc
+        return 1
+    fi
+
+    "___x_cmd_gt_repo_release_attachment_${PARAM_SUBCMD}" "$@"
+}
+
+# Section: main
+___x_cmd_gt_repo_release_attachment_ls() {
+
+    local O="${O:-GITEE_DEFAULT}"
+
+    param:scope     "gitee/$O"
+    param:dsl    '
+options:
+    #1|--release        "Release ID"                <>:number
+'
+    param:run
+
+    ______x_cmd_gt_repo_release_init_owner_repo_and_release
+}
+
+# Provide multiple files
+___x_cmd_gt_repo_release_attachment_add() {
+
+    local O="${O:-GITEE_DEFAULT}"
+    param:scope     "gitee/$O"
+    param:dsl    '
+options:
+    #1|--release        "Release ID"                <>:number
+'
+    param:run
+
+    ______x_cmd_gt_repo_release_init_owner_repo_and_release
+}
+
+# Delete the file in attachment list
+___x_cmd_gt_repo_release_attachment_rm() {
+
+    local O="${O:-GITEE_DEFAULT}"
+
+    param:scope     "gitee/$O"
+    param:dsl    '
+options:
+    #1|--release        "Release ID"                <>:number
+'
+    param:run
+
+    ______x_cmd_gt_repo_release_init_owner_repo_and_release
+}
+
+# EndSection

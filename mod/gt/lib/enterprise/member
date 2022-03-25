@@ -1,0 +1,160 @@
+# shellcheck shell=sh
+# shellcheck disable=SC2039,3043
+
+# Should be like this.
+# gt repo member add el:admin
+# gt repo member remove user-a
+# gt repo member add user-b
+
+# gt repo member +el:admin -user-a +user-b
+___x_cmd_gt_enterprise_member(){
+    param:dsl       '
+subcmd:
+    ls              "List member"
+    user            "Show member user info"
+    add             "Add member"
+    rm              "Remove member"
+    access          "Setup the member access"
+'
+    param:run
+
+    if [ -z "$PARAM_SUBCMD" ]; then
+        gt_log error "subcmd not found. show help."
+        return 0
+    fi
+
+    "___x_cmd_gt_enterprise_member_$PARAM_SUBCMD" "$@"
+}
+
+# shellcheck disable=SC2154
+___x_cmd_gt_enterprise_member_ls() {
+    param:scope     "gitee/$O"
+    param:dsl       '
+options:
+    --enterprise    "enterprise space address"          <>:Address
+    --role          "role type"                         <>:UserRole="all"
+    --page          "page"                              <>:number=1
+    --per_page      "per_page"                          <>:number=20
+'
+    param:run
+
+    if [ -t 1 ]; then
+        if ___ui_table_json NameSpace=.user.login Name=.user.name MarkName=.remark IsOutSourced=.outsourced Role=.role \
+            -- "___x_cmd_gt_get_multi" "/v5/enterprises/${enterprise##*/}/members" role page per_page; then
+            return 0
+        fi
+    else
+        ___x_cmd_gt_get_multi "/v5/enterprises/${enterprise##*/}/members" role page per_page && \
+            return 0
+    fi
+    gt_log error "Couldn't find any data by $enterprise"
+    return 1
+}
+
+# shellcheck disable=SC2154
+___x_cmd_gt_enterprise_member_user() {
+    param:scope     "gitee/$O"
+    param:dsl       '
+options:
+    #1|--enterprise     "enterprise: space address"     <>:Address
+    #2|--username       "username: space address"       <>
+    --page              "page"                          <>:number=1
+    --per_page          "per_page"                      <>:number=20
+'
+    param:run
+
+    ___x_cmd_gt_get_multi "/v5/enterprises/${enterprise}/members/${username}" | \
+    {
+        ___x_cmd_git_json_query_rename name_space=.user.login mark_name=.remark role=.role is_active=.active is_out_sourced=.outsourced
+        if [ -n "$name_space" ]; then
+             ___x_cmd_ui_tf true  "NameSpace: $name_space" "MarkName: $mark_name" "Role: $role" "IsActive: $is_active" "IsOutSourced: $is_out_sourced"
+             return 0
+        else
+             ___x_cmd_ui_tf false "Couldn't find any data by: ${enterprise} ${username}"
+            return 1
+        fi
+    }
+}
+
+# shellcheck disable=SC2181,SC2086,SC2154
+___x_cmd_gt_enterprise_member_add() {
+    param:scope     "gitee/$O"
+    param:dsl       '
+type:
+    Role =  member  outsourced admin
+    Mode =  username email
+options:
+    --enterprise|-e   "enterprise"              <>:address
+    --role            "role"                    <>:Role
+    --mode            "username or email"       <>:Mode="username"
+    #n                "real name"               <>
+'
+    param:run
+
+    [ $# -eq 0 ] && gt_log error "At least one user's spatial address or email is needed" && return 1
+    local username="%%username%%"
+    local gen_gt_json
+    gen_gt_json="$(param:option2json )"
+
+    # TODO:http handle，delete repo return data is null.Status: 204 No Content
+    for username in "$@"; do
+        if printf "%s" "${gen_gt_json}" | sed s/%%username%%/"${username##%/}"/g | \
+            ___x_cmd_gt_http post "/v5/enterprises/${enterprise}/members" - >/dev/null; then
+            gt_log info  "Add $username successfully"
+        else
+            gt_log error "Add $username failure"
+            return 1
+        fi
+    done
+}
+
+# shellcheck disable=SC2181
+___x_cmd_gt_enterprise_member_rm() {
+    param:scope     "gitee/$O"
+    param:dsl       '
+options:
+    --enterprise    "enterprise space address"      <>:address
+'
+    param:run
+
+    [ $# -eq 0 ] && gt_log error "At least one user's spatial address is needed" && return 1
+
+    local username
+    for username in "$@"; do
+        # TODO:http handle，delete repo return data is null.Status: 204 No Content
+        if ___x_cmd_gt_http delete "/v5/enterprises/${enterprise##*/}/members/${username##*/}" >/dev/null; then
+            gt_log info  "Remove user successfully: $username"
+        else
+            gt_log error "Remove user failure by $username $enterprise"
+            return 1
+        fi
+    done
+}
+
+# shellcheck disable=SC2181
+___x_cmd_gt_enterprise_member_access() {
+    param:scope     "gitee/$O"
+    param:dsl       '
+options:
+    --enterprise        "enterprise path"                    <>:address
+    --username          "username space address"             <>:name
+    --role              "role"                               <>="member"     = member outsourced admin
+    --name              "real name"                          <>=""
+    --active            "Access to corporate resources"
+'
+    param:run
+    local gen_gt_json
+    gen_gt_json="$(param:option2json active=^^active -enterprise -username)"
+
+    ___x_cmd_gt_http put "/v5/enterprises/${enterprise##*/}/members/${username##*/}" "$gen_gt_json" | \
+    {
+        ___x_cmd_git_json_query_rename user=.user
+        if [ -n "$user" ]; then
+            gt_log info  "Modify access successfully: $username"
+            return 0
+        else
+            gt_log error "Modify access failure by $username $enterprise"
+            return 1
+        fi
+    }
+}

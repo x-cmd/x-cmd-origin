@@ -1,0 +1,124 @@
+# shellcheck shell=sh
+# shellcheck disable=SC2039,3043
+# define lazy loader
+# ___x_cmd_definelazyloader   ___x_cmd_gt_enterprise_member        gt/lib/enterprise/member
+
+___x_cmd_gt_enterprise(){
+    param:scope     "gitee/$O"
+    param:dsl       '
+subcmd:
+    ls              "List all enterprise"
+    info            "Show enterprise information"
+    repo            "List all repos"
+    issue           "List all issues"
+    member          "enterprise member management"
+    team            "enterprise team management"
+'
+    param:run
+    if [ -z "$PARAM_SUBCMD" ]; then
+        gt_log warn "Subcmd Not Found."
+        ___x_cmd_gt_enterprise _param_help_doc
+        return 1
+    fi
+
+    # list projects of user
+
+    "___x_cmd_gt_enterprise_${PARAM_SUBCMD}" "$@"
+}
+
+# Section: list & info
+# shellcheck disable=SC2154
+___x_cmd_gt_enterprise_ls() {
+    param:scope     "gitee/$O"
+    param:dsl       '
+
+options:
+    --admin      "list only managed enterprise"     <>:bool=false
+    --page       "page"                             <>:number=1
+    --per_page   "per_page"                         <>:number=20
+'
+    param:run
+
+    if [ -t 1 ]; then
+        if ___ui_table_json Id=.id Name=.name Path=.path \
+            -- ___x_cmd_gt_get_multi "/v5/user/enterprises" admin; then
+            return 0
+        fi
+    else
+        ___x_cmd_gt_get_multi "/v5/user/enterprises" admin && \
+            return 0
+    fi
+    gt_log error "Couldn't find any data"
+    return 1
+}
+
+# NOTE: ______x_cmd_gt_owner_type_query
+# shellcheck disable=SC2154
+___x_cmd_gt_enterprise_info() {
+    param:scope     "gitee/$O"
+    param:dsl       '
+
+options:
+    #1              "Please provide enterprise path"    <>
+'
+    param:run
+
+    ___x_cmd_gt_http get "/v5/enterprises/${1:?Provide enterprise}" | \
+    {
+        ___x_cmd_git_json_query_rename id=.id name=.name path=.path
+        if [ -n "$id" ]; then
+            ___x_cmd_ui_tf true   "Success" "id: $id" "name: $name" "path: $path"
+        else
+            ___x_cmd_ui_tf false  "Couldn't find any enterprise info data by $1"
+            return 1
+        fi
+    }
+}
+# EndSection
+
+# Section: repo ls & repo create
+___x_cmd_gt_enterprise_repo(){
+    param:dsl       '
+subcmd:
+    ls          "List enterprise repo"
+    create      "Create enterprise repo"
+'
+    param:run
+    if [ -z "$PARAM_SUBCMD" ]; then
+        gt_log warn "Subcmd Not Found."
+        ___x_cmd_gt_enterprise_repo _param_help_doc
+        return 1
+    fi
+
+    "___x_cmd_gt_enterprise_repo_${PARAM_SUBCMD}" "$@"
+}
+
+# https://gitee.com/api/v5/swagger#/getV5EnterprisesEnterpriseRepos
+___x_cmd_gt_enterprise_repo_ls() {
+    param:scope     "gitee/$O"
+    param:dsl       '
+type:
+    Genre = all public internal private
+options:
+    #1              "Please provide enterprise path"    <>
+    --repo_type     "type"                              <>:Genre="all"
+    --direct        "direct"                            <>:bool="false"
+    --page          "page"                              <>:number=1
+    --per_page      "per_page"                          <>:number=20
+'
+    param:run
+
+    if [ -t 1 ]; then
+        if ___ui_table_json Id=".id" Name=".name" public=".public" OwnerName=".owner.name" \
+            DefaultBranch=".default_branch" OpenIssuesCount=".open_issues_count" license=".license" Url=".html_url" \
+            -- ___x_cmd_gt_get_multi "/v5/enterprises/$1/repos" repo_type direct page per_page; then
+            return 0
+        fi
+    else
+        ___x_cmd_gt_get_multi "/v5/enterprises/$1/repos" repo_type direct page per_page && \
+            return 0
+    fi
+    gt_log error "Couldn't find any data by $1"
+    return 1
+}
+# EndSection

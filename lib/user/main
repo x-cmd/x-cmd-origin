@@ -1,0 +1,100 @@
+# shellcheck shell=sh
+# shellcheck disable=SC2039,3043
+
+___x_cmd_gh_user(){
+    param:scope     "github/$O"
+    param:dsl       '
+subcmd:
+    info        "Show information"
+    repo        "List all repos"
+    email       "get user email"
+    issue       "List all issues"
+    key         "key management"
+'
+    param:run
+    if [ -z "$PARAM_SUBCMD" ]; then
+        echo "Command Not Found. Show help." >&2
+        return 0
+    fi
+    "___x_cmd_gh_user_${PARAM_SUBCMD}" "$@"
+}
+
+___x_cmd_gh_user_info() {
+    param:scope     "github/$O"
+    param:dsl       '
+options:
+    #1              "Username, if not set, show the user information of current owner, or owner of this token"
+'
+    param:run
+
+    local owner="$1"
+    local data
+    if [ -z "$owner" ]; then
+        data=$(___x_cmd_gh_http get "/user" )
+    else
+        data=$(___x_cmd_gh_http get "/users/$1")
+    fi
+    print "$data"
+}
+
+___x_cmd_gh_user_repo() {
+    param:scope     "github/$O"
+    param:dsl       '
+subcmd:
+    ls          "list user repo"
+options:
+    --visibility    "visibility"                                <>:Authority="all"
+    --affiliation   "affiliation"                               <>:UserGroup="organization_member"
+    --sort          "sort"                                      <>:UserSort="created"
+    --direction     "direction"                                 <>:Direction="desc"
+    --per_page      "Results per page"                          <>=30
+    --page          "Page number of the results to fetch."      <>=1
+'
+    param:run
+
+    local url
+    if [ $# -gt 0 ]; then
+        url="/users/$1/repos"
+    else
+        url="/user/repos"
+    fi
+
+    if [ -t 1 ] && ___ui_table_json Id=.id Name=.name Owner=.owner.login Url=.html_url \
+        -- "___x_cmd_gh_http" "get" "$url" visibility affiliation sort direction;then
+        return 0
+    fi
+    ___x_cmd_gh_http get "$url" visibility affiliation sort direction && return 0
+}
+
+___x_cmd_gh_user_email(){
+    param:void
+    [ -t 1 ] && ui table func ___x_cmd_gh_table "\"\$(O=$O ___x_cmd_gh_get_multi \"/emails\")\"" \
+        . email state && return
+
+    ___x_cmd_gh_get_multi "/emails"
+}
+
+___x_cmd_gh_user_issue(){
+    param:scope     "github/$O"
+    param:dsl       '
+type:
+    screen = all assigned created
+    sort = open progerssing closed rejected
+    direction = desc asc
+options:
+    --filter        "filter(assigned,created,all)"                 <>:screen="assigned"
+    --state         "state(open,progerssing,closed,rejected)"      <>:sort="open"
+    --labels        "labels"                                       <>=""
+    --direction     "direction(asc、desc)"                         <>:direction="desc"
+    --since         "since"                                        <>=""
+    --page          "page"                                         <>:numbers=""
+    --per_page      "per_page"                                     <>:numbers=""
+    --schedule      "schedule"                                     <>=""
+    --deadline      "deadline"                                     <>=""
+    --created_at    "create date"                                  <>=""
+    --finished_at   "finish date"                                  <>=""
+'
+    param:run
+    ___x_cmd_gh_get_multi "/user/issues" filter state labels direction since \
+        schedule deadline created_at finished_at
+}

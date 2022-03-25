@@ -1,0 +1,77 @@
+# shellcheck shell=sh                   # xrc
+# shellcheck disable=SC2039,3043
+
+# author:       Li Junhao           l@x-cmd.com
+
+xrc http param str ui
+xrc ui/lib/table
+
+xrc:inner:lib gh utils resource config token repo/main repo/branch/main current user/main org/main \
+    repo/member/main repo/pr/main _type/main org/member org/repo repo/release/main
+
+x log init gh
+
+___x_cmd_gh(){
+    param:dsl       '
+subcommand:
+    repo                                    "repo command"
+    current                                 "set current owner, repo"
+    org                                     "manage org"
+    user                                    "user"
+    config                                  "save, load, which"
+    token                                   "set token"
+    release                                 "manage release"
+    auth                                    "Authorize gh"
+'
+    param:run
+
+    if [ -z "${PARAM_SUBCMD}" ]; then
+        gh_log warn "Subcmd Not Found."
+        ___x_cmd_gh _param_help_doc
+        return 1
+    fi
+
+    case "${PARAM_SUBCMD}" in
+        pr|release|member|tag)                                  "___x_cmd_gh_repo_${PARAM_SUBCMD}"   "$@"        ;;
+        *)                                                      "___x_cmd_gh_${PARAM_SUBCMD}"  "$@"              ;;
+    esac
+}
+
+
+############################
+# Section 10: Instantiation
+############################
+
+____x_cmd_gh_make() {
+    param:void
+    local O_ORIGINAL=${1:?Provide client name by O environment}
+    local O="___x_cmd_gh_$O_ORIGINAL"
+
+    http make  'https://api.github.com'
+    http header Accept "application/vnd.github.v3+json"
+
+    local token
+    token="$(O="$O_ORIGINAL" ___x_cmd_gh_config_get "oauth_token")"
+
+    if [ -n "$token" ]; then
+        O="___x_cmd_gh_$O_ORIGINAL" http header put Authorization "token $token"
+        local user
+        user="$(O="$O_ORIGINAL" ___x_cmd_gh_current_owner)" || return 1
+        gh_log info "Hi $user! You've successfully authenticated."
+        return 0
+    fi
+
+    local info
+    info=$(printf "\n%s %s \n%s" \
+         "$(ui yellow 'You need run command to add token:')" \
+         "$(ui bold cyan "\`gh token <token>\`")" \
+         "$(ui 'https://github.com/settings/tokens')")
+    gh_log warn "Token is null.${info}"
+}
+
+if [ -z "$DO_NOT_INIT_GITHUB_DEFAULT" ]; then
+    ____x_cmd_gh_make "GITHUB_DEFAULT" && DO_NOT_INIT_GITHUB_DEFAULT="true"
+fi
+
+
+xrc setmain ___x_cmd_gh

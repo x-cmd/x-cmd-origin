@@ -1,0 +1,123 @@
+# shellcheck shell=sh
+# shellcheck disable=SC2039,3043
+___x_cmd_gh_org_member(){
+    param:dsl       '
+subcmd:
+    ls              "list member"
+    info            "get org member user info"
+    add             "add member"
+    rm              "Remove member"
+'
+    param:run
+
+    if [ -z "$PARAM_SUBCMD" ]; then
+        echo "subcommand not found. show help." >&2
+        return 0
+    fi
+
+    "___x_cmd_gh_org_member_$PARAM_SUBCMD" "$@"
+}
+
+# Section: List
+___x_cmd_gh_org_member_ls() {
+    param:scope     "github/$O"
+    param:dsl       '
+options:
+    --filter        "Filter members returned in the list."      <>:OrgMemberFilter="all"
+    --role          "Filter members returned by their role."    <>:OrgMemberRole="all"
+    --per_page      "Results per page"                          <>:NatureNumber=30
+    --page          "Page number of the results to fetch."      <>:NatureNumber=1
+    #1|--org        "org space address"    <>:address
+'
+    param:run
+    if [ -t 1 ] && ___ui_table_json Id=.id UserName=.login Url=.html_url \
+        --  "___x_cmd_gh_get_multi" "/orgs/${org##*/}/members" role filter per_page page ; then
+        return 0
+    fi
+
+    ___x_cmd_gh_get_multi "/orgs/${org##*/}/members" role filter per_page page && return 0
+
+    ___x_cmd_ui_tf false "get member list fail"
+    return 1
+}
+# EndSection
+
+# Section: info & add & rm
+___x_cmd_gh_org_member_info() {
+    param:scope     "github/$O"
+    param:dsl      '
+options:
+    --username          "username:space address"    <>
+    #1|--org            "org space address"         <>:Address
+'
+    param:run
+
+    ___x_cmd_gh_http get "/orgs/${org##*/}/memberships/${username##*/}" | (
+        ___x_cmd_git_json_query_rename role=.role url=.organization_url name=.user.login state=.state
+        if [ -n "$state" ];then
+            ___x_cmd_ui_tf true "get $username in organizations info  success" "Name: $name" "Role: $role" "state: $state" "Url: $url"
+        else
+            ___x_cmd_ui_tf false "get $username in organizations info fail"
+            return 1
+        fi
+    )
+}
+
+___x_cmd_gh_org_member_add() {
+    param:scope     "github/$O"
+    param:dsl       '
+type:
+    role = admin member
+options:
+    --org           "org space address"                                 <>:Address
+    --role          "The role to give the user in the organization"     <>:role="member"
+    #n              "username"
+'
+    param:run
+    if [ $# -eq 0 ];then
+        gt_log error "provide at least one username"
+        return 1
+    fi
+
+    for username in "$@"; do
+        {
+            ___x_cmd_gh_http put json "/orgs/${org##*/}/memberships/${username##*/}" role | (
+            ___x_cmd_git_json_query_rename state=.state
+            if [ -n "$state" ];then
+                ___x_cmd_ui_tf true "add $username to organizations  success"
+            else
+                ___x_cmd_ui_tf false "add $username to organizations fail"
+                return 1
+            fi
+            )
+        }
+    done
+}
+
+___x_cmd_gh_org_member_rm() {
+    param:scope     "github/$O"
+    param:dsl       '
+options:
+    --org       "org space address"         <>:Address
+    #n          "username"
+'
+    param:run
+
+    if [ $# -eq 0 ];then
+        gt_log error "provide at least one username"
+        return 1
+    fi
+
+    local username
+    for username in "$@"; do
+        {
+            if ___x_cmd_gh_http delete "/orgs/${org##*/}/members/${username##*/}"; then
+                ___x_cmd_ui_tf  true "del $username to organizations  success"
+            else
+                ___x_cmd_ui_tf false "del $username to organizations fail"
+                return 1
+            fi
+        }
+    done
+}
+# EndSection

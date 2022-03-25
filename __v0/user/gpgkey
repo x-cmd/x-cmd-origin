@@ -1,0 +1,44 @@
+___x_cmd_gh_gpgkey(){
+    param:dsl       '
+description:
+    Manage GPG keys registered with your GitHub account.
+subcmd:
+    add       "Add a GPG key to your GitHub account"
+    list      "Lists GPG keys in your GitHub account"
+    delete    "Delete a GPG key to your GitHub account"
+'
+    param:run
+
+    if [ -z "$PARAM_SUBCMD" ]; then
+        echo "Command Not Found. Show help." >&2
+        return 0
+    fi
+    
+    "___x_cmd_gh_gpgkey_${PARAM_SUBCMD}" "$@"
+}
+
+# TODO: Get the param team to figure out how to do that
+___x_cmd_gh_gpgkey_add(){
+    param:dsl       '
+arguments:
+    #1      "gpgkey"      
+    $2      "directory" 
+'
+    param:run
+
+
+}
+
+___x_cmd_gh_gpgkey_list(){
+    :
+}
+
+___x_cmd_gh_gpgkey_delete(){
+    param:dsl       '
+arguments:
+    #1      "gpgkey id or url"
+'
+    param:run
+}
+
+

@@ -1,0 +1,59 @@
+# shellcheck shell=sh
+# shellcheck disable=SC2039,3043
+
+___x_cmd_gh_config(){
+    param:dsl       '
+subcmd:
+    which      "Show current config path"
+    get        "Print the value of a given configuration key"
+    set        "Update configuration with a value for the given key"
+'
+    param:run
+
+    if [ -z "$PARAM_SUBCMD" ]; then
+        echo "Command Not Found. Show help." >&2
+        return 0
+    fi
+
+    "___x_cmd_gh_config_${PARAM_SUBCMD}" "$@"
+}
+
+# Section: try
+___x_cmd_gh_config_which() {
+    param:void
+    local O="${O:-GITHUB_DEFAULT}"
+    printf "%s\n" "$HOME/.x-cmd/.config/x-bash/app.github.config/$O"
+}
+
+___x_cmd_gh_config_get() {
+    param:scope     "github/$O"
+    param:dsl       '
+type:
+    ConfigName  =   oauth_token user git_protocol
+options:
+    --host        "host name"                               <>="github.com"
+    #1            "The name of the configuration to get"    <>:ConfigName
+'
+    param:run
+    local O="${O:-GITHUB_DEFAULT}"
+    [ -e  "$HOME/.x-cmd/.config/x-bash/app.github.config/$O" ] || return 1
+    ___x_cmd_git_config_get "$HOME/.x-cmd/.config/x-bash/app.github.config/$O" "$host" "$1"
+}
+
+___x_cmd_gh_config_set() {
+    param:scope     "github/$O"
+    param:dsl       '
+type:
+    ConfigName  =   oauth_token user git_protocol
+options:
+    --host      "host name"                           <>="github.com"
+    #1        "Please provide configuration key"      <>:ConfigName
+    #2        "Please provide configuration val"      <>
+'
+    param:run
+    local O="${O:-GITHUB_DEFAULT}"
+    local ___github_path="$HOME/.x-cmd/.config/x-bash/app.github.config/$O"
+    [ -e  "$___github_path" ] || mkdir -p "$___github_path##*/"
+    ___x_cmd_git_config_set "$___github_path" "$host" "$1" "$2" && ___x_cmd_ui_tf true "set config successfully" && return 0
+    gh_log error "gh config set Fail"
+}

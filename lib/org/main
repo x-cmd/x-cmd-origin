@@ -1,0 +1,89 @@
+# shellcheck shell=sh
+# shellcheck disable=SC2039,3043
+
+___x_cmd_gh_org(){
+    param:scope     "github/$O"
+    param:dsl       '
+subcmd:
+    ls                      "get organizations list"
+    info                    "Show information"
+    repo                    "List all repos"
+    member                  "member management"
+    app                     "Install github app list"
+'
+    param:run
+
+    if [ -z "$PARAM_SUBCMD" ]; then
+        gh_log warn "Command Not Found. Show help."
+        ___x_cmd_gh_org _param_help_doc
+        return 1
+    fi
+
+    "___x_cmd_gh_org_${PARAM_SUBCMD}" "$@"
+}
+
+# Section: List & Info
+___x_cmd_gh_org_ls() {
+    param:void
+
+    local url
+    if [ $# -gt 0 ]; then
+        gt_log info "Get organization for username ${1}"
+        url="/users/${1}/orgs"
+    else
+        gt_log info "Get current user's organization"
+        url="/user/orgs"
+    fi
+
+    if [ -t 1 ] && ___ui_table_json Id=.id Name=.login \
+        -- "___x_cmd_gh_get_multi" "$url"; then
+        return 0
+    fi
+
+    ___x_cmd_gh_get_multi $url && return 0
+
+    ___x_cmd_ui_tf false "get $1 organizations ls fail"
+    return 1
+}
+
+
+___x_cmd_gh_org_info() {
+    param:scope     "github/$O"
+    param:dsl       '
+options:
+    #1|--org        "org space address"    <>:Address
+'
+    param:run
+
+    ___x_cmd_gh_http get "/orgs/$org" | (
+        ___x_cmd_git_json_query_rename id=.id url=.html_url name=.login
+        if [ -n "$id" ]; then
+            ___x_cmd_ui_tf true "get $org organizations info success" "Id: $id" "Name: $name" "Url: $url"
+        else
+            ___x_cmd_ui_tf false "get $org organizations info fail"
+            return 1
+        fi
+    )
+}
+
+# EndSection
+
+# Section: Install github app list
+___x_cmd_gh_org_app(){
+    param:scope     "github/$O"
+    param:dsl       '
+options:
+    #1|--org        "org space address"                         <>:Address
+    --per_page      "Results per page"                          <>=30
+    --page          "Page number of the results to fetch."      <>=1
+'
+    if [ -t 1 ] && ___ui_table_json Id=.id Name=.login \
+        -- "___x_cmd_gh_get_multi" "/orgs/$1/installations" per_page page ; then
+        return 0
+    fi
+    ___x_cmd_gh_get_multi "/orgs/$1/installations" per_page page && return 0
+
+    ___x_cmd_ui_tf false "get $1 organizations github app fail"
+    return 1
+}
+# EndSection

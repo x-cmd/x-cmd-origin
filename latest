@@ -32,15 +32,22 @@ ___x_cmd_ps1env_init(){
     ___x_cmd_ps1env_reset
 
     ___X_CMD_PS1ENV_PS1="$PS1"
-    # _ps1env_set_ps1 "${1:-\$}"
     ___x_cmd_theme_control_subenv_prompt "${1:?Please provide}"
 
     ___x_cmd_ps1env_alias %q "___x_cmd_ps1env_reset"
 }
 
+______x_cmd_ps1env_inner_alias() {
+    if [ -n "$ZSH_VERSION" ]; then
+        alias -- "$1"
+    else
+        alias "$1"
+    fi
+}
+
 ___x_cmd_ps1env_alias(){
     local s
-    if s=$(alias "$1" 2>/dev/null); then
+    if s=$(______x_cmd_ps1env_inner_alias "$1" 2>/dev/null); then
         eval "___X_CMD_PS1ENV_OVERRIDE_ALIAS=\"
 \$s
 \$___X_CMD_PS1ENV_OVERRIDE_ALIAS
@@ -48,7 +55,7 @@ ___x_cmd_ps1env_alias(){
 "
     fi
 
-    alias $1="$2"
+    ______x_cmd_ps1env_inner_alias "$1"="$2"
 
     ___X_CMD_PS1ENV_BIND="$___X_CMD_PS1ENV_BIND
 $1
@@ -63,10 +70,8 @@ ___x_cmd_ps1env_reset(){
 
     ___x_cmd_theme_control_subenv_prompt_clear
 
-    local IFS=""
-
-    # Donot recover
-    # PS1="${___X_CMD_PS1ENV_PS1}"
+    local IFS="
+"
     ___X_CMD_PS1ENV_PS1=
 
     while read -r line; do
@@ -78,7 +83,10 @@ A
 
     ___X_CMD_PS1ENV_BIND=
 
-    eval "$___X_CMD_PS1ENV_OVERRIDE_ALIAS"
+    # TODO: In zsh not have alias prefix, that can not run eval alias
+    # TODO: TO reolad laster alias
+    # TODO: Need to test ash dash ksh alias. zsh need add --
+    # eval "$___X_CMD_PS1ENV_OVERRIDE_ALIAS"
     ___X_CMD_PS1ENV_OVERRIDE_ALIAS=
 }
 

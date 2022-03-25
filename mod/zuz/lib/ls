@@ -3,12 +3,15 @@
 ___x_cmd_zuz_ls(){
     param:void
     local target_file="${1:-filename}"; shift
-    local logger_msg="$target_file"
+    local logger_msg="< $target_file"
     case "$target_file" in
         *.tar)
             ___x_cmd_zuz_run tar -t <"$target_file"  # bsdtar
             ;;
         *.tar.gz)
+            ___x_cmd_zuz_run tar -t <"$target_file"  # bsdtar
+            ;;
+        *.tar.xz)
             ___x_cmd_zuz_run tar -t <"$target_file"  # bsdtar
             ;;
         *.tar.Z)

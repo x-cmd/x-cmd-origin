@@ -51,7 +51,7 @@ param_default put   gitee___c repo xk1
 # w --repo hi
 
 ff(){
-    O=OBJECT_NAME w -a private --user "7777" work a b 
+    O=OBJECT_NAME w -a private --user "7777" work a b
 }
 
 ff

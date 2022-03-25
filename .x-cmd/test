@@ -21,21 +21,28 @@ param_log info "Testing : $1"
 case "$1" in
     local)
         param_log info "copy all files from ./* to ~/.x-cmd/param/"
-        x ws install
-        . ./testcase/v0_test
+        \cp -r ./* ~/.x-cmd/param/
+        # xws install
+        . "$(x wsroot)/.x-cmd/testcases/v0_test"
         ;;
     cross)
         x test local
         cross_env_test
         ;;
-    bash3|bash4|bash5)
+    bash3|bash4|bash5|centos)
         docker run -it -v "$(pwd)":/pd "xcmd/${1}-dev" bash -i -c "cd pd && x test local"
         ;;
-    alpine|ubuntu|centos)
-        docker run -it-v "$(pwd)":/pd "xcmd/${1}-dev" sh -i -c "cd pd && x test local"
+    alpine|ubuntu)
+        docker run -it -v "$(pwd)":/pd "xcmd/${1}-dev" sh -i -c "cd pd && . \$(x wsroot)/.x-cmd/testcases/v0_test"
+        ;;
+    help)
+        x test local
+        . "$(x wsroot)/.x-cmd/testcases/v0_test_help"
+        start_test "$(x wsroot)/.x-cmd/testcases/v0_test_help"
         ;;
     *)
-        echo "Usage: x test {cross|local|bash:3|bash:4|bash:5|alpine|ubuntu|centos}"
+        xws install
+        echo "Usage: x test {cross|local|bash3|bash4|bash5|alpine|ubuntu|centos}"
         return 1
         ;;
 esac

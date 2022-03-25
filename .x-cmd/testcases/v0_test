@@ -1,7 +1,7 @@
 # shellcheck shell=sh disable=SC2039,SC2142,SC3043
 
 ___X_CMD_XRC_MODULE_IMPORTED=
-xrc param/v0
+xrc param/latest
 xrc assert/latest
 
 # Section: define functions for param testcases
@@ -164,42 +164,6 @@ A
 
 # EndSection
 
-# Section: Testcase for test help.
-
-test_error_help(){
-
-    echo "======== test option wasn't expected ============="
-    paramtest --not_exist_flag
-    paramtest -acvP
-    paramtest option --not_exist_flag
-    paramtest --not_exist_option ccc
-    paramtest option --not_exist_option ccc
-    echo "======== test require argument help ============="
-    paramtest option --mul_line_arg
-    echo "============= test unmatch help ================="
-    paramtest option --mul_line_arg dd -r abcdd
-    paramtest option --mul_line_arg dd -r abc --repo2 abcdd
-    echo "======================="
-}
-
-test_common_help(){
-
-    echo "=========== paramtest --help =============="
-    paramtest --help
-    echo "======= paramtest option --help ============"
-    paramtest option --help
-    echo "======= test_long_option --help ============"
-    paramtest_longoption --help
-    echo "======= paramtest name list --help ============"
-    paramtest namelist --help
-    echo "======== paramtest subcmd --help ==============="
-    paramtest subcmd --help
-    echo "======== paramtest rest arg --help ========="
-    paramtest rarg --help
-    echo "======================="
-}
-# EndSection
-
 # Section: Testcase for other test.
 
 param_type    gitee     repo    "=~"   "[-A-Za-z0-9_]+"
@@ -266,24 +230,14 @@ start_test() {
 
 # If you want close some testcase, you can add the '#' before the start_test xxx line to comment it.
 # Example:
-# #start_test ./testcase/v0_test_option
+# #start_test ./testcase/v0_test_option  ls_option ls_subcmd ls_option_subcmd
 
-. ./testcase/v0_test_option
-. ./testcase/v0_test_namelist
-. ./testcase/v0_test_subcmd
-. ./testcase/v0_test_param_default
-. ./testcase/v0_test_ui
-. ./testcase/v0_test_quote
-. ./testcase/v0_test_has_subcmd
-. ./testcase/v0_test_dryrun
+for testcase in option namelist subcmd param_default quote dryrun ls_subcmd ls_option ls_option_subcmd  help license; do
+    . "$(x wsroot)/.x-cmd/testcases/v0_test_$testcase"
+    start_test "$(x wsroot)/.x-cmd/testcases/v0_test_$testcase"
+done
 
-start_test ./testcase/v0_test_option
-start_test ./testcase/v0_test_namelist
-start_test ./testcase/v0_test_subcmd
-start_test ./testcase/v0_test_param_default
-start_test ./testcase/v0_test
-start_test ./testcase/v0_test_quote
-start_test ./testcase/v0_test_has_subcmd
-start_test ./testcase/v0_test_dryrun
+. "$(x wsroot)/.x-cmd/testcases/v0_test_ui"
+start_test "$(x wsroot)/.x-cmd/testcases/v0_test"
 
 # EndSection

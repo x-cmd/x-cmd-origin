@@ -1,12 +1,16 @@
 # Section: export-all
 ___x_cmd_xrc_export_all(){
-    export -f xrc
-    export -f x
-    export -f ___xcmd_curl_gitx
-    export -f ___xcmd_http_get
-    export -f ___xcmd_logger
-    export -f ___xcmd_xrc_source_file_list_code
-    export -f ___xcmd_curl
+
+    if [ -z "${BASH_VERSION}${ZSH_VERSION}" ]; then
+        # TODO: make sure it can works in bash
+        export -f xrc
+        export -f x
+        export -f ___x_cmd_curl_gitx
+        export -f ___x_cmd_http_get
+        export -f ___x_cmd_logger
+        export -f ___x_cmd_xrc_source_file_list_code
+        export -f ___x_cmd_curl
+    fi
 
     # Using command line.
     export X_CMD_SRC_SHELL

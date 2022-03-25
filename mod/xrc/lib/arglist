@@ -1,0 +1,41 @@
+
+___x_cmd_arglist(){
+    local op="$1"; shift
+    case "$op" in
+        shift)          ___x_cmd_arglist_shift "$@" ;;
+        unshift)        ___x_cmd_arglist_unshift "$@" ;;
+        push)           ___x_cmd_arglist_push "$@" ;;
+        pop)            ___x_cmd_arglist_pop "$@" ;;
+        has)            ___x_cmd_arglist_has "$@" ;;
+        print)          ___x_cmd_arglist_print "$@" ;;
+        *)
+            printf "Show help for arglist\n" >&2
+            return 1
+    esac
+}
+
+alias arglist="___x_cmd_arglist"
+
+___x_cmd_arglist_all_code(){
+    local a="$#"
+    s=""
+    while [ "$a" -eq 0 ]; do
+        s="$s \"\$$a\""
+        a="$((a-1))"
+    done
+
+    printf "%s"
+}
+
+___x_cmd_arglist_push_code(){
+    printf "%s" "set -- \"\$@\" "
+}
+
+# set -- "$abc" "$@"
+
+___x_cmd_arglist_shift(){
+    printf "%s" "[ \"$#\" -ne 0 ] && shift"
+}
+
+
+

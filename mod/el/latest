@@ -16,6 +16,8 @@ utils
 wubi
 A
 
+# x margs [ alpine code container git k8s updn utils wubi ] xrc el/lib/\$1
+
 # x marg1 - xrc el/lib/\$1 <<A
 # alpine
 # code
@@ -30,8 +32,6 @@ A
 + xdk
 alias xdk=xdk  # xdk="x dk"
 alias l='x ll'
-
-+ man
 
 if [ -z "$___X_CMD_THEME_NAME" ]; then
     x theme try el

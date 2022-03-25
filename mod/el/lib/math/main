@@ -1,4 +1,5 @@
 
+show(){
 cat "${1:?word list}" | awk '{
     print length($0) "\t" $0
 }' | sort -n -k 1 | awk -f change.awk | sort -nk 1 -nk2  | awk '
@@ -13,4 +14,5 @@ BEGIN {
         last = $1
         printf("%s\t%s", $1, $3)
     }
-}' >"$1.result.txt"
+}' >"$(___x_cmd_httpget_gitx x-cmd el main lib/math/$1.result.txt)"
+}

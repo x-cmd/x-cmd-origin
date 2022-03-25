@@ -10,17 +10,17 @@
 #   dict put key1 value1
 #   dict :a put key2 value2
 dict(){
-    local op="${1:?Provide op}"
-    local O=${op#@}
-    if [ "$O" = "$op" ]; then
-    # without : prefix, to set the blank O
-        O=
-        shift
-    else
+    local op=${1:?Provide op}
+    local O="${O:-DEFAULT}"
+
+    if [ "${1#@}" != "$op" ]; then
+        O="${1#@}"
         op="${2:-help}"
         [ $# -gt 1 ] && shift 2
+    else
+        shift
     fi
-
+    O="___X_BASH_DICT_${O}"
     case "$op" in
         new)                _dict_new "$@"   ;;
         del)                _dict_del "$@"   ;;
@@ -345,7 +345,7 @@ ___dict_pjson(){
 }
 
 ___dict_pjsonparse(){
-    awk -v op=flat-leaf -f "$(xrc which json/v0_walk.awk)" \
+    awk -v op=flat-leaf -f "$(xrc which json/lib/v0_walk.awk)" \
         | awk 'BEGIN{ORS="\003"} { start=index($0, "\"")
           tmp=index($0, "--->")
           print substr($0,start+1,tmp-start-3) "\003" substr($0,tmp+start+3,length($0)-tmp-6)

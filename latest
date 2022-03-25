@@ -1,4 +1,4 @@
-# shellcheck shell=sh disable=SC3043,SC2164     # xrc
+# shellcheck shell=sh disable=SC3043,SC2164,SC1091     # xrc
 
 # author:       Li Junhao           l@x-cmd.com
 # license:      GPLv3
@@ -7,13 +7,14 @@
 # 2. change to different arguments, like ls :ali/ip, means ali ip ls
 
 
+# TODO: it is odd. ZSH does support command notation.
 if [ -z "$ZSH_VERSION" ]; then
     ___x_cmd_ls_bin(){ command ls "$@"; }
 else
     ___x_cmd_ls_bin(){ builtin ls "$@"; }
 fi
 
-___x_cmd_definelazyloader ___x_cmd_ls_app ls/lib/app
+. "$___X_CMD_ROOT/ls/lib/catsel"
 
 ___x_cmd_ls(){
     if [ "$#" -eq 1 ]; then
@@ -22,6 +23,7 @@ ___x_cmd_ls(){
             :cpu)                                       x os cpu ;;
             :mem)                                       x os mem ;;
             :proc|:ps)                                  x os ps ;;
+            :path)                                      ;;
             *)
 
             if [ ! -t 1 ]; then
@@ -34,7 +36,7 @@ ___x_cmd_ls(){
                 return
             fi
 
-            ___x_cmd_ls_app "$@"
+            ___x_cmd_ui_catsel "$@"
             ;;
         esac
     fi

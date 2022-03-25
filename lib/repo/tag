@@ -1,0 +1,66 @@
+# shellcheck shell=sh
+# shellcheck disable=SC2039,3043
+
+___x_cmd_gt_repo_tag(){
+    param:dsl    '
+subcmd:
+    ls              "List repo tag"
+    add             "Add repo tag"
+'
+    param:run
+    if [ -z "$PARAM_SUBCMD" ]; then
+        gt_log warn "Subcmd Not Found."
+        ___x_cmd_gt_repo_tag _param_help_doc
+        return 1
+    fi
+
+    "___x_cmd_gt_repo_tag_$PARAM_SUBCMD" "$@"
+}
+
+# shellcheck disable=SC2154,SC2086
+___x_cmd_gt_repo_tag_ls() {
+    param:scope     "gitee/$O"
+    param:dsl    '
+options:
+    #1|--repo          "Provide owner name and repo name.(default:the current user repo)"   <>:RepoName
+'
+    param:run
+
+    ___x_cmd_gt_param_init_owner_repo
+
+    if [ -t 1 ]; then
+        if ___ui_table_json TagName=.name Message=.message Commit=.commit.sha Time=.commit.date \
+            -- "___x_cmd_gt_http get" "/v5/repos/${owner_repo}/tags"; then
+            return 0
+        fi
+    else
+        ___x_cmd_gt_http get "/v5/repos/${owner_repo}/tags" && \
+            return 0
+    fi
+    gt_log error "Couldn't find any data by: $owner_repo"
+    return 1
+}
+
+
+# #1: owner/repo/master
+# #2: tag_name
+# #3: tag_message
+# shellcheck disable=SC2154,SC2181
+___x_cmd_gt_repo_tag_add() {
+    param:scope     "gitee/$O"
+    param:dsl    '
+options:
+    --name          "tag name"                                                           <>
+    --repo          "Provide owner name and repo name.(default:the current user repo)"   <>:RepoName
+    --refs          "starting point name"                                                <>="master"
+    --msg           "tag message"                                                        <>=""
+'
+    param:run
+    ___x_cmd_gt_param_init_owner_repo
+
+    ___x_cmd_gt_http post "/v5/repos/${owner_repo}/tags" \
+        refs tag_message="$msg" tag_name="$name" 1>/dev/null 2>&1
+
+    [ $? -ne 0 ] && gt_log error "Add $owner_repo tag: $name failure"      &&   return 1
+                    gt_log info  "Add $owner_repo tag: $name successfully" &&   return 0
+}

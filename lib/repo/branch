@@ -1,0 +1,165 @@
+# shellcheck shell=sh
+# shellcheck disable=SC2039,3043
+___x_cmd_gt_repo_branch(){
+    param:dsl       '
+subcommand:
+    ls              "List repo branch list"
+    info            "Show the branch info"
+    add             "Add repo branch"
+    default         "Setup repo default branch"
+    protection      "repo protection branch management"
+'
+    param:run
+
+    if [ -z "$PARAM_SUBCMD" ]; then
+        gt_log error "subcommand not found. show help."
+        return 0
+    fi
+
+    "___x_cmd_gt_repo_branch_$PARAM_SUBCMD" "$@"
+}
+
+# Section:list & info
+# shellcheck disable=SC2154
+___x_cmd_gt_repo_branch_ls() {
+    param:scope     "gitee/$O"
+    param:dsl       '
+options:
+    #1|--repo       "Provide owner name and repo name.(default:the current user repo)"   <>:RepoName
+    --per_page      "results per page"                                                   <>=30
+    --page          "page number of the results to fetch."                               <>=1
+'
+    param:run
+    ___x_cmd_gt_param_init_owner_repo
+
+    if [ -t 1 ]; then
+        if ___ui_table_json BranchName=.name Protected=.protected \
+            --  ___x_cmd_gt_get_multi "/v5/repos/${owner_repo}/branches" per_page page; then
+            return 0
+        fi
+    else
+        ___x_cmd_gt_get_multi "/v5/repos/${owner_repo}/branches" per_page page && \
+            return 0
+    fi
+    gt_log error "Couldn't find any data. By ${owner_repo}"
+    return 1
+}
+
+# shellcheck disable=SC2154
+___x_cmd_gt_repo_branch_info() {
+    param:scope     "gitee/$O"
+    param:dsl       '
+options:
+    #1|--branch     "branch name"                                                        <>
+    #2|--repo       "Provide owner name and repo name.(default:the current user repo)"   <>:RepoName
+'
+    param:run
+    ___x_cmd_gt_param_init_owner_repo
+
+    ___x_cmd_gt_http get "/v5/repos/${owner_repo}/branches/${branch}" | \
+    {
+        ___x_cmd_git_json_query_rename branch_name=.name is_protected=.protected _links=._links.html;
+        if [ -n "$branch_name" ]; then
+            ___x_cmd_ui_tf true  "Success" "branch_name: $branch_name" "is_protected: $is_protected" "url: $_links"
+        else
+            ___x_cmd_ui_tf false "Fail. Couldn't find any data: ${owner_repo} ${branch}"
+            return 1
+        fi
+    }
+}
+# EndSection
+
+# Section: add & default
+# shellcheck disable=SC2154
+___x_cmd_gt_repo_branch_add() {
+    param:scope     "gitee/$O"
+    param:dsl       '
+options:
+    #1|--branch_name     "Branch name"                                                        <>
+    #2|--repo            "Provide owner name and repo name.(default:the current user repo)"   <>:RepoName
+    --refs               "origin branch name"                                                 <>="master"
+'
+    param:run
+    ___x_cmd_gt_param_init_owner_repo
+
+    # TODO:http handle，delete repo return data is null.Status: 204 No Content
+    if ___x_cmd_gt_http post "/v5/repos/${owner_repo}/branches" refs branch_name >/dev/null; then
+        ___x_cmd_ui_tf true  "Add repo ${owner_repo} ${branch_name} brach successfully"
+    else
+        ___x_cmd_ui_tf false "Add repo failure" "owner_repo: $owner_repo" "branch: $branch_name" "refs: $refs"
+        return 1
+    fi
+}
+
+# shellcheck disable=SC2154
+___x_cmd_gt_repo_branch_default() {
+    param:dsl       '
+options:
+    --repo                      "Provide owner name and repo name.(default:the current user repo)"   <>:RepoName
+    #1|--branch                 "branch name"                                                        <>
+'
+    param:run
+    ___x_cmd_gt_repo_update --repo "$repo" --default_branch "$branch"
+}
+# EndSection
+
+# Section: protection
+___x_cmd_gt_repo_branch_protection() {
+    param:dsl       '
+subcommand:
+    set              "Set protection branch"
+    unset            "Unset protection branch"
+'
+    param:run
+
+    if [ -z "$PARAM_SUBCMD" ]; then
+        gt_log error "subcommand not found. show help."
+        return 0
+    fi
+
+    "___x_cmd_gt_repo_branch_protection_$PARAM_SUBCMD" "$@"
+}
+
+___x_cmd_gt_repo_branch_protection_set() {
+    param:scope     "gitee/$O"
+    param:dsl       '
+options:
+    #1|--branch     "target branch name"                                                 <>
+    #2|--repo       "Provide owner name and repo name.(default:the current user repo)"   <>:RepoName
+'
+    param:run
+    ___x_cmd_gt_param_init_owner_repo
+    ___x_cmd_gt_http put "/v5/repos/${owner_repo}/branches/${branch}/protection"
+    ___x_cmd_gt_http put "/v5/repos/${owner_repo}/branches/${branch}/protection" | \
+    {
+        ___x_cmd_git_json_query_rename html_url=._links.self;
+        if [ -n "$html_url" ]; then
+            ___x_cmd_ui_tf true  "Success" "branch_name: $branch" "url: $html_url"
+        else
+            ___x_cmd_ui_tf false "Fail. Couldn't find any data: ${owner_repo} ${branch}"
+            return 1
+        fi
+    }
+}
+
+___x_cmd_gt_repo_branch_protection_unset() {
+    param:scope     "gitee/$O"
+    param:dsl       '
+options:
+    #1|--branch     "target branch name"                                                 <>
+    #2|--repo       "Provide owner name and repo name.(default:the current user repo)"   <>:RepoName
+'
+    param:run
+    ___x_cmd_gt_param_init_owner_repo
+
+    # TODO:http handle，delete repo return data is null.Status: 204 No Content
+    if ___x_cmd_gt_http delete "/v5/repos/${owner_repo}/branches/${branch}/protection" >/dev/null; then
+        ___x_cmd_ui_tf true  "Unset branch: $branch protection successfully"
+    else
+        ___x_cmd_ui_tf false "Unset branch protection failure: $owner_repo $branch"
+        return 1
+    fi
+}
+# EndSection
+
+# TODO: branch strategy : https://gitee.com/api/v5/swagger#/putV5ReposOwnerRepoBranchesWildcardSetting

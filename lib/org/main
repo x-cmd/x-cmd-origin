@@ -1,0 +1,178 @@
+# shellcheck shell=sh
+# shellcheck disable=SC2039,3043
+
+# define lazy loader
+# ___x_cmd_definelazyloader   ___x_cmd_gt_org_member           gt/lib/org/member
+
+___x_cmd_gt_org(){
+    param:scope     "gitee/$O"
+    param:dsl       '
+subcmd:
+    ls                      "List all org"
+    info                    "Show org information"
+    create                  "Create org"
+    repo                    "List all repos"
+    quit                    "Quit org"
+    issue                   "List all issues"
+    member                  "org member management"
+'
+    param:run
+    if [ -z "$PARAM_SUBCMD" ]; then
+        gt_log warn "Subcmd Not Found."
+        ___x_cmd_gt_org _param_help_doc
+        return 1
+    fi
+
+    "___x_cmd_gt_org_${PARAM_SUBCMD}" "$@"
+}
+
+# Section: list & info
+# shellcheck disable=SC2154
+___x_cmd_gt_org_ls() {
+    param:scope     "gitee/$O"
+    param:dsl       '
+options:
+    --admin         "admin"             <>:Bool=false
+    --page          "page"              <>:number=1
+    --per_page      "per_page"          <>:number=20
+'
+    param:run
+
+    if [ -t 1 ]; then
+        if ___ui_table_json Id=.id Name=.name FollowCount=.follow_count Url=.repos_url \
+            -- ___x_cmd_gt_get_multi "/v5/user/orgs" admin; then
+            return 0
+        fi
+    else
+        ___x_cmd_gt_get_multi "/v5/user/orgs" admin && \
+            return 0
+    fi
+    gt_log error "Couldn't find any data"
+    return 1
+}
+
+# NOTE: ______x_cmd_gt_owner_type_query
+# shellcheck disable=SC2154
+___x_cmd_gt_org_info() {
+    param:scope     "gitee/$O"
+    param:dsl       '
+options:
+    #1|--org            "organization path"     <>=""
+'
+    param:run
+
+    ___x_cmd_gt_http get "/v5/orgs/${1:?Provide organization}" | \
+    {
+        ___x_cmd_git_json_query_rename id=.id name=.name public=.public follow_count=.follow_count owner=.owner.name
+        if [ -n "$id" ]; then
+            ___x_cmd_ui_tf true   "Success" "id: $id" "name: $name" "public: $public" "follow_count: $follow_count" "owner: $owner"
+        else
+            ___x_cmd_ui_tf false  "Couldn't find any organization info data by $1"
+            return 1
+        fi
+    }
+}
+# EndSection
+
+# Section: create
+# It is very rare TODO: batch?
+# shellcheck disable=SC2181
+___x_cmd_gt_org_create() {
+    param:scope     "gitee/$O"
+    param:dsl       '
+options:
+    --org           "organization path"     <>=""
+    --description   "description"           <>=""
+    #1              "organization name"     <>
+'
+    param:run
+
+    org=${org:-$1}
+    local gen_gt_json
+    local name
+    name="$1"
+    gen_gt_json="$(param:option2json +name)"
+
+    ___x_cmd_gt_http post "/v5/users/organization" "$gen_gt_json" | \
+    {
+        ___x_cmd_git_json_query_rename id=.id
+        if [ -n "$id" ]; then
+            ___x_cmd_ui_tf true   "Creating Organization Successfully"
+        else
+            ___x_cmd_ui_tf false  "Creating organization failure by $1."
+            return 1
+        fi
+    }
+}
+# EndSection
+
+# Section: org repo
+___x_cmd_gt_org_repo(){
+    param:dsl       '
+subcmd:
+    ls          "list repo"
+    create      "org repo create"
+'
+    param:run
+
+    if [ -z "$PARAM_SUBCMD" ]; then
+        gt_log warn "Subcmd Not Found."
+        ___x_cmd_gt_org_repo _param_help_doc
+        return 1
+    fi
+
+    "___x_cmd_gt_org_repo_${PARAM_SUBCMD}" "$@"
+}
+
+# https://gitee.com/api/v5/swagger#/getV5OrgsOrgRepos
+___x_cmd_gt_org_repo_ls() {
+    param:scope     "gitee/$O"
+    param:dsl       '
+options:
+    #1|--org        "Please provide organization"       <>:Address
+    --type          "type"                              <>="all"    = all private public
+    --page          "page"                              <>:number=1
+    --per_page      "per_page"                          <>:number=20
+'
+    param:run
+    local gen_gt_json
+    gen_gt_json="$(param:option2json -page -per_page)"
+
+    if [ -t 1 ]; then
+        if ___ui_table_json Id=.id Name=.name public=.public OwnerName=.owner.name DefaultBranch=.default_branch \
+            OpenIssuesCount=.open_issues_count license=.license Url=.html_url \
+            -- ___x_cmd_gt_get_multi "/v5/orgs/$1/repos" type; then
+            return 0
+        fi
+    else
+        ___x_cmd_gt_get_multi "/v5/orgs/$1/repos" type && \
+            return 0
+    fi
+    gt_log error "Couldn't find any data. By $1"
+    return 1
+}
+# EndSection
+
+# Section: quit
+# shellcheck disable=SC2181
+___x_cmd_gt_org_quit() {
+    param:scope     "gitee/$O"
+    param:dsl       '
+options:
+    #n      "orgs"
+'
+    param:run
+
+    [ $# -eq 0 ] && gt_log error "At least one org spatial address is needed." && return 1
+
+    for org in "$@"; do
+        # TODO:http handle，delete repo return data is null.Status: 204 No Content
+        if ___x_cmd_gt_http delete "/v5/user/memberships/orgs/${org##*/}" >/dev/null; then
+            gt_log info  "Quit $org organization successfully."
+        else
+            gt_log error "Quit $org organization failure"
+            return 1
+        fi
+    done
+}
+# EndSection

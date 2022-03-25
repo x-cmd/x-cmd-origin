@@ -1,0 +1,52 @@
+# shellcheck shell=sh
+# shellcheck disable=SC2039,3043
+
+############################
+# Section 9: Repo Page Managment
+############################
+
+___x_cmd_gt_repo_page(){
+    param:dsl       '
+subcmd:
+    info        "Show information of page"
+    build       "Build page"
+'
+    param:run
+    if [ -z "$PARAM_SUBCMD" ]; then
+        gt_log warn "Subcmd Not Found."
+        ___x_cmd_gt_repo_page _param_help_doc
+        return 1
+    fi
+
+    "___x_cmd_gt_repo_page_${PARAM_SUBCMD}" "$@"
+}
+
+# https://gitee.com/api/v5/swagger#/getV5ReposOwnerRepoPages
+___x_cmd_gt_repo_page_info() {
+    param:scope     "gitee/$O"
+    param:dsl       '
+options:
+    --repo              "Provide owner name and repo name.(default:the current user repo)"   <>:RepoName
+'
+    param:run
+
+    ___x_cmd_gt_param_init_owner_repo
+
+    ___x_cmd_gt_http get "/v5/repos/${owner_repo}/pages"
+}
+
+# https://gitee.com/api/v5/swagger#/postV5ReposOwnerRepoPagesBuilds
+# Even we could use it
+# {"message":"非付费pages，不允许部署 pages"}
+___x_cmd_gt_repo_page_build() {
+    param:scope     "gitee/$O"
+    param:dsl       '
+options:
+    --repo              "Provide owner name and repo name.(default:the current user repo)"   <>:RepoName
+'
+    param:run
+
+    ___x_cmd_gt_param_init_owner_repo
+
+    ___x_cmd_gt_http post "/v5/repos/${owner_repo}/pages/builds"
+}

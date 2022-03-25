@@ -1,0 +1,58 @@
+# shellcheck shell=sh
+# shellcheck disable=SC2039,3043
+
+___x_cmd_gt_config(){
+    param:dsl       '
+subcmd:
+    which       "Show current config path"
+    get         "Print the value of a given configuration key"
+    set         "Update configuration with a value for the given key"
+'
+    param:run
+    if [ -z "$PARAM_SUBCMD" ]; then
+        gt_log warn "Subcmd Not Found."
+        ___x_cmd_gt_config _param_help_doc
+        return 1
+    fi
+
+    "___x_cmd_gt_config_${PARAM_SUBCMD}" "$@"
+}
+
+___x_cmd_gt_config_which() {
+    param:void
+    local O="${O:-GITEE_DEFAULT}"
+    printf "%s" "$HOME/.x-cmd/.config/x-bash/app.gitee.config/$O"
+}
+
+___x_cmd_gt_config_get() {
+    param:scope     "gitee/$O"
+    param:dsl       '
+type:
+    ConfigName  =   oauth_token user git_protocol
+options:
+    --host        "host name"                               <>="gitee.com"
+    #1            "The name of the configuration to get"    <>:ConfigName
+'
+    param:run
+    local O="${O:-GITEE_DEFAULT}"
+    [ -e  "$HOME/.x-cmd/.config/x-bash/app.gitee.config/$O" ] || return 1
+    ___x_cmd_git_config_get "$HOME/.x-cmd/.config/x-bash/app.gitee.config/$O" "$host" "$1"
+}
+
+___x_cmd_gt_config_set() {
+    param:scope     "gitee/$O"
+    param:dsl       '
+type:
+    ConfigName  =   oauth_token user git_protocol
+options:
+    --host    "host name"                             <>="gitee.com"
+    #1        "Please provide configuration key"      <>:ConfigName
+    #2        "Please provide configuration val"      <>
+'
+    param:run
+    local O="${O:-GITEE_DEFAULT}"
+    local ___gitee_path="$HOME/.x-cmd/.config/x-bash/app.gitee.config/$O"
+    [ -e  "$___gitee_path" ] || mkdir -p "$___gitee_path##*/"
+    ___x_cmd_git_config_set "$___gitee_path" "$host" "$1" "$2" && return 0
+    gt_log error "gitee config set fail"
+}

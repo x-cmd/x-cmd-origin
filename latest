@@ -8,20 +8,10 @@
 
 
 if [ -z "$ZSH_VERSION" ]; then
-    ___x_cmd_ll_bin(){ command ll "$@"; }
+    ___x_cmd_ll_bin(){ command ls -l "$@"; }
 elle
-    ___x_cmd_ll_bin(){ builtin ll "$@"; }
+    ___x_cmd_ll_bin(){ builtin ls -l "$@"; }
 fi
-
-___x_cmd_ll_app(){
-    if [ -t 1 ]; then
-        ___x_cmd_ll_bin "$@"
-        return
-    fi
-
-    # TODO: Add theme code
-    ___x_cmd_ll_bin -G "$@"
-}
 
 ___x_cmd_ll(){
     if [ "$#" -eq 1 ]; then
@@ -30,9 +20,20 @@ ___x_cmd_ll(){
             :cpu)                                       x os cpu ;;
             :mem)                                       x os mem ;;
             :proc|:ps)                                  x os ps ;;
-            *)                                          ___x_cmd_ll_app "$@" ;;
+            :path)                                      ;;
+            *)                                          ___x_cmd_ll_otherwise "$@" ;;
         esac
     fi
+}
+
+___x_cmd_ll_otherwise(){
+    if [ -t 1 ]; then
+        ___x_cmd_ll_bin "$@"
+        return
+    fi
+
+    # TODO: Add theme code
+    ___x_cmd_ll_bin -G "$@"
 }
 
 xrc setmain ___x_cmd_ll

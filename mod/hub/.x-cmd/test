@@ -1,0 +1,7 @@
+# shellcheck shell=sh disable=SC1072 #source
+
+xws install
+___X_CMD_XRC_MODULE_IMPORTED=
+# ___X_CMD_XRC_LOG_DEBUG_MODE=1
+xrc hub
+x log hub

@@ -1,0 +1,10 @@
+{
+    "upload": {
+        "#1": "___advise_ls",
+        "#2": [ "@me/" ]
+    },
+    "share": [ "@me/" ],
+    "public": [ "@me/" ],
+    "private": [ "@me/" ],
+    "ls": [ "@me/" ]
+}

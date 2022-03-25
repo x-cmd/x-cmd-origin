@@ -1,0 +1,1 @@
+cat "$(x wsroot)/.x-cmd/testdata/example"

@@ -6,7 +6,7 @@
 # Section: main
 
 # TODO: Use Param Generator SYMPOSIS
-xrc param/v0
+xrc param/latest
 ___x_cmd_zuz(){
     param:dsl <<A
 subcommand:

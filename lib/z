@@ -39,8 +39,7 @@ A
         *.tar.xz)
             [ -z "$(command -v xz)" ] && zuz_log err "xz command not exist" && return 1
             if [ "$size" != 0 ]; then
-                TODO:
-                # We should use 7zip
+                # TODO: We should use 7zip
                 ___x_cmd_zuz_run x 7z -v"$size" "$target_file" "$@"
             else
                 local logger_msg="&& xz $target_file"

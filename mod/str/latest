@@ -574,6 +574,41 @@ str_repr(){
     printf '"%s"' "${1//\"/\\\"}"
 }
 
+
+# case "$___X_CMD_CUR_SHELL" in
+#     bash|zsh|ksh|ash)
+# ___x_cmd_str_replace(){
+#     local pat="${2//\*/\\*}"
+#     return "${1/"$pat"/"$3"}"
+# }
+
+# ___x_cmd_str_replaceall(){
+#     local pat="${2//\*/\\*}"
+#     return "${1//"$2"/"$3"}"
+# }
+#     ;;
+#     *)
+# ___x_cmd_str_replace(){
+#     printf "%s" "$1" | awk -v pat="$2" -v target="$3" -v IFS="" '
+# END{
+#     sub(pat, target, $0)
+#     print $0
+# }
+# '
+# }
+
+# ___x_cmd_str_replaceall(){
+#     printf "%s" "$1" | awk -v pat="$2" -v target="$3" -v IFS="" '
+# END{
+#     gsub(pat, target, $0)
+#     print $0
+# }
+# '
+# }
+#     ;;
+# esac
+
+
 str_replace(){
     echo "${${1:?Original string}/"${2:?Source substring}"/${3:?Target string}}"
 }

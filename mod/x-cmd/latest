@@ -1,40 +1,5 @@
-# shellcheck shell=sh disable=SC3043
-
-# author:       Li Junhao           l@x-cmd.com
-# maintainer:   Li Junhao
-
-# Section : Unfinished ___x_cmd_official_which
-
-# TODO: optimization. Consider sharing the big binary in a common folder.
-# But that will introduce risk.
-# How?
-# 1. Local user $HOME/.x-cmd
-# 2. Global sharing folder.
-# Consider using the sha512 to calculate the file hash for this purpose.
-
-___x_cmd_official_which(){
-    X_CMD_SRC_PATH="$HOME/.x-cmd"
-    local target="${1:-Provide target path}"
-    local cache="$X_CMD_SRC_PATH/$target"
-
-    local target2="${target#@}"
-    if [ "$target2" != "$target" ]; then
-        target=target2
-        cache="$X_CMD_SRC_PATH/___users/$target"
-        echo "Not supported yet." >&2
-        return 1
-    fi
-
-    if CACHE="$cache" ___x_cmd_curl_gitx "$target" <<A
-$(___x_cmd_mirror)
-A
-    then
-        :
-    fi
-
-}
-
-# EndSection
+# Author:       Li Junhao   l@x-cmd.com             # xrc
+# shellcheck    shell=sh    disable=SC3043,SC1091
 
 # Section : run by file: get_engine_by_file* and run_by_file*
 
@@ -186,7 +151,7 @@ ___x_cmd_run_by_file(){
 
 # EndSection
 
-# Section : utils
+# Section : Find And Execute at .x-cmd folder
 
 ___x_cmd_abspath(){
     local target_path="${1:-Please provide path}"
@@ -197,99 +162,6 @@ ___x_cmd_abspath(){
         printf "%s" "$target_path"
     fi
 }
-
-# x glob abc*
-# glob file directory
-# TODO: notice, the glob pattern is actually a regex pattern with ** and * extension. For example, dot is refer as any character, rather than actual .
-alias glob=___x_cmd_glob
-
-___x_cmd_globu(){
-    ___x_cmd_glob "$@" | sort | uniq
-}
-
-___x_cmd_glob(){
-    if [ $# -eq 1 ]; then
-        ___x_cmd_glob file "$@"
-        return
-    fi
-
-    local op="${1}"; shift
-
-    case "$op" in
-        all|dir|file)       ;;
-        *)                  ___x_cmd_glob file "$op" "$@";  return ;;
-    esac
-
-    while [ $# -gt 0 ]; do
-        local pattern="${1:?Please provide pattern}";   shift
-        local a
-        a="$(printf "" | awk -v pattern="${pattern}" '
-        function handle(elem){
-            gsub(/\*\*/, "([^/]+/){0,}[^/]+", elem)
-            gsub(/\*/, "[^/]+", elem)
-            return elem
-        }
-
-        BEGIN{
-            arrl = split(pattern, arr, /\//)
-            if (arrl == 1) {
-                print ""
-                print "^" handle(pattern) "$"
-            } else {
-                folder = ""
-                for (i=1; i<=arrl; ++i) {
-                    if (arr[i] ~ /\*/)  break
-                    if (i == 1)         folder = arr[i]
-                    else                folder = folder "/" arr[i]
-                }
-                print folder
-                pat = ""
-                for (; i<=arrl; ++i) {
-                    arr[i] = handle(arr[i])
-                    if (pat == "")      pat = arr[i]
-                    else                pat = pat "/" arr[i]
-                }
-                pat = "^" pat "$"
-                print pat
-            }
-        }')"
-        local folder="${a%
-*}"
-        pattern="${a#*
-}"
-
-
-        (
-            if [ -n "$folder" ]; then
-                [ -d "$folder" ] || return
-                eval cd "$folder"
-            fi
-
-            case "$op" in
-                all)        find . ;;
-                dir)        find . -type dir ;;
-                file)       find . -type f ;;
-                *)          printf "Please provide argument.\n" >&2; return ;;
-            esac |\
-            awk -v pattern="$pattern" -v prefix="$folder" '
-                BEGIN { if (prefix != "") prefix = prefix "/"; }
-                {
-                    if ( ($0 !~ /^[ \t]+$/) && ($0 !~ /:$/)) {
-                        tgt = substr($0, 3)
-                        if (match(tgt, pattern)) {
-                            print prefix tgt
-                        }
-                    }
-                }
-            '
-        )
-    done
-
-}
-
-# EndSection
-
-# Section : Find And Execute at .x-cmd folder
 
 ___x_cmd_exe_workspace(){
     local filepath="${1:?filepath}"
@@ -387,275 +259,12 @@ ___x_cmd_static_build_help(){
 }
 # EndSection
 
-# Section : run in concurrent
+. "$___X_CMD_ROOT/x-cmd/lib/glob"
+. "$___X_CMD_ROOT/x-cmd/lib/con"
+. "$___X_CMD_ROOT/x-cmd/lib/alias"
+. "$___X_CMD_ROOT/x-cmd/lib/args"
 
-# ___X_CMD_EVAL_CON_SEPERATOR="$(printf "\001")"
-___X_CMD_EVAL_CON_SEPERATOR=""
-
-___x_cmd_eval_concurrent_single_head(){
-    eval "$1"
-    printf "%s" "${___X_CMD_EVAL_CON_SEPERATOR}"
-}
-
-___x_cmd_eval_concurrent_single_head_without_end(){
-    printf "%s%s" "$(eval "$1")" "${___X_CMD_EVAL_CON_SEPERATOR}"
-}
-
-___x_cmd_eval_concurrent_single_tail(){
-    local s
-    local sep
-    sep="$(printf "\001")"
-    s="$(eval "$1"; printf "%s" "${___X_CMD_EVAL_CON_SEPERATOR}$sep")"
-    cat
-    printf "%s" "${s%$sep}"
-}
-
-___x_cmd_eval_concurrent_single_tail_without_end(){
-    local s
-    s="$(eval "$1")"
-    cat
-    printf "%s%s" "${s}" "${___X_CMD_EVAL_CON_SEPERATOR}"
-}
-
-# time x conjoin "sleep 1s; echo 1" "sleep 1s; echo 2" "sleep 1s; echo 3"
-# time sep=, x conjoin "sleep 1s; echo 1" "sleep 1s; echo 2" "sleep 1s; echo 3"
-___x_cmd_eval_concurrent_join(){
-
-    if [ $# -le 1 ]; then
-        eval "$@"
-        return
-    fi
-
-    local cmd
-    local result
-    cmd='___x_cmd_eval_concurrent_single_head_without_end "$1"'
-    local i
-    for i in $(seq 2 $#); do
-        if [ "$i" -eq $# ]; then
-            cmd="$cmd | ___X_CMD_EVAL_CON_SEPERATOR= ___x_cmd_eval_concurrent_single_tail_without_end \"\$$i\""
-        else
-            cmd="$cmd | ___x_cmd_eval_concurrent_single_tail_without_end \"\$$i\""
-        fi
-    done
-    # eval "$cmd"
-
-    local ___X_CMD_EVAL_CON_SEPERATOR="${sep:-
-}"
-    eval "$cmd"
-}
-
-# time x con a= "sleep 1s; echo 1" b= "sleep 1s; echo 2" c= "sleep 1s; echo 3"
-# time x con a= "sleep 1s; echo 1" b:= "sleep 1s; echo 2" c= "sleep 1s; echo 3"
-___x_cmd_eval_concurrent_assign(){
-    [ $# -le 1 ] && return 1
-
-    local cmd
-    local result
-    local var_namelist=
-    local i=2
-
-    while [ $i -le $# ]; do
-        local varname_eq="$(eval printf "%s" \""\$$((i-1))"\")"
-        case "$varname_eq" in
-            *:=)
-                eval "${varname_eq%:=}=s"
-                if [ -z "$var_namelist" ]; then
-                    var_namelist="${varname_eq%:=}"
-                else
-                    var_namelist="$var_namelist
-${varname_eq%:=}"
-                fi
-
-                if [ "$i" -eq 2 ]; then
-                    cmd='___x_cmd_eval_concurrent_single_head "$2"'
-                else
-                    cmd="$cmd | ___x_cmd_eval_concurrent_single_tail \"\$$i\""
-                fi
-                ;;
-            *=)
-                eval "${varname_eq}"
-                if [ -z "$var_namelist" ]; then
-                    var_namelist="${varname_eq%=}"
-                else
-                    var_namelist="$var_namelist
-${varname_eq%=}"
-                fi
-
-                if [ "$i" -eq 2 ]; then
-                    cmd='___x_cmd_eval_concurrent_single_head_without_end "$2"'
-                else
-                    cmd="$cmd | ___x_cmd_eval_concurrent_single_tail_without_end \"\$$i\""
-                fi
-                ;;
-            *)
-                printf "%s\n" "Expect to be *= but get $varname_eq" >&2
-                return 1
-        esac
-
-        i=$((i+2))
-    done
-
-    local ___X_CMD_EVAL_CON_SEPERATOR
-    ___X_CMD_EVAL_CON_SEPERATOR="$(printf "\001")"
-
-    result="$( eval "$cmd"; printf "$___X_CMD_EVAL_CON_SEPERATOR" )"
-    local varname
-    local item
-    local IFS=""
-    while read -r varname; do
-        item="${result%%${___X_CMD_EVAL_CON_SEPERATOR}*}"
-        eval "$varname=\"\$item\""
-        [ "$item" = "$result" ] && break
-        result="${result#*${___X_CMD_EVAL_CON_SEPERATOR}}"
-    done <<A
-$var_namelist
-A
-
-}
-
-# EndSection
-
-# Section : xaas
-
-# queue
-# cron
-
-# EndSection
-
-# Section : alias
-
-___X_CMD_ALIAS_SEP="$(printf "\001")"
-___X_CMD_ALIAS_ITEM_SEP="$(printf "\002")"
-
-___x_cmd_alias(){
-    case "$#" in
-        1)      ___x_cmd_alias_ls   "$@" ;;
-        2)
-                if [ "${2#*=}" = "$2" ]; then
-                    ___x_cmd_alias_print    "$@"
-                else
-                    ___x_cmd_alias_set      "$@"
-                fi
-                ;;
-        *)      ___x_cmd_alias_set          "$@" ;;
-    esac
-}
-
-___x_cmd_unalias(){
-    ___x_cmd_alias_unset "$@"
-}
-
-___x_cmd_alias_init(){
-    local obj="$1"
-    eval "___X_CMD_ALIAS_SET_${obj}=\"\${___X_CMD_ALIAS_SET_${obj}:-\${___X_CMD_ALIAS_SEP}}\""
-}
-
-___x_cmd_alias_ls(){
-    local obj="$1"
-    local DATA
-    eval "DATA=\"\${___X_CMD_ALIAS_SET_${obj}}\""
-
-    # printf "%s" "${DATA#${___X_CMD_ALIAS_SEP}}" | tr "${___X_CMD_ALIAS_SEP}${___X_CMD_ALIAS_ITEM_SEP}" "\n\t"
-    printf "%s" "${DATA#${___X_CMD_ALIAS_SEP}}" | awk -v RS="${___X_CMD_ALIAS_SEP}" -v FS="${___X_CMD_ALIAS_ITEM_SEP}" '
-{
-    print "  \033[31m" $1 "\033[0m=\033[32m" $2 "\t\t\033[34m" $3
-}
-'
-}
-
-___x_cmd_alias_echo(){
-    local IFS=" "
-    printf "%s" "$*"
-}
-
-
-___x_cmd_alias_set(){
-    local obj="$1";     local name="$2";
-
-
-    local code="${name#*=}"
-    if [ "$code" = "$name" ]; then
-        printf "CANNOT set alias for %s" "$*" >&2
-        return 1
-    fi
-
-    name="${name%%=*}"
-    # Put these things into the
-    local desc="$3"
-
-    ___x_cmd_alias_unset "$obj" "$name"
-
-    eval "___X_CMD_ALIAS_SET_${obj}=\"\${___X_CMD_ALIAS_SET_${obj}}"'${name}${___X_CMD_ALIAS_ITEM_SEP}${code}${___X_CMD_ALIAS_ITEM_SEP}${desc}${___X_CMD_ALIAS_SEP}"'
-}
-
-___x_cmd_alias_clear(){
-    local obj="$1"
-    eval "___X_CMD_ALIAS_SET_${obj}=\"\${___X_CMD_ALIAS_SEP}\""
-}
-
-___x_cmd_alias_unset(){
-    local obj="$1";     local name="$2";    shift 2
-    local DATA
-    eval "DATA=\"\${___X_CMD_ALIAS_SET_${obj}}\""
-
-    local a="${DATA%%${___X_CMD_ALIAS_SEP}${name}${___X_CMD_ALIAS_ITEM_SEP}*}"
-    if [ "$a" = "$DATA" ]; then
-        return 1
-    fi
-
-    DATA="${DATA#*${___X_CMD_ALIAS_SEP}${name}${___X_CMD_ALIAS_ITEM_SEP}*${___X_CMD_ALIAS_SEP}}"
-    DATA="$a${___X_CMD_ALIAS_SEP}${DATA}"
-
-    eval "___X_CMD_ALIAS_SET_${obj}=\"$DATA\""
-}
-
-___x_cmd_alias_exec(){
-    local obj="$1";     local name="$2";    shift 2
-    local DATA
-    eval "DATA=\"\${___X_CMD_ALIAS_SET_${obj}}\""
-    local code="${DATA#*$___X_CMD_ALIAS_SEP${name}${___X_CMD_ALIAS_ITEM_SEP}}"
-    ___X_CMD_ALIAS_EXEC_EXIST=
-    if [ "$code" = "$DATA" ]; then
-        return
-    fi
-
-    code="${code%%${___X_CMD_ALIAS_ITEM_SEP}*${___X_CMD_ALIAS_SEP}*}"
-    eval "$code" "$@"
-    ___X_CMD_ALIAS_EXEC_EXIST=1
-}
-
-___x_cmd_alias_info(){
-    local obj="$1";     local name="$2";    shift 2
-    local DATA
-    eval "DATA=\"\${___X_CMD_ALIAS_SET_${obj}}\""
-    local item="${DATA#*$___X_CMD_ALIAS_SEP${name}${___X_CMD_ALIAS_ITEM_SEP}}"
-    ___X_CMD_ALIAS_EXEC_EXIST=
-    if [ "$item" = "$DATA" ]; then
-        return 1
-    fi
-
-    ___X_CMD_ALIAS_EXEC_EXIST=1
-    item="${item%%${___X_CMD_ALIAS_SEP}*}"
-    code="${item%%${___X_CMD_ALIAS_ITEM_SEP}*}"
-    desc="${item#*${___X_CMD_ALIAS_ITEM_SEP}}"
-}
-
-___x_cmd_alias_print(){
-    local obj="$1"
-    local name="$2"
-    local code
-    local desc
-
-    if ___x_cmd_alias_info "$@"; then
-        printf "%s    %s       %s\n" "$name" "$code" "$desc"
-        return
-    fi
-    return 1
-}
-
-# EndSection
-
-# Section: varset
+# Section : varset
 
 ___x_cmd_varset(){
     local _______variable_name="${1}"
@@ -686,126 +295,6 @@ ___x_cmd_varset_without_end(){
     shift 1
     result="$("$@")"
     eval "$_______variable_name=\"\$result\""
-}
-
-# EndSection
-
-# Section: args
-
-___x_cmd_arg_line(){
-
-    local every="$1"; shift
-    local IFS
-    IFS="$(printf "\001")"
-    local NW
-    NW="$(printf "\002")"
-
-    {
-        printf "%s" "$*" | tr "\n" "$NW"
-        printf "\n"
-        cat
-    } | awk -v every="$every" '
-
-NR==1{
-    argl = split($0, argv, "\001")
-
-    for (i=1; i<=argl; ++i) {
-        gsub("\002", "\n", argv[i])
-        gsub(/\\/, "\\\\\\", argv[i])
-        gsub("\"", "\\\"", argv[i])
-        # TODO: Awk will have a warning about "$" and the solution: throw it to "2>/dev/null"
-        gsub(/\$/, "\\\$", argv[i])
-        argv[i] = "\\\"" argv[i] "\\\""
-        if (argstr == "") argstr = argv[i]
-        else argstr = argstr " " argv[i]
-    }
-    print argstr
-}
-
-function printcode( len ){
-    count = 0
-    code=""
-    for (j=1; j<=len; ++j) {
-        e = result[j]
-        gsub("\"", "\\\"", e)
-        code = code " " "\"" e "\""
-    }
-    print code
-}
-
-NR>1{
-    arrl = split($0, arr, /[ \t]+/)
-    for (i=1; i<=arrl; ++i) {
-        count ++
-        result[ count ] = arr[i]
-        if (count == every) {
-            printcode( every )
-        }
-    }
-}
-
-END {
-    if (count > 0) printcode( count )
-}
-' 2>/dev/null
-
-}
-
-___x_cmd_args_let(){
-    code="$*"
-}
-
-___x_cmd_args_funeach(){
-    if [ -z "$APPEND_ARG" ]; then
-        eval "$code"
-    else
-        eval "$code" \"\$@\"
-    fi
-}
-
-___x_cmd_args(){
-    local n="$1"; [ $# -gt 0 ] && shift
-    local IFS=" "
-
-    local APPEND_ARG=1
-    if [ "$1" = - ]; then
-        APPEND_ARG=
-        shift
-    fi
-
-    local code=""
-    ___x_cmd_arg_line "$n" "$@" | while read -r line; do
-        if [ -z "$code" ]; then
-            # code="$line"
-            eval ___x_cmd_args_let "$line"
-            continue
-        fi
-        eval ___x_cmd_args_funeach "$line"
-    done
-}
-
-___x_cmd_margs(){
-    local n="$1"; [ $# -gt 0 ] && shift
-    local IFS=" "
-
-    local APPEND_ARG=1
-    if [ "$1" = - ]; then
-        APPEND_ARG=
-        shift
-    fi
-
-    local code=""
-    eval "$(
-    ___x_cmd_arg_line "$n" "$@" | while read -r line; do
-        if [ -z "$code" ]; then
-            code="$line"
-            printf "%s %s\n" ___x_cmd_args_let "$line"
-            continue
-        fi
-        printf "%s %s\n" ___x_cmd_args_funeach "$line"
-    done
-    )"
-
 }
 
 # EndSection
@@ -862,21 +351,22 @@ ___x_cmd_main_otherwise(){
 
     # static build
     # update the static-build files
-    local p
+    local ___X_CMD_WHICH_ONE_RESULT
+    local ___X_CMD_WHICH_ONE_RESOURCE_TYPE
     if ___x_cmd_which_one "$subcmd"; then
-        p="$___X_CMD_WHICH_ONE_RESULT"
+        local p="$___X_CMD_WHICH_ONE_RESULT"
         case "$___X_CMD_WHICH_ONE_RESOURCE_TYPE" in
-            workspace)      ___x_cmd_exe_workspace "$p" "$@" ;;
-            local)          ___x_cmd_run_by_file "$p" "$@" ;;
-            hub)            ___x_cmd_run_by_file "$p" "$@" ;;
-            official)
-                ___x_cmd_run_by_file "$p" "$@" ;;
+            workspace)      ___x_cmd_exe_workspace  "$p" "$@" ;;
+            local)          ___x_cmd_run_by_file    "$p" "$@" ;;
+            hub)            ___x_cmd_run_by_file    "$p" "$@" ;;
+            official)       ___x_cmd_run_by_file    "$p" "$@" ;;
         esac
-        return
+        ___xrc_log debug "$p"
+        return 0
     else
         printf "%s" "Error" >&2
+        return 1
     fi
-    printf "%s" "$p"
 }
 
 ___x_cmd_ws(){
@@ -925,11 +415,24 @@ ___x_cmd_ws_(){
 
 ___x_cmd_alias_init ___x_cmd
 
+___x_cmd_which_panic(){
+    local ___X_CMD_WHICH_ONE_RESULT
+    if ! ___x_cmd_which_one "$p"; then
+        printf "%s\n" "Fail to find path for $p" >&2
+        return 1
+    else
+        printf "%s\n" "$___X_CMD_WHICH_ONE_RESULT"
+    fi
+}
+
+. "$___X_CMD_ROOT/x-cmd/lib/qr"
+
 ___x_cmd_main(){
     local IFS=" "
 
     local subcmd=$1; [ $# -gt 0 ] && shift
     case "$subcmd" in
+        log)                                    ___x_cmd_log "$@" ;;
         ""|help)                                printf "x     x-bash core function.
     Uasge:  x <subcommand> [<subcommand>...]
     Please visit our homepage for more information: https://x-cmd.com
@@ -937,6 +440,7 @@ ___x_cmd_main(){
                                                 ___x_cmd_x_cmd_help
                                                 return 0
 ;;
+        \.)                                     command code . ;;
 
         alias)                                  ___x_cmd_alias      ___x_cmd "$@"   ;;
         unalias)                                ___x_cmd_unalias    ___x_cmd "$@"   ;;
@@ -952,8 +456,6 @@ ___x_cmd_main(){
         margs)                                  ___x_cmd_margs "$@"     ;;
         marg1)                                  ___x_cmd_margs 1 "$@"   ;;
 
-        env)                                    ;;
-
         login)                                  xrc hub/latest && ___x_cmd_hub login "$@" ;;
 
         update)                                 xrc update "$@"  ;;
@@ -965,9 +467,8 @@ ___x_cmd_main(){
                                                 rm -rf "$___X_CMD_ROOT" ;;
         reinstall)                              x clear && RELOAD=1 x upgrade ;;
 
-        z)                                      (   xrc zuz && ___x_cmd_zuz z "$@"   ) ;;
-        uz)                                     (   xrc zuz && ___x_cmd_zuz uz "$@"  ) ;;
-        zl)                                     (   xrc zuz && ___x_cmd_zuz ls "$@"  ) ;;
+        z|uz)                                   ( xrc zuz && ___x_cmd_zuz "$subcmd" "$@" ) ;;
+        zl)                                     ( xrc zuz && ___x_cmd_zuz_ls "$@"        ) ;;
 
         sh|bash|zsh|fish|ksh|dash|ash)          ___x_cmd_shell_exec "$subcmd" "$@" ;;
 
@@ -990,16 +491,15 @@ ___x_cmd_main(){
                                                     esac
                                                 done
                                                 local script
-                                                # script="$(___x_cmd_official_which "$1")"
                                                 script="$1"
                                                 shift
                                                 x npx @typeshell/exec "$argstr" "$script" "$@"
                                                 ;;
-        ruby|rb)                                ruby "$(___x_cmd_official_which "$2")" "$@"      ;;
+        # ruby|rb)                                ruby "$(___x_cmd_official_which "$2")" "$@"      ;;
         lua)            ;;
 
-        7zd|7zr)                                    ( xrc p7zip/v0   &&  p7zd "$@" ) ;;
-        7z)                                     ___x_cmd_static_build_file      p7zip 7za               "$@"    ;;
+        7zd)                                    ( xrc p7zip/v0   &&  p7zd "$@" ) ;;
+        7z|7za|7zr)                             ___x_cmd_static_build_file      p7zip 7za               "$@"    ;;
 
         ls)                                     ___x_cmd_ls         "$@"        ;;
         ll)                                     ___x_cmd_static_build_file      exa exa  -l             "$@"    ;;
@@ -1009,13 +509,12 @@ ___x_cmd_main(){
         cat)                                    ___x_cmd_static_build_help      bat bat                 "$@"    ;;
         bw)                                     ___x_cmd_static_build_file      bandwhich bandwhich     "$@"    ;;
         jq)                                     ___x_cmd_static_build_help      jq jq                   "$@"    ;;
-        yq)                                     ___x_cmd_static_build_file      yq yq                   "$@"    ;;
         # TODO: we will rename ___x_cmd_curl to make room for it
-        curl)                                   ___x_cmd_static_build_file      curl curl               "$@"    ;;
+        curl|yq|tmux|git|nmap|tesseract|magick)        ___x_cmd_static_build_file     "$subcmd" "$subcmd"      "$@"    ;;
+        ffmpeg)                                 xrc ffmpeg && ___x_cmd_ffmpeg_download       "$@"    ;;
+        pandoc)                                 xrc pandoc && ___x_cmd_pandoc                "$@"    ;;
+
         openssl|ssl)                            ___x_cmd_static_build_file      openssl openssl         "$@"    ;;
-        tmux)                                   ___x_cmd_static_build_file      tmux tmux               "$@"    ;;
-        git)                                    ___x_cmd_static_build_file      git git                 "$@"    ;;
-        nmap)                                   ___x_cmd_static_build_file      nmap nmap               "$@"    ;;
         ncat)                                   ___x_cmd_static_build_file      nmap ncat               "$@"    ;;
         nping)                                  ___x_cmd_static_build_file      nmap nping              "$@"    ;;
         traceroute)                             ___x_cmd_static_build_file      nmap traceroute         "$@"    ;;
@@ -1023,14 +522,10 @@ ___x_cmd_main(){
         search_path)                            ___x_cmd_search_path "$@"       ;;
         which|w)                                local p
                                                 for p in "$@"; do
-                                                    if ! ___x_cmd_which_one "$p"; then
-                                                        printf "%s\n" "Fail to find path for $p" >&2
-                                                        return
-                                                    else
-                                                        printf "%s\n" "$___X_CMD_WHICH_ONE_RESULT"
-                                                    fi
+                                                    ___x_cmd_which_panic || return 1
                                                 done
                                                 ;;
+        qr)                                     ___x_cmd_qr "$@" ;;
         _x_cmd_advise_json)                     ___x_cmd_x_cmd_advise_json "$@" ;;
         wsroot)                                 ___x_cmd_workspace_root "$@" ;;
         ws)                                     ___x_cmd_ws "$@" ;;
@@ -1042,17 +537,15 @@ ___x_cmd_main(){
 
 # EndSection
 
-# Section : advise.json
+# Section : help and advise.json
 ___x_cmd_x_cmd_advise_json(){
-    xrc cat x-cmd/_v0/x.json
+    xrc cat x-cmd/lib/x.json
     return 126
 }
-# EndSection
 
-# Section : help
 ___x_cmd_x_cmd_help(){
     xrc advise/lib/advise_get
-    ___x_cmd_advise_get_help "$(xrc which x-cmd/_v0/x.json)"
+    ___x_cmd_advise_get_help "$(xrc which x-cmd/lib/x.json)"
 }
 # EndSection
 

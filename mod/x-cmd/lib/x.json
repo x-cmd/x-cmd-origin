@@ -48,7 +48,7 @@
             "off": "--- Default setting. shutdown the timestamp output in log",
             "#desc": "< on|off|<format> >, customized timestamp format like \"+%H:%M:%S\", \"+%m/%d-%H:%M:%S\""
         },
-        "#n": "xrc x-cmd/_v0/log && ___x_cmd_log_completer"
+        "#n": "xrc log/latest && ___x_cmd_log_completer"
     },
     "upgrade|update": {
         "#1": ["nightly", "dev"],
@@ -84,16 +84,17 @@
         "#desc": "Execute a file in workspace, usually the .x-cmd directory in the repository"
     },
     "#1": [
-        "cd",
+        "cd --- Change the working directory",
         "dev",
-        "man",
-        "env",
+        "man --- An interface to the system reference manuals",
+        "env --- Inject the environment",
         "advise --- Generate command completion based on advise json",
         "theme --- Change terminal theme",
         "tldr --- Collaborative cheatsheets for console commands",
         "install --- Install Command-line tools",
         "proxy --- Setting up mirror sources for various package management",
-        "cowsay --- Generates ASCII art pictures of a cow with a message"
+        "cowsay --- Generates ASCII art pictures of a cow with a message",
+        "jo --- Command-line incomplete JSON processor"
     ],
     "#n": "___x_cmd_advise_get_result"
 }

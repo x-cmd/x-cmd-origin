@@ -3,12 +3,14 @@
 # author:       Li Junhao           l@x-cmd.com
 # license:      GPLv3
 
+xrc  cat/lib/color
+
 ___x_cmd_cat(){
     while [ $# -gt 0 ]; do
         case "$1" in
             htt*)       x curl "$1"     ;;
             # TODO: add resource for x path
-            *)          cat "$1"        ;;
+            *)          ___x_cmd_cat_color "$1"        ;;
             # If json, use json color
             # If source file, use language parser
         esac

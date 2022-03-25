@@ -1,6 +1,5 @@
-# shellcheck shell=sh disable=SC3043 # xrc
-
-# author:       Li Junhao           l@x-cmd.com
+# shellcheck    shell=sh    disable=SC3043  # xrc
+# Author:       Li Junhao   l@x-cmd.com
 
 xrc os/lib/import
 xrc os/lib/release
@@ -12,6 +11,8 @@ ___x_cmd_os(){
         arch)               ___x_cmd_os_arch          "$@"    ;;
         release)            ___x_cmd_os_release       "$@"    ;;
         rname)              ___x_cmd_os_release_name  "$@"    ;;
+        lsname)             ___x_cmd_os_lsname        "$@"    ;;
+        lsarch)             ___x_cmd_os_lsarch        "$@"    ;;
         *)                  ___x_cmd_os_help          "$@"    ;;
     esac
 }
@@ -24,7 +25,9 @@ if [ -n "${BASH_VERSION}${ZSH_VERSION}" ] && [ "${-#*i}" != "$-" ]; then
     "name": null,
     "arch": null,
     "release": null,
-    "rname": null
+    "rname": null,
+    "lsname": null,
+    "lsarch": null
 }
 A
 

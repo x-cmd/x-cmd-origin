@@ -4,6 +4,35 @@ BEGIN{
     JITER_STACK_FOR_GRID_CHECK[ 0 ] = ""   #  keypath
 }
 
+# Section: jiter init save load
+function jiter_save( obj ) {
+    obj[ "FA_KEYPATH" ] = JITER_FA_KEYPATH
+    obj[ "STATE" ]      = JITER_STATE
+    obj[ "LAST_KP" ]    = JITER_LAST_KP
+    obj[ "LEVEL" ]      = JITER_LEVEL
+    obj[ "CURLEN" ]     = JITER_CURLEN
+    obj[ "LAST_KL" ]    = JITER_LAST_KL
+}
+
+function jiter_init( keypath_prefix ) {
+    JITER_FA_KEYPATH    = keypath_prefix
+    JITER_STATE         = T_ROOT
+    JITER_LAST_KP       = ""
+    JITER_LEVEL         = 0
+    JITER_CURLEN        = 0
+    JITER_LAST_KL       = ""
+}
+
+function jiter_load( obj ){
+    JITER_FA_KEYPATH    = obj[ "FA_KEYPATH" ]
+    JITER_STATE         = obj[ "STATE" ]
+    JITER_LAST_KP       = obj[ "LAST_KP" ]
+    JITER_LEVEL         = obj[ "LEVEL" ]
+    JITER_CURLEN        = obj[ "CURLEN" ]
+    JITER_LAST_KL       = obj[ "LAST_KL" ]
+}
+# EndSection
+
 # Notice: Intentionaly left JITER_STACK_FOR_GRID_CHECK undeleted for efficenty, for the memory leak of JITER_STACK_FOR_GRID_CHECK is slight.
 
 # Section: EqArr
@@ -79,10 +108,9 @@ function jiter_regexarr_parse( obj, item, arrl, arr ){
         jiter_init()
         JITER_REGEXARR_PARSE = 1
     }
-    jiter_skip( item )
     jiparse( obj, item )
 
-    if (JITER_SKIP_LEVEL > 0) return false
+    if (JITER_LEVEL > 0) return false
     JITER_REGEXARR_PARSE = 0
     jiter_load( JITER_STACK_FOR_GRID_CHECK )   # diff
     if ( JITER_CURLEN == 0 ) jiter_regexarr( item, arrl, arr )   # Roll back    # diff
@@ -167,6 +195,16 @@ function jiter_print_rmatch( item, keypath, sep1, sep2,   _ret ){
     printf(sep2)
     return true
 }
+
+function jiter_print_eqarr_after_tokenize( item, keypath, sep1, sep2,     _arr, _arrl, _par, _parl){
+    keypath = substr(jpath(keypath), 2)
+    _parl = split(keypath, _par, S)
+    _arrl = json_split2tokenarr( _arr, item )
+    for (i=1; i<=_arrl; ++i) {
+        jiter_eqarr_print( _arr[i], _parl, _par, sep1, sep2)
+    }
+}
+
 
 function jiter_target_rmatch_val( item, keypath_regex ){
     _ret = jiter( item, JITER_STACK_FOR_GRID_CHECK )

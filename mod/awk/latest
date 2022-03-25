@@ -41,7 +41,7 @@ ___x_cmd_awk(){
     case "$op" in
         impl)
             ___x_cmd_awk_impl ;;
-        file)
+        file)   # This is core ...
             local fp="$2"; [ "$#" -gt 1 ] && shift 2
             local code
             if ! code="$(eval cat "$(___x_cmd_awk_lib)" "$fp")"; then
@@ -50,7 +50,17 @@ ___x_cmd_awk(){
             fi
             command awk "$@" "$code"
             ;;
-        code)
+        arg)
+            printf "%s %s" "-f" "awk/lib/default.awk"
+            for i in "$@"; do
+                printf " -f %s " "awk/lib/${i}.awk"
+                # case "$i" in
+                #     arr|bit|char|default|jiprint|jiter|jparse|json|math|ord|re|str|ui|var|wcwdith)
+
+                # esac
+            done
+            ;;
+        code)   # This will be in file
             local code="$2"; [ "$#" -gt 1 ] && shift 2
             command awk "$@" "$(eval cat "$(___x_cmd_awk_lib)")
 ${code}"

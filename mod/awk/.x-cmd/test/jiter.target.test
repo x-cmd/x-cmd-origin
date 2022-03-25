@@ -1,0 +1,74 @@
+
+code="$(cat default.awk json.awk jiter.awk )"
+
+f1(){
+    x json data | awk "$(cat json.awk )"'
+{
+    printf("%s", json_to_machine_friendly($0) )
+}
+' | awk "$code"'
+{
+    # jiter_print_rmatch( $0, "full_name", "", "\n" )
+    jiter_target_rmatch_val( $0, "full_name")
+}'
+}
+
+f2(){
+    x json data | awk "$(cat json.awk )"'
+{
+    printf("%s", json_to_machine_friendly($0) )
+}
+' | awk "$code"'
+{
+    # pat[1] = ""
+    # pat[2] = ""
+    # pat[3] = q("full_name")
+    # patl = 3
+    # jiter_regexarr_print( $0, patl, pat, "", "\n")
+
+    # jiter_print_regexarr($0, "..fullname", "", "\n")
+}'
+}
+
+f3(){
+    x json data | awk "$(cat json.awk )"'
+{
+    printf("%s", json_to_machine_friendly($0) )
+}
+' | awk "$code"'
+{
+    jiter_print_eqarr($0, "1.1.full_name", "", "\n")
+}'
+}
+
+
+# time (f1)
+# time (f2)
+# time (f3)
+
+code="$(cat default.awk json.awk jiter.awk )"
+
+f5(){
+    print '
+[
+    {
+        "data":{
+            "list":[
+                {
+                    "age":123,
+                    "name":"zs"
+                },
+                {
+                    "age":2343,
+                    "name":"ls"
+                }
+            ]
+        }
+    }
+]
+'| awk "$code"'
+{
+    jiter_print_eqarr_after_tokenize($0, ".1.data", "", "\n")
+}'
+}
+time (f5)

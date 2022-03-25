@@ -1,68 +1,114 @@
 
-code="$(cat default.awk json.awk jiter.awk jdict.awk jiparse.awk)"
+SSS="$(cat default.awk json.awk jiter.awk )"
 
-awk "$code"'
-
-function handle( token ){
-    if (token == "") return
-
-    jiter_print_rmatch( token, "comm", "", "\n" )
-    # if ( jiter_target_rmatch( _, token, "c" ) == true ) {
-    #     print jstr( _ )
-    #     delete _
-    # }
-
-}
-
+f1(){
+    awk "$SSS"'
 {
-    l = json_split2tokenarr( arr, $0 )
-    for (i=1; i<=l; ++i) {
-        handle( arr[ i ] )
+    pat[1] = q("1")
+    pat[2] = q("1")
+    pat[3] = q("d")
+    patl = 3
+
+
+    par[1] = q("1")
+    par[2] = ""
+    par[3] = q("d")
+    parl = 3
+
+    if ($0 != "") {
+        # jiter_eqarr_print( $0, patl, pat, "", "\n")
+        # jiter_eqarr_parse( _, $0, patl, pat)
+
+        jiter_regexarr_print( $0, parl, par, "", "\n")
+        # if (jiter_regexarr_parse(_, $0,  parl, par) == true ){
+        #     print jstr(_)
+        #     delete _
+        # }
     }
 }
+END{
+    # print jstr(_)
+}
+'
+}
 
-' <<A
+f(){
+{
+    awk "$SSS
+    {
+        printf(\"%s\", json_to_machine_friendly(\$0) )
+    }" | f1
+} <<A
 [
     {
-        "message": "",
-        "commit1": [
-            {
-                "sha": "17b952bbc9fa014ac33dc732510aaaa2d616c5eb",
-                "date": "2021-08-01T10:44:41+00:00"
+        "d": {
+            "a1": {
+                "1": 3
             },
-            {
-                "sha": "17b952bbc9fa014ac33dc732510aaaa2d616c5eb",
-                "date": "2021-08-01T10:44:41+00:00"
-            },
-            {
-                "sha": "17b952bbc9fa014ac33dc732510aaaa2d616c5eb",
-                "date": "2021-08-01T10:44:41+00:00"
+            "a2": [1,2],
+            "a": {
+                "a11": "aaa"
             }
-        ],
-        "nnn": ["eee1", "eee2"]
-    },
-    {
-        "name": "v1.0.0",
-        "message": "xxxxx",
-        "commit2": {
-            "sha": "222088ffaaf2808e34a4c108a5103e385ef5d853392",
-            "date": "2021-08-01T07:32:52+00:00"
+        },
+        "c": {
+            "c1": "12",
+            "aa": [1,2,3],
+            "c2": {
+                "c21": 12,
+                "c22": [
+                    3,
+                    4
+                ]
+            }
         }
     },
     {
-        "aaa": {
-            "a1": "www",
-            "a2": "www",
-            "a3": "www",
-            "a4": "www",
-            "a5": "www",
-            "b1": ["eee1", "eee2"]
+        "d": {
+            "a1": {
+                "1": 3
+            },
+            "a2": [1,2],
+            "a": {
+                "a11": "aaa"
+            }
         },
-        "commit3": {
-            "sha": "333088ffaaf2808e34a4c108a5103e385ef5d853392",
-            "date": "2021-08-01T07:32:52+00:00"
+        "c": {
+            "c1": "12",
+            "aa": [1,2,3],
+            "c2": {
+                "c21": 12,
+                "c22": [
+                    3,
+                    4
+                ]
+            }
+        }
+    },
+    {
+        "d": {
+            "a1": {
+                "1": 3
+            },
+            "a2": [1,2],
+            "a": {
+                "a11": "aaa"
+            }
         },
+        "c": {
+            "c1": "12",
+            "aa": [1,2,3],
+            "c2": {
+                "c21": 12,
+                "c22": [
+                    3,
+                    4
+                ]
+            }
+        }
     }
 ]
 A
 
+}
+
+time f

@@ -7,7 +7,7 @@ xrc awk
 # awk -v data='abc
 # ' 'END { print data; }' <<< ""
 
-SSS="$(cat default.awk)$(cat json.awk jiparse.awk)"
+SSS="$(cat default.awk)$(cat json.awk jparse.awk)"
 
 
 f(){
@@ -19,7 +19,7 @@ awk -v RS="\t" "$SSS"'
 }
 
 END{
-    json_parse(data, arr)
+    jparse(data, arr)
     print "---:\t|" jpath( "1.2.ssh_url" ) "|"
     print "---\t" arr[jpath( "1.2.ssh_url" )]
     print "---:\t|" length(jpath( "1.2.ssh_url" )) "|"

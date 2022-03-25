@@ -65,21 +65,20 @@ ___x_cmd_ui_varctl_numtext(){
         del)
             state_text="${state_text%?}"
             state=
-            if [ "$state_text" != "" ] && [ "$state_text" -ge 1 ] && [ "$state_text" -le $# ] ; then
+            if [ "$state_text" != "" ] && [ "$state_text" -ge $min ] && [ "$state_text" -le $max ] ; then
                 state="$state_text"
             fi
             ;;
         0|1|2|3|4|5|6|7|8|9)
             state_text="${state_text}${op}"
             state=
-            if [ "$state_text" != "" ] && [ "$state_text" -ge 1 ] && [ "$state_text" -le $# ] ; then
+            if [ "$state_text" != "" ] && [ "$state_text" -ge $min ] && [ "$state_text" -le $max ] ; then
                 state="$state_text"
             fi
             ;;
     esac
-
     if [ -n "$state" ]; then
-        state=$(( (state + $# - 1 ) % $# + 1 ))
+        state=$(( (state + $max - $min ) % $max + $min ))
         state_text="$state"
     fi
 

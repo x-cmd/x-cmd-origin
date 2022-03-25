@@ -1,371 +1,302 @@
+
+# Section: Global data
 BEGIN {
-    RS = "\002"
-    KSEP = ","
+    KSEP = "\001"
+    if (COL_MAX_SIZE == "")       COL_MAX_SIZE = 30
 
-
-    LEN = "len"
-    # data 
-
-    # col_max = 0
-    col_num = 0
-
-    if (HIGHROW != 0) {
-        arr_len = split(HIGHROW, arr, ",")
-        for (i=1; i<=arr_len; ++i) {
-            highrow[ arr[i] ] = 1 
-        }
-    } 
-
-    if (HIGHCOL != 0) {
-        arr_len = split(HIGHCOL, arr, ",")
-        for (i=1; i<=arr_len; ++i) {
-            highcol[ arr[i] ] = 1
-        }
-    } 
+    ctrl_help_item_put("ARROW UP/DOWN/LEFT/ROW", "to move focus")
+    ctrl_help_item_put("n/p", "for next/previous page")
+    ctrl_help_item_put("c/r/u/d", "for create/retrive/update/delete")
+    ctrl_help_item_put("SPACE", "for filter")
 }
+# EndSection
 
-NR > 1{
-    line_idx = NR - 1
+# Section: view
+function view_calcuate_geoinfo(){
+    # command line >
+    # help: 2/4
+    # empty line
+    # Filter: 1
+    # body:         view_body_row_num
+    # SELECT: 1
+    # status-line
 
-    data[ LEN ] = line_idx
-    
-    # TODO: Problably have to deal with \n
-    arr_len = split($0, arr, "\003")
-
-    if (col_num < arr_len)  col_num = arr_len
-
-    for (i=1; i<=arr_len; i+=1) {
-        elem = arr[i]
-        if (elem ~ /^B%/) {
-            elem = substr(elem, 3)
-            highlight[ line_idx KSEP i ] = 1
-        }
-
-        data[ line_idx KSEP i ] = elem
-        arr_i_len = wcswidth( elem )
-
-        datal[ line_idx KSEP i ] = arr_i_len
-        if (col_max[i] < arr_i_len) col_max[i] = arr_i_len
-    }
-
-}
-
-function fixout(size, str, _wcswidth){
-    # printf("%-" size "s", str)
-    # if (_wcswidth == 0)  _wcswidth = wcswidth(str)
-    size = size - _wcswidth
-    printf("%s", str sprintf("%" size "s", ""))
-}
-
-function printCell(i, j,  h,    _size){
-    if (highlight[ i KSEP j ]) h = 1
-
-    if (highrow[i] == 1)  h = 1
-    if (highcol[j] == 1)  h = 1
-
-    if (h == 1) printf("\033[7m")
-
-    _size = col_max[j] - datal[i KSEP j]
-    printf("%s", data[i KSEP j] sprintf("%" _size "s", ""))
-
-    if ((h == 1) && (highrow[i] != 1)) printf("\033[0m")
-    # printf("%s", sprintf("%s", ""))
-}
-
-function col_max_sum(   i, sum){
-    sum = 0
-    for (i=1; i<=col_num; ++i) {
-        sum += col_max[i]
-    }
-    return sum
-}
-
-function style0(    i, j){
-    printf "\033[4m"
-    for (i=1; i<=data[LEN]; ++i) {
-        for (j=1; j<=col_num; ++j) {
-            # fixout(col_max[j] + 3, data[i KSEP j], datal[i KSEP j])
-            printCell(i, j)
-            printf("%s", "   ")
-        }
-        printf "\033[0m\n"
+    # 7, 9
+    if ( ctrl_help_toggle_state() == true ) {
+        view_body_row_num = max_row_size - 8 - 2
+    } else {
+        view_body_row_num = max_row_size - 7 - 2
     }
 }
 
-function style1(    i, j){
-    printf "\033[7m"
-    for (i=1; i<=data[LEN]; ++i) {
-        for (j=1; j<=col_num; ++j) {
-            # fixout(col_max[j] + 3, data[i KSEP j], datal[i KSEP j])
-            printCell(i, j)
-            printf("%s", "   ")
-        }
+function view(){
+    if (DATA_HAS_CHANGED == false)    return
+    DATA_HAS_CHANGED = false
+    view_calcuate_geoinfo()
 
-        printf "\033[0m"
-        # if ( i == data[LEN]-1 ) {
-        #     printf "\033[4m"
-        # } else {
-        #     printf "\033[0m"
-        # }
-        printf "\n"
+    _component_help   = view_help()
+    _component_filter = view_filter()
+    _component_body   = view_body()
+
+
+    send_update( _component_help "\n\n" _component_filter  _component_body )
+}
+
+function view_help(){
+    return th_help_text( ctrl_help_get() )
+}
+function view_filter(       data){
+    if (ctrl_sw_get( FILTER_EDIT ) == true) return th_statusline_text( sprintf("FILTER: %s\n", filter[ ctrl_rstate_get( CURRENT_COLUMN ) ]) )
+    else return
+}
+
+function view_header(       col_i, _col_start, data, _tmp){
+    _col_start = view_body_cal_beginning_col()
+    data = th( TH_TABLE_HEADER_ITEM_NORMAL, "     ")
+    for (col_i=_col_start; col_i<=data_col_num; col_i++) {
+        if (col_max[ col_i ] > COL_MAX_SIZE) {
+            _tmp = sprintf( "  %s", str_pad_right( data_header_arr[ col_i ], COL_MAX_SIZE + 6, data_header_arr_wlen[ 1 KSEP col_i ] ) )
+        } else {
+            _tmp = sprintf( "  %s", str_pad_right( data_header_arr[ col_i ], col_max[ col_i ], data_header_arr_wlen[ 1 KSEP col_i ] ) )
+        }
+        if ( ctrl_rstate_get( CURRENT_COLUMN ) == col_i ) _tmp = th(TH_TABLE_HEADER_ITEM_FOCUSED, _tmp)
+        else _tmp = th( TH_TABLE_HEADER_ITEM_NORMAL,  _tmp )
+        data = data _tmp
+    }
+
+    return data "\n"
+}
+
+function view_body_cal_beginning_col(           _col, _col_size, i, _len){
+    _col = ctrl_rstate_get( CURRENT_COLUMN )
+    _col_size = max_col_size - 5
+    for (i=_col; i>=1; --i) {
+        _len = col_max[ i ] + 2
+        if (_col_size < _len) return i+1
+        _col_size -= _len
+    }
+    return 1
+}
+
+function view_body(             model_row_i, col_i, _col_start, model_start_row, _tmp_currow, _data){
+    if (model_row == 0) {
+        _data = "We couldn’t find any data ..."
+        _data = str_pad_center(_data, max_col_size, length(_data))
+        return th(TH_TABLE_UNFIND, _data)
+    }
+
+    _col_start = view_body_cal_beginning_col()
+    _data = view_header()
+
+    _tmp_currow = ctrl_rstate_get( CURRENT_ROW )
+    model_start_row = int( (_tmp_currow - 1) / view_body_row_num) * view_body_row_num + 1
+    # view_update_table
+    for (model_row_i = model_start_row; model_row_i <= model_start_row + view_body_row_num; model_row_i ++) {
+        if (model_row_i > model_row) break
+        data_row_i = model[ model_row_i ]
+        _data = _data sprintf("%s", str_pad_right( data_row_i, 5 ))
+        for (col_i=_col_start; col_i<=data_col_num; col_i++) {
+            _data = _data update_view_print_cell( model_row_i, data_row_i, col_i )
+        }
+        _data = _data "\n"
+    }
+    return _data th_statusline_text( sprintf("SELECT: %s\n", data[ _tmp_currow KSEP ctrl_rstate_get( CURRENT_COLUMN ) ]) )
+}
+
+function update_view_print_cell(model_row_i, data_row_i, col_i,       h, _size, _tmp_currow, _data){
+
+    if ( ctrl_rstate_get( CURRENT_COLUMN ) == col_i )           _data = TH_TABLE_SELECTED_COL
+    if ( ctrl_rstate_get( CURRENT_ROW ) == model_row_i ) {
+        _data = _data TH_TABLE_SELECTED_ROW
+        if ( ctrl_rstate_get( CURRENT_COLUMN ) == col_i )  _data = _data TH_TABLE_SELECTED_ROW_COL
+    }
+
+    cord = data_row_i KSEP col_i
+    if (col_max[ col_i ] <= COL_MAX_SIZE) {
+        _data =_data sprintf( "│ %s", str_pad_right( data[ cord ], col_max[ col_i ], data_wlen[ cord ] ) )
+    } else {
+        if (data_wlen[ cord ] > COL_MAX_SIZE){
+            _data =_data sprintf( "│ %s", str_pad_right( substr(data[ cord ], 1, COL_MAX_SIZE) "...", COL_MAX_SIZE + 3, COL_MAX_SIZE + 3) )
+        } else {
+            _data =_data sprintf( "│ %s", str_pad_right( data[ cord ], COL_MAX_SIZE + 3, data_wlen[ cord ] ) )
+        }
+    }
+    return th(TH_TABLE_LINE_ITEM_FOCUSED, _data )
+}
+# EndSection
+
+# Section: model
+function model_generate(  _cord, _elem, row_i, col_i, _ok){
+    model_row = 0
+
+    for (col_i = 1; col_i <= data_col_num; col_i ++) {
+        if (col_max[ col_i ] < data_header_arr_wlen[ col_i ])   col_max[ col_i ] = data_header_arr_wlen[ col_i ]
+    }
+    for (row_i = 1; row_i <= data_len; row_i++) {
+        _ok = true
+        for (col_i = 1; col_i <= data_col_num; col_i++) {
+            _filter = filter[ col_i ]
+            if (_filter == "") continue
+            if (index(data[ row_i KSEP col_i ], _filter) < 1) {
+                _ok = false
+                break
+            }
+        }
+        if ( _ok == true ) {
+            model[ ++ model_row ] = row_i
+
+            for (col_i = 1; col_i <= data_col_num; col_i ++) {
+                _cord = row_i KSEP col_i
+                if (col_max[ col_i ] < data_wlen[ _cord ])   col_max[ col_i ] = data_wlen[ _cord ]
+            }
+        }
+    }
+    ctrl_rstate_init( CURRENT_ROW, 1, model_row )
+    DATA_HAS_CHANGED = true
+}
+# EndSection
+
+# Section: ctrl
+BEGIN {     ctrl_sw_init( FILTER_EDIT, false )          }
+
+function ctrl_in_filter_state(char_type, char_value){
+    if (char_value == "ENTER") {
+        ctrl_sw_toggle( FILTER_EDIT)
+        model_generate()
+        return
+    }
+    ctrl_lineedit_handle( filter, ctrl_rstate_get( CURRENT_COLUMN ) , char_type, char_value)
+}
+
+function ctrl_in_normal_state(char_type, char_value){
+    exit_if_detected( char_value, EXIT_CHAR_LIST )
+
+    if (char_type == "ascii-space")                 return ctrl_sw_toggle( FILTER_EDIT )
+
+    if (char_value == "h")                          return ctrl_help_toggle()
+
+    if (char_value == "n")                          return ctrl_rstate_add( CURRENT_ROW, + view_body_row_num )
+    if (char_value == "p")                          return ctrl_rstate_add( CURRENT_ROW, - view_body_row_num )
+
+    if (char_value == "UP")                         return ctrl_rstate_dec( CURRENT_ROW )
+    if (char_value == "DN")                         return ctrl_rstate_inc( CURRENT_ROW )
+
+    if (char_value == "LEFT" )                      return ctrl_rstate_dec( CURRENT_COLUMN )
+    if (char_value == "RIGHT")                      return ctrl_rstate_inc( CURRENT_COLUMN )
+}
+
+function ctrl(char_type, char_value) {
+    if (ctrl_sw_get( FILTER_EDIT ) == true) {
+        ctrl_in_filter_state(char_type, char_value)
+    } else {
+        ctrl_in_normal_state(char_type, char_value)
     }
 }
 
-function style2(corner,    i, j){
+# EndSection
 
-    if (corner == "") corner = "*"
+# Section: consumer_item and consume_header
 
-    tmp = corner
-    col_wid = col_max_sum()
-    for (i=1; i<col_wid-1 + 3 * col_num + 3; ++i) {
-        tmp = tmp "-"
-    }
-    tmp = tmp corner
-
-    print tmp
-
-    for (i=1; i<=data[LEN]; ++i) {
-        printf "| "
-        for (j=1; j<=col_num; ++j) {
-            # fixout(col_max[j] + 3, data[i KSEP j], datal[i KSEP j])
-            printCell(i, j)
-            printf("%s", "   ")
-        }
-
-        printf "\033[0m|\n"
-
-        if ( i == 1 ) {
-            print tmp
-        }
-    }
-    print tmp
+BEGIN{
+    CONSUMER_ITEM_STREAM = "\001"
+    CONSUMER_ITEM_COL = 0
 }
 
-function style3(corner,    i, j){
-    if (corner == "") corner = "*"
+function consume_item_push(                 l ){
+    CONSUMER_ITEM_COL += 1
+    l = wcswidth( CONSUMER_ITEM_STREAM )
+    data_line[ data_len ] = ( data_line[ data_len ] == "" ) ? CONSUMER_ITEM_STREAM :data_line[ data_len ] "\003" CONSUMER_ITEM_STREAM
 
-    tmp = corner
-    col_wid = col_max_sum()
-    for (i=1; i<col_wid-1 + 3 * col_num + 3; ++i) {
-        tmp = tmp "-"
-    }
-    tmp = tmp corner
+    data[ data_len KSEP CONSUMER_ITEM_COL ] = CONSUMER_ITEM_STREAM
+    data_wlen [ data_len KSEP CONSUMER_ITEM_COL ] = l
 
-    print tmp
+    if (col_max[ CONSUMER_ITEM_COL ] < l) col_max[ CONSUMER_ITEM_COL ] = l
 
-    for (i=1; i<=data[LEN]; ++i) {
-        printf "| "
-        for (j=1; j<=col_num; ++j) {
-            printCell(i, j)
-            printf("%s", "   ")
-            # fixout(col_max[j] + 3, data[i KSEP j], datal[i KSEP j])
-        }
-
-        printf "\033[0m|\n"
-
-        if ( i == 1 ) {
-            print tmp
-        }
-    }
-    print tmp
+    CONSUMER_ITEM_STREAM = "\001"
 }
 
-function style4(corner,    i, j){
-    if (corner == "") corner = "o"
+function consumer_item() {
+    if ($0 == "\003\002\005") {
+        ctrl_rstate_init( CURRENT_COLUMN, 1, data_col_num )
+        data_len -= 1
+        model_generate()
+        view()
+        DATA_MODE = DATA_MODE_CTRL
+        return
+    } else if ($0 == "\002") {
+        # consume_item_push()
 
-    tmp = corner "-"
-    tmp1 = corner "-"
-    col_wid = col_max_sum()
-
-    for (i=1; i<=col_num; ++i) {
-        for (j=1; j<=col_max[i]; ++j) {
-            tmp = tmp "-"
-            tmp1 = tmp1 "-"
+        CONSUMER_ITEM_COL = 0
+        data_len += 1
+        # Show the first screen to improve use experience
+        if ( data_len == max_row_size ) {
+            ctrl_rstate_init( CURRENT_COLUMN, 1, data_col_num )
+            model_generate()
+            view()
         }
-
-        if (i == col_num)   tmp = tmp "---"
-        else                tmp = tmp "-+-"
-        tmp1 = tmp1 "---"
+    } else if ($0 == "\003") {
+        consume_item_push()
+    } else {
+        CONSUMER_ITEM_STREAM = ( CONSUMER_ITEM_STREAM == "\001" ) ? $0 : CONSUMER_ITEM_STREAM "\n" $0
     }
-
-    tmp = tmp corner
-    tmp1 = tmp1 corner
-
-    print tmp
-
-    for (i=1; i<=data[LEN]; ++i) {
-        printf "| "
-        for (j=1; j<=col_num; ++j) {
-            # fixout(col_max[j] + 3, data[i KSEP j], datal[i KSEP j])
-            printCell(i, j)
-            printf("%s", "   ")
-        }
-
-        printf "\033[0m|\n"
-
-        if ( i == 1 ) {
-            print tmp
-        }
-    }
-    print tmp1
 }
 
-function style5(corner,    i, j){
-    if (corner == "") corner = "o"
+# Using \t to seperate
+function consume_header(){
+    data_col_num = split($0, data_header_arr, "\t")
 
-    tmp = corner "-"
-    tmp1 = corner "-"
-    col_wid = col_max_sum()
+    for (i=1; i<=data_col_num; i++) {
+        elem = str_trim(data_header_arr[i])
+        elem_wlen = wcswidth( elem )
 
-    for (i=1; i<=col_num; ++i) {
-        for (j=1; j<=col_max[i]; ++j) {
-            tmp = tmp "-"
-            tmp1 = tmp1 "-"
-        }
-
-        if (i == col_num)   tmp = tmp "---"
-        else                tmp = tmp "-+-"
-        tmp1 = tmp1 "---"
+        data_header_arr_wlen [ i ] = elem_wlen
     }
+    data_len = 1
+}
+# EndSection
 
-    tmp = tmp corner
-    tmp1 = tmp1 corner
-
-    print tmp
-
-    for (i=1; i<=data[LEN]; ++i) {
-        printf "| "
-        for (j=1; j<=col_num; ++j) {
-            # fixout(col_max[j], data[i KSEP j], datal[i KSEP j])
-            printCell(i, j)
-            if (j != col_num)   printf("%s", " | ")
-            else                printf("%s", "   ")
-        }
-
-        printf "\033[0m|\n"
-
-        if ( i == 1 ) {
-            print tmp
-        }
-    }
-    print tmp1
+# Section: MSG Flow And End
+NR==1 {     update_width_height( $2, $3 );      }
+BEGIN {
+    DATA_MODE_ITEM = 1
+    DATA_MODE_CTRL = 2
+    DATA_MODE = DATA_MODE_ITEM
 }
 
-function style6(corner,  every,  i, j){
-    if (corner == "") corner = "o"
+NR==2 {  consume_header(); }
 
-    tmp = corner "-"
-    tmp1 = corner "-"
-    col_wid = col_max_sum()
+NR>2 {
+    if ( DATA_MODE == DATA_MODE_CTRL ) {
+        if (try_update_width_height( $0 ) == true) {
+            # view()
+        } else {
+            DATA_HAS_CHANGED = true
 
-    for (i=1; i<=col_num; ++i) {
-        for (j=1; j<=col_max[i]; ++j) {
-            tmp = tmp "-"
-            tmp1 = tmp1 "-"
+            cmd=$0
+            gsub(/^C:/, "", cmd)
+            idx = index(cmd, ":")
+            ctrl(substr(cmd, 1, idx-1), substr(cmd, idx+1))
+            view()
         }
-
-        if (i == col_num)   tmp = tmp "---"
-        else                tmp = tmp "-+-"
-        tmp1 = tmp1 "---"
+        # return
+    } else {
+        consumer_item()
     }
-
-    tmp = tmp corner
-    tmp1 = tmp1 corner
-
-    print tmp1
-
-    for (i=1; i<=data[LEN]; ++i) {
-        printf "| "
-
-        if (every > 1) {
-            if ( (i>1) && (i-1) % every == 0)       printf("\033[2m")
-            else                                    printf("\033[0m")
-        }
-
-        for (j=1; j<=col_num; ++j) {
-            # fixout(col_max[j], data[i KSEP j], datal[i KSEP j])
-            printCell(i, j)
-            if (j != col_num)   printf("%s", " | ")
-            else                printf("%s", "   ")
-        }
-
-        if (every > 1) printf("\033[0m")
-        printf "|\n"
-
-        if ( i == 1 ) {
-            print tmp
-        }
-    }
-    print tmp1
 }
 
-function show_all(){
-    print "style 0: "
-    style0()
-    printf "\n"
+END {
+    if ( exit_is_with_cmd() == true ) {
+        if (model_row != 0) {
+            _tmp_currow = ctrl_rstate_get( CURRENT_ROW )
+            _tmp_curcol = ctrl_rstate_get( CURRENT_COLUMN )
+        }
+        _tmp_currow = model[ _tmp_currow ]
 
-    print "style 1: "
-    style1()
-    printf "\n"
-
-    print "style 2: "
-    style2()
-    printf "\n"
-
-    print "style 3: "
-    style3()
-    printf "\n"
-
-    print "style 4: "
-    style4()
-    printf "\n"
-
-    print "style 5: "
-    style5()
-    printf "\n"
-
-    print "style 6: "
-    style6("o", 2)
-    printf "\n"
+        send_env( "___X_CMD_UI_TABLE_FINAL_COMMAND",    exit_get_cmd() )
+        send_env( "___X_CMD_UI_TABLE_CURRENT_ROW",      _tmp_currow )
+        send_env( "___X_CMD_UI_TABLE_CURRENT_COLUMN",   _tmp_curcol )
+        send_env( "___X_CMD_UI_TABLE_CUR_ITEM",         data[ _tmp_currow KSEP _tmp_curcol ] )
+        send_env( "___X_CMD_UI_TABLE_CUR_LINE",         data_line[ _tmp_currow ] )
+    }
 }
-
-END{
-    if (out == "0") {
-        style0()
-        exit 0
-    }
-
-    if (out == "1") {
-        style1()
-        exit 0
-    }
-
-    if (out == "2") {
-        style2()
-        exit 0
-    }
-
-    if (out == "3") {
-        style3()
-        exit 0
-    }
-
-    if (out == "4") {
-        style4()
-        exit 0
-    }
-
-    if (out == "5") {
-        style5()
-        exit 0
-    }
-
-    if (out == "6") {
-        style6("o", 5)
-        exit 0
-    }
-
-    show_all()
-}
-
-
+# EndSection

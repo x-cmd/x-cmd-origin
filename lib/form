@@ -1,56 +1,38 @@
 # shellcheck shell=sh disable=SC3043
 
 xrc awk
+xrc ui/latest
 xrc ui/lib/region
-
-if [ "$(___x_cmd_awk impl)" = "mawk" ]; then
-___x_cmd_ui_form_control(){
-    # LC_ALL=en_US.UTF-8 USE=str,wcwidth,ui ___x_cmd_awk file "$___X_CMD_UI_TABLE_CONTROL_AWK_PATH" \
-    #     -v EXIT_OP="$EXIT_OP" -W interactive
-    command awk -W interactive -v ORS="$___X_CMD_UI_REGION_RS" "$(xrc cat ui/lib/form.awk)"
-        # -f ./form.awk # "$(xrc cat ui/lib/form.awk)" # -f ./form.awk
+___x_cmd_ui_form_control_awk(){
+    command awk \
+        "$@" \
+        -f "$___X_CMD_ROOT/awk/lib/default.awk" \
+        -f "$___X_CMD_ROOT/awk/lib/str.awk" \
+        -f "$___X_CMD_ROOT/awk/lib/wcwidth.awk" \
+        -f "$___X_CMD_ROOT/awk/lib/ui.awk" \
+        -f "$___X_CMD_ROOT/ui/lib/share.awk" \
+        -f "$___X_CMD_ROOT/ui/lib/theme.awk" \
+        -f "$___X_CMD_ROOT/ui/lib/form.awk"
+        # -f "./lib/form.awk"
 }
 
-___x_cmd_ui_form_awk(){
+___x_cmd_ui_form_control_main(){
+    if [ "$(___x_cmd_awk impl)" = "mawk" ]; then
+        ___x_cmd_ui_form_control_awk -W interactive
+    else
+        ___x_cmd_ui_form_control_awk
+    fi
+}
+
+___x_cmd_ui_form_control(){
     (
         IFS="$(printf "\002")"
         printf "%s" "$*" | tr '\n' '\001'
         printf "\n"
         cat
-    ) | ___x_cmd_ui_form_control
-}
-
-else
-___x_cmd_ui_form_control(){
-    # LC_ALL=en_US.UTF-8 USE=str,wcwidth,ui ___x_cmd_awk file "$___X_CMD_UI_TABLE_CONTROL_AWK_PATH" \
-    #     -v EXIT_OP="$EXIT_OP" -v RS="$___X_CMD_UI_REGION_RS" -v ORS="$___X_CMD_UI_REGION_RS"
-    command awk -v RS="$___X_CMD_UI_REGION_RS" -v ORS="$___X_CMD_UI_REGION_RS" "$(xrc cat ui/lib/form.awk)"
-        # -f ./form.awk # "$(xrc cat ui/lib/form.awk)" # -f ./form.awk
-}
-
-___x_cmd_ui_form_awk(){
-    (
-        IFS="$(printf "\002")"
-        printf "%s%s" "$*" "$___X_CMD_UI_REGION_RS"
-        cat
-    ) | ___x_cmd_ui_form_control
-}
-fi
-
-
-___x_cmd_ui_form_main(){
-    ___x_cmd_ui_region_autorefresh_with_keyboard ___x_cmd_ui_form_awk "$@"
+    ) | ___x_cmd_ui_form_control_main
 }
 
 ___x_cmd_ui_form(){
-    ___x_cmd_ui_form_main "$@"
+    ___x_cmd_ui_region_autorefresh_with_keyboard ___x_cmd_ui_form_control "$@"
 }
-
-# ___x_cmd_ui_form \
-#     "Accesstype" atype public                       "=" private public -- \
-#     "RepoName" repo ""                              "=~" "abc1[0-9]+"   -- \
-#     "Username" user ""                              "=~" "12[0-9]+" -- \
-#     "Test multiple line argument" mul_line_arg  ""  -- \
-#     "Provide repo name" repo ""                     "=~" "abc" "cde" "def" -- \
-#     "Provide two repo name" repo2_1_1 ""            "=" "abc" "cde" "def" -- \
-#     "Provide two repo name" repo2_1_2 ""            "=" "cde"

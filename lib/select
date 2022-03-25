@@ -5,6 +5,7 @@ xrc ui/lib/region
 xrc ui/lib/varctl
 
 # Section: select app
+# TODO: Use awk to replace
 ___x_cmd_ui_select_draw(){
     local select="$1"
     local text="$2"
@@ -12,6 +13,7 @@ ___x_cmd_ui_select_draw(){
     {
         local l=0
         local arg
+        printf "\0337"
         printf "%s\n" "$prompt"
         for arg in "$@"; do
             arg="$(printf "$arg\n" | command awk '{
@@ -34,7 +36,7 @@ ___x_cmd_ui_select_mainloop(){
     local choice=1          # default
     local choice_text="1"
     local question="$1"; shift
-
+    trap "___x_cmd_ui_region___run_clear; exit 130" INT
     ___x_cmd_ui_select_draw "$choice" "$choice_text" "$question" "$@"
     while ___x_cmd_ui_getchar; do
         case "${___X_CMD_UI_GETCHAR_CHAR}" in
@@ -46,7 +48,6 @@ ___x_cmd_ui_select_mainloop(){
         esac
         ___x_cmd_ui_select_draw "$choice" "$choice_text" "$question" "$@"
     done
-
     # Notice: Meaningless but important.
     ___x_cmd_ui_select_draw "$choice" "$choice_text" "$question" "$@"
 

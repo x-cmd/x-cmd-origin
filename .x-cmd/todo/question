@@ -1,10 +1,13 @@
 xrc ui/lib/region
+xrc ui/lib/getchar
+# . ./region
+# . ./getchar
 
 ___x_cmd_ui_question_draw(){
     local question="$1"
     local answer="$2";
     local right="$3"
-    shift 3
+    [ $# -gt 2 ] && shift 3
     {
         printf "%s: " "$question"
         if [ -z "$right" ]; then
@@ -12,19 +15,18 @@ ___x_cmd_ui_question_draw(){
         else
             printf "  \033[32m%s\033[0m\n" "$answer"
         fi
-    } | ___x_cmd_ui_region_send_update
+    } | ___x_cmd_ui_region_send
 }
 
 ___x_cmd_ui_question_mainloop(){
     local question="${1:?Question}"
-    shift 2
+    [ $# -gt 1 ] && shift 2
 
-    local char
     local answer
 
     ___x_cmd_ui_question_draw "$question" "$answer"
-    while region_getchar char; do
-        case "$char" in
+    while ___x_cmd_ui_getchar; do
+        case "${___X_CMD_UI_GETCHAR_CHAR}" in
             UP|DN)  continue ;;
             ENTER)
                 break ;;
@@ -34,10 +36,9 @@ ___x_cmd_ui_question_mainloop(){
             *)
                 case "$___X_CMD_UI_GETCHAR_TYPE" in
                     ascii-space|ascii-digit|ascii-letter-*|ascii-symbol-*|UTF8*)
-                        answer="$answer$char" ;;
+                        answer="$answer$___X_CMD_UI_GETCHAR_CHAR" ;;
                 esac
         esac
-
         if [ "${#answer}" -eq 5 ]; then
             ___x_cmd_ui_question_draw "$question" "$answer" 1
         else
@@ -59,7 +60,7 @@ ___x_cmd_ui_question(){
 ___ui_prompt_question_degrade(){
     local question="${1:?Question}"
     local answer="${2:?Answer variable}"
-    shift 2
+    [ $# -gt 1 ] && shift 2
 
     xrc assert/latest
     while :; do

@@ -2,7 +2,7 @@ BEGIN {
     false = 0
     true = 1
     IS_BLOCK = false
-    IS_NOTE = false 
+    IS_NOTE = false
     block_str = ""
 
     out_color_italy         = "\033[3;36m"
@@ -21,11 +21,11 @@ BEGIN {
     out_color_head1         = "\033[1;34m" "\033[7;34m"
     out_color_head2         = "\033[1;34m" "\033[7;34m"
     out_color_head21        = "\033[0;34m" "\033[4;34m"
-    out_color_head22        = "\033[0;34m" 
+    out_color_head22        = "\033[0;34m"
     out_color_head3         = "\033[1;34m" "\033[4;34m"
 
     out_color_block         = "\033[2m"
-    
+
     out_color_end = "\033[0m"
 
     # indent_arr
@@ -81,7 +81,7 @@ function show_block(){
 
 # Section : show_table
 function show_table( table_str,  _line, _line_arr, _line_len, _table, _table_col_maxw, _cell ,_last_token_len,_token_len2){
-    
+
     _line_len = split( substr(table_str, 2), _line_arr, /\n/ )
     _token_len = split( _line_arr[2], _token_arr, "|" )
 
@@ -164,8 +164,8 @@ function show_table( table_str,  _line, _line_arr, _line_len, _table, _table_col
 #         if(match(tmpUrl,/\]\(/)){
 #             tmpUrl = "\033[4m" substr(tmpUrl,2,RSTART-2)out_color_end "\033[3;90m" substr(tmpUrl,RSTART+1)
 #         }
-#         tmp = substr(tmp,1,_RSTART-1) out_color_url tmpUrl out_color_end show_url(substr(tmp, _RSTART + _RLENGTH),out_color_end)  
-#     }  
+#         tmp = substr(tmp,1,_RSTART-1) out_color_url tmpUrl out_color_end show_url(substr(tmp, _RSTART + _RLENGTH),out_color_end)
+#     }
 #     return tmp
 # }
 # EndSection
@@ -189,7 +189,7 @@ function markdown_text_render(tmp,color) {
         FORMAT_DEL_NUM = FORMAT_DEL_NUM + 4
     }
 
-    while (match(tmp, /\*[^\*]+\*/ ) || match(tmp, /_[^_]+_/ ))  {
+    while (match(tmp, /\*[^\*]+\*/ ))  {
         tmp = substr(tmp, 1, RSTART-1) out_color_italy substr(tmp, RSTART+1, RLENGTH-2) color substr(tmp, RSTART + RLENGTH)
         FORMAT_DEL_NUM = FORMAT_DEL_NUM + 2
     }
@@ -207,7 +207,7 @@ function markdown_text_render(tmp,color) {
         tmp = substr(tmp, 1, RSTART-2) out_color_backtick " " substr(tmp, RSTART+2, RLENGTH-4) " " color substr(tmp, RSTART + RLENGTH)
         FORMAT_DEL_NUM = FORMAT_DEL_NUM + 2
     }
-    
+
     while (match(tmp, /```[^`]+```/ )) {
         tmp = substr(tmp, 1, RSTART-3) out_color_backtick " " substr(tmp, RSTART+3, RLENGTH-6) " " color substr(tmp, RSTART + RLENGTH)
         FORMAT_DEL_NUM = FORMAT_DEL_NUM + 4
@@ -220,9 +220,9 @@ function markdown_text_render(tmp,color) {
             # tmpUrl = "\033[4m\033[1m" substr(tmpUrl,2,RSTART-2)
             tmpUrl = "\033[1m" substr(tmpUrl,2,RSTART-2) "\033[2;3;4m" substr(tmpUrl,RSTART+1)
         }
-        tmp = substr(tmp,1,_RSTART-1) out_color_url tmpUrl color substr(tmp, _RSTART + _RLENGTH)  
+        tmp = substr(tmp,1,_RSTART-1) out_color_url tmpUrl color substr(tmp, _RSTART + _RLENGTH)
         FORMAT_DEL_NUM = FORMAT_DEL_NUM + 2
-    }  
+    }
 
     gsub("\001", "\\\\", tmp)
     gsub("\002", "\\`", tmp)
@@ -235,7 +235,7 @@ function markdown_text_render(tmp,color) {
 
 # Section : main
 function consume_line(text,   tmp, _i){
-    match(text, /^<!--.+-->/) 
+    match(text, /^<!--.+-->/)
     if (RSTART > 0) {
         text = substr(text, 1, RSTART-1) substr(text, RSTART + RLENGTH)
     }
@@ -254,7 +254,7 @@ function consume_line(text,   tmp, _i){
             return
         }
     }
-    
+
     if (text ~ /^---$/ ){
         for (_i=5; _i<COLUMNS; ++_i){
             text = text "-"
@@ -298,7 +298,7 @@ function consume_line(text,   tmp, _i){
     # if (RSTART > 0)
     # {
     #     tmp = substr(text, RSTART + RLENGTH)
-        
+
     #     # printf ( "%s\n", out_color_head21 sprintf("%" COLUMNS "s", "") )
     #     printf ( "%s\n", out_color_head21 str_rep("-", COLUMNS) )
     #     printf out_color_end
@@ -318,7 +318,7 @@ function consume_line(text,   tmp, _i){
     {
         tmp = substr(text, RSTART + RLENGTH)
         printf ("  %s%s%s\n", out_color_head3, substr(text, RSTART , RLENGTH) , markdown_text_render(tmp), sprintf("%" COLUMNS - wcswidth(tmp) "s", "") )
-        printf out_color_end 
+        printf out_color_end
         return
     }
     tmp = text
@@ -338,7 +338,7 @@ function consume_line(text,   tmp, _i){
         lead_indent = substr(tmp, 1, RLENGTH)
         order = indent_arr[order_block_count RS RLENGTH]
 
-        
+
         if (order == "")    order = 1
         else                order = order + 1
         indent_arr[order_block_count RS RLENGTH] = order

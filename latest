@@ -5,11 +5,11 @@
 # Section: define lazy loader
 ___x_cmd_definelazyloader   ___x_cmd_ui_table         ui/lib/table
 ___x_cmd_definelazyloader   ___x_cmd_ui_select        ui/lib/select
+___x_cmd_definelazyloader   ___x_cmd_ui_gridselect    ui/lib/gridselect
 ___x_cmd_definelazyloader   ___x_cmd_ui_form          ui/lib/form
-___x_cmd_definelazyloader   ___x_cmd_ui_truefalse     ui/lib/truefalse
-___x_cmd_definelazyloader   ___x_cmd_ui_table         ui/lib/table
+___x_cmd_definelazyloader   ___x_cmd_ui_tf            ui/lib/truefalse
 ___x_cmd_definelazyloader   ___x_cmd_ui_prompt        ui/lib/prompt
-___x_cmd_definelazyloader   ___x_cmd_ui_markdown      ui/lib/markdown
+# ___x_cmd_definelazyloader   ___x_cmd_ui_markdown      ui/lib/markdown
 
 # EndSection
 
@@ -23,11 +23,12 @@ ___x_cmd_ui(){
         progressbar|probar)                                         ___x_cmd_ui_progressbar "$@" ;;
         cmd|cmdline)                                                ___x_cmd_ui_cmdline "$@" ;;
         table)                                                      ___x_cmd_ui_table  "$@" ;;
+        gridselect)                                                 ___x_cmd_ui_gridselect "$@" ;;
         select)                                                     ___x_cmd_ui_select "$@" ;;
         form)                                                       ___x_cmd_ui_form "$@" ;;
         tf|truefalse)                                               ___x_cmd_ui_tf "$@" ;;
         prompt)                                                     ___x_cmd_ui_prompt "$@" ;;
-        md|markdown)                                                ___x_cmd_ui_markdown "$@" ;;
+        # md|markdown)                                                ___x_cmd_ui_markdown "$@" ;;
         spin)                                                       ___x_cmd_ui_spin "$@" ;;
         sep)                                                        ___x_cmd_ui_sep "$@" ;;
         sep2)                                                       ___x_cmd_ui_sep2 "${1:--}" $(( $(___x_cmd_ui cols) / 2 )) ;;
@@ -53,6 +54,7 @@ ___x_cmd_ui_init_lines_columns(){
 $(stty size)
 A
 }
+
 ___x_cmd_ui_init_lines_columns
 
 if read -p " " -e ___UI_TMP_TEST 1>/dev/null 2>/dev/null <<A

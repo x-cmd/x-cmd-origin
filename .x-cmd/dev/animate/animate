@@ -42,7 +42,7 @@ ___x_cmd_ui_animate_app(){
         fi
     } | {
         local code
-        local tc=1
+        local ticks=1
 
         while read -r code; do
             case "$code" in

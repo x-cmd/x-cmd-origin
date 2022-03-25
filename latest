@@ -1,7 +1,5 @@
-# shellcheck shell=sh disable=SC3043 # xrc
-
-# author:       Li Junhao           l@x-cmd.com
-# maintainer:   Li Junhao
+# shellcheck    shell=sh    disable=SC3043  # xrc
+# Author:       Li Junhao   l@x-cmd.com
 
 ___x_cmd_proxy(){
     x log init proxy

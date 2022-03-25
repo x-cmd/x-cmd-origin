@@ -128,6 +128,7 @@ function handle_long_cmd(cmd,
 # EndSection
 
 BEGIN {
+    if (COLUMNS == 0) COLUMNS=179
     printf("\033[0;40m%s", "")
     out_cmd_key_color  = ""
     out_cmd_info_color = ""

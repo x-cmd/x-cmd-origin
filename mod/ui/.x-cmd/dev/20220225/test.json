@@ -1,0 +1,45 @@
+{
+    "push": [],
+    "pull": [],
+    "login": {
+        "__type": "form",
+        "__data": [
+            {
+                "var": "v",
+                "op": "=",
+                "ops": []
+            },
+            {
+                "var": "a",
+                "op": "=~",
+                "ops": []
+            }
+        ]
+    },
+    "repo": {
+        "__info": {
+            "__type": "cmd",
+            "__cmd": [ "c", "a" ]
+        },
+        "create": {
+
+        },
+        "delete": {
+            "___type": "cmd",
+            "___cmd": [ "gh", "repo", "delete" ],
+            "___form": {
+                "--work": "",
+                "--work1": "",
+                "--work2": ""
+            }
+        },
+        "update": {
+            "__exec": {
+                "-o|--options": [],
+                "#1": [],
+                "#2": []
+            }
+
+        }
+    }
+}

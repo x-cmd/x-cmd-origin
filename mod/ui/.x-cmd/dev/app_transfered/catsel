@@ -1,0 +1,33 @@
+xrc ui/lib/region
+xrc ui/lib/varctl
+
+___x_cmd_ui_catsel(){
+    ___x_cmd_ui_region_autorefresh_with_keyboard ___x_cmd_ui_catsel_mainloop_awk
+}
+
+___x_cmd_ui_catsel_mainloop_awk_(){
+    command awk \
+        "$@" \
+        -f "$___X_CMD_ROOT/awk/lib/default.awk" \
+        -f "$___X_CMD_ROOT/awk/lib/str.awk" \
+        -f "$___X_CMD_ROOT/awk/lib/wcwidth.awk" \
+        -f "$___X_CMD_ROOT/awk/lib/ui.awk" \
+        -f "$___X_CMD_ROOT/ui/lib/theme.awk" \
+        -f "$___X_CMD_ROOT/ui/lib/share.awk" \
+        -f "$___X_CMD_ROOT/ui/lib/app/catsel.awk"
+        # -f "./lib/theme.awk" \
+        # -f "./lib/share.awk" \
+        # -f "./lib/catsel.awk"
+}
+
+___x_cmd_ui_catsel_mainloop_awk(){
+    if [ "$(___x_cmd_awk impl)" = "mawk" ]; then
+        ___x_cmd_ui_catsel_mainloop_awk_ -W interactive "$@"
+    else
+        ___x_cmd_ui_catsel_mainloop_awk_ "$@"
+    fi
+}
+
+# ___x_cmd_ui_catsel
+# echo "___X_CMD_UI_CATSEL_FINAL_COMMAND:" "$___X_CMD_UI_CATSEL_FINAL_COMMAND"
+# echo "___X_CMD_UI_CATSEL_CURRENT_ITEM:" "$___X_CMD_UI_CATSEL_CURRENT_ITEM"

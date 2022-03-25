@@ -1,0 +1,7 @@
+# . ./select
+xrc ui
+f(){
+    ui select "num,text" "Please select the app you want to install:" "The 1 options" "The 2 options" "The 3 options" "The 4 options" "The 5 options" "The 6 options" "The 7 options" "The 8 options" "The 9 options" "The 10 options" "The 11 options" "The 12 options" "The 13 options" "The 14 options" "The 15 options" "The 16 options" "The 17 options" "The 18 options" "The 19 options" "The 20 options" "The 21 options" "The 22 options" "The 23 options" "The 24 options" "The 25 options" "The 26 options" "The 27 options" "The 28 options" "The 29 options" "The 30 options"
+    printf "%s\n" "$num: $text"
+}
+f

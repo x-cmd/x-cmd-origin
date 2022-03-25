@@ -47,12 +47,13 @@ ___x_cmd_ui_region_getchar_read1(){
 
 else
 
-echo "Using stty for read1" >&2
+# echo "Using stty for read1" >&2
 ___x_cmd_ui_region_getchar_read1(){
     stty raw
     ___X_CMD_UI_GETCHAR_CHAR="$(dd bs=1 count="${1:-1}" 2> /dev/null)"
     local code=$?
     stty -raw
+    if [ "$___X_CMD_UI_GETCHAR_CHAR" = "$(printf "\003")" ]; then return 130; fi
     return $code
 }
 

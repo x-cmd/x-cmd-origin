@@ -22,6 +22,7 @@ else
     return 1
 fi
 
+xrc env/latest
 [ -f "$HOME/.x-cmd/.boot/mod" ] && x boot mod load
 [ -f "$HOME/.x-cmd/.boot/rc" ] && . "$HOME/.x-cmd/.boot/rc"
 :

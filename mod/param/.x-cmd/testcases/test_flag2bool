@@ -1,0 +1,21 @@
+#! /bin/sh
+
+xrc param/latest
+
+aaa() {
+    param:dsl       '
+type:
+    Access  =   private public
+option:
+    --advanced_security         "enable or disable GitHub Advanced Security for this repository."
+    --scanning                  "enable or disable secret scanning for this repository"
+    --scanning_push_protection  "enable or disable secret scanning push protection for this repository"
+'
+    param:run
+
+    true=enable false=disable param:flag2bool scanning advanced_security scanning_push_protection
+
+    echo "\nadvanced_security: $advanced_security\nscanning: $scanning\nscanning_push_protection: $scanning_push_protection"
+}
+
+aaa --advanced_security --scanning_push_protection

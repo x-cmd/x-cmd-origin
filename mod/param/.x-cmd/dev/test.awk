@@ -1,5 +1,5 @@
 {
-    LEN = "len"
+    L = "len"
 }
 
 function panic_error(msg){
@@ -34,31 +34,31 @@ function tokenize_argument_into_TOKEN_ARRAY(astr,
     astr = str_trim(astr)
 
     print "|" astr "|"
-    TOKEN_ARRAY[LEN] = 0
+    TOKEN_ARRAY[ L ] = 0
     while (length(astr) > 0){
         if (match(astr, /^\003[^\003]+\003/)) {
-            len = TOKEN_ARRAY[LEN] + 1
+            len = TOKEN_ARRAY[ L ] + 1
             tmp = substr(astr, 1, RLENGTH)
             gsub("\004", " ",   tmp)      # Unwrap
             gsub("\003", "",    tmp)       # Unwrap
-            gsub("\002", "\"",  tmp)     
+            gsub("\002", "\"",  tmp)
             gsub("\001", "\\",  tmp)     # Unwrap
             TOKEN_ARRAY[len] = tmp
-            TOKEN_ARRAY[LEN] = len
+            TOKEN_ARRAY[ L ] = len
             astr = substr(astr, RLENGTH+1)
 
             print "expect here 1: " TOKEN_ARRAY[len]
 
         } else if ( match(astr, /^[^ \n\t\v\003]+/) ){ #"
-            
-            len = TOKEN_ARRAY[LEN] + 1
+
+            len = TOKEN_ARRAY[ L ] + 1
             tmp = substr(astr, 1, RLENGTH)
             gsub("\004", " ",       tmp)
             gsub("\003", "",        tmp)
             gsub("\002", "\"",      tmp)
             gsub("\001", "\\\\",    tmp)   # Notice different
             TOKEN_ARRAY[len] = tmp
-            TOKEN_ARRAY[LEN] = len
+            TOKEN_ARRAY[ L ] = len
             astr = substr(astr, RLENGTH+1)
 
             if ( match(astr, /^\003[^\003]+\003/) ) {
@@ -87,7 +87,7 @@ function tokenize_argument_into_TOKEN_ARRAY(astr,
 
     tokenize_argument_into_TOKEN_ARRAY($0)
 
-    print TOKEN_ARRAY[ LEN ]
+    print TOKEN_ARRAY[ L ]
     print TOKEN_ARRAY[1]
     print TOKEN_ARRAY[2]
 }

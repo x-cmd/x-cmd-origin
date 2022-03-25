@@ -273,7 +273,6 @@ A
     assert_stdout "test123 cs -a=cscs -"<<A
 -seq
 -b
--a
 -c
 -d
 -e
@@ -473,12 +472,20 @@ A
 A
 
 }
+
+test_xvf(){
+    assert_stdout "test123 cs -ab ''"<<A
+test1
+test2
+A
+}
+
 # EndSection
 
 # Section: utilities
 
 test123(){
-    local fp="./testcase/test.json"
+    local fp="./.x-cmd/testcase/test.json"
     local IFS=$'\002' # IFS="$(printf "\002")"
     # echo "Before awk: $*" > /dev/stderr
 
@@ -509,11 +516,11 @@ start_test() {
     done
 }
 
-start_test ./testcase/v0_test_awk
+start_test ./.x-cmd/testcase/v0_test_awk
 
 # EndSection
 
 # Section: for the interactive ui
 advise rm compt
-advise compt "./testcase/test.json"
+advise compt "./.x-cmd/testcase/test.json"
 # EndSection

@@ -351,17 +351,14 @@ NR==2{
         arg = parsed_argarr[i]
         argval = ""
         if (arg ~ /^-/) {
-            if(match(arg,/=/)){
-                continue
-            }
             if (match(arg, /^--?[A-Za-z0-9_+-]+=/)){
                 argval = substr(arg, RLENGTH+1)
-                arg = substr(arg, 1, RLENGTH)
+                arg = substr(arg, 1, RLENGTH-1)
             }
             cur_option_alias = arg
             option_id = RULE_ALIAS_TO_ID[ current_keypath KEYPATH_SEP cur_option_alias ]
             if (option_id != "") {
-                used_option_add( option_id )
+                mark_option_provided_and_used( option_id )
             } else {
                 is_compact_argument = 0
                 if (arg ~ /^-[^-]/) {
@@ -369,7 +366,7 @@ NR==2{
                     _arg_tmp_arrlen = split(arg, _arg_tmp_arr, "")
                     for (j=2; j<=_arg_tmp_arrlen; ++j) {
                         cur_option_alias = "-" _arg_tmp_arr[j]
-                        option_id = RULE_ALIAS_TO_ID[ keypath KEYPATH_SEP cur_option_alias ]
+                        option_id = RULE_ALIAS_TO_ID[ current_keypath KEYPATH_SEP cur_option_alias ]
                         if (option_id == "") {
                             is_compact_argument = -1
                             break
@@ -378,8 +375,10 @@ NR==2{
 
                     if (is_compact_argument == 0) {
                         for (j=2; j<=_arg_tmp_arrlen; ++j) {
+                            cur_option_alias = "-" _arg_tmp_arr[j]
                             argarr[++arglen] = cur_option_alias
-                            used_option_add( option_id )
+                            option_id = RULE_ALIAS_TO_ID[ current_keypath KEYPATH_SEP cur_option_alias ]
+                            mark_option_provided_and_used( option_id )
                         }
                         arg = argarr[arglen]
                         is_compact_argument = 1
@@ -436,7 +435,7 @@ NR==2{
 
             # Must be subcommand argument
             current_keypath = option_id
-            used_option_clear( )
+            delete used_option_set
 
             COLON_ARG_EXISTED = false
         }
@@ -482,17 +481,12 @@ NR==2{
 # EndSection
 
 # Section: used_option
-BEGIN{
-    used_option_list = ""
-}
 
-function used_option_add(option_id){
+function mark_option_provided_and_used(option_id){
     RULE_ID_R[ option_id ] = REQUIRED_PROVIDED
-    used_option_list = used_option_list "\n" option_id
-}
-
-function used_option_clear(){
-    used_option_list = ""
+    if (RULE_ID_M[ option_id ] != true) {
+        used_option_set[ option_id ] = true
+    }
 }
 
 # EndSection
@@ -588,15 +582,7 @@ function show_positional_candidates(final_keypath, cur, rest_argv_len,
 
 # That is most complicated.
 function show_candidates(final_keypath, cur,
-    can_arr, can_arr_len,
-    num, used_option_set){
-
-    can_arr_len = split( used_option_list, can_arr, "\n" )
-    for (i=2; i<=can_arr_len; ++i) {
-        if (RULE_ID_M[ can_arr[i] ] != true) {
-            used_option_set[ can_arr[i] ] = true
-        }
-    }
+    can_arr, can_arr_len){
 
     candidates = RULE_ID_CANDIDATES[ final_keypath ]
 

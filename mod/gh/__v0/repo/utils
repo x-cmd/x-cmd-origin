@@ -1,0 +1,73 @@
+# shellcheck shell=sh
+# shellcheck disable=SC2039,3043
+
+############################
+# Section 6: Repo Path & Clone
+############################
+___x_cmd_gh_repo_url_http() {
+    param:scope  "github/$O"
+    param:dsl    '
+options:
+    #n  "Provide repo list"
+'
+    param:run
+
+    local repo
+    for repo in "$@"; do
+        printf "https://github.com/%s.git\n" "$(___x_cmd_gh_param_normalize_repo "$repo")"
+    done
+}
+
+___x_cmd_gh_repo_url() {
+    param:void
+    ___x_cmd_gh_repo_url_ssh ${1:+"$@"}
+}
+
+___x_cmd_gh_repo_url_ssh() {
+    param:scope     "github/$O"
+    param:dsl       '
+options:
+    #n "Provide repo list"
+'
+    param:run
+
+    local repo
+    for repo in "$@"; do
+        printf "git@github.com:%s.git\n" "$(___x_cmd_gh_param_normalize_repo "$repo")"
+    done
+}
+
+___x_cmd_gh_repo_clone() {
+    ___x_cmd_gh_repo_clone_ssh "$@" && return 0
+    ___x_cmd_gh_repo_clone_https "$@" && return 0
+    return $?
+}
+
+# shellcheck disable=SC2120
+___x_cmd_gh_repo_clone_ssh() {
+    param:void
+    git clone "$(___x_cmd_gh_repo_url_ssh "$@")"
+}
+
+# shellcheck disable=SC2120
+___x_cmd_gh_repo_clone_https() {
+    param:void
+    git clone "$(___x_cmd_gh_repo_url_http "$@")"
+}
+
+# https://github.com/api/v5/swagger#/postV5ReposOwnerRepoForks
+# TODO Not available Gitee return Not Found Project
+___x_cmd_gh_repo_fork() {
+    param:scope    "github/$O"
+    param:dsl       '
+options:
+    --repo              "Repo name"                 <>:repo
+    --organization=""   "Provide organization"      <>:org
+'
+    param:run
+
+    local owner_repo
+    owner_repo="$(___x_cmd_gh_param_normalize_repo "$repo")"
+
+    ___x_cmd_gh_post_json "https://github.com/api/v5/repos/${owner_repo}/forks" organization
+}

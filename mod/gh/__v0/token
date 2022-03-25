@@ -1,0 +1,27 @@
+# shellcheck shell=sh
+# shellcheck disable=SC2039,3043
+
+# Synchronized token in the x-bash user profile.
+
+# shellcheck disable=SC2120
+___x_cmd_gh_token() {
+    param:void
+    local O="${O:-GITHUB_DEFAULT}"
+    if [ $# -eq 0 ]; then
+        param_default get "github_$O" "token" 2>/dev/null || return 1
+    else
+        if [ "$1" = "false" ];then
+            shift
+            param_default put "github_$O" "token" "$@"
+          else
+            param_default put "github_$O" "token" "$@"
+            ___x_cmd_gh_config_save
+        fi
+    fi
+
+    if [ -n "$1" ]; then
+        # setter
+        local token="$1"
+        http "@___x_cmd_gh_${O:-GITHUB_DEFAULT}" header put Authorization "token $token"
+    fi
+}

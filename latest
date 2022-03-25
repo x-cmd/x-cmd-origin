@@ -1,6 +1,6 @@
 # shellcheck shell=sh disable=SC3043 # xrc
 
-xrc param/v0
+xrc param/latest
 
 # Section: main
 

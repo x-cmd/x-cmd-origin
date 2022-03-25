@@ -203,7 +203,7 @@ fi
  # @description: set theme hightlight color
  # @param $1:color => black | red | green | yellow | blue | magenta | cyan | white | rgb-${number}
 ###
-_______x_cmd_theme_set_log_color() { ___X_CMD_LOG_COLORIZED_MSG="\\033[$color_code"m; }
+_______x_cmd_theme_set_log_color() { ___X_CMD_LOG_COLORIZED_INFO="\\033[$color_code"m; }
 
 ___x_cmd_theme_set_theme_color() {
     : "${1:?Please provide correct primary color}"

@@ -5,8 +5,8 @@ BEGIN {
 }
 
 function ord_init(    low, high, i, t) {
-    low = sprintf("%c", 7) # BEL is ascii 7
-    if (low == "\a") {    # regular ascii
+    low = sprintf("%c", 7)      # BEL is ascii 7
+    if (low == "\a") {          # regular ascii
         low = 0
         high = 127
     } else if (sprintf("%c", 128 + 7) == "\a") {

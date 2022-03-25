@@ -7,7 +7,6 @@
 # arr[ "a" T ]
 
 BEGIN {
-    T = "\002"
     T_DICT = "{" # "\003"
     T_LIST = "[" # "\004"
     T_PRI = "\005"
@@ -15,8 +14,6 @@ BEGIN {
 
     T_KEY = "\007"
     T_LEN = "\010"
-
-    S="\001"
 }
 
 # Section: handler: jkey, _jpath,
@@ -136,7 +133,6 @@ function json_str_unquote2(str){
     if (str !~ /^"/) { # "
         return str
     }
-
     gsub(/\\\\/, "\001\001", str)
     gsub(/\\"/, /"/, str)
     gsub("\001\001", "\\\\", str)
@@ -358,7 +354,7 @@ function jlist_grep_to_arr( obj, keypath, reg,  arr,        _arrl,    _k, _len, 
 
     _len = obj[ keypath T_LEN ]
     for(_i=1; _i<=_len; ++_i){
-        _tmp = jpath(_k "." _i key)
+        _tmp = keypath S "\"" _i "\""
         if( match(json_str_unquote2( obj[ _tmp ] ), reg)){
             arr[ ++_arrl ] = _tmp
         }
@@ -376,14 +372,6 @@ function jdict_keys(arr, keypath, klist, _l){
     # TODO: klist[ L ] = _l-1
     return _l
 }
-
-function jdict_keys2arr(arr, keypath, klist, _l){
-    _l = split(substr(arr[ keypath T_KEY ],2), klist, S)
-    klist[ L ] = _l
-    # TODO: klist[ L ] = _l-1
-    return _l
-}
-
 
 function jdict_rm(arr, keypath, key,  _key_str){
     _key_str = arr[ keypath T_KEY]
@@ -433,13 +421,13 @@ function jdict_value2arr(obj, keypath, arr,    _keyarr, i, l){
 function jdict_grep_to_arr( obj, keypath, reg,  arr,    _arrl,  _klist, _k, _tmp, _len, _ret, _i ){
     _k = keypath
     keypath = jpath(keypath)
-
-    _l = split(substr(obj[ keypath T_KEY ],2), klist, S)
+    print substr(obj[ keypath T_KEY ],2)
+    _l = split(substr(obj[ keypath T_KEY ],2), _klist, S)
 
     _arrl = 0
     for(_i=1; _i<=_l; ++_i){
         _tmp = _klist[_i]
-        if( match(json_str_unquote2( obj[ jpath(_k "." _tmp ) ] ), reg)){
+        if( match( obj[ keypath S _tmp ], reg)){
             arr[ ++ _arrl ] = _tmp
         }
     }
@@ -670,49 +658,20 @@ function json_split2tokenarr_(text){
     return json_split2tokenarr(_, text)
 }
 
-# Section: jiter init save load
-function jiter_save( obj ) {
-    obj[ "FA_KEYPATH" ] = JITER_FA_KEYPATH
-    obj[ "STATE" ]      = JITER_STATE
-    obj[ "LAST_KP" ]    = JITER_LAST_KP
-    obj[ "LEVEL" ]      = JITER_LEVEL
-    obj[ "CURLEN" ]     = JITER_CURLEN
-    obj[ "LAST_KL" ]    = JITER_LAST_KL
-}
-
-function jiter_init( keypath_prefix ) {
-    JITER_FA_KEYPATH    = keypath_prefix
-    JITER_STATE         = T_ROOT
-    JITER_LAST_KP       = ""
-    JITER_LEVEL         = 0
-    JITER_CURLEN        = 0
-    JITER_LAST_KL       = ""
-}
-
-function jiter_load( obj ){
-    JITER_FA_KEYPATH    = obj[ "FA_KEYPATH" ]
-    JITER_STATE         = obj[ "STATE" ]
-    JITER_LAST_KP       = obj[ "LAST_KP" ]
-    JITER_LEVEL         = obj[ "LEVEL" ]
-    JITER_CURLEN        = obj[ "CURLEN" ]
-    JITER_LAST_KL       = obj[ "LAST_KL" ]
-}
-# EndSection
-
 # Section: still strange: should be global search
 
 # TODO: ...
-function jgrep_to_arr(obj, keypath, key, reg,      _type){
+function jgrep_to_arr(obj, keypath, reg, key,      _type){
     _k = keypath
     keypath = jpath(keypath)
 
     _type = obj[ keypath ]
     if (_type == T_LIST) {
-        return jlist_grep(obj, keypath, key, reg)
+        return jlist_grep_to_arr(obj, keypath, reg, key)
     }
 
     if (_type == T_DICT) {
-        return jdict_grep(obj, keypath, key, reg)
+        return jdict_grep_to_arr(obj, keypath, reg, key)
     }
 
     return ""

@@ -1,11 +1,6 @@
 
 
-xrc awk
-
-# awk -v data='abc
-# ' 'END { print data; }' <<< ""
-
-SSS="$(cat default.awk)$(cat json.awk jiparse.awk jdict.awk jlist.awk)"
+SSS="$(xrc cat awk/lib/default.awk awk/lib/json.awk awk/lib/jiter.awk)"
 
 
 f1(){
@@ -13,24 +8,23 @@ awk "$SSS"'
 {
     if ($0 != "") {
         jiparse(arr, $0)
-        # print ($0)
     }
 }
 
 END{
-    print jstr(arr)
     jdict_push(arr, S "\"" 1 "\"" S "\"" 2 "\"","\"d\"",9)
-    jdict_rm(arr, jpath("1.2"), q("a"))
-    jlist_push(arr, jpath("1.2.b"),9)
-    jlist_rm(arr, jpath("1.2.b"), 6)
-    print( jkey(1, "b", 6) )
-    print ( jpath(".b.1"))
-    print("--- "  arr[ jpath("1.2.b.6") ])
+    print jstr(arr)
+    # jdict_rm(arr, jpath("1.2"), q("a"))
+    # jlist_push(arr, jpath("1.2.b"),9)
+    # jlist_rm(arr, jpath("1.2.b"), 6)
+    # print( jkey(1, "b", 6) )
+    # print ( jpath(".b.1"))
+    # print("--- "  arr[ jpath("1.2.b.6") ])
 
 
-    print json_stringify_format(arr, ".", 6)
-    print json_stringify_machine(arr, "1.2.b")
-    print json_stringify_compact(arr, ".")
+    # print json_stringify_format(arr, ".", 6)
+    # print json_stringify_machine(arr, "1.2.b")
+    # print json_stringify_compact(arr, ".")
 }
 '
 }

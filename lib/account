@@ -1,0 +1,107 @@
+# shellcheck shell=sh disable=SC3043,SC1091,SC3028
+
+xrc http
+
+# Section(utils): ___x_cmd_hub_token_generate, ___x_cmd_hub_get_and_save_userinfo_by_token
+
+if command -v md5sum; then
+    ___x_cmd_hub_token_md5(){
+        local token
+        token="$(md5sum "$@")"
+        printf "%s" "${token%% *}"
+    }
+else
+    ___x_cmd_hub_token_md5(){
+        md5 "$@"
+    }
+fi
+
+if [ -n "$RANDOM" ]; then
+    ___x_cmd_hub_token_random_md5(){
+        printf "%s" "${RANDOM}${RANDOM}${RANDOM}${RANDOM}${RANDOM}${RANDOM}" | ___x_cmd_hub_token_md5 "$@"
+    }
+else
+    ___x_cmd_hub_token_random_md5(){
+        dd if=/dev/random bs=1024 count=1 2>/dev/null | ___x_cmd_hub_token_md5 "$@"
+    }
+fi
+
+___x_cmd_hub_token_generate(){
+    printf "%s%s" "$(date +%s)" "$(___x_cmd_hub_token_random_md5 "$@")" | ___x_cmd_hub_token_md5 "$@"
+}
+
+# EndSection
+
+# Section: qrcode
+
+___x_cmd_hub_print_qrcode(){
+    x qr enc -s 1 -m 3 -t ANSIUTF8 "$1"
+    hub_log debug "QR Code url: $1"
+}
+
+___x_cmd_hub_wechat_register_url(){
+    local token_to_activate="${1:?provide token_to_activate}"
+    local username="${2:?provide username}"
+    printf "%s" "${___X_CMD_HUB_WECHAT_AUTHORIZE_URL_PREFIX}r%3Fu%3D${username}&response_type=code&scope=snsapi_userinfo&state=${token_to_activate}#wechat_redire"
+}
+
+___x_cmd_hub_wechat_login_url(){
+    local token_to_activate="${1:?provide token_to_activate}"
+    printf "%s" "${___X_CMD_HUB_WECHAT_AUTHORIZE_URL_PREFIX}l&response_type=code&scope=snsapi_userinfo&state=${token_to_activate}#wechat_redire"
+}
+
+# EndSection
+
+# Section(env): ___x_cmd_hub_login_user, ___x_cmd_hub_token, ___x_cmd_hub_get_and_save_userinfo_by_token
+
+___x_cmd_hub_login_user(){
+    cat "$___X_CMD_HUB_ENV/.me" 2>/dev/null
+}
+
+___X_CMD_HUB_ENV="$___X_CMD_ROOT/.env/hub"
+
+# shellcheck disable=SC2120
+___x_cmd_hub_token(){
+    param:void
+    if [ -z "$1" ]; then
+        cat "$___X_CMD_HUB_ENV/.token" 2>/dev/null
+        return
+    fi
+
+    if [ "$1" != "${1#*/}" ]; then
+        hub_log debug "userid: ${1%/*}, token: ${1##*/}"
+        printf "%s" "${1%/*}"  > "$___X_CMD_HUB_ENV/.me"
+        printf "%s" "${1##*/}" > "$___X_CMD_HUB_ENV/.token"
+        return
+    fi
+
+    # TODO
+    # local res
+    # if res=$(___x_cmd_httpget "$___X_CMD_HUB_SERVICE_URL/api/v0/token/info/email?token=$(___x_cmd_hub_token)"); then
+    #     printf "%s" "$res" > "$___X_CMD_HUB_ENV/.me"
+    #     printf "%s" "$1" > "$___X_CMD_HUB_ENV/.token"
+    # fi
+}
+
+___x_cmd_hub_get_and_save_userinfo_by_token(){
+    local token="${1:?Please provide token}"
+
+    local res
+    if ! res="$(___x_cmd_httpget "$___X_CMD_HUB_SERVICE_URL/api/v0/account/user?token=${token}")" ; then
+        hub_log error "Failed to get userinfo by token: $res"
+        return 1
+    fi
+    hub_log debug "response: ${res}"
+
+    local userid
+    local username
+    userid="$(printf "%s" "$res" | x jq -r '.id')"
+    username="$(printf "%s" "$res" | x jq -r '.username')"
+    ___x_cmd_hub_token "${userid}/${token}"
+    printf "%s\n" "${username} ${userid}"
+}
+
+# EndSection
+
+___x_cmd_source_inner_lib ui select
+___x_cmd_source_inner_lib hub account_login account_registration

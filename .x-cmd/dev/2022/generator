@@ -1,10 +1,7 @@
 
-# Section: serialize and unserialize
-
 ___x_cmd_json_flat(){
     awk -v op=flat-leaf -f "$___X_CMD_JSON_AWK_PATH"
 }
-
 
 # ___x_cmd_json_list 1 2 3 true false "\"true\"" hello "Working\"a"
 # ___x_cmd_json_list <<A
@@ -18,7 +15,6 @@ ___x_cmd_json_flat(){
 # Working\"a
 # A
 # ___x_cmd_json_list '[ 1, 2, 3, "true", true, false, hello"Working, it\'s working ]'
-
 
 ___x_cmd_json_array(){
     local s=
@@ -70,7 +66,7 @@ BEGIN{
 }
 {
     a=$0
-    gsub(/\"/, "\\\"", a)
+    gsub(/"/, "\\\"", a)
     gsub(/\n/, "\\n", a)
     gsub(/\r/, "\\r", a)
     gsub(/\b/, "\\b", a)
@@ -327,4 +323,3 @@ ___x_cmd_json_from_kv(){
 #     printf "\n}"
 # }
 
-# EndSection

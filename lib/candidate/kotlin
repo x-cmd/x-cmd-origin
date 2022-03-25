@@ -1,0 +1,54 @@
+# shellcheck shell=sh disable=SC2039,SC1090,SC3043,SC2263    # xrc
+
+___x_cmd_env_kotlin_ls_remote(){
+	local cache_path="$___X_CMD_ENV_PATH/kotlin/cache/version_list"
+	local cache_expiration="${2:-1}"
+
+	___x_cmd_httpget "https://api.sdkman.io/2/candidates/kotlin/LINUX64/versions/all" "$cache_path" "$cache_expiration" && \
+	awk 'BEGIN{ RS=","} { print $0 }' < "$cache_path"
+}
+
+
+___x_cmd_env_kotlin_download_archive(){
+	local version="${1:? Provide a version}"
+
+	if ___x_cmd_env_util_is_archive_cached kotlin "$version" 2>/dev/null; then
+		env_log info  "Archive existed: $version"
+		return 0
+	fi
+
+	local archive_path="$___X_CMD_ENV_PATH/kotlin/archive/kotlin-${version}.zip"
+	mkdir -p "$(dirname "${archive_path}")"
+
+	download_url="https://github.com/JetBrains/kotlin/releases/download/v${version}/kotlin-compiler-${version}.zip"
+	env_log info "Downloading kotlin ${version}"
+
+	if ! curl --progress-bar --location --retry-max-time 10 --retry 0 "${download_url}" --output "${archive_path}"; then
+		env_log info "Download failure"
+		retuen 1
+	fi
+
+	env_log info "Download completed $download_url"
+}
+
+___x_cmd_env_kotlin_ws(){
+    :
+}
+
+___x_cmd_env_kotlin_unpack(){
+	local version="${1:?Provide a version}"
+	env_log info "unpack beginning kotlin-${version}"
+	local archive_path="$___X_CMD_ENV_PATH/kotlin/archive/kotlin-${version}.zip"
+
+	x uz "$archive_path" "$(dirname "${archive_path}")" || return 1
+
+	local archive_unpack_files
+	archive_unpack_files="$(dirname "${archive_path}")/kotlin"
+	local versions_path="$___X_CMD_ENV_PATH/kotlin/versions"
+	mkdir -p "$versions_path/${version}"
+    mv -f "$archive_unpack_files"/* "$___X_CMD_ENV_PATH/kotlin/versions/${version}"
+	# mv -f "$archive_unpack_files/"* "$versions_path/${version}"
+	rm -rf "$archive_unpack_files"
+
+}
+

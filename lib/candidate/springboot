@@ -1,0 +1,49 @@
+# shellcheck shell=sh disable=SC2039,SC1090,SC3043,SC2263    # xrc
+
+#springboot ls-r
+___x_cmd_env_springboot_ls_remote(){
+    local cache_path="$___X_CMD_ENV_PATH/springboot/cache/version_list"
+    local cache_expiration="${2:-1}"
+
+    ___x_cmd_httpget "https://repo.spring.io/ui/api/v1/ui/nativeBrowser/release/org/springframework/boot/spring-boot-cli" "$cache_path" "$cache_expiration" 2>/dev/null &&\
+    awk ' match($0,/name/){gsub(/^[ ]+/,"",$0);gsub(/"name" : "maven-[a-z0-9.", ]+/," ",$0);gsub(/",{1,5}/," ",$0);print(substr($0,11,50))} ' < "$cache_path"
+}
+
+___x_cmd_env_springboot_download_archive(){
+    local version="${1:?Provide a version}"
+    local archive_path="$___X_CMD_ENV_PATH/springboot/archive/springboot-${version}.zip"
+
+   if ___x_cmd_env_util_is_archive_cached springboot "$version" 2>/dev/null; then
+        env_log info "Archive existed: $version"
+        return 0
+    fi
+
+    mkdir -p "$(dirname "${archive_path}")"
+    download_url="https://repo.spring.io/simple/release/org/springframework/boot/spring-boot-cli/${version}/spring-boot-cli-${version}-bin.zip"
+        env_log info "Downloading"
+
+     if ! curl --progress-bar --location --retry-max-time 10 --retry 0 "$download_url" --output "$archive_path" ; then
+        env_log error "Download failure from $download_url"
+        return 1
+    fi
+
+}
+
+___x_cmd_env_springboot_unpack(){
+
+	local version="${1:?Provide a version}"
+    env_log info "Unpacking: springboot ${version}"
+
+    local archive_path="$___X_CMD_ENV_PATH/springboot/archive/springboot-$version.zip"
+	x uz "$___X_CMD_ENV_PATH/springboot/archive/springboot-$version.zip" "$(dirname "$archive_path")" || return 1
+
+    local archive_unpack_files
+    archive_unpack_files="$(dirname "$archive_path")/spring-$version"
+
+    local versions_path="$___X_CMD_ENV_PATH/springboot/versions"
+    mv -f "$archive_unpack_files/spring-${version}/spring-${version}" "$archive_unpack_files/spring-${version}"
+	mkdir -p "${versions_path}/${version}"
+	mv -f "$archive_unpack_files/"* "${versions_path}/${version}"
+	rm -rf "${archive_unpack_files}"
+}
+

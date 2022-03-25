@@ -1,0 +1,139 @@
+# shellcheck shell=sh disable=SC1072 #source
+
+xws install >/dev/null
+___X_CMD_XRC_MODULE_IMPORTED=
+advise rm ___x_cmd_env_main
+xrc env
+x log init env
+x log env
+
+case $1 in
+    python)
+        # TODO: Check if this version is available in your system
+        env_log info "Testing python ls."
+        x env ls python
+
+        env_log info "Testing python current."
+        x env current python
+
+        env_log info "Testing python install."
+        x env install python py38_4.10.1
+
+        env_log info "Testing python exec."
+        x env exec python py38_4.10.1 -V
+
+        env_log info "Testing python current."
+        x env current python
+
+        env_log info "Testing python uninstall."
+        x env uninstall python py38_4.10.1
+
+        env_log info "Testing python exec."
+        x env exec python py38_4.10.1 -V
+
+        env_log info "Testing python current."
+        x env current python
+        ;;
+    node)
+        env_log info "Testing node ls."
+        x env ls node
+
+        env_log info "Testing node current."
+        x env current node
+
+        env_log info "Testing node ls -r."
+        x env ls -r node
+
+        # x env install node v14.19.0
+        env_log info "Testing node install."
+        x env install node v17.5.0
+
+        env_log info "Testing node uninstall."
+        x env uninstall node v17.5.0
+
+        env_log info "Testing node install."
+        x env install node v17.4.0
+
+        # x env la node
+        # x env use node v17.5.0
+        env_log info "Testing node current."
+        x env current node
+        env_log info "Testing node exec."
+        x env exec node v17.4.0 --version
+        ;;
+    java)
+        # . "$(x wsroot)/.x-cmd/testcases/java"
+        env_log info "Testing java ls."
+        x env ls java
+        env_log info "Testing java ls -r."
+        x env ls -r java
+        # env_log info "Testing java la."
+        # x env la java
+        env_log info "Testing java current."
+        x env current java
+        env_log info "Testing java download."
+        x env download java 17.0.2.8.1-amzn
+        env_log info "Testing java install."
+        x env install java 17.0.2-zulu
+        # x env install java 21.3.0.0-mandrel
+        # x env use java 17.0.2.8.1-amzn
+        # x env la java
+        # x env exec java 17.0.2.8.1-amzn -version
+        # x env install java 17.0.2.8.1-amzn
+        # x env uninstall java 17.0.2.8.1-amzn
+        # # x env use java 17.0.2.8.1-amzn
+        x env ls java
+        x env current java
+        # echo ""
+        x env exec java 17.0.2.8.1-amzn -version
+        x env uninstall java 17.0.2-zulu
+        ;;
+    deno)
+        env_log info "Testing deno ls."
+        x env ls deno
+        env_log info "Testing deno ls -r."
+        x env ls -r deno
+        env_log info "Testing deno la."
+        x env la deno
+        env_log info "Testing deno current."
+        x env current deno
+        echo ""
+        env_log info "Testing deno download."
+        x env download deno latest
+        ;;
+    perl)
+        env_log info "Testing perl ls."
+        x env ls perl
+        env_log info "Testing perl ls -r."
+        x env ls -r perl
+        env_log info "Testing perl la."
+        x env la perl
+        env_log info "Testing perl current."
+        x env current perl
+        echo ""
+        env_log info "Testing perl download."
+        x env download deno latest
+        ;;
+    kotlin)
+        env_log info "Testing perl ls."
+        x env ls perl
+        env_log info "Testing perl ls -r."
+        x env ls -r perl
+        env_log info "Testing perl la."
+        x env la perl
+        env_log info "Testing perl current."
+        x env current perl
+        echo ""
+        env_log info "Testing perl download."
+        x env download deno latest
+        ;;
+    all)
+
+        for cmd in python node java deno perl kotlin; do
+            x test "$cmd"
+        done
+        ;;
+    *)
+        echo "Usage: x test python|node|java|deno|perl|kotlin"
+        ;;
+esac

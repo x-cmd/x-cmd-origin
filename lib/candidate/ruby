@@ -1,0 +1,45 @@
+# shellcheck shell=sh disable=SC2039,SC1090,SC3043,SC2263    # xrc
+
+___x_cmd_env_ruby_la(){
+    :
+}
+
+___x_cmd_env_ruby_ls(){
+    :
+}
+
+___x_cmd_env_ruby_download(){
+    :
+}
+
+___x_cmd_env_ruby_install(){
+    :
+}
+
+___x_cmd_env_ruby_uninstall(){
+    :
+}
+
+___x_cmd_env_ruby_try(){
+    :
+}
+
+___x_cmd_env_ruby_use(){
+    :
+}
+
+___x_cmd_env_ruby_ws(){
+    :
+}
+
+___x_cmd_env_ruby_current(){
+    :
+}
+
+___x_cmd_env_ruby_which(){
+    :
+}
+
+___x_cmd_env_ruby_exec(){
+    :
+}

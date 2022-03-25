@@ -1,0 +1,67 @@
+# shellcheck shell=sh disable=SC2039,SC1090,SC3043,SC2263    # xrc
+
+# Section: utils
+___x_cmd_env_deno_get_target(){
+    xrc os
+    local platform
+    local system
+
+    case "$(___x_cmd_os name)" in
+        linux)      system="unknown-linux-gnu"      ;;
+        windows)    system="pc-windows-msvc"        ;;
+        darwin)     system="apple-darwin"           ;;
+        *)          return 1 ;;
+    esac
+
+    case "$(___x_cmd_os arch)" in
+        aarch64)    platform=aarch64        ;;
+        x64)        platform=x86_64         ;;
+        arm64)      platform=arm64          ;;
+        *)          return 1 ;;
+    esac
+
+    target="${platform}-${system}"
+}
+# EndSection
+
+# Section: ls, la
+___x_cmd_env_deno_la(){
+    :
+}
+
+# EndSection
+
+___x_cmd_env_deno_download(){
+    local version="${1:?Provide deno version}"
+    if [ -z "$version" ]; then
+        version="$(curl -sSf https://dl.deno.js.cn/release-latest.txt)"
+    fi
+    ___x_cmd_env_common_pre_install_check deno "$version" || return 1
+    ___x_cmd_env_deno_get_target
+
+    local url="https://github.com/denoland/deno/releases/download/${version}/deno-${target}.zip"
+    if [ "${___X_CMD_IN_CHINA_NET:-0}" -eq 1 ]; then
+        url="https://dl.deno.js.cn/release/${version}/deno-${target}.zip"
+    fi
+
+    env_log info "Downloading $url"
+    local candidate_path="$___X_CMD_ENV_PATH/deno/versions/${version}/bin"
+    local exe="$candidate_path/deno"
+    if [ ! -d "$candidate_path" ]; then
+        mkdir -p "$candidate_path"
+    fi
+    if curl --fail --location --progress-bar --output "$exe.zip" "$url"; then
+        env_log info "Install deno $target"
+        unzip -d "$candidate_path" -o "$exe.zip"
+        chmod +x "$exe"
+        rm "$exe.zip"
+        return
+    else
+        env_log error "Download failure from $url"
+        return 1
+    fi
+}
+
+___x_cmd_env_deno_ws(){
+    :
+}

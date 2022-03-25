@@ -1,0 +1,132 @@
+# shellcheck shell=sh disable=SC2039,SC1090,SC3043,SC2263,SC2120    # xrc
+
+# Section: utils
+
+___x_cmd_env_python_get_system_platform(){
+    xrc os
+    case "$(___x_cmd_os name)" in
+        linux)      system=Linux            ;;
+        windows)    system=Windows          ;;
+        darwin)     system=MacOSX           ;;
+        *)          return 1 ;;
+    esac
+
+    case "$(___x_cmd_os arch)" in
+        aarch64)    platform=aarch64        ;;
+        x64)        platform=x86_64         ;;
+        arm64)      platform=arm64          ;;
+        *)          return 1 ;;
+    esac
+}
+
+___x_cmd_env_python_get_miniconda_filename_and_compression(){
+    local version="${1:?Provide python version}"
+
+    local platform
+    local system
+    ___x_cmd_env_python_get_system_platform
+
+    if [ $system = "Windows" ] ; then
+        compression="exe"
+    else
+        compression="sh"
+    fi
+    miniconda_filename="Miniconda3-${version}-${system}-${platform}.${compression}"
+}
+
+# EndSection
+
+# Section: ls, la
+
+___x_cmd_env_python_sort_versions(){
+	sort -t . -k 1,1 -k 2,2n
+}
+
+___x_cmd_env_python_ls_remote(){
+    # local pattern="${1:-""}"    # TODO: ls remote filter
+    local cache_expiration="${2:-1}"
+	local cache_path="$___X_CMD_ENV_PATH/python/cache/version_list"
+
+    local platform
+    local system
+    ___x_cmd_env_python_get_system_platform
+
+    ___x_cmd_httpget "https://mirrors.tuna.tsinghua.edu.cn/anaconda/miniconda/" "$cache_path" "$cache_expiration" 2>/dev/null && \
+    awk -v platform="${platform}" -v arch="${system}" '
+        BEGIN{RS="<a href=";FS="\""}{
+            if (match($2, "^.*-" arch "-" platform ".sh$")) {
+                split($2, a, /-/)
+                print a[2]
+            }
+        }' <"$cache_path" | ___x_cmd_env_python_sort_versions
+}
+
+# EndSection
+
+# Section: download, unpack
+
+___x_cmd_env_python_download_archive(){
+    local version="${1:?Provide python version}"
+
+    if ___x_cmd_env_util_is_archive_cached python "$version" 2>/dev/null; then
+        env_log info "Archive existed: $version"
+        return 0
+    fi
+
+    local miniconda_filename
+    local compression
+    ___x_cmd_env_python_get_miniconda_filename_and_compression "$version"
+
+    local archive_path="$___X_CMD_ENV_PATH/python/archive/python-$version.$compression"
+    mkdir -p "$(dirname "$archive_path")"
+    local url="https://repo.anaconda.com/miniconda"
+    if [ "${___X_CMD_IN_CHINA_NET:-0}" -eq 1 ]; then
+        url="https://mirrors.tuna.tsinghua.edu.cn/anaconda/miniconda"
+    fi
+
+    env_log info "Downloading $url/$miniconda_filename"
+    if curl --fail --output "$archive_path" "$url/$miniconda_filename"; then
+        env_log info "Download completed python-$version.$compression"
+        return
+    else
+        env_log error "Download failure from $url/${miniconda_filename}"
+        return 1
+    fi
+}
+
+___x_cmd_env_python_unpack(){
+    local version="${1:?Provide python version}"
+    local miniconda_filename
+    local compression
+    ___x_cmd_env_python_get_miniconda_filename_and_compression "$version"
+
+    env_log info "Unpacking python-$version.$compression"
+
+    local versions_path="$___X_CMD_ENV_PATH/python/versions"
+    mkdir -p "${versions_path}"
+    local archive_path="$___X_CMD_ENV_PATH/python/archive/python-$version.$compression"
+    chmod +x "${archive_path}" && \
+    "${archive_path}" -b -u -p "${versions_path}/${version}" 1>&2
+}
+
+# EndSection
+
+# Section: ui_catsel
+
+#TODO: Should be optimized
+___x_cmd_env_python_ui_catsel(){
+    case "$#" in
+        0)
+            ___x_cmd_env_python_ls_remote | awk '{ split($0,arr,"."); vmap[arr[1]]=1 } END{ for(key in vmap){print key} }'
+            ;;
+        1)
+            ___x_cmd_env_python_ls_remote | grep ^"$1" | awk '{ print $0 }'
+            ;;
+    esac
+}
+
+# EndSection
+
+___x_cmd_env_python_ws(){
+    :
+}

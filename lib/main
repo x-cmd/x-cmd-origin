@@ -1,0 +1,350 @@
+# shellcheck shell=sh disable=SC2039,SC1090,SC3043,SC2263    # xrc
+
+# Section: Candidate API
+___x_cmd_env_candidate_all(){
+    printf "%s" "python
+node
+java"
+
+}
+
+
+# EndSection
+
+x log init env
+xrc env/lib/util
+xrc env/lib/common
+xrc param
+param_type  env  candidates_list - <<A
+$(___x_cmd_env_candidate_all)
+A
+
+# Section: ENV ___X_CMD_ENV_PATH
+
+___X_CMD_ENV_PATH="$___X_CMD_ROOT/.env"
+
+# EndSection
+
+# Section: main
+___x_cmd_env_main() {
+    param:scope     "env"
+    param:dsl <<A
+subcommands:
+    ls                      "list all installed environments"
+    download                "Download environment"
+    install                 "Install environment"
+    uninstall               "Remove environment"
+    try                     "Set default environment in this shell session"
+    use                     "Set global default environment"
+
+    current                 "Show current environment"
+    which                   "Display path of environment installed"
+
+    exec                    "Run an executable with the selected candidates version"
+A
+    param:run
+
+    # TODO: la---"list all available environments"
+    # TODO: ws---"Set workspace default environment"
+
+    #TODO: Should be optimized
+    if [ "${1}" = "___x_cmd_ui_catsel" ]; then
+        shift
+        ___x_cmd_env_ui_catsel "$@"
+        return
+    fi
+
+    if [ -z "$PARAM_SUBCMD" ]; then
+        ___x_cmd_env_main help
+        return 1
+    fi
+
+    "___x_cmd_env_main_$PARAM_SUBCMD" "$@"
+}
+# EndSection
+
+# Section: run_common_if_notfound
+___x_cmd_env_run_common_if_notfound(){
+    local op="${1:?Provide op}";  shift
+    local candidate="${1:?Provide candidate}";  shift
+
+    # TODO: It might be better to have one folder for one language.
+    xrc "env/lib/candidate/$candidate"
+
+    local cmd="___x_cmd_env_${candidate}_${op}"
+    if command -v "$cmd" >/dev/null; then
+        "$cmd" "$@"
+    else
+        env_log debug "Candidate ${candidate} has no op: $op, use common $op function."
+        "___x_cmd_env_common_${op}" "$candidate" "$@"
+    fi
+}
+
+# EndSection
+
+# Section: ls, la
+___x_cmd_env_main_ls(){
+    param:scope "env"
+    param:dsl <<A
+options:
+    --cache|-c         "Use cache"
+    --remote|-r        "List version including remote"
+    #1                 "Environment Candidates" <candidates>:candidates_list
+A
+    param:run
+
+    local candidate="${1}"
+    if [ -z "$candidate" ]; then
+        env_log warn "No candidate specified"
+        ___x_cmd_env_main_ls --help
+        return 1
+    fi
+
+    # TODO: 增加 本地简写版本对应关系 和 全局简写版本对应关系
+    # TODO: V8 -> V8.2   --> (Remote) V8.6
+    if [ -n "$remote" ] ; then
+		___x_cmd_env_run_common_if_notfound ls_remote "$candidate" "$@"
+        ___x_cmd_env_run_common_if_notfound gen "$candidate" "$@"
+        return
+    fi
+
+    ___x_cmd_env_run_common_if_notfound ls_local "$candidate" "$@"
+}
+
+___x_cmd_env_main_la(){
+    ___x_cmd_env_run_common_if_notfound la "$@"
+}
+
+# EndSection
+
+# Section: use, try, ws
+___x_cmd_env_main_try(){
+    param:scope "env"
+    param:dsl <<A
+advise:
+    #2        xrc env/latest && ___x_cmd_env_advise_ls_local_version
+options:
+    #1        "Environment Candidates" <candidates>:candidates_list
+    #2        "Version"                <version>="default"
+A
+    param:run
+
+    local candidate="${1}"
+    local version
+    if ! version="$(___x_cmd_env_run_common_if_notfound full_version "$candidate" "$2")"; then
+        env_log error "Version of $candidate not found: $version"
+        return 1
+    fi
+    shift 2
+
+    ___x_cmd_env_run_common_if_notfound try "$candidate" "$version" "$@"
+}
+
+___x_cmd_env_main_use(){
+    param:scope "env"
+    param:dsl <<A
+advise:
+    #2        xrc env/latest && ___x_cmd_env_advise_ls_local_version
+options:
+    --use_shims   "Use shims"
+    #1            "Environment Candidates" <candidates>:candidates_list
+    #2            "Version"                <version>="default"
+A
+    param:run
+
+    local candidate="${1}"
+    local version
+    if ! version="$(___x_cmd_env_run_common_if_notfound full_version "$candidate" "$2")"; then
+        env_log error "Version of $candidate not found: $version"
+        return 1
+    fi
+    shift 2
+
+    ___x_cmd_env_run_common_if_notfound use "$candidate" "$version" "$use_shims" "$@"
+}
+
+___x_cmd_env_main_ws(){
+    if [ $# -eq 0 ]; then
+        : TODO: list workspace environment
+    fi
+
+    ___x_cmd_env_run_common_if_notfound ws "$@"
+}
+
+# EndSection
+
+# Section: current
+___x_cmd_env_main_current(){
+    param:scope "env"
+    param:dsl <<A
+options:
+    #1        "Environment Candidates" <candidates>:candidates_list
+A
+    param:run
+
+    ___x_cmd_env_run_common_if_notfound current "$@"
+}
+
+# EndSection
+
+# Section: install, uninstall
+___x_cmd_env_main_install(){
+    # TODO: You can do more better in #2 advise json
+    param:scope "env"
+    param:dsl <<A
+advise:
+    #2        xrc env/latest && ___x_cmd_env_advise_ls_remote_version
+options:
+    --use_shims     "Use shims"
+    #1              "Environment Candidates" <candidates>:candidates_list=""
+    #2              "Version"                <version>="default"
+A
+    param:run
+
+    local candidate="${1}"
+    if [ -z "$candidate" ]; then
+        xrc env/lib/app/lsenv && ___x_cmd_ui_lsenv
+        # TODO: how to use shims
+        if [ "$___X_CMD_UI_LSENV_FINAL_COMMAND" = "ENTER" ]; then
+            candidate="$___X_CMD_UI_LSENV_CURRENT_CANDIDATE"
+            local version="$___X_CMD_UI_LSENV_CURRENT_VERSION"
+            ___x_cmd_env_run_common_if_notfound install "$candidate" "$version" "$@"
+        fi
+        return 0
+    fi
+
+    local version
+    if ! version="$(___x_cmd_env_run_common_if_notfound full_version "$candidate" "$2")"; then
+        env_log error "Version of $candidate not found: $version"
+        return 1
+    fi
+    shift 2
+
+    ___x_cmd_env_run_common_if_notfound install "$candidate" "$version" "$use_shims" "$@"
+}
+
+___x_cmd_env_main_uninstall(){
+    param:scope "env"
+    param:dsl <<A
+advise:
+    #2        xrc env/latest && ___x_cmd_env_advise_ls_local_version
+options:
+    #1        "Environment Candidates" <candidates>:candidates_list
+    #2        "Version"                <version>
+A
+    param:run
+
+    local candidate="${1}"
+    if [ -z "$candidate" ]; then
+        ___x_cmd_env_main_uninstall help
+        return 1
+    fi
+
+    local version
+    if ! version="$(___x_cmd_env_run_common_if_notfound full_version "$candidate" "$2")"; then
+        env_log error "Version of $candidate not found: $version"
+        return 1
+    fi
+    shift 2
+
+    ___x_cmd_env_run_common_if_notfound uninstall "$candidate" "$version" "$@"
+}
+# EndSection
+
+# Section: download, which, exec
+___x_cmd_env_main_download(){
+
+    param:scope "env"
+    param:dsl <<A
+advise:
+    #2        xrc env/latest && ___x_cmd_env_advise_ls_remote_version
+options:
+    #1        "Environment Candidates" <candidates>:candidates_list=""
+    #2        "Version"                <version>="default"
+A
+    param:run
+
+    local candidate="${1}"
+    if [ -z "$candidate" ]; then
+        xrc env/lib/app/lsenv && ___x_cmd_ui_lsenv
+        # TODO: how to use shims
+        if [ "$___X_CMD_UI_LSENV_FINAL_COMMAND" = "ENTER" ]; then
+            candidate="$___X_CMD_UI_LSENV_CURRENT_CANDIDATE"
+            local version="$___X_CMD_UI_LSENV_CURRENT_VERSION"
+            ___x_cmd_env_run_common_if_notfound download "$candidate" "$version" "$@"
+        fi
+        return 0
+    fi
+
+    local version
+    if ! version="$(___x_cmd_env_run_common_if_notfound full_version "$candidate" "$2")"; then
+        env_log error "Version of $candidate not found: $version"
+        return 1
+    fi
+    shift 2
+
+    ___x_cmd_env_run_common_if_notfound download "$candidate" "$version" "$@"
+}
+
+___x_cmd_env_main_which(){
+    param:scope "env"
+    param:dsl <<A
+options:
+    #1        "Environment Candidates" <candidates>:candidates_list
+A
+    param:run
+
+    local candidate="${1}"
+    if [ -z "$candidate" ]; then
+        ___x_cmd_env_main_which help
+        return 1
+    fi
+
+    # TODO: can which specific versions
+    ___x_cmd_env_run_common_if_notfound which "$candidate" "$@"
+}
+
+
+___x_cmd_env_main_exec(){
+    param:scope "env"
+    param:dsl <<A
+advise:
+    #2        xrc env/latest && ___x_cmd_env_advise_ls_local_version
+options:
+    #1        "Environment Candidates" <candidates>:candidates_list
+    #2        "Version"                <version>
+A
+    param:run
+
+    local candidate="${1}"
+    if [ -z "$candidate" ]; then
+        ___x_cmd_env_main_exec help
+        return 1
+    fi
+
+    local version
+    if ! version="$(___x_cmd_env_run_common_if_notfound full_version "$candidate" "$2")"; then
+        env_log error "Version of $candidate not found: $version"
+        return 1
+    fi
+    shift 2
+
+    ___x_cmd_env_run_common_if_notfound exec "$candidate" "$version" "$@"
+}
+
+# EndSection
+
+# Section: ui_catsel
+
+___x_cmd_env_ui_catsel() {
+    if [ $# -eq 0 ]; then
+        ___x_cmd_env_candidate_all | awk '($0!=""){
+            print $0 " info has"
+        }'
+        return
+    fi
+
+    ___x_cmd_env_run_common_if_notfound ui_catsel "$@"
+}
+
+# EndSection

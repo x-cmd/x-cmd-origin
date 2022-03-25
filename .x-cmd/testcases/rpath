@@ -1,0 +1,23 @@
+
+
+
+
+___x_cmd_env_util_add_path(){
+    local dir="$1"
+    local path_tmp="$PATH:"
+    local path_target="$dir"
+
+    if [ ! -d "$dir" ] ; then
+        return
+    fi
+
+    local cur
+    while [ ! "$path_tmp" = "" ]; do
+        cur=${path_tmp%%:*}
+        path_tmp=${path_tmp#*:}
+        if [ "$cur" != "$dir" ]; then
+            path_target="$path_target:$cur"
+        fi
+    done
+    PATH="$path_target"
+}

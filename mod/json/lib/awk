@@ -1,6 +1,7 @@
 # Section: TODO: json facility using awk
 
 ___X_CMD_JSON_AWK_SRC=
+
 ______x_cmd_json_awk_code(){
     if [ -z "$___X_CMD_JSON_AWK_SRC" ]; then
         ___X_CMD_JSON_AWK_SRC="$(xrc cat awk/lib/default.awk awk/lib/json.awk awk/lib/jiter.awk)"
@@ -9,13 +10,13 @@ ______x_cmd_json_awk_code(){
 }
 
 ______x_cmd_json_awk_end(){
-    local func=jiter_after_tokenize
+    local func=jiparse_after_tokenize
     if [ -n "$ALREADY_TOKENIZED" ]; then
-        func=jiter
+        func=jiparse
     fi
 
-        awk "$(______x_cmd_json_awk_code)
-{ $func(_, \$0); }
+        awk "$(______x_cmd_json_awk_code)" '
+{ $func(_, $0) }'"
 $1"
 
 }
@@ -30,14 +31,14 @@ ______x_cmd_json_awk_tokenize(){
 
 ______x_cmd_json_awk_parse_flat_stream(){
     awk "$(______x_cmd_json_awk_code)"'
-{ jiter(_, $0) }'"
+{ jiparse(_, $0) }'"
 $1
 "
 }
 
 ______x_cmd_json_awk_parse_stream(){
     awk "$(______x_cmd_json_awk_code)"'
-{ jiter_after_tokenize(_, $0) }'"
+{ jiparse_after_tokenize(_, $0) }'"
 $1
 "
 }
@@ -59,9 +60,9 @@ $1
 }
 
 ______x_cmd_json_awk_get(){
-    local func=jiter_after_tokenize
+    local func=jiparse_after_tokenize
     if [ -n "$ALREADY_TOKENIZED" ]; then
-        func=jiter
+        func=jiparse
     fi
 
     local IFS
@@ -88,6 +89,7 @@ END {
 ')"; then
 
         eval "$code"
+        # echo "$code"
     fi
 
 }
@@ -131,16 +133,16 @@ ______x_cmd_json_awk_table_stream(){
     ______x_cmd_json_awk_parse_stream '
 END{
     # print ___x_cmd_json_handle_jpath(".table.abc.1.name")
-    # print jget(_, ".table.abc.1.name")
-    print jjoin_to_table(_, "'"$key"'", "", "'"$SEP1"'", "'"$keylist"'", "'"$SEP2"'")
-    # print jjoin(_, "'"$key"'", "", "\n", "'"$keylist"'", ", ")
+    print jget(_, ".table.abc.1.name")
+    # print jjoin_to_table(_, "'"$key"'", "", "'"$SEP1"'", "'"$keylist"'", "'"$SEP2"'")
+    # print jlist_join(_, "'"$key"'", "", "\n", "'"$keylist"'", ", ")
 }
 '
 }
 
 ______x_cmd_json_awk_str_compact(){
     awk "$(______x_cmd_json_awk_code)"'
-{ jiter(_, $0) }'"
+{ jiparse(_, $0) }'"
 END {
     ___x_cmd_json_stringify_machine(_, \""$1"\")
 }

@@ -1,17 +1,16 @@
-# ___json_awk_tokenize <<A
 
+. ./lib/awk
 
-function table(){
-    local IFS
-    IFS="$(printf "\001")"
-    local keyname="$1"; shift
-    local keylist
-    SEP1="\n" SEP2=" " ______x_cmd_json_awk_table_stream "$keyname" "$*"
+f(){
+    ______x_cmd_json_awk_parse_stream '
+END{
+    print jstr(_)
 }
-
-table .table.abc name age gender math=score.math <<A
+'
+} <<A
 {
     "table": {
+        "abc": [
         "abc": [
             {
                 "name": "Edwin",
@@ -44,3 +43,5 @@ table .table.abc name age gender math=score.math <<A
 }
 
 A
+
+time (f)

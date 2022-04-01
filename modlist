@@ -57,6 +57,7 @@ assert
 +os
 +cowsay
 +trap
+test
 
 # basic modules: dependencies
 +param

@@ -14,6 +14,6 @@ jobs:
               eval "$(curl https://get.x-cmd.com/dev)" || true
               git clone git@gitee.com:x-cmd/x-cmd.git && cd x-cmd || exit
               x gh-action ssh "$SSH_PRIVATE_KEY" agent-zero 0@x-cmd.com || true
-              xws pub || true
+              xws pub0 || true
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}

@@ -1,0 +1,53 @@
+# shellcheck shell=sh disable=SC2039,SC2142,SC3043
+
+paramtest_subcmd(){
+    param:scope     "paramtest/$O"
+    param:dsl       '
+subcommand:
+    sscmd1|s1|s-s1|longlongsubcommand   "Test sub sub command1"
+    sscmd2                              "Test sub sub command2"
+    subcmd_null                         "Test 2 subcommand null"
+'
+    param:run
+    paramtest_subcmd_"${PARAM_SUBCMD}" "$@"
+}
+
+paramtest_subcmd_sscmd1(){
+    param:scope     "paramtest/$O"
+    param:dsl       '
+subcommand:
+    subcmd_null        "Test 3 subcommand null"
+options:
+    --ss1_opt1|-s      "Test sub sub command1 option1"
+    --ss1_opt2|-d      "Test sub sub command1 option2"
+    --ss1_opt3|-f      "Test sub sub command1 option3"
+'
+    param:run
+    echo "sscmd1:${PARAM_SUBCMD}"
+    echo "param sscmd1_opt1: $ss1_opt1"
+}
+
+test_subcmd(){
+    O=xxxx
+    assert stdout paramtest subcmd sscmd1 -s<<A
+sscmd1:
+param sscmd1_opt1: true
+A
+}
+
+test_alias_subcmd(){
+    O=xxxx
+    assert stdout paramtest op-test --repo abc -b abc cde -m aaa dddd<<A
+regex_arg1: 0
+regex_arg2: 20
+param repo: abc
+param repo2: 1  abc cde
+param priviledge: private
+param no_type_arg: default
+multiple line argument: aaa
+flag1: false
+flag1222: false
+rest argument: dddd
+A
+    # FIXME: Testcase for discription was ""
+}

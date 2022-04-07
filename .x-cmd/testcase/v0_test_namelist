@@ -1,0 +1,118 @@
+# shellcheck shell=sh disable=SC2039,SC2142,SC3043
+
+param_default put paramtest/xxx priviledge public
+
+paramtest_advise_null(){
+    param:void
+    echo "ddd"
+}
+
+paramtest_namelist(){
+    param:scope     "paramtest/$O"
+    param:dsl       '
+type:
+    access  =   private public
+    repo_t  =~  "cde"   "def"
+advise:
+    repo  list_repo all
+    #1    list_repo
+option:
+    #1|--mul_line_arg|-m    "Test multiple line argument"                <mline_arg>:mline_arg_type
+    #3|--regex_arg2         "Test an argument with regex 2"              <>=20    =~  ([1-9]?[0-9]|100)
+    #2|--regex_arg1         "Test an argument with regex 1"              <>=0     =~  [0-9]*
+    --repo|-r               "Provide repo name"                          <>:repo_type   =~  "abc"   "cde"   "def"
+    --repo2|-b|m            "Provide two repo name"
+        <arg1>:repo_type=""               =   "abc"   "cde"   "def"
+        <arg2>:repo_t=
+    --priviledge|-p         "Provide privilidge"                         <priviledge_type>:access=private
+    --no_type_arg|-n        "Test no type argument but have default"     <no_type_arg>=default
+    --flag1|-f              "Flag1 that you can use $\\{flag1:-false} to get the bool value"
+    --flag1222|-g           "Flag1222 that you can use $\\{flag1222:-false} to get the bool value"
+'
+    param:run
+    echo "regex_arg1: $regex_arg1"
+    echo "regex_arg2: $regex_arg2"
+    echo "param repo: $repo"
+    echo "param repo2: $repo2_n $repo2_1_1 $repo2_1_2"
+    echo "param priviledge: $priviledge"
+    echo "param no_type_arg: $no_type_arg"
+    echo "multiple line argument: $mul_line_arg"
+    echo "flag1: ${flag1:-false}"
+    echo "flag1222: ${flag1222:-false}"
+    echo "rest argument: $4"
+}
+
+paramtest_snl() {
+    param:scope     "paramtest/$O"
+    param:dsl       '
+options:
+    #1|--org           "org space address"    <>
+'
+    param:run
+    echo "org: ${org##*/}"
+}
+
+paramtest_rarg() {
+    param:scope     "paramtest/$O"
+    param:dsl       '
+options:
+    #1              "Test rest argument #1 request"  <rarg>:atlist_type  =   "private"         "public"          "inner-public"
+    #2              "Test rest argument #2 request"  <arg2>              =~  "[-0-9,]+"
+    #3              "Test rest argument #3 request"  <arg3>
+    #4              "Test rest argument #4 request"  <arg4>="iii"
+    #5              "Test rest argument #5 request"
+'
+    param:run
+    echo "rest argument1:$1"
+    echo "rest argument2:$2"
+    echo "rest argument3:$3"
+    echo "rest argument4:$4"
+    echo "rest argument5:$5"
+}
+
+test_rest_arg(){
+    O=xxx
+    @assert stdout paramtest uuu--oo00<<A
+candi_null: abc
+rest argument uuu--oo00
+A
+    @assert stdout paramtest rarg private 687 arg4<<A
+rest argument1:private
+rest argument2:687
+rest argument3:arg4
+rest argument4:iii
+rest argument5:
+A
+}
+
+test_snl(){
+    O=xxx
+    @assert stdout paramtest snl --org bash-gitee<<A
+org: bash-gitee
+A
+}
+
+test_namelist(){
+    local mul_line_arg
+    mul_line_arg="aaa
+bbb
+ccc"
+
+    O=xxx
+    @assert stdout paramtest --candi_null abc namelist --regex_arg1 0 --repo abc -b abc cde -m "$mul_line_arg" --flag1 "$mul_line_arg" 0 20 ddd<<A
+regex_arg1: 0
+regex_arg2: 20
+param repo: abc
+param repo2: 1 abc cde
+param priviledge: public
+param no_type_arg: default
+multiple line argument: aaa
+bbb
+ccc
+flag1: true
+flag1222: false
+rest argument: ddd
+A
+}
+
+@assert:file:func

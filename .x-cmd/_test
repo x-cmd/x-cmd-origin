@@ -1,0 +1,47 @@
+# shellcheck shell=sh disable=SC1072 #source
+
+dbash() {
+    docker run -it -v "$(pwd)":/param "xcmd/bash${1}-dev" bash -i -c "cd param && bash"
+}
+
+cross_env_test() {
+    for i in bash3 bash4 bash5 ; do
+        param_log info "Testing : " "$i"
+        docker run -it -v "$(pwd)":/param "xcmd/${i}-dev" bash -i -c "cd param && x _test local"
+    done
+
+    for i in alpine ubuntu centos ; do
+        param_log info "Testing : " "$i"
+        docker run -it -v "$(pwd)":/param "xcmd/${i}-dev" sh -i -c "cd param && x _test local"
+    done
+}
+
+x log init param
+param_log info "Testing : $1"
+case "$1" in
+    local)
+        param_log info "copy all files from ./* to ~/.x-cmd/param/"
+        \cp -r ./* ~/.x-cmd/param/
+        . "$(x wsroot)/.x-cmd/testcase1/v0_test"
+        ;;
+    cross)
+        x _test local
+        cross_env_test
+        ;;
+    bash3|bash4|bash5|centos)
+        docker run -it -v "$(pwd)":/param "xcmd/${1}-dev" bash -i -c "cd param && x _test local"
+        ;;
+    alpine|ubuntu)
+        docker run -it -v "$(pwd)":/param "xcmd/${1}-dev" sh -i -c "cd param && . \$(x wsroot)/.x-cmd/testcase1/v0_test"
+        ;;
+    help)
+        x _test local
+        . "$(x wsroot)/.x-cmd/testcase1/v0_test_help"
+        start_test "$(x wsroot)/.x-cmd/testcase1/v0_test_help"
+        ;;
+    *)
+        \cp -r ./* ~/.x-cmd/param/
+        echo "Usage: x _test {cross|local|bash3|bash4|bash5|alpine|ubuntu|centos}"
+        return 1
+        ;;
+esac

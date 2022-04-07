@@ -28,14 +28,16 @@ options:
 }
 
 test_subcmd(){
-    assert_stdout "O=xxxx paramtest subcmd sscmd1 -s" <<A
+    O=xxxx
+    @assert stdout paramtest subcmd sscmd1 -s<<A
 sscmd1:
 param sscmd1_opt1: true
 A
 }
 
 test_alias_subcmd(){
-    assert_stdout "O=xxxx paramtest op-test --repo abc -b abc cde -m aaa dddd" <<A
+    O=xxxx
+    @assert stdout paramtest op-test --repo abc -b abc cde -m aaa dddd<<A
 regex_arg1: 0
 regex_arg2: 20
 param repo: abc
@@ -49,3 +51,5 @@ rest argument: dddd
 A
     # FIXME: Testcase for discription was ""
 }
+
+@assert:file:func

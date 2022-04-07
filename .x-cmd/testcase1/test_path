@@ -13,4 +13,4 @@ options:
     echo "repo: $repo \nnumber:$number \npath:$path"
 }
 
-a --number 1 --path aaa
+a

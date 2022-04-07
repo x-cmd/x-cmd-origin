@@ -96,12 +96,12 @@ A
 }
 
 test_mul_arg(){
-    assert_stdout 'paramtest_marg'  \
-        '--card "test1" "https://www.dingtalk.com" "https://gw.alicdn.com"' \
-        '--card "test2" "https://www.dingtalk.com" "https://gw.alicdn.com"' \
-        '--card "test3" "https://www.dingtalk.com" "https://gw.alicdn.com"' \
-        '--card "test4" "https://www.dingtalk.com" "https://gw.alicdn.com"' \
-        '--card "test5" "https://www.dingtalk.com" "https://gw.alicdn.com"' <<A
+    @assert stdout paramtest_marg  \
+        --card "test1" "https://www.dingtalk.com" "https://gw.alicdn.com" \
+        --card "test2" "https://www.dingtalk.com" "https://gw.alicdn.com" \
+        --card "test3" "https://www.dingtalk.com" "https://gw.alicdn.com" \
+        --card "test4" "https://www.dingtalk.com" "https://gw.alicdn.com" \
+        --card "test5" "https://www.dingtalk.com" "https://gw.alicdn.com" <<A
 title: test1
 message-url: https://www.dingtalk.com
 picture-url: https://gw.alicdn.com
@@ -126,7 +126,8 @@ test_option(){
 bbb
 ccc"
 
-    assert_stdout "O=xxxx paramtest --candi_null abc option --repo abc -b abc cde -m '$mul_line_arg' dddd" <<A
+    O=xxxx
+    @assert stdout paramtest --candi_null abc option --repo abc -b abc cde -m "$mul_line_arg" dddd<<A
 regex_arg1: 0
 regex_arg2: 20
 param repo: abc
@@ -141,3 +142,5 @@ flag1222: false
 rest argument: dddd
 A
 }
+
+@assert:file:func

@@ -13,16 +13,10 @@ A
 }
 
 test_has_subcmd(){
-    assert_stdout "has_subcmd _param_has_subcmd ccc;echo \$?" <<A
-1
-A
+    assert false has_subcmd _param_has_subcmd ccc
+    assert true has_subcmd _param_has_subcmd bbb
 
-#     assert_stdout "has_subcmd _param_has_subcmd bbb;echo \$?" <<A
-# 0
-# A
-
-    assert_stdout "has_subcmd -y 777" <<A
+    assert stdout has_subcmd -y 777 <<A
 y: 777
 A
-
 }

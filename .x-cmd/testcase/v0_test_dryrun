@@ -11,16 +11,12 @@ A
 }
 
 test_dryrun(){
-    assert_stdout "dryrun _dryrun -y qwe;echo \$?" <<A
-1
-A
+    assert false dryrun _dryrun -y qwe
+    assert true dryrun _dryrun -y 123
 
-    assert_stdout "dryrun _dryrun -y 123;echo \$?" <<A
-0
-A
-
-    assert_stdout "dryrun -y 777" <<A
+    @assert stdout dryrun -y 777 <<A
 y: 777
 A
 
 }
+@assert:file:func

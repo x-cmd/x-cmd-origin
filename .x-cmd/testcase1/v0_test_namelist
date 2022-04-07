@@ -71,11 +71,12 @@ options:
 }
 
 test_rest_arg(){
-    assert_stdout "O=xxx paramtest uuu--oo00" <<A
+    O=xxx
+    assert stdout paramtest uuu--oo00<<A
 candi_null: abc
 rest argument uuu--oo00
 A
-    assert_stdout "O=xxx paramtest rarg private 687 arg4" <<A
+    assert stdout paramtest rarg private 687 arg4<<A
 rest argument1:private
 rest argument2:687
 rest argument3:arg4
@@ -85,7 +86,8 @@ A
 }
 
 test_snl(){
-    assert_stdout "O=xxx paramtest snl --org bash-gitee" <<A
+    O=xxx
+    assert stdout paramtest snl --org bash-gitee<<A
 org: bash-gitee
 A
 }
@@ -96,7 +98,8 @@ test_namelist(){
 bbb
 ccc"
 
-    assert_stdout "O=xxx paramtest --candi_null abc namelist --regex_arg1 0 --repo abc -b abc cde -m '$mul_line_arg' --flag1 '$mul_line_arg' 0 20 ddd" <<A
+    O=xxx
+    assert stdout paramtest --candi_null abc namelist --regex_arg1 0 --repo abc -b abc cde -m "$mul_line_arg" --flag1 "$mul_line_arg" 0 20 ddd<<A
 regex_arg1: 0
 regex_arg2: 20
 param repo: abc

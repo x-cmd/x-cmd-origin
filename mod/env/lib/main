@@ -4,16 +4,21 @@
 ___x_cmd_env_candidate_all(){
     printf "%s" "python
 node
-java"
+java
+go
+scala
+maven
+springboot
+kotlin
+gradle
+node"
 
 }
-
 
 # EndSection
 
 x log init env
-xrc env/lib/util
-xrc env/lib/common
+xrc:mod:lib env util common
 xrc param
 param_type  env  candidates_list - <<A
 $(___x_cmd_env_candidate_all)
@@ -34,8 +39,8 @@ subcommands:
     download                "Download environment"
     install                 "Install environment"
     uninstall               "Remove environment"
-    try                     "Set default environment in this shell session"
-    use                     "Set global default environment"
+    try                     "Set environment version in this shell session"
+    use                     "Set global environment version"
 
     current                 "Show current environment"
     which                   "Display path of environment installed"
@@ -45,7 +50,7 @@ A
     param:run
 
     # TODO: la---"list all available environments"
-    # TODO: ws---"Set workspace default environment"
+    # TODO: ws---"Set workspace environment"
 
     #TODO: Should be optimized
     if [ "${1}" = "___x_cmd_ui_catsel" ]; then
@@ -69,7 +74,7 @@ ___x_cmd_env_run_common_if_notfound(){
     local candidate="${1:?Provide candidate}";  shift
 
     # TODO: It might be better to have one folder for one language.
-    xrc "env/lib/candidate/$candidate"
+    xrc:mod:lib env "candidate/$candidate"
 
     local cmd="___x_cmd_env_${candidate}_${op}"
     if command -v "$cmd" >/dev/null; then
@@ -103,7 +108,7 @@ A
     # TODO: 增加 本地简写版本对应关系 和 全局简写版本对应关系
     # TODO: V8 -> V8.2   --> (Remote) V8.6
     if [ -n "$remote" ] ; then
-		___x_cmd_env_run_common_if_notfound ls_remote "$candidate" "$@"
+        ___x_cmd_env_run_common_if_notfound ls_remote "$@"
         ___x_cmd_env_run_common_if_notfound gen "$candidate" "$@"
         return
     fi
@@ -125,7 +130,7 @@ advise:
     #2        xrc env/latest && ___x_cmd_env_advise_ls_local_version
 options:
     #1        "Environment Candidates" <candidates>:candidates_list
-    #2        "Version"                <version>="default"
+    #2        "Version"                <version>=""
 A
     param:run
 
@@ -148,7 +153,7 @@ advise:
 options:
     --use_shims   "Use shims"
     #1            "Environment Candidates" <candidates>:candidates_list
-    #2            "Version"                <version>="default"
+    #2            "Version"                <version>=""
 A
     param:run
 
@@ -197,7 +202,7 @@ advise:
 options:
     --use_shims     "Use shims"
     #1              "Environment Candidates" <candidates>:candidates_list=""
-    #2              "Version"                <version>="default"
+    #2              "Version"                <version>=""
 A
     param:run
 
@@ -260,7 +265,7 @@ advise:
     #2        xrc env/latest && ___x_cmd_env_advise_ls_remote_version
 options:
     #1        "Environment Candidates" <candidates>:candidates_list=""
-    #2        "Version"                <version>="default"
+    #2        "Version"                <version>=""
 A
     param:run
 

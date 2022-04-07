@@ -51,14 +51,14 @@ ___x_cmd_env_python_ls_remote(){
     local system
     ___x_cmd_env_python_get_system_platform
 
-    ___x_cmd_httpget "https://mirrors.tuna.tsinghua.edu.cn/anaconda/miniconda/" "$cache_path" "$cache_expiration" 2>/dev/null && \
+    ___x_cmd_httpget "https://mirrors.tuna.tsinghua.edu.cn/anaconda/miniconda/" "$cache_path" "$cache_expiration" && \
     awk -v platform="${platform}" -v arch="${system}" '
         BEGIN{RS="<a href=";FS="\""}{
             if (match($2, "^.*-" arch "-" platform ".sh$")) {
                 split($2, a, /-/)
                 print a[2]
             }
-        }' <"$cache_path" | ___x_cmd_env_python_sort_versions
+        }' <"$cache_path" | ___x_cmd_env_python_sort_versions | uniq
 }
 
 # EndSection
@@ -116,12 +116,8 @@ ___x_cmd_env_python_unpack(){
 #TODO: Should be optimized
 ___x_cmd_env_python_ui_catsel(){
     case "$#" in
-        0)
-            ___x_cmd_env_python_ls_remote | awk '{ split($0,arr,"."); vmap[arr[1]]=1 } END{ for(key in vmap){print key} }'
-            ;;
-        1)
-            ___x_cmd_env_python_ls_remote | grep ^"$1" | awk '{ print $0 }'
-            ;;
+        0)  ___x_cmd_env_python_ls_remote | awk '{ split($0,arr,"."); vmap[arr[1]]=1 } END{ for(key in vmap){print key} }'  ;;
+        1)  ___x_cmd_env_python_ls_remote | grep ^"$1" | awk '{ print $0 }' ;;
     esac
 }
 

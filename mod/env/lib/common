@@ -5,11 +5,10 @@
 # TODO: Not proper implemented
 ___x_cmd_env_common_full_version(){
     local candidate="${1:?Provide candidate}"
-    local version="${2:?Provide version}"
+    local version="${2}"
 
-    if [ "$version" = "default" ]; then
+    if [ -z "$version" ]; then
         ___x_cmd_env_"$candidate"_ls_remote "$version" "$3" | awk 'END{ if (NR<=0) { exit(1) } else print $1;}'
-        return 0
     fi
     printf "%s\n" "$version"
 }
@@ -28,21 +27,21 @@ ___x_cmd_env_common_la(){
 
 # Section: use file
 ___x_cmd_env_common_init_file_add(){
-    local version="$1"
+    local candidate="$1"
     local version_path="$2"
 
     if [ ! -f "$___X_CMD_ROOT/.env/env/use" ]; then
         printf "%s\n" "$version_path" > "$___X_CMD_ROOT/.env/env/use"
     fi
 
-    ___x_cmd_env_common_init_file_rm "$version"
+    ___x_cmd_env_common_init_file_rm "$candidate"
     printf "%s\n" "$version_path" >> "$___X_CMD_ROOT/.env/env/use"
 }
 
 ___x_cmd_env_common_init_file_rm(){
-    local version="$1"
+    local candidate="$1"
     local content
-    content="$(grep -v "/$version/" < "$___X_CMD_ROOT/.env/env/use")"
+    content="$(grep -v "$candidate" < "$___X_CMD_ROOT/.env/env/use")"
     printf "%s\n" "$content" > "$___X_CMD_ROOT/.env/env/use"
 }
 # EndSection
@@ -70,7 +69,7 @@ ___x_cmd_env_common_use(){
 
     ___x_cmd_env_util_add_path "$version_path" || return 1
 
-    ___x_cmd_env_common_init_file_add "$version" "$version_path" && \
+    ___x_cmd_env_common_init_file_add "$candidate" "$version_path" && \
         # ___x_cmd_modfile_add "$___X_CMD_ROOT/.env/env/use" "$version_path" && \
             printf "%s\n" "$version" > "$___X_CMD_ENV_PATH/$candidate/version" && \
                 env_log info "Using $candidate $version -> $___X_CMD_ENV_PATH/$candidate/version"
@@ -142,12 +141,12 @@ ___x_cmd_env_common_download(){
     fi
 
     if ! ___x_cmd_env_run_common_if_notfound download_archive "$candidate" "$version"; then
-        env_log info "Failed to download $candidate $version"
+        env_log error "Failed to download $candidate $version"
         return 1
     fi
 
     if ! ___x_cmd_env_run_common_if_notfound unpack "$candidate" "$version"; then
-		env_log info "Failed to unpack $candidate of version: $version."
+		env_log error "Failed to unpack $candidate of version: $version."
 		return 1
 	fi
 }
@@ -162,7 +161,7 @@ ___x_cmd_env_common_install(){
 
     env_log info "Installing $candidate $version"
     if ! ___x_cmd_env_run_common_if_notfound download "$candidate" "$version"; then
-        env_log info "Failed to installed $candidate of version: $version."
+        env_log error "Failed to installed $candidate of version: $version."
         return 1
     fi
 
@@ -182,7 +181,7 @@ ___x_cmd_env_common_uninstall(){
         env_log  warn "This ${candidate} ${version} is no exist."
         return 1
     fi
-    ___x_cmd_env_common_init_file_rm "$version"
+    ___x_cmd_env_common_init_file_rm "$candidate"
     # TODO: remove the shims from $PATH
 }
 # EndSection
@@ -213,8 +212,7 @@ ___x_cmd_env_common_exec(){
     local candidate="${1:?Provide candidate}"
     local version="${2:?Provide version}"; shift 2
     ___x_cmd_env_util_is_downloaded "${candidate}" "${version}" 2>/dev/null || return 1
-    local PATH="${___X_CMD_ENV_PATH}/${candidate}/versions/${version}/bin:$PATH"
-    "${candidate}" "$@"
+    PATH="${___X_CMD_ENV_PATH}/${candidate}/versions/${version}/bin:$PATH" "${candidate}" "$@"
 }
 # EndSection
 

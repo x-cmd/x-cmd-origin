@@ -7,7 +7,24 @@ xrc env
 x log init env
 x log env
 
+cross_env_test() {
+    for i in ubuntu centos ; do
+        env_log info "Testing : " "$i"
+        docker run -it --rm -v "$(pwd):/root/env" "xcmd/${i}-dev" bash -i -c "cd /root/env && x test local"
+    done
+}
+
 case $1 in
+    centos)
+        docker run -it --rm -v "$(pwd):/root/env" xcmd/centos-dev bash -i -c "cd /root/env && bash" ;;
+    ubuntu)
+        docker run -it --rm -v "$(pwd):/root/env" xcmd/ubuntu-dev bash -i -c "cd /root/env && bash" ;;
+    local)
+        . "$(x wsroot)/.x-cmd/testcase/v0_test"
+        ;;
+    cross)
+        cross_env_test
+        ;;
     python)
         # TODO: Check if this version is available in your system
         env_log info "Testing python ls."
@@ -128,12 +145,11 @@ case $1 in
         x env download deno latest
         ;;
     all)
-
         for cmd in python node java deno perl kotlin; do
             x test "$cmd"
         done
         ;;
     *)
-        echo "Usage: x test python|node|java|deno|perl|kotlin"
+        echo "Usage: x test python|node|java|deno|go|gradle|kotlin|maven|perl|scala|springboot|local|cross|centos|ubuntu"
         ;;
 esac

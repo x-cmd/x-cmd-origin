@@ -61,12 +61,12 @@ test_dict_is_empty(){
     assert_f dict @b is_empty
 }
 
-test_dict_pget(){
+test___x_cmd_dict___pget(){
     test_dict_setup
     assert "$(dict @b get 2)" = b
 }
 
-test_dict_pscope(){
+test___x_cmd_dict___pscope(){
     dict @b del 2>/dev/null
     # dict_log "Testcase 's object-name \"$(command -v b 2>&1)\""
     dict @b new
@@ -89,7 +89,7 @@ password=goforit'
         esac
     fi
 
-    assert_stdout "dict @b scope el | ___dict_pprint" <<A
+    assert_stdout "dict @b scope el | ___x_cmd_dict_pprint" <<A
 ${expected}
 A
 
@@ -110,7 +110,7 @@ A
         esac
     else
 
-    assert_stdout "dict @b scope lt | ___dict_pjson" <<A
+    assert_stdout "dict @b scope lt | ___x_cmd_dict_pjson" <<A
 ${expected2}
 A
     fi
@@ -207,7 +207,7 @@ ${expected}
 A
 }
 
-test_dict_premove(){
+test___x_cmd_dict___premove(){
     test_dict_setup
     assert_f dict @b remove 4
     assert_t dict @b has 2
@@ -215,7 +215,7 @@ test_dict_premove(){
     assert_f dict @b has 2
 }
 
-test_dict_pdrop(){
+test___x_cmd_dict___pdrop(){
     test_dict_setup
     assert_t dict @b drop "\"[1-3]+"\"
     assert_f dict @b has 1

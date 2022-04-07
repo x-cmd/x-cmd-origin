@@ -1,0 +1,27 @@
+
+test___x_cmd_dict___pscope(){
+    dict @b del 2>/dev/null
+    # dict_log "Testcase 's object-name \"$(command -v b 2>&1)\""
+    dict @b new
+
+    # dict_log "Testcase 's object-name $(command -v b)"
+    dict @b put el user edwinjhlee
+    dict @b put lt user lteam
+    dict @b put el password goforit
+    dict @b put lt password 2008
+
+    @assert "dict @b scope el | ___x_cmd_dict_pprint" <<A
+user=edwinjhlee
+password=goforit
+A
+
+    @assert stdout "dict @b scope lt | ___x_cmd_dict_pjson | x jq '[ .password, .user ]'" <<A
+[
+  "2008",
+  "lteam"
+]
+A
+
+}
+
+test___x_cmd_dict___pscope

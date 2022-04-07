@@ -1,0 +1,160 @@
+___x_cmd_test_bench(){
+    # command -v "___x_cmd_test_bench_$1" >/dev/null && {
+    #     local op="$1"
+    #     "___x_cmd_test_bench_$op" "$@"
+    # }
+
+    case "$1" in
+        echo)       ___x_cmd_test_bench_run echo 1000000 ;;
+        trim)       ___x_cmd_test_bench_run trim 100000 ;;
+        strim)      ___x_cmd_test_bench_run strim 100000 ;;
+        plus)       ___x_cmd_test_bench_run plus 1000000 ;;
+        get)        ___x_cmd_test_bench_run get 1000000 ;;
+        file)       ___x_cmd_test_bench_run file 10000 ;;
+        command)    ___x_cmd_test_bench_run command 100000 ;;
+        varget)     ___x_cmd_test_bench_run varget 100000 ;;
+        ""|all)     ___x_cmd_test_bench_all ;;
+    esac
+}
+
+
+if [ -z "$USING_POSIX" ]; then
+    # xrc:mod test/lib/bench.bash
+    . ./lib/bench.bash
+else
+    # xrc:mod test/lib/bench.other
+    . ./lib/bench.other
+fi
+
+
+alias b="___x_cmd_test_bench"
+
+___x_cmd_test_bench_echo_inner(){
+    local i
+    for i in $(seq 1 "$1"); do
+        echo "1"
+    done
+}
+
+___x_cmd_test_bench_strim_inner(){
+    local i
+    local s
+    t="abcdefghijklmnopqrstuvwxyz"
+    for i in $(seq 1 "$1"); do
+        s="${t%t*}"
+    done
+}
+
+___x_cmd_test_bench_trim_inner(){
+    local i
+    local s
+    for i in $(seq 1 "$1"); do
+        s="${data%
+ztheme
+*}"
+    done
+}
+
+___x_cmd_test_bench_file_inner(){
+    local i
+    for i in $(seq 1 "$1"); do
+        # [ -f "./bench" ]
+        # [ -f "./cycle" ]
+        # [ -f "./abc" ]
+        [ -f "./a-$i" ]
+        # [ -f "./perf" ]
+
+    done
+}
+
+___x_cmd_test_bench_command_inner(){
+    local i
+    for i in $(seq 1 "$1"); do
+        command -v "$i"
+    done
+}
+
+___x_cmd_test_bench_varget_inner(){
+    local i
+    for i in $(seq 1 "$1"); do
+        eval "[ -z \"\$___x_cmd_test_bench_exist_$i\" ]"
+        # [ -z "$___x_cmd_test_bench_exist_" ]
+    done
+}
+
+
+
+# Section: data
+data="
+advise
+ali
+assert
+awk
+boot
+cat
+ccmd
+cd
+convert
+cowsay
+cp
+dev
+dict
+el
+env
+ff
+ffmpeg
+gh
+go
+gt
+http
+hub
+install
+java
+jo
+job
+json
+license
+list
+ll
+log
+ls
+magick
+man
+mv
+node
+nvm
+op
+os
+p7zip
+pandoc
+param
+pdf
+perl
+proxy
+ps1env
+python
+rm
+shall
+static-build
+str
+sync
+tab
+terraform
+tesseract
+test
+theme
+tldr
+trap
+ui
+x-cmd
+x_fs
+xdk
+xrc
+zuz
+"
+
+data="${data}$(printf "%s" "$data" | awk '{ print "z" $0; }' )"
+
+# EndSection
+
+

@@ -1,0 +1,289 @@
+___x_cmd_test_bench(){
+    # command -v "___x_cmd_test_bench_$1" >/dev/null && {
+    #     local op="$1"
+    #     "___x_cmd_test_bench_$op" "$@"
+    # }
+
+    case "$1" in
+        echo)       ___x_cmd_test_bench_run echo 1000000 ;;
+        trim)       ___x_cmd_test_bench_run trim 100000 ;;
+        strim)      ___x_cmd_test_bench_run strim 100000 ;;
+        plus)       ___x_cmd_test_bench_run plus 1000000 ;;
+        get)        ___x_cmd_test_bench_run get 1000000 ;;
+        file)       ___x_cmd_test_bench_run file 10000 ;;
+        command)    ___x_cmd_test_bench_run command 100000 ;;
+        varget)     ___x_cmd_test_bench_run varget 100000 ;;
+        ""|all)     ___x_cmd_test_bench_all ;;
+    esac
+}
+
+___x_cmd_test_bench_all(){
+    local i
+    for i in echo plus strim trim varget get file command; do
+        ___x_cmd_test_bench "$i"
+    done
+}
+
+# if [ -n "$BASH_VERSION" ]; then
+# ___x_cmd_test_bench_run(){
+#     local name="$1"
+#     [ "${name#___x_cmd_test_bench}" = "$name" ] && name="___x_cmd_test_bench_${name}_inner"
+
+#     local display="${name#___x_cmd_test_bench_}"
+#     printf "%-10s" "${display%_inner}"
+#     local cycle="$2"
+#     ( time "$name" "$cycle" >/dev/null ) 2>&1 \
+#         | tee /dev/stdout | awk -v cycle="$cycle" 'NR==2{
+#             c = $2
+#             gsub("s$", "", c)
+#             split(c, arr, "m")
+#             t = ( arr[1] * 60 + arr[2] ) * 1000 / cycle
+#             printf("%s\t%5s", t  " ms", int(1 / t))
+#             exit(0);
+#         }'
+#     printf "\n"
+# }
+# else
+
+___x_cmd_test_bench_run(){
+    local name="$1"
+    [ "${name#___x_cmd_test_bench}" = "$name" ] && name="___x_cmd_test_bench_${name}_inner"
+
+    local display="${name#___x_cmd_test_bench_}"
+    printf "%-10s" "${display%_inner}"
+    local cycle="$2"
+    (time sh -c ". ./bench; $name $cycle ") >/dev/null 2>&1 \
+        | awk -v cycle="$cycle" 'NR==2{
+            c = $2
+            gsub("s$", "", c)
+            split(c, arr, "m")
+            t = ( arr[1] * 60 + arr[2] ) * 1000 / cycle
+            printf("%s\t%5s", t  " ms", int(1 / t))
+            exit(0);
+        }'
+    printf "\n"
+}
+
+# fi
+
+alias b="___x_cmd_test_bench"
+
+___x_cmd_test_bench_echo_inner(){
+    local i
+    for i in $(seq 1 "$1"); do
+        echo "1"
+    done
+}
+
+___x_cmd_test_bench_strim_inner(){
+    local i
+    local s
+    t="abcdefghijklmnopqrstuvwxyz"
+    for i in $(seq 1 "$1"); do
+        s="${t%t*}"
+    done
+}
+
+___x_cmd_test_bench_trim_inner(){
+    local i
+    local s
+    for i in $(seq 1 "$1"); do
+        s="${data%
+ztheme
+*}"
+    done
+}
+
+___x_cmd_test_bench_file_inner(){
+    local i
+    for i in $(seq 1 "$1"); do
+        # [ -f "./bench" ]
+        # [ -f "./cycle" ]
+        # [ -f "./abc" ]
+        [ -f "./a-$i" ]
+        # [ -f "./perf" ]
+
+    done
+}
+
+___x_cmd_test_bench_command_inner(){
+    local i
+    for i in $(seq 1 "$1"); do
+        command -v "$i"
+    done
+}
+
+___x_cmd_test_bench_varget_inner(){
+    local i
+    for i in $(seq 1 "$1"); do
+        eval "[ -z \"\$___x_cmd_test_bench_exist_$i\" ]"
+        # [ -z "$___x_cmd_test_bench_exist_" ]
+    done
+}
+
+___x_cmd_test_bench_plus_inner(){
+    local i
+    t=1
+    for i in $(seq 1 "$1"); do
+        let t=t+1
+    done
+}
+
+
+# Section: data
+data="
+advise
+ali
+assert
+awk
+boot
+cat
+ccmd
+cd
+convert
+cowsay
+cp
+dev
+dict
+el
+env
+ff
+ffmpeg
+gh
+go
+gt
+http
+hub
+install
+java
+jo
+job
+json
+license
+list
+ll
+log
+ls
+magick
+man
+mv
+node
+nvm
+op
+os
+p7zip
+pandoc
+param
+pdf
+perl
+proxy
+ps1env
+python
+rm
+shall
+static-build
+str
+sync
+tab
+terraform
+tesseract
+test
+theme
+tldr
+trap
+ui
+x-cmd
+x_fs
+xdk
+xrc
+zuz
+"
+
+data="${data}$(printf "%s" "$data" | awk '{ print "z" $0; }' )"
+
+# EndSection
+
+# Section: arrget
+# if [ -n "${BASH_VERSION}${ZSH_VERSION}" ]; then
+
+# ___x_cmd_test_bench_get_inner(){
+#     local i
+#     for i in $(seq 1 "$1"); do
+#         printf "%s" "${dataarr[12]}"
+#         #  printf "%s" "${dataarr[ $(( i % 12 )) ]}"
+#     done
+# } >/dev/null
+
+# dataarr=(
+# advise
+# ali
+# assert
+# awk
+# boot
+# cat
+# ccmd
+# cd
+# convert
+# cowsay
+# cp
+# dev
+# dict
+# el
+# env
+# ff
+# ffmpeg
+# gh
+# go
+# gt
+# http
+# hub
+# install
+# java
+# jo
+# job
+# json
+# license
+# list
+# ll
+# log
+# ls
+# magick
+# man
+# mv
+# node
+# nvm
+# op
+# os
+# p7zip
+# pandoc
+# param
+# pdf
+# perl
+# proxy
+# ps1env
+# python
+# rm
+# shall
+# static-build
+# str
+# sync
+# tab
+# terraform
+# tesseract
+# test
+# theme
+# tldr
+# trap
+# ui
+# x-cmd
+# x_fs
+# xdk
+# xrc
+# zuz
+# )
+# fi
+
+# EndSection
+
+
+

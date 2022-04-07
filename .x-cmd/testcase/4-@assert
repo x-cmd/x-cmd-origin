@@ -1,0 +1,18 @@
+
+a_1(){
+    @assert int q
+    @assert int 2
+}
+a_2(){
+    @assert int b
+}
+a_3(){
+    @assert int c
+}
+
+b_3(){
+    @assert int 1
+}
+
+@assert:errexit:off
+@assert:file:func "" "a"

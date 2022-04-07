@@ -4,7 +4,8 @@ xrc http
 
 # Section(utils): ___x_cmd_hub_token_generate, ___x_cmd_hub_get_and_save_userinfo_by_token
 
-if command -v md5sum; then
+if command -v md5sum >/dev/null; then
+    # TODO(refactor): to remove " -" from the end of the string
     ___x_cmd_hub_token_md5(){
         local token
         token="$(md5sum "$@")"
@@ -70,17 +71,13 @@ ___x_cmd_hub_token(){
 
     if [ "$1" != "${1#*/}" ]; then
         hub_log debug "userid: ${1%/*}, token: ${1##*/}"
-        printf "%s" "${1%/*}"  > "$___X_CMD_HUB_ENV/.me"
-        printf "%s" "${1##*/}" > "$___X_CMD_HUB_ENV/.token"
+        printf "%s\n" "${1%/*}"  > "$___X_CMD_HUB_ENV/.me"
+        printf "%s\n" "${1##*/}" > "$___X_CMD_HUB_ENV/.token"
         return
     fi
 
-    # TODO
-    # local res
-    # if res=$(___x_cmd_httpget "$___X_CMD_HUB_SERVICE_URL/api/v0/token/info/email?token=$(___x_cmd_hub_token)"); then
-    #     printf "%s" "$res" > "$___X_CMD_HUB_ENV/.me"
-    #     printf "%s" "$1" > "$___X_CMD_HUB_ENV/.token"
-    # fi
+    # Use your token to get user info
+    ___x_cmd_hub_get_and_save_userinfo_by_token "$1"
 }
 
 ___x_cmd_hub_get_and_save_userinfo_by_token(){
@@ -95,13 +92,21 @@ ___x_cmd_hub_get_and_save_userinfo_by_token(){
 
     local userid
     local username
-    userid="$(printf "%s" "$res" | x jq -r '.id')"
-    username="$(printf "%s" "$res" | x jq -r '.username')"
+
+    {
+        read -r userid
+        read -r username
+    } <<A
+$res
+A
+
+    userid="${userid#id=}"
+    username="${username#username=}"
     ___x_cmd_hub_token "${userid}/${token}"
     printf "%s\n" "${username} ${userid}"
 }
 
 # EndSection
 
-___x_cmd_source_inner_lib ui select
+xrc ui/lib/select
 ___x_cmd_source_inner_lib hub account_login account_registration

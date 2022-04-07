@@ -207,6 +207,7 @@ ___x_cmd_theme_load_format() {
     fi
 
     . "${1:?Provide theme file}"
+
     # TODO: config which envrinonments to pass
 
     if [ -n "$ZSH_VERSION" ]; then

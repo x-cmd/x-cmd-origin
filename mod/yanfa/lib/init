@@ -1,0 +1,74 @@
+# shellcheck shell=sh
+
+___x_cmd_yanfa_init(){
+    param:dsl <<A
+subcommand:
+    gitignore|git       "git ignore"
+    vscode              "vscode"
+    xcmd                "xcmd"
+    license             "license"
+    xproj               "x project"
+A
+    param:run
+
+    if [ -z "$PARAM_SUBCMD" ]; then
+        # ___x_cmd_yanfa_init_xproj "$@"
+        ___x_cmd_yanfa_init help
+        return
+    fi
+
+    "___x_cmd_yanfa_init_$PARAM_SUBCMD" ${1:+"$@"}
+}
+
+# According projects
+___x_cmd_yanfa_init_gitignore(){
+    param:void
+    cat >.gitignore  <<A
+dist
+build
+bin
+A
+
+    # gitignore add
+    # gitignore append
+}
+
+# TODO: vscode project
+# According project
+___x_cmd_yanfa_init_vscode(){
+    param:void
+    mkdir -p "$(x wsroot)/.vscode"
+    xrc cat yanfa/lib/settings.json >"$(x wsroot)/.vscode/settings.json"
+
+    local ext
+    for ext in zokugun.explicit-folding \
+        timonwong.shellcheck \
+        aaron-bond.better-comments \
+        hangxingliu.vscode-awk-hint \
+        eamodio.gitlens; do
+
+        code --install-extension "$ext"
+    done
+
+    # code --list-extensions
+    # code --install-extension ms-vscode.cpptools
+    # code --uninstall-extension ms-vscode.csharp
+
+}
+
+___x_cmd_yanfa_init_license(){
+    param:void
+    x license --name 'Li Junhao' --email 'l@x-cmd.com' --year 2022 gplv3 > "$(x wsroot)/LICENSE"
+}
+
+___x_cmd_yanfa_init_xproj(){
+    param:void
+    local folder="${1:-$(pwd)}"
+    local repo="${2:-$(basename "$folder")}"
+
+    echo "Initialize x project. [folder=$folder]   [reponame=$repo]"
+
+    ___x_cmd_yanfa_init_license
+    ___x_cmd_yanfa_init_vscode
+    # ___x_cmd_yanfa_init_gitignore
+}

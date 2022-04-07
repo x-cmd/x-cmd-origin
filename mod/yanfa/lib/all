@@ -1,0 +1,88 @@
+# shellcheck shell=sh disable=SC3043,2120 # xrc
+
+# Section: git
+
+___x_cmd_yanfa_all(){
+    param:dsl <<A
+subcommand:
+    pull        "pull"
+    push        "push"
+    repolist    "Show all repo"
+    repo        "clone or update all repos"
+    clone       "clone"
+    map         "map"
+    ls          "list modules"
+A
+    param:run
+
+    if [ -z "${PARAM_SUBCMD}" ]; then
+        ___x_cmd_yanfa_all help
+        return 0
+    fi
+
+    "___x_cmd_yanfa_all_${PARAM_SUBCMD}" "$@"
+}
+
+
+___x_cmd_yanfa_all_repolist(){
+    param:void
+    # ___x_cmd_curl_gitx x-cmd x-cmd main repolist
+    curl https://gitee.com/x-cmd/x-cmd/raw/main/repolist 2>/dev/null | awk '{ if ($0 ~ /^\+/) gsub(/^\+/, "", $0); print $0 }'
+}
+
+___x_cmd_yanfa_all_map(){
+    param:void
+    local curdir="${1:-$HOME}"
+    local x_bash_eval="${2:?Provide sentence}"
+    local x_cmd_eval="${3:-"$2"}"
+
+    [ ! -d "$curdir" ] && printf "Exepct a directory: %s\n" "$curdir" >&2 && return 1
+
+    { mkdir -p "$curdir/x-bash" && cd "$curdir/x-bash" && cd -; } || printf "Cannot not enter directory: %s\n" "$curdir"
+    { mkdir -p "$curdir/x-cmd" && cd "$curdir/x-cmd" && cd -; } || printf "Cannot not enter directory: %s\n" "$curdir"
+
+
+    (
+        cd "$curdir/x-bash" && {
+            local org=x-bash
+            local name
+            ___x_cmd_yanfa_all_ls | while read -r name; do
+                ( eval "$x_bash_eval"; )
+            done
+        }
+    ) && (
+        cd "$curdir/x-cmd" && {
+            local name
+            local org=x-cmd
+            ___x_cmd_yanfa_all_repolist | while read -r name; do
+                ( eval "$x_cmd_eval"; )
+            done
+        }
+    )
+}
+
+# shellcheck disable=SC2016
+___x_cmd_yanfa_all_clone(){
+    param:void
+    ___x_cmd_yanfa_all_map "${1:-$HOME}" \
+        'git clone "git@gitee.com:$org/$name.git"'
+}
+
+# shellcheck disable=SC2016
+___x_cmd_yanfa_all_repo(){
+    param:void
+    ___x_cmd_yanfa_all_map "${1:-$HOME}" '
+        if [ -d "$name" ]; then
+            cd "$name" && git pull && git pull origin main
+        else
+            git clone "git@gitee.com:$org/$name.git"
+        fi
+    '
+}
+
+___x_cmd_yanfa_all_ls(){
+    param:void
+    ___x_cmd_yanfa_mod_ls "$@"
+}
+
+# EndSection

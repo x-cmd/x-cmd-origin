@@ -1,0 +1,101 @@
+# shellcheck shell=sh disable=SC3043
+
+# git facility
+___x_cmd_yanfa_ws_name(){
+    param:void
+    local name
+    name=$(___x_cmd_yanfa_ws_geturl)
+    name="${name%.git}"
+
+    case "$#" in
+        0)      printf "%s\n" "${name%.git}" ;;
+        1)      [ "$1" != "-" ] && eval "$1=\"\${name%/*}\"" ;;
+        2)
+                [ "$1" != "-" ] && eval "$1=\"\${name%/*}\""
+                [ "$2" != "-" ] && eval "$2=\"\${name#*/}\""
+    esac
+}
+
+# git facility
+___x_cmd_yanfa_ws_geturl(){
+    git config --worktree --get-regexp "remote[a-z\.]+.url" | awk '
+
+    BEGIN { exit_code=1; }
+    {
+        url=$2
+        match(url, /x-((bash)|(cmd))\/[a-zA-Z0-9_-]+((\.git)|())$/)
+        if (RLENGTH > 0) {
+            print substr(url, RSTART, RLENGTH)
+            exit_code=0
+            exit(0)
+        }
+    }
+    END{
+        exit(exit_code)
+    }
+    '
+}
+
+# git facility
+___x_cmd_yanfa_ws_add_source(){
+    local url
+    url="$(___x_cmd_yanfa_ws_geturl)" || {
+        printf "Cannot find"
+        return
+    }
+
+    git remote remove gitee 2>/dev/null
+    git remote add gitee "git@gitee.com:$url"
+
+    git remote remove github 2>/dev/null
+    git remote add github "git@github.com:$url"
+}
+
+___x_cmd_yanfa_ws_pull(){
+    param:void
+    ___x_cmd_yanfa_ws_add_source || return
+
+    local branch
+    branch="${1:-"$(git branch --show-current)"}"
+
+    if [ -z "$___X_CMD_IN_CHINA_NET" ]; then
+        git pull github "$branch"
+    else
+        git pull gitee "$branch"
+    fi
+}
+
+___x_cmd_yanfa_ws_push(){
+    param:void
+    ___x_cmd_yanfa_ws_add_source || return
+
+    local branch
+    branch="${1:-"$(git branch --show-current)"}"
+    # git rev-parse --abbrev-ref HEAD
+
+    git push gitee "$branch"
+    git push github "$branch"
+}
+
+___x_cmd_yanfa_ws(){
+    if [ -f "$(x wsroot)/.x-cmd/$1" ]; then
+        x _ws "$@"
+        return
+    fi
+
+    param:dsl <<A
+subcommand:
+    pull        "pull module"
+    push        "push module"
+    name        "get workspace name from git config"
+A
+    param:run
+
+    if [ -z "$PARAM_SUBCMD" ]; then
+        ___x_cmd_yanfa_ws help
+        return 1
+    fi
+
+    "___x_cmd_yanfa_ws_$PARAM_SUBCMD" "$@"
+}
+

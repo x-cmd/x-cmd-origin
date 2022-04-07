@@ -1,0 +1,31 @@
+# Author:       Li Junhao           l@x-cmd.com     # xrc
+# shellcheck    shell=sh
+
+xrc param/latest
+
+xrc:mod:lib yanfa   all ws mod pkg init try git
+
+
+# git config --worktree --get-regexp "remote[a-z\.]+.url"
+
+___x_cmd_yanfa(){
+    param:dsl <<A
+subcommand:
+    init        "init"
+    mod         "modules"
+    pkg         "package"
+    ws          "workspace"
+    all         "all modules"
+    try         "do some experiment on all poxis shell"
+A
+    param:run
+
+    if [ -z "${PARAM_SUBCMD}" ]; then
+        ___x_cmd_yanfa help
+        return 0
+    fi
+
+    "___x_cmd_yanfa_${PARAM_SUBCMD}" "$@"
+}
+
+xrc setmain ___x_cmd_yanfa

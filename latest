@@ -1,106 +1,21 @@
-# shellcheck shell=sh disable=SC2039,3043           # xrc
+# Author:       Li Junhao                       l@x-cmd.com     # xrc
+# shellcheck    shell=sh disable=SC2039,3043
 
-# author:       Li Junhao           l@x-cmd.com
-
-xrc shall/lib/all
-xrc shall/lib/image
-xrc shall/lib/name
+xrc:mod:lib shall       all image name try
 
 ___x_cmd_shall(){
-    ___x_cmd_shall_try "$@"
-}
+    case "$1" in
+        ""|help)        printf "TODO: help" >&2  ;;
 
-# Section: try
-___x_cmd_shall_try(){
-    local SHELL
-    if [ "$#" -eq 0 ]; then
+        image)          shift; ___x_cmd_shall_image "$@" ;;
+        ximage)         shift; ___x_cmd_shall_get_ximage "$@" ;;
 
-        cat >&2 <<A
-Please input the script. Press Ctrl-D to EXIT.
-A
-
-        local script
-        script="$(cat)" || {
-            cat >&2 <<A
-Wrong code. Exit.
-A
-            return 1
-        }
-
-        trap 'printf "Interrputed.\n"; break ' INT
-        trap 'printf "Interrputed.\n"; break ' TERM
-
-        {
-            ___x_cmd_shall_name
-        } | {
-            trap 'printf "Interrputed.\n"; break ' INT
-
-            while read -r SHELL || echo err; do
-                # echo "trap"
-                # trap -p INT
-
-                printf "\n%s\n%s: %s\n" "--------------------" "Trying" "$SHELL" >&2
-                printf "%s" "$script" | ___x_cmd_shall_try_0 "$SHELL"
-                code=$?
-
-                if [ $code -eq 255 ]; then
-                    printf "%s\n" "Exit because docker exit in 255 status." >&2
-                    return 255
-                fi
-            done
-        }
-        return
-    else
-        trap 'printf "Interrputed.\n"; break ' INT
-        {
-            ___x_cmd_shall_name
-        } | while read -r SHELL; do
-            printf "\n%s\n%s: %s\n" "--------------------" "Trying" "$SHELL"
-            ___x_cmd_shall_try_0 "$SHELL" "$@"
-            code=$?
-            if [ $code -eq 255 ]; then
-                printf "%s\n" "Exit because docker exit in 255 status." >&2
-                return 255
-            fi
-        done
-        trap - INT
-    fi
-
-}
-
-# EndSection
-
-# Section: utiles
-
-___x_cmd_shall_try_0(){
-    local shell_name="${1:-Must provide shell name}";   shift
-
-    if [ "$#" -gt 0 ]; then
-        printf "%s" "$*" | ___x_cmd_shall_try_inner_exec "$shell_name"
-    else
-        ___x_cmd_shall_try_inner_exec "$shell_name"
-    fi
-}
-
-___x_cmd_shall_try_inner_exec(){
-    local shell_name="$1"; shift
-    local image
-    image="$(___x_cmd_shall_image "$shell_name")"
-    local actual_name
-    case "$shell_name" in
-        bash*)  actual_name=bash ;;
-        ksh)    actual_name=mksh ;;
-        *)      actual_name="$shell_name"
+        try)            shift; ___x_cmd_shall_try "$@" ;;
+        *)              ___x_cmd_shall_try "$@"
     esac
 
-    if [ -t 0 ]; then
-        docker run -it "$image" "$actual_name"
-    else
-        docker run -i "$image" "$actual_name"
-    fi
-}
 
-# EndSection
+}
 
 xrc setmain ___x_cmd_shall
 

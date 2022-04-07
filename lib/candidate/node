@@ -5,7 +5,7 @@ ___X_CMD_ENV_NODE_MIRROR="https://nodejs.org/dist"
 # Section: full_version, ls_local, ls_remote
 
 ___x_cmd_env_node_full_version(){
-    ___x_cmd_env_node_ls_remote "${1:?Provide node version pattern}" "$2" | awk 'END{ if (NR<=0) { exit(1) } else print $1;}'
+    ___x_cmd_env_node_ls_remote "$1" "$2" | awk 'END{ if (NR<=0) { exit(1) } else print $1;}'
 }
 
 ___x_cmd_env_node_sort_versions(){
@@ -17,12 +17,12 @@ ___x_cmd_env_node_ls_remote(){
     local cache_expiration="${2:-1}"
     local cache_path="$___X_CMD_ENV_PATH/node/cache/version_list"
 
-	___x_cmd_httpget "$___X_CMD_ENV_NODE_MIRROR/index.tab" "$cache_path" "$cache_expiration" 2>/dev/null && \
+	___x_cmd_httpget "$___X_CMD_ENV_NODE_MIRROR/index.tab" "$cache_path" "$cache_expiration" && \
     awk -v pattern="$pattern" -v prev_codename="x-cmd" '
         ((NR>1)&&($1)){
             codename=$10
             version=$1
-            if ( (pattern != "") || ( index( version, pattern ) > 0 ) ) {
+            if ( (pattern == "") || ( index( version, pattern ) > 0 ) ) {
                 if (codename ~ /^\-?$/)                                 print version
                 else if (codename!="" && codename != prev_codename)     print version, codename, "*"        # The latest version of this code name
                 else                                                    print version, codename
@@ -67,16 +67,16 @@ A
 
     # TODO: node <= 0.1.13 does not have a directory
     local slug="node-${version}-${platform}-${arch}"
-    local archive_url="${___X_CMD_ENV_NODE_MIRROR}/${version}/${slug}.${compression}"
-    if ! curl -L -C - --progress-bar "${archive_url}" -o "${archive_path}"; then
+    local download_url="${___X_CMD_ENV_NODE_MIRROR}/${version}/${slug}.${compression}"
+    if ! curl -L -C - --progress-bar "${download_url}" -o "${archive_path}"; then
         rm -rf "${archive_path}"
-        env_log error "Download from ${archive_url} failed."
+        env_log error "Download from ${download_url} failed."
         return 1
     fi
 
     # TODO: checksum
 
-    env_log info "Downloaded ${archive_url} to ${archive_path}"
+    env_log info "Downloaded ${download_url} to ${archive_path}"
 }
 # EndSection
 
@@ -133,17 +133,9 @@ A
 #TODO: Should be optimized
 ___x_cmd_env_node_ui_catsel(){
     case "$#" in
-        0)
-            ___x_cmd_env_node_ls_remote \
-                | awk '{ split($0,arr," "); if(arr[2]!=""){ vmap[arr[2]]=1 }else if(arr[2]==""){ split(arr[1],varr,"."); vmap[varr[1]]=1 } } END{ for(key in vmap){ print key } }'
-            ;;
-        1)
-            ___x_cmd_env_node_ls_remote | grep "$1" | awk '{ split($0,arr,"."); vmap[arr[1]]=1 } END{ for(key in vmap){print key} }'
-            ;;
-        2)
-            ___x_cmd_env_node_ls_remote | grep "$1" | grep "$2" \
-            | awk -v a="$1" -v b="$2" '{ if( a != b){ print $1 }else{ split($0,arr," "); if(arr[2]==""){ vmap[arr[1]]=1 } } } END{ for(key in vmap){ print key } }'
-            ;;
+        0)  ___x_cmd_env_node_ls_remote | awk '{ split($0,arr," "); if(arr[2]!=""){ vmap[arr[2]]=1 }else if(arr[2]==""){ split(arr[1],varr,"."); vmap[varr[1]]=1 } } END{ for(key in vmap){ print key } }' ;;
+        1)  ___x_cmd_env_node_ls_remote | grep "$1" | awk '{ split($0,arr,"."); vmap[arr[1]]=1 } END{ for(key in vmap){print key} }' ;;
+        2)  ___x_cmd_env_node_ls_remote | grep "$1" | grep "$2" | awk -v a="$1" -v b="$2" '{ if( a != b){ print $1 }else{ split($0,arr," "); if(arr[2]==""){ vmap[arr[1]]=1 } } } END{ for(key in vmap){ print key } }' ;;
     esac
 }
 

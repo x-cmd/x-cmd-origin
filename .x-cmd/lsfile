@@ -1,5 +1,5 @@
 # xsh
 
-x dev mod lsfile0
+x yanfa mod lsfile0
 printf "%s\n" "nvm-sh-v0.38.0/nvm.sh"
 printf "%s\n" "nvm-sh-v0.38.0/nvm-exec"

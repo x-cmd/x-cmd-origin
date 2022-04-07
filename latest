@@ -1,191 +1,153 @@
-# shellcheck shell=bash # xrc
-
-# author:       Li Junhao           l@x-cmd.com
-# maintainer:   Li Junhao
+# Author:       Li Junhao       l@x-cmd.com         # xrc
+# shellcheck    shell=sh        disable=SC3043
 
 # https://stackoverflow.com/questions/1527049/how-can-i-join-elements-of-an-array-in-bash
 # join_ws also works
 
+xrc:mod:lib str regex # todo rot
+
 ___x_cmd_str(){
-    local op
     if [ -z "$1" ]; then
-        op=help
-    else
-        op="$1"; shift
+        ___x_cmd_str help
+        return 1
     fi
+
+    local op="$1"; shift
     case "$op" in
-        _x_cmd_advise_json)     _str_x_cmd_advise_json;;
+        _x_cmd_advise_json)     ___x_cmd_str_x_cmd_advise_json;;
 
-        join)                   str_join                "$@" ;;
-        len)                    str_len                 "$@" ;;
-    
-        trim)                   str_trim                "$@" ;;
-        trim_left|trim_begin)   str_trim_left           "$@" ;;
-        trim_right|trim_end)    str_trim_right          "$@" ;;
-        trim_eol_space)         str_remove_eol_space    "$@" ;;
-    
-        split)                  str_split               "$@" ;;
-        split_to_array)         str_split               "$@" ;;
-        split_to_lines)         str_split_to_lines      "$@" ;;
-        work)                   str_work                "$@" ;;
-        upper)                  str_upper               "$@" ;;
-        lower)                  str_upper               "$@" ;;
-        startswith)             str_startswith          "$@" ;;
-        endswith)               str_endswith            "$@" ;;
-    
-        slice)                  str_slice               "$@" ;;
-        indexof)                str_indexof             "$@" ;;
-    
-        dos2unix)               str_dos2unix            "$@" ;;
-        unix2dos)               str_unix2dos            "$@" ;;
-    
-        repeat)                 str_repeat              "$@" ;;   
-            
-        base64)                 str_base64              "$@" ;;
-        unbase64)               str_unbase64            "$@" ;;
-        md5)                    str_md5                 "$@" ;;
-        sha)                    str_sha                 "$@" ;;
-        sha1)                   str_sha1                "$@" ;;
-        sha256)                 str_sha256              "$@" ;;
-        sha512)                 str_sha512              "$@" ;;
-    
-        repr)                   str_repr                "$@" ;;
-    
-        sub|replace)            str_replace             "$@" ;;
-        gsub|replace_all)       str_replace_all         "$@" ;;
-        nsub|replace_nth)       str_replace_n           "$@" ;;
-    
-        regex|rematch)          str_regex               "$@" ;;
-            
-        help)                   cat >&2 <<A
-str     Manipulate string
+        join)                   ___x_cmd_str_join                "$@" ;;
+        len)                    ___x_cmd_str_len                 "$@" ;;
 
-Subcommand:
-        help                    ""
-        version                 ""
-        join                    Concatenate arguments with seprated string. str join <seperated string> <part> [...parts];
-        len                     Calculate the length of string
-        trim                    Delete whitespace from both ends of a string
-        trim_left,trim_begin    Delete the spaces at the begining of the string
-        trim_right,trim_end     Delete the spaces at the ending of the string
-        trim_eol_space          Delete the spaces at the ending of all lines
-        split                   Split the string
-        split_to_lines          Split the string into lines
-        work                    Control debug flags.
-        upper,lower             Calculate the uppercase/lowercase of string
-        starts_with             Upgrade xrc from 'https://get.x-cmd.com/script'
-        starts_with_regex       Provide cache filepath
-        ends_with               Clear the cache
-        ends_with_regex         Control debug flags
-        slice                   Calculate the slice of string.
-        indexof                 ?
-        dos2unix,unix2dos       ?
-        repeat                  ?
-        base64,unbase64         ?
-        md5,sha                 ?
-        sha1,sha256,sha512      ?
-        repr                    ?
-        replace                 Searches a string for a specified value, and returns a new string where the specified values are replaced
-        replace_all             Replace all occurences of the specified value in the string with substitued value.
-        replace_nth             Replace nth occurence of the specified value in the string with substitued value.
-        regex                   Universal regex pattern match function for posix shell, like ash, ksh, dash, bash, zsh.
-A
-        ;;
+        trim)                   ___x_cmd_str_trim                "$@" ;;
+        trim_left|trim_begin)   ___x_cmd_str_trim_left           "$@" ;;
+        trim_right|trim_end)    ___x_cmd_str_trim_right          "$@" ;;
+        trim_eol_space)         ___x_cmd_str_remove_eol_space    "$@" ;;
+
+        split)                  ___x_cmd_str_split               "$@" ;;
+        split_to_array)         ___x_cmd_str_split               "$@" ;;
+        split_to_lines)         ___x_cmd_str_split_to_lines      "$@" ;;
+        work)                   ___x_cmd_str_work                "$@" ;;
+        upper)                  ___x_cmd_str_upper               "$@" ;;
+        lower)                  ___x_cmd_str_lower               "$@" ;;
+        startswith)             ___x_cmd_str_startswith          "$@" ;;
+        endswith)               ___x_cmd_str_endswith            "$@" ;;
+
+        slice)                  ___x_cmd_str_slice               "$@" ;;
+        indexof)                ___x_cmd_str_indexof             "$@" ;;
+
+        dos2unix)               ___x_cmd_str_dos2unix            "$@" ;;
+        unix2dos)               ___x_cmd_str_unix2dos            "$@" ;;
+
+        repeat)                 ___x_cmd_str_repeat              "$@" ;;
+
+        base64)                 ___x_cmd_str_base64              "$@" ;;
+        unbase64)               ___x_cmd_str_unbase64            "$@" ;;
+        md5)                    ___x_cmd_str_md5                 "$@" ;;
+        sha)                    ___x_cmd_str_sha                 "$@" ;;
+        sha1)                   ___x_cmd_str_sha1                "$@" ;;
+        sha256)                 ___x_cmd_str_sha256              "$@" ;;
+        sha512)                 ___x_cmd_str_sha512              "$@" ;;
+
+        repr)                   ___x_cmd_str_repr                "$@" ;;
+
+        sub|replace)            ___x_cmd_str_replace             "$@" ;;
+        gsub|replace_all)       ___x_cmd_str_replace_all         "$@" ;;
+        nsub|replace_nth)       ___x_cmd_str_replace_n           "$@" ;;
+
+        regex|rematch)          ___x_cmd_str_regex               "$@" ;;
+
+        help)                   cat "$___X_CMD_ROOT_MOD/str/lib/help" >&2 ;;
         *)                      return 1 ;;
     esac
 }
+
+# Section: join len
 
 # Only works for single char delimeter
 # a=(1 2 3)
 # IFS=$'\n'; echo "${a[*]}"
 
-str_selftest(){
-    xrc doctest/latest
-    doctest "${BASH_SOURCE[0]}"
-}
-
-: <<'DOCTEST'
-> str_join "++" 1 2 3
-1++2++3
-DOCTEST
-str_join(){
-    local sep=$1
+___x_cmd_str_join(){
+    local sep="$1"
     shift 1
     local bar
     bar=$(printf "${sep}%s" "$@")
-    bar=${bar:${#sep}}
-    echo "$bar"
+    printf "%s\n" "${bar#"${sep}"}"
 }
 
-str_len(){
+___x_cmd_str_join_with_IFS(){
+    local IFS="${1:?Provide character as seperator}"
+    printf "%s\n" "$*"
+}
+
+___x_cmd_str_len(){
     if [ $# -ne 0 ]; then
         while [ $# -ne 0 ]; do
-            echo "${#1}"
+            printf "%s" "${#1}"
             shift
         done
     else
         local l
         l="$(cat)"
-        echo "${#l}"
+        printf "%s" "${#l}"
     fi
 }
+# EndSection
 
-str_trim(){
+# Section: trim
+___x_cmd_str_trim(){
     local var="$*"
     # remove leading whitespace characters
     var="${var#"${var%%[![:space:]]*}"}"
     # remove trailing whitespace characters
     var="${var%"${var##*[![:space:]]}"}"
-    printf "%s" "$var"
+    printf "%s\n" "$var"
 }
 
-str_trim_left(){
+___x_cmd_str_trim_left(){
     local var="$*"
     # remove leading whitespace characters
     var="${var#"${var%%[![:space:]]*}"}"
-    printf "%s" "$var"
+    printf "%s\n" "$var"
 }
 
-str_trim_right(){
+___x_cmd_str_trim_right(){
     local var="$*"
     # remove trailing whitespace characters
     var="${var%"${var##*[![:space:]]}"}"
-    printf "%s" "$var"
+    printf "%s\n" "$var"
 }
+# EndSection
 
-: <<'DOCTEST'
-> str_split , "$(echo -e "a\nc,b,c")" arr; echo "${#arr[@]}"
-3
-> IFS=$'\n' result_list=( $(str_split_to_lines , "$(echo -e "a\nc,b,c")") ); echo "${#result_list[@]}"  # str_split supermacy over str_split_to_lines
-4
-DOCTEST
+# Section: split
 
 # https://stackoverflow.com/questions/40686922/howto-split-a-string-on-a-multi-character-delimiter-in-bash#comment99425158_47633817
 
 # Split into list.
-str_split(){
+___x_cmd_str_split(){
     # tr "${1:?split char}" '\n'
-    local s 
-    local IFS 
-    local delimiter="${1:?Delemiter}" 
-    local array_name  
+    local s
+    local IFS
+    local delimiter="${1:?Delemiter}"
+    local array_name
     local k
     shift 1
     case "$#" in
         0)  echo "Please provide array name.
-str_split <delimiter> [string] <arary_name>
-" >&2; 
+___x_cmd_str_split <delimiter> [string] <arary_name>
+" >&2;
             return 1; ;;        # TODO: Add details information
-        1)  array_name="$1";  
+        1)  array_name="$1";
             s=$(cat)  ;;
-        *)  s="$1"; 
+        *)  s="$1";
             array_name="$2"     ;;
     esac
 
     eval "$array_name=()"
 
     s="$s$delimiter"
-    while [ "${#s}" -gt 0 ]; do 
+    while [ "${#s}" -gt 0 ]; do
         k="${s%%"$delimiter"*}"
         eval "$array_name+=( \"\$k\" )"
         s="${s#*"$delimiter"}"
@@ -194,20 +156,10 @@ str_split <delimiter> [string] <arary_name>
     done
 }
 
-: <<'DOCTEST'
-> str_split_to_lines : 1:2:3
-1
-2
-3
-> str_split_to_lines : 1:2:3:4:5 -- a b c - d; echo $a $b $c $d
-1 2 3 5
-> IFS=$'\n' result_list=( $(str_split_to_lines : 1:2:3) ); echo "${#result_list[@]}" "${result_list[1]}"
-3 2
-DOCTEST
-# According to str_split
-_str_split_to_lines(){
+# According to ___x_cmd_str_split
+____x_cmd_str_split_to_lines(){
     # tr "${1:?split char}" '\n'
-    local s 
+    local s
     local IFS
     case "$#" in
         1) s=$(cat)   ;;
@@ -215,137 +167,63 @@ _str_split_to_lines(){
     esac
     echo -e "${s//$1/\n}"
 }
+# EndSection
 
-## FIXME: Only works for zsh and bash
-## str_split - -- a b c
-# str_work(){
-#     local out=() 
-#     local sw=0 
-#     local i
-#     for i in "$@"; do
-#         sw=$(( sw+1 ))
-#         if [ "$i" = "--" ]; then
-#             out=( "${@:((sw + 1))}" )
-#             set -- "${@:0:sw}"
-#             break
-#         fi
-#     done
-
-#     echo "${#out[@]}" "${out[@]}"
-#     echo "$#" "$@"
-# }
-
-# str_split_to_lines(){
-#     local IFS 
-#     local SEP=${1:?Please provide seperator}
-#     shift
-
-#     local sw=0 
-#     local i 
-#     local final=-1 
-#     local out=()
-#     for i in "$@"; do
-#         sw=$(( sw+1 ))
-#         [ "$i" = -- ] && final=$sw
-#     done
-
-#     # Strange case str_split_to_lines : --
-#     if [ "$final" -ne -1 ] && [ "$final" -ne $# ] ; then
-#         out=("${@:((final + 1))}")
-#         set -- "${@:0:final}"
-#     fi
-
-#     if [ ${#out[@]} -eq 0 ]; then
-#         _str_split_to_lines "$SEP" "$1"
-#     else
-#         local sss=0
-#         for i in $(_str_split_to_lines "$SEP" "$1"); do
-#             local var=${out[sss]}
-#             sss=$(( sss+1 ))
-#             [ -z "$var" ] && return 0
-#             [ "$var" != "-" ] && eval "$var=$(str_repr "$i")"
-#         done
-#     fi
-# }
-
-: <<'DOCTEST'
-> str_upper "3abcDEF9"
-3ABCDEF9
-DOCTEST
-
-: <<'DOCTEST'
-> str_lower "3abcDEF9"
-3abcdef9
-DOCTEST
-
+# Section: uppper lower
 case "$BASH_VERSION" in
-    4*)
-str_upper(){
+    4*|5*)
+___x_cmd_str_upper(){
     if [ "$#" -eq 0 ]; then
         tr "[:lower:]" "[:upper:]"
     else
-        echo "${1^^}"
+        printf "%s\n" "${1^^}"
     fi
 }
 
-str_lower(){
+___x_cmd_str_lower(){
     if [ "$#" -eq 0 ]; then
         tr "[:upper:]" "[:lower:]"
     else
-        echo "${1,,}"
+        printf "%s\n" "${1,,}"
     fi
 }
 ;;
-    *) 
-str_upper(){
+    *)
+___x_cmd_str_upper(){
     if [ "$#" -eq 0 ]; then
         tr "[:lower:]" "[:upper:]"
     else
-        printf "%s" "$1" | tr "[:lower:]" "[:upper:]"
+        printf "%s\n" "$1" | tr "[:lower:]" "[:upper:]"
     fi
 }
 
-str_lower(){
+___x_cmd_str_lower(){
     if [ "$#" -eq 0 ]; then
         tr "[:upper:]" "[:lower:]"
     else
-        printf "%s" "$1" | tr "[:upper:]" "[:lower:]"
+        printf "%s\n" "$1" | tr "[:upper:]" "[:lower:]"
     fi
 }
 ;;
 esac
 
+# EndSection
+
+# Section: startswith endswith indexof slice
 # other format using library
 
-: <<'DOCTEST'
-> str_startswith "hi world" hi && echo yes
-yes
-DOCTEST
-str_startswith(){
+___x_cmd_str_startswith(){
     [ "${1:?Provide string}" != "${1#${2:?Provide prefix}}" ]
 }
 
-
-: <<'DOCTEST'
-> str_endswith "hi world" ld && echo yes
-yes
-DOCTEST
-
-str_endswith(){
+___x_cmd_str_endswith(){
     [ "${1:?Provide string}" != "${1%${2:?Provide suffix}}" ]
 }
 
-
-: <<'DOCTEST'
-> str_slice "hi world" 3:
-world
-> str_slice "hi world" 3:-1
-worl
-DOCTEST
-str_slice(){    
-    local srcStr=${1:?Please input a string to slice}
+___x_cmd_str_slice(){
+    local srcStr="${1:?Please input a string to slice}"
     local start end
-    
+
     case $# in
         1)  echo "$srcStr"; return 0;;
         2)
@@ -361,29 +239,25 @@ str_slice(){
 
     start=${start:-0}
     end=${end:-${#srcStr}}
-    [ "$end" -lt 0 ] && (( end = ${#srcStr} + end )) 
+    [ "$end" -lt 0 ] && (( end = ${#srcStr} + end ))
 
     # echo $start $end (( end - start )) >&2
-    echo "${srcStr:start:(( end - start ))}"
+    printf "%s" "${srcStr:start:(( end - start ))}"
 }
 
-: <<'DOCTEST'
-> str_indexof "hi world" "world"
-3
-DOCTEST
-str_indexof(){
-    local src=${1:?Provide src string} 
+___x_cmd_str_indexof(){
+    local src=${1:?Provide src string}
     local tgt=${2:?Provide target str}
     local after_tgt_in_src=${src#*${tgt}}
     if [ "${#after_tgt_in_src}" -eq "${#src}" ]; then
         return 1
     fi
-    echo $(( ${#src} - ${#after_tgt_in_src} - ${#tgt} ))
+    printf "%s\n" $(( ${#src} - ${#after_tgt_in_src} - ${#tgt} ))
 }
+# EndSection
 
-## text
-
-str_dos2unix(){
+# Section: dos2unix unix2dos
+___x_cmd_str_dos2unix(){
     if [ $# -eq 0 ]; then
         sed -e 's/\r//'
     else
@@ -393,7 +267,7 @@ str_dos2unix(){
 
 # refer https://en.wikipedia.org/wiki/Unix2dos
 # refer https://www.cyberciti.biz/faq/howto-unix-linux-convert-dos-newlines-cr-lf-unix-text-format/
-str_unix2dos(){
+___x_cmd_str_unix2dos(){
     if [ $# -eq 0 ]; then
         # test cat abc.txt | sed -e 's/$/\r/' | cat -vet -
         sed -e $'s/$/\r/'
@@ -405,17 +279,19 @@ str_unix2dos(){
         # sed -e "s/$/^M/" -i ${BAK:-""} "$@"
     fi
 }
+# EndSection
 
+# Section: repeat remove_eol_space
 # Reference: https://stackoverflow.com/questions/5349718/how-can-i-repeat-a-character-in-bash
-str_repeat(){
-    local character="${1:?Charactor}" 
+___x_cmd_str_repeat(){
+    local character="${1:?Charactor}"
     local number="${2:?Number of characters}"
     case "${#character}" in
-        0) echo "Wrong" >&2;;
+        0) printf "%s" "Error" >&2;;
         1) seq -f "$character" -s '' "$number" ;;
         *) awk -v num="$number" '
-    NR==1   { ch=$0 } 
-    NR>=2   { ch=ch "\n" $0 } 
+    NR==1   { ch=$0 }
+    NR>=2   { ch=ch "\n" $0 }
     END     { s=""; for (i=0; i<num; ++i) { s=s ch }; print s  }' <<A
 ${character}
 A
@@ -427,83 +303,35 @@ A
 # USAGE 1, remove in file: remove_eol_space filepath
 # USAGE 2, remove in file and backup with BAK as extensions: BAK='.bak' remove_eol_space filepath
 # USAGE 3, remove and output to stdout: cat filepath | remove_eol_space
-str_remove_eol_space(){
+___x_cmd_str_remove_eol_space(){
     if [ $# -eq 0 ]; then
         sed -e 's/[[:blank:]]*$//g'
     else
         sed -e 's/[[:blank:]]*$//g' -i "${BAK:-""}" "$@"
     fi
 }
+# EndSection
 
-# rot13(){
-#     tr '[a-zA-Z]' '[n-za-mN-ZA-M]'
-# }
-
-_str_rot(){
-    local rot=${1:-13}
-    local letter='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789=-+'
-    local before=${letter:0:$rot}
-    local after=${letter:$rot}
-    tr $letter $after$before
-}
-
-str_rot_encode(){
-    local ROT=${1:?Provide rot number}
-    shift
-    if [ $# -eq 0 ]; then
-        _str_rot "$ROT"
-    else
-        printf "%s" "$1" | _str_rot "$ROT"
-    fi
-}
-
-str_rot_decode(){
-    local ROT=${1:?Provide rot number}
-    shift
-    if [ $# -eq 0 ]; then
-        _str_rot $(( 65 - ROT ))
-    else
-        printf "%s" "$1" | _str_rot $(( 65 - ROT ))
-    fi
-}
-
-str_brb_encode(){
-    local ROT=${1:?Provide rot number}
-    shift
-    if [ $# -eq 0 ]; then
-        base64 | str_rot_encode "$ROT" | base64;
-    else
-        printf "%s" "$1" | base64 | str_rot_encode "$ROT" | base64;
-    fi
-}
-
-str_brb_decode(){
-    local ROT=${1:?Provide rot number}
-    shift
-    if [ $# -eq 0 ]; then
-        base64 --decode | str_rot_decode "$ROT" | base64 --decode
-    else
-        printf "%s" "$1" | base64 --decode | str_rot_decode "$ROT" | base64 --decode
-    fi
-}
-
-str_base64(){
+# Section: base64 unbase64
+___x_cmd_str_base64(){
     if [ $# -eq 0 ]; then
         base64
     else
-        str_trim "$(printf "%s" "${1:?Provide string}" | base64)"
+        ___x_cmd_str_trim "$(printf "%s" "${1:?Provide string}" | base64)"
     fi
 }
 
-str_unbase64(){
+___x_cmd_str_unbase64(){
     if [ $# -eq 0 ]; then
         base64 --decode
     else
-        str_trim "$(printf "%s" "${1:?Provide string}" | base64 --decode)"
+        ___x_cmd_str_trim "$(printf "%s" "${1:?Provide string}" | base64 --decode)"
     fi
 }
+# EndSection
 
-_str_md5(){
+# Section: md5 sha1
+___x_cmd_str___md5_inner(){
     local cmd
     if command -v md5 >/dev/null 2>&1; then
         cmd=md5
@@ -519,55 +347,47 @@ _str_md5(){
 
 # Wrap the function with output variable
 
-: <<'DOCTEST'
-> printf "%s" hi | str_md5
-49f68a5c8493ec2c0bf489821c21fc3b
-> str_md5 "hi"
-49f68a5c8493ec2c0bf489821c21fc3b
-> str_md5 "hi" -- a
-> echo "$a"
-49f68a5c8493ec2c0bf489821c21fc3b
-DOCTEST
 # shellcheck disable=SC2086
-str_md5(){
+___x_cmd_str_md5(){
     case $# in
-        0)  _str_md5; return 0;;
-        1)  _str_md5 "$1"; return 0;;
+        0)  ___x_cmd_str___md5_inner; return 0;;
+        1)  ___x_cmd_str___md5_inner "$1"; return 0;;
         2)  if [ "$1" = -- ]; then
-                eval $2="$(_str_md5)"
+                eval $2="$(___x_cmd_str___md5_inner)"
                 return 0
             fi ;;
-        *) 
-            eval $3="$(_str_md5 "$1")"
+        *)
+            eval $3="$(___x_cmd_str___md5_inner "$1")"
             return 0 ;;
     esac
 }
 
-: <<'DOCTEST'
-> str_sha "hi x-bash"
-b595755ac2c4a251bef3187cda6550e25e72752a
-DOCTEST
-str_sha(){
-    local ALGOR=${ALGOR:-1}
+___x_cmd_str_sha(){
+    local ALGOR="${ALGOR:-1}"
     if command -v shasum >/dev/null 2>&1; then
         printf "%s" "${1:?str to encrypt}" | shasum -a "$ALGOR" | cut -d ' ' -f 1
         return 0
     fi
-    
-    local cmd=sha${ALGOR}sum
+
+    local cmd="sha${ALGOR}sum"
     if command -v "$cmd" >/dev/null 2>&1; then
         printf "%s" "${1:?str to encrypt}" | $cmd | cut -d ' ' -f 1
         return 0
     fi
-    
+
     # TODO: Install x and provide encryption
 }
 
-str_sha1(){     ALGOR=1 str_sha "$@"; }
-str_sha256(){   ALGOR=256 str_sha "$@"; }
-str_sha512(){   ALGOR=512 str_sha "$@"; }
+___x_cmd_str_sha1(){     ALGOR=1 ___x_cmd_str_sha "$@"; }
+___x_cmd_str_sha256(){   ALGOR=256 ___x_cmd_str_sha "$@"; }
+___x_cmd_str_sha512(){   ALGOR=512 ___x_cmd_str_sha "$@"; }
 
-str_repr(){
+# EndSection
+
+# Section: repr and replace
+
+# TODO: rename to quote
+___x_cmd_str_repr(){
     # echo "\"$(echo "$1" | sed s/\"/\\\\\"/g)\""
     # echo "\"${1//\"/\\\\\"}\""
     # echo "\"${1//\"/\\\"}\""
@@ -577,18 +397,18 @@ str_repr(){
 
 # case "$___X_CMD_CUR_SHELL" in
 #     bash|zsh|ksh|ash)
-# ___x_cmd_str_replace(){
+# ___x_cmd____x_cmd_str_replace(){
 #     local pat="${2//\*/\\*}"
 #     return "${1/"$pat"/"$3"}"
 # }
 
-# ___x_cmd_str_replaceall(){
+# ___x_cmd____x_cmd_str_replaceall(){
 #     local pat="${2//\*/\\*}"
 #     return "${1//"$2"/"$3"}"
 # }
 #     ;;
 #     *)
-# ___x_cmd_str_replace(){
+# ___x_cmd____x_cmd_str_replace(){
 #     printf "%s" "$1" | awk -v pat="$2" -v target="$3" -v IFS="" '
 # END{
 #     sub(pat, target, $0)
@@ -597,7 +417,7 @@ str_repr(){
 # '
 # }
 
-# ___x_cmd_str_replaceall(){
+# ___x_cmd____x_cmd_str_replaceall(){
 #     printf "%s" "$1" | awk -v pat="$2" -v target="$3" -v IFS="" '
 # END{
 #     gsub(pat, target, $0)
@@ -609,16 +429,16 @@ str_repr(){
 # esac
 
 
-str_replace(){
+___x_cmd_str_replace(){
     echo "${${1:?Original string}/"${2:?Source substring}"/${3:?Target string}}"
 }
 
-str_replace_all(){
+___x_cmd_str_replace_all(){
     echo "${${1:?Original string}//"${2:?Source substring}"/${3:?Target string}}"
 }
 
 # TODO: Not for ash. Please provide compatible version
-str_replace_n(){
+___x_cmd_str_replace_n(){
     local org="${1:?Original string}"
     local src="${2:?Source substring}"
     local num="${3:?Number}"
@@ -631,91 +451,11 @@ str_replace_n(){
     echo "${org//$SUBSEP/$src}"
 }
 
-STR_REGEX_SEP="$(printf "\001")"
-str_regex(){
-    # Only dash does not support pattern="${pattern//\\/\\\\}"
-    awk -v FS="${STR_REGEX_SEP}" '{
-        if (match($1, $2))  exit 0
-        else                exit 1
-    }' <<A
-${1}${STR_REGEX_SEP}${2:?str_regex(): Provide pattern}
-A
-}
+# EndSection
 
-
-## Regular Expression design
-
-export OR="\|"
-
-R_wrap(){
-    printf "%s" "\($1\)"
-}
-
-R_or(){
-    R_wrap "$(str_join "\|" "$@")"
-}
-
-# IP_0_255="[0-9]${OR}\([1-9][0-9]\)${OR}\(1[0-9][0-9]\)${OR}\(2[0-4][0-9]\)${OR}\(25[0-5]\)"
-
-# shellcheck disable=SC2046,SC2006
-IP_0_255=$( R_or `R_wrap "[0-9]"` `R_wrap "[1-9][0-9]"` `R_wrap "1[0-9][0-9]"` `R_wrap "2[0-4][0-9]"` `R_wrap "25[0-5]"` )
-export IP="\\b${IP_0_255}\.${IP_0_255}\.${IP_0_255}\.${IP_0_255}\\b"
-
-# [[:alpha:]] [[:alphanum:]] [[:number:]]
-
-_str_x_cmd_advise_json(){
-    cat <<A
-{
-    "join": null,
-    "len": null,
-
-    "trim": null,
-    "trim_left|trim_begin": null,
-    "trim_right|trim_end": null,
-    "trim_eol_space": null,
-
-    "split": null,
-    "split_to_array": null,
-    "split_to_lines": null,
-    "work": null,
-    "upper": null,
-    "lower": null,
-    "startwith": null,
-    "endswith": null,
-
-    "slice": null,
-    "indexof": null,
-
-    "dos2unix": null,
-    "unix2dos": null,
-
-    "repeat": null,
-        
-    "base64": null,
-    "unbase64": null,
-    "md5": null,
-    "sha": null,
-    "sha1": null,
-    "sha256": null,
-    "sha512": null,
-
-    "repr": null,
-
-    "sub|replace": null,
-    "gsub|replace_all": null,
-    "nsub|replace_nth": null,
-
-    "regex|rematch": null,
-        
-    "help": null
-}
-A
+___x_cmd_str_x_cmd_advise_json(){
+    cat "$___X_CMD_ROOT_MOD/str/lib/str.advise.json"
     return 126
 }
-
-if [ -n "${BASH_VERSION}${ZSH_VERSION}" ] && [ "${-#*i}" != "$-" ]; then
-    xrc advise/latest
-    advise ___x_cmd_str "" str
-fi
 
 xrc setmain ___x_cmd_str

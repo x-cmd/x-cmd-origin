@@ -1,5 +1,5 @@
 . ./lib/select
-f1(){
+select1(){
 
 ___x_cmd_ui_select idx,text \
 "Please select the app you want to install:" \
@@ -12,5 +12,3 @@ ___x_cmd_ui_select idx,text \
     echo "idx:" "$idx"
     echo "text:" "$text"
 }
-
-f1

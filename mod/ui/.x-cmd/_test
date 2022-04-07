@@ -1,0 +1,47 @@
+# shellcheck shell=sh disable=SC1072 #source
+x log init ui
+. ./latest
+test_table(){
+    . ./.x-cmd/testcase/ui_table_testcase
+    table1
+}
+test_form(){
+    . ./.x-cmd/testcase/ui_form_testcase
+    form1
+}
+test_grid(){
+    . ./.x-cmd/testcase/ui_gridselect_testcase
+    grid1
+}
+test_catsel(){
+    # . ./.x-cmd/testcase/ui_catsel_testcase
+    . "$___X_CMD_ROOT_MOD/ls/lib/catsel"
+    ___x_cmd_ui_catsel
+}
+test_tf(){
+    . ./.x-cmd/testcase/ui_tf_testcase
+    tf1
+}
+test_select(){
+    . ./.x-cmd/testcase/ui_select_testcase
+    select1
+}
+
+case "$1" in
+    table|form|grid|select|category|catsel|tf)
+        test_${1} ;;
+    bash3|bash4|bash5)
+        docker run -it --rm -v "$(pwd)":/ui xcmd/${1}-dev bash -c "x update nightly && . ~/.x-cmd/xrc/latest && cd ui && bash && x _test"
+        ;;
+    alpine|ubuntu|centos|debian)
+        docker run -it --rm -v "$(pwd)":/ui "xcmd/${1}-dev"
+        # docker run -it -rm -v "$(pwd)":/ui "xcmd/${1}-dev" sh -i -c "x update nightly  && . ~/.x-cmd/xrc/latest && cd ui && bash && x _test"
+        ;;
+    *)
+        ui_log info "copy all files from ./* to ~/.x-cmd/ui/"
+        cp -r ./* ~/.x-cmd/ui
+        . ~/.x-cmd/xrc/latest
+        echo "Usage: x _test {copy|bash:3|bash:4|bash:5|alpine|ubuntu|centos|table|form|grid|select|category|catsel|tf}"
+        return 1
+        ;;
+esac

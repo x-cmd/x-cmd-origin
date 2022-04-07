@@ -1,8 +1,8 @@
 # xrc ui/lib/table
 . ./lib/table
 . ./lib/region
-
-f1(){
+x json data 10 1>/dev/null
+table1(){
     ___x_cmd_ui_table -
     ___x_cmd_ui_table h B%USER               PID  %CPU %MEM      VSZ    RSS   TT  STAT STARTED      TIME COMMAND
     for i in $(seq 12); do
@@ -21,12 +21,12 @@ f1(){
     printf "%s\n" "___X_CMD_UI_TABLE_CUR_LINE: $___X_CMD_UI_TABLE_CUR_LINE"
 }
 data(){
-    x json data 10
+    x json data
     # cat "./.x-cmd/dev/testcase/aaa.json"
     # printf "[{\"email\":\"1074059947@qq.com\",\"state\":\"confirmed\",\"scope\":[\"primary\",\"committed\",\"secure\",\"notified\"]}]"
 }
 
-f2(){
+table2(){
     local ___X_CMD_UI_TABLE_CUR_LINE
     ___ui_table_json ID=.id NAME=.name Fullname=.full_name Login=.owner.login URL=.owner.html_url ProjectCreator=.project_creator ID=.id NAME=.name Fullname=.full_name Login=.owner.login URL=.owner.html_url ProjectCreator=.project_creator ID=.id NAME=.name Fullname=.full_name Login=.owner.login URL=.owner.html_url ProjectCreator=.project_creator -- x json data
     # ___ui_table_json Email=.email Scope=.scope -- data
@@ -38,4 +38,3 @@ f2(){
     printf "%s\n" "___X_CMD_UI_TABLE_CUR_ITEM: $___X_CMD_UI_TABLE_CUR_ITEM"
     printf "%s\n" "___X_CMD_UI_TABLE_CUR_LINE: $___X_CMD_UI_TABLE_CUR_LINE"
 }
-f2

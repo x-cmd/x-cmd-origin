@@ -47,16 +47,21 @@ function view_header(){
     return sprintf("%s\n", th(TH_GRIDSELECT_HEADER_NORMAL, data_header) )
 }
 
-function view_body(             _selected_item_idx, _iter_item_idx, _data_item_idx, _item_index, _select_text, _data, _data_info, _data_idx){
+function view_body(            _col_num, _selected_item_idx, _iter_item_idx, _data_item_idx, _item_index, _item_icon, _select_text, _data, _data_info, _data_idx){
     if (model_len == 0){
         _data = "We couldn’t find any data ..."
         _data = str_pad_left(_data, int(max_col_size/2), int(length(_data)/2))
-        return th(TH_TABLE_UINFIND, _data)
+        return th(TH_DATA_UNFIND, _data)
     }
     view_item_len       = model_item_max + 4
     view_item_index_len = length(model_len)
     if ( ITEM_INDEX_STATE == true ) view_item_len = view_item_len + view_item_index_len + 2
+    if ( ctrl_sw_get( MULTIPLE_EDIT ) == true ) view_item_len = view_item_len + 2
     view_body_col_num   = int(max_col_size / view_item_len)
+
+    _col_num             = int( ( model_len - 1 ) / view_body_row_num ) + 1
+    if ( _col_num <= view_body_col_num ) view_body_row_num = int( (model_len - 1 ) / _col_num ) + 1
+
     view_page_item_num  = view_body_col_num * view_body_row_num
 
     view_page_num       = int( ( model_len - 1 ) / view_page_item_num ) + 1
@@ -73,11 +78,13 @@ function view_body(             _selected_item_idx, _iter_item_idx, _data_item_i
             _item_text = str_pad_right( data[ _data_item_idx ], model_item_max, data_wlen[ _data_item_idx ] )
 
             if ( ITEM_INDEX_STATE == true ) _item_index = str_pad_left( _data_item_idx, view_item_index_len) ": "
-            if (ctrl_sw_get( MULTIPLE_EDIT ) == true ) _item_icon = "  ● "
-            else _item_icon = "    "
-            if ( _iter_item_idx == _selected_item_idx )              _data = _data th(TH_GRIDSELECT_ITEM_SELECTED_INFO, "  > ") _item_index th(TH_GRIDSELECT_ITEM_FOCUSED, _item_text)
-            else if ( IS_SELECTED_ITEM[ _iter_item_idx ] == true )   _data = _data th(TH_GRIDSELECT_ITEM_ARROW, _item_icon) _item_index th(TH_GRIDSELECT_ITEM_SELECTED, _item_text)
-            else _data = _data th(TH_GRIDSELECT_ITEM_UNARROW, _item_icon) _item_index th(TH_GRIDSELECT_ITEM_UNSELECTED, _item_text)
+            if ( ctrl_sw_get( MULTIPLE_EDIT ) == true ) {
+                _item_icon = "● "
+                if ( IS_SELECTED_ITEM[ _iter_item_idx ] == true )   _item_icon = th(TH_GRIDSELECT_ITEM_ICON, _item_icon)
+                else _item_icon = th(TH_GRIDSELECT_ITEM_UNICON, _item_icon)
+            }
+            if ( _iter_item_idx == _selected_item_idx )              _data = _data th(TH_GRIDSELECT_ITEM_SELECTED_INFO, "  > ") _item_icon _item_index th(TH_GRIDSELECT_ITEM_FOCUSED, _item_text)
+            else _data = _data  "    " _item_icon _item_index th(TH_GRIDSELECT_ITEM_UNFOCUSED, _item_text)
             _iter_item_idx += max_data_row_num
         }
         if (i != model_len) _data = _data "\n"

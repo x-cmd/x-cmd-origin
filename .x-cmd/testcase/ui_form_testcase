@@ -2,7 +2,7 @@
 . ./lib/region
 # xrc ui/lib/form
 
-f(){
+form1(){
     # local ___X_CMD_UI_FORM_EXIT_STRATEGY="execute|save|exit"
     local ___X_CMD_UI_FORM_EXIT_STRATEGY="execute|exit"
 
@@ -26,10 +26,10 @@ f(){
     echo "$repo2_1_2"
     echo "___X_CMD_UI_FORM_EXIT:" "$___X_CMD_UI_FORM_EXIT"
 }
-f
-f1(){
-    local ___X_CMD_UI_FORM_EXIT_STRATEGY="execute|exit"
-    ___x_cmd_ui_form "Are you sure you want to delete repo" tf 1 = "yes" "no"
+form2(){
+    # local ___X_CMD_UI_FORM_EXIT_STRATEGY="execute|save|exit"
+    local ___X_CMD_UI_FORM_EXIT_STRATEGY="execute"
+    ___x_cmd_ui_form nohelp "Are you sure you want to delete repo" tf 1 = "yes" "no"
     echo "tf: $tf"
     echo "___X_CMD_UI_FORM_EXIT:" "$___X_CMD_UI_FORM_EXIT"
 }

@@ -6,13 +6,16 @@ xrc ui/lib/region
 ___x_cmd_ui_form_control_awk(){
     command awk \
         "$@" \
-        -f "$___X_CMD_ROOT/awk/lib/default.awk" \
-        -f "$___X_CMD_ROOT/awk/lib/str.awk" \
-        -f "$___X_CMD_ROOT/awk/lib/wcwidth.awk" \
-        -f "$___X_CMD_ROOT/awk/lib/ui.awk" \
-        -f "$___X_CMD_ROOT/ui/lib/share.awk" \
-        -f "$___X_CMD_ROOT/ui/lib/theme.awk" \
-        -f "$___X_CMD_ROOT/ui/lib/form.awk"
+        -v TH_THEME_COLOR="\\033[${___X_CMD_THEME_COLOR_CODE}m" \
+        -v exit_strategy="$___X_CMD_UI_FORM_EXIT_STRATEGY" \
+        -v FORM_HELP_STATE="$___X_CMD_UI_FORM_HELP_STATE" \
+        -f "$___X_CMD_ROOT_MOD/awk/lib/default.awk" \
+        -f "$___X_CMD_ROOT_MOD/awk/lib/str.awk" \
+        -f "$___X_CMD_ROOT_MOD/awk/lib/wcwidth.awk" \
+        -f "$___X_CMD_ROOT_MOD/awk/lib/ui.awk" \
+        -f "$___X_CMD_ROOT_MOD/ui/lib/share.awk" \
+        -f "$___X_CMD_ROOT_MOD/ui/lib/theme.awk" \
+        -f "$___X_CMD_ROOT_MOD/ui/lib/form.awk"
         # -f "./lib/form.awk"
 }
 
@@ -34,5 +37,9 @@ ___x_cmd_ui_form_control(){
 }
 
 ___x_cmd_ui_form(){
+    case "${1}" in
+        nohelp)         ___X_CMD_UI_FORM_HELP_STATE=0 && shift ;;
+        *)              ___X_CMD_UI_FORM_HELP_STATE=1 ;;
+    esac
     ___x_cmd_ui_region_autorefresh_with_keyboard ___x_cmd_ui_form_control "$@"
 }

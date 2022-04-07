@@ -1,11 +1,6 @@
 
-# Section: k8s
-
 alias kctl=kubectl
 alias k=kctl
 alias kg="kubectl get"
 alias kgp="kg pods"
 alias kgrs="kg rs"
-
-# EndSection
-

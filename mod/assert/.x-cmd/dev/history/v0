@@ -1,12 +1,10 @@
-# shellcheck shell=sh disable=SC2039,SC1001
+# Author:       Li Junhao       l@x-cmd.com             edwinjhlee.github.io
+# shellcheck    shell=sh        disable=SC2039,SC1001
 
-# author:       Li Junhao           l@x-cmd.com    edwinjhlee.github.io
-# maintainer:   Li Junhao
-
-selftest(){
-    xrc std/doctest
-    doctest "${BASH_SOURCE[0]}"
-}
+# selftest(){
+#     xrc std/doctest
+#     doctest "${BASH_SOURCE[0]}"
+# }
 
 # assert(){
 #     if [ $# -ne 0 ]; then

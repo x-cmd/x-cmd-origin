@@ -29,7 +29,7 @@ ___x_cmd_eval_concurrent_single_tail_without_end(){
 
 # time x conjoin "sleep 1s; echo 1" "sleep 1s; echo 2" "sleep 1s; echo 3"
 # time sep=, x conjoin "sleep 1s; echo 1" "sleep 1s; echo 2" "sleep 1s; echo 3"
-___x_cmd_eval_concurrent_join(){
+___x_cmd_conjoin(){
 
     if [ $# -le 1 ]; then
         eval "$@"
@@ -56,7 +56,7 @@ ___x_cmd_eval_concurrent_join(){
 
 # time x con a= "sleep 1s; echo 1" b= "sleep 1s; echo 2" c= "sleep 1s; echo 3"
 # time x con a= "sleep 1s; echo 1" b:= "sleep 1s; echo 2" c= "sleep 1s; echo 3"
-___x_cmd_eval_concurrent_assign(){
+___x_cmd_con(){
     [ $# -le 1 ] && return 1
 
     local cmd

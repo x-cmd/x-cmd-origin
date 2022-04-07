@@ -6,7 +6,14 @@
 # Reference: https://blog.csdn.net/example440982/article/details/51712973
 # Reference: https://wangying.sinaapp.com/archives/2574
 ___x_cmd_zuz_uz(){
-    param:void
+    param:dsl <<A
+advise:
+    #n          ___advise_ls
+option:
+    #n          "target file"
+A
+    param:run
+
     local target_file="${1:?Please provide filename}"
     local dest_folder="${2:-.}"
     # Zsh Compatible
@@ -64,7 +71,7 @@ ___x_cmd_zuz_uz_whole_file(){
             cat "${target_file%.*}".* | tar xvf
             ;;
         *.tgz)
-            ___x_cmd_zuz_run gunzip -k -d "$target_file"
+            ___x_cmd_zuz_run tar xzvf "$target_file"
             ;;
         *.xz)
             ___x_cmd_zuz_run xz -k -d "$target_file"
@@ -112,7 +119,7 @@ ___x_cmd_zuz_uz_and_files(){
             cat "${target_file%.*}".* | tar xvf
             ;;
         *.tgz)
-            ___x_cmd_zuz_run gunzip -k -d "$target_file"
+            ___x_cmd_zuz_run tar xzvf "$target_file"
             ;;
         *.xz)
             # TODO: Figure it out

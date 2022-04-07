@@ -2,9 +2,11 @@
 # Section: zip the file
 ___x_cmd_zuz_z(){
     param:dsl <<A
+advise:
+    #n          ___advise_ls
 option:
     --size        ""  <size>=0       =~   [^.]+
-    #1          "target file"
+    #n          "target file"
 A
     param:run
 
@@ -54,8 +56,11 @@ A
             fi
             ;;
         *.tgz)
-            local logger_msg="> $target_file"
-            ___x_cmd_zuz_run gzip -c -r "$@" > "$target_file"
+             if [ "$size" != 0 ]; then
+                ___x_cmd_zuz_run x 7z -v"$size" "$target_file" "$@"
+            else
+                ___x_cmd_zuz_run tar czf "$target_file" "$@"
+            fi
             ;;
         *.xz)
             # xz: Can't zip directory, Will skipping. Can use tar container.

@@ -1,0 +1,60 @@
+
+___x_cmd_assert_nofile(){
+    local i
+    for i in "$@"; do
+        if [ -f "$i" ]; then
+            printf "%s\n" "Expect to be a non-file: $i" >&2
+            return 1
+        fi
+    done
+}
+
+___x_cmd_assert_file(){
+    local i
+    for i in "$@"; do
+        if [ ! -f "$i" ]; then
+            printf "%s\n" "Expect to be a file: $i" >&2
+            return 1
+        fi
+    done
+}
+
+___x_cmd_assert_file_existed(){
+    local i
+    for i in "$@"; do
+        if [ ! -e "$i" ]; then
+            printf "%s\n" "Expect file/folder existed: $i" >&2
+            return 1
+        fi
+    done
+}
+
+___x_cmd_assert_file_unexisted(){
+    local i
+    for i in "$@"; do
+        if [ -e "$i" ]; then
+            printf "%s\n" "Expect file/folder unexisted: $i" >&2
+            return 1
+        fi
+    done
+}
+
+___x_cmd_assert_file_readable(){
+    local i
+    for i in "$@"; do
+        if [ ! -r "$i" ]; then
+            printf "%s\n" "Expect to be a readable file: $i" >&2
+            return 1
+        fi
+    done
+}
+
+___x_cmd_assert_folder(){
+    local i
+    for i in "$@"; do
+        if [ ! -d "$i" ]; then
+            printf "%s\n" "Expect to be a folder: $i" >&2
+            return 1
+        fi
+    done
+}

@@ -1,0 +1,16 @@
+# shellcheck shell=sh disable=SC2039,SC2142,SC3043
+
+aaa(){
+    param:dsl <<A
+subcommand:
+    aaa                     "This is a aaa"
+    bbb                     "This is a bbb"
+    ccc                     "This is a ccc"
+    graphql|gh              "test graphql"
+    resp|response           "test response"
+A
+    param:run
+
+}
+
+aaa _param_list_subcmd

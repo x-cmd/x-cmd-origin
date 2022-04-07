@@ -11,12 +11,14 @@ A
 }
 
 test_quote(){
-    assert_stdout "quote -m \"xxx'cscsdc\" 'echo \"\${name}\"'" <<A
+    @assert stdout quote -m "xxx'cscsdc" "echo \"\${name}\""<<A
 m: xxx'cscsdc
 #1: echo "\${name}"
 A
-    assert_stdout "quote -m \"aaa 'ddd'\" 'aaa \"ddd\"'" <<A
+    @assert stdout quote -m "aaa 'ddd'" "aaa \"ddd\""<<A
 m: aaa 'ddd'
 #1: aaa "ddd"
 A
 }
+
+@assert:file:func

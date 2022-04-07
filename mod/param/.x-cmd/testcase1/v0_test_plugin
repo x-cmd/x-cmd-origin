@@ -13,7 +13,7 @@ test_plugincmd(){
     paramtest plugin add paramtest plugincmd  "Test plugincmd subscription"
     # paramtest -h
     paramtest plugincmd b c d e
-#     assert_stdout "X_CMD_ADVISE_FUNC_NAME=paramtest paramtest _x_cmd_advise_json" <<A
+#     assert stdout X_CMD_ADVISE_FUNC_NAME=paramtest paramtest _x_cmd_advise_json<<A
 # {
 #   "--candi_null": [ "can1", "can2", "" ],
 #   "#1": [  ],

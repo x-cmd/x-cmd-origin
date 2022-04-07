@@ -1,0 +1,40 @@
+# shellcheck shell=sh disable=SC2039,SC2142,SC3043
+
+test_error_help(){
+    @assert stderr paramtest --not_exist_flag <<A
+error: Option unexpected, or invalid in this context: '--not_exist_flag'
+For more information try --help
+A
+
+    @assert stderr paramtest -acvP <<A
+error: Option unexpected, or invalid in this context: '-a'
+For more information try --help
+A
+    paramtest option --not_exist_flag
+    paramtest --not_exist_option ccc
+    paramtest option --not_exist_option ccc
+    echo "======== test require argument help ============="
+    paramtest option --mul_line_arg
+    echo "============= test unmatch help ================="
+    paramtest option --mul_line_arg dd -r abcdd
+    paramtest option --mul_line_arg dd -r abc --repo2 abcdd
+    echo "======================="
+}
+
+test_common_help(){
+
+    echo "=========== paramtest _x_cmd_help =============="
+    paramtest _x_cmd_help
+    echo "======= paramtest option --help ============"
+    paramtest option --help
+    echo "======= test_long_option _x_cmd_help ============"
+    paramtest_longoption _x_cmd_help
+    echo "======= paramtest name list _x_cmd_help ============"
+    paramtest namelist _x_cmd_help
+    echo "======== paramtest subcmd _x_cmd_help ==============="
+    paramtest subcmd _x_cmd_help
+    echo "======== paramtest rest arg _x_cmd_help ========="
+    paramtest rarg _x_cmd_help
+    echo "======================="
+}
+@assert:file:func

@@ -2,9 +2,9 @@
 
 ___X_CMD_XRC_MODULE_IMPORTED=
 xrc param/latest
-xrc assert/latest
+xrc assert
 
-# Section: define functions for param testcases
+# Section: define functions for param testcase1
 
 param_type_unset    paramtest
 
@@ -45,7 +45,8 @@ A
 # Section: Testcase for generate advise json.
 
 test_advise_json(){
-    assert_stdout "X_CMD_ADVISE_FUNC_NAME=paramtest paramtest _x_cmd_advise_json" <<A
+    X_CMD_ADVISE_FUNC_NAME=paramtest
+    assert stdout paramtest _x_cmd_advise_json<<A
 {
   "--candi_null": {
     "#1": [ "abc", "cde", "def" ],
@@ -213,7 +214,7 @@ subcommands:
 
 # EndSection
 
-# Section: Run all testcases.
+# Section: Run all testcase1.
 
 start_test() {
     < "$1" awk '$0~/^test_[^\(]+\(\)/{ gsub(/\(\)\{/, "", $0); print $0 }' | while read -r line; do
@@ -232,12 +233,12 @@ start_test() {
 # Example:
 # #start_test ./testcase/v0_test_option  ls_option ls_subcmd ls_option_subcmd
 
-for testcase in option namelist subcmd param_default quote dryrun ls_subcmd ls_option ls_option_subcmd  help license; do
-    . "$(x wsroot)/.x-cmd/testcases/v0_test_$testcase"
-    start_test "$(x wsroot)/.x-cmd/testcases/v0_test_$testcase"
+for testcase in has_subcmd option namelist subcmd quote dryrun ls_subcmd ls_option ls_option_subcmd license param_default help; do
+    . "$(x wsroot)/.x-cmd/testcase1/v0_test_$testcase"
+    start_test "$(x wsroot)/.x-cmd/testcase1/v0_test_$testcase"
 done
 
-. "$(x wsroot)/.x-cmd/testcases/v0_test_ui"
-start_test "$(x wsroot)/.x-cmd/testcases/v0_test"
+. "$(x wsroot)/.x-cmd/testcase1/v0_test_ui"
+start_test "$(x wsroot)/.x-cmd/testcase1/v0_test"
 
 # EndSection

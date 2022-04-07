@@ -1,5 +1,4 @@
 # shellcheck shell=sh disable=SC2039,SC2142,SC3043
-
 ls_subcmd(){
     param:dsl <<A
 subcommand:
@@ -12,7 +11,7 @@ A
 }
 
 test_ls_subcmd(){
-    assert_stdout "ls_subcmd _ls_subcmd" <<A
+    assert stdout ls_subcmd _ls_subcmd <<A
 aaa
 This is a aaa
 bbb

@@ -1,0 +1,37 @@
+#! /bin/sh
+
+xrc param/latest
+
+aaa(){
+    param:dsl <<A
+option:
+    -y|--fsdfsd|-o          "Test regex arg1"       <regex_arg1>=888  =~  "[0-9]+"
+    -n                      "Test regex arg2"       <regex_arg1>=123  =~  "[0-9]+"
+    -s                      "Test regex arg3"       <regex_arg1>=333  =~  "[0-9]+"
+    --d|-t                  "Test regex arg4"       <regex_arg1>=444  =~  "[0-9]+"
+    --org                   "org space address"     <>:address=""
+    --org2                  "org space address2"    <>:address=""
+    --name                  "Release name"          <>=""
+    --no_issue              "Whether to disable issue"
+    --no_wiki               "Whether to disable wiki"
+    --no_comment            "Whether to disable wiki"
+    --no_auto_init          "Disable auto init README"
+A
+    param:run
+
+    # local no_issue=true
+    # new_option="xxx"
+    # k="kkk"
+    # p=""
+    # m="aaa"
+    # param:option2json has_issues=^no_issue has_wiki=^no_wiki can_comment=^no_comment auto_init=^no_auto_init new_option l=^^k o=^^p +m -n qq=y ww=s
+    param:option2json new_y=y
+    # echo "\nhas_issues: $has_issues\nhas_wiki: $has_wiki\ncan_comment: $can_comment\nauto_init: $auto_init\nnew_option: $new_option\nrepoitory: $repoitory\nl: $l\no: $o\ny: $y\nm: $m\ns: $s\n"
+    # param:flag2bool has_issues=^no_issue has_wiki=^no_wiki can_comment=^no_comment auto_init=^no_auto_init
+    # echo "\nhas_issues: $has_issues\nhas_wiki: $has_wiki\ncan_comment: $can_comment\nauto_init: $auto_init\n"
+
+    # echo "\norg: ${org}\norg2: $org2\nname: $name"
+}
+# aaa --org test --no_wiki --no_issue --org2 test2 --name test_name -y 222 -s 666
+# aaa --org test --org2 test2 --name test_name --no_issue --no_wiki --no_comment --no_auto_init
+aaa -y 111 --org test_org

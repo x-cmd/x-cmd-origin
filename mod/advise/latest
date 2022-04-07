@@ -1,43 +1,42 @@
-# shellcheck shell=bash disable=SC2039,3043 # xrc
+# Author:       Li Junhao           l@x-cmd.com             # xrc
+# shellcheck    shell=bash          disable=SC2039,3043
 
-# author:       Li Junhao           l@x-cmd.com
-# maintainer:   Li Junhao
 
 if [ -z "${ZSH_VERSION}${BASH_VERSION}" ]; then
     x log info "advise is only available in 'bash' or 'zsh'."
 else
 
-___ADVISE_AWK_PATH="$(xrc which advise/lib/advise.awk)"
+___X_CMD_ADVISE_TMPDIR="${TMPDIR%/}/.x-cmd/advise_auto_json"
 
 # Section : advise entrance
-advise(){
+___x_cmd_advise(){
     local op="${1}"; [ $# -gt 0 ] && shift
     case "$op" in
         ls)
-            ls "$@" "${TMPDIR%/}/.x-cmd/advise_auto_json" ;;
+            ls "$@" "$___X_CMD_ADVISE_TMPDIR" ;;
         rm)
             if [ "$#" -eq 0 ]; then
-                rm -rf "${TMPDIR%/}/.x-cmd/advise_auto_json"/*
+                x rmrf "$___X_CMD_ADVISE_TMPDIR"/*
             else
-                rm -rf "${TMPDIR%/}/.x-cmd/advise_auto_json"/"$1"
+                x rmrf "$___X_CMD_ADVISE_TMPDIR/$1"
             fi
             ;;
         which)
             if [ "$#" -eq 0 ]; then
-                printf "%s" "${TMPDIR%/}/.x-cmd/advise_auto_json"
+                printf "%s" "$___X_CMD_ADVISE_TMPDIR"
             else
-                printf "%s/%s" "${TMPDIR%/}/.x-cmd/advise_auto_json" "$1"
+                printf "%s/%s" "$___X_CMD_ADVISE_TMPDIR" "$1"
             fi
             ;;
         cat)
             local mod
             for mod in "$@"; do
-                cat "${TMPDIR%/}/.x-cmd/advise_auto_json/$mod"
+                cat "$___X_CMD_ADVISE_TMPDIR/$mod"
             done
             ;;
         load) ___advise_load;;
         man)
-            ___advise_man "$@" ;;
+            ___x_cmd_advise_man "$@" ;;
         init|new)
             ___advise_main "$@" ;;
         del)
@@ -45,7 +44,7 @@ advise(){
             ;;
         obj-new)
             local aliasname="${2:?Provide alias name}"
-            local filepath="${TMPDIR%/}/.x-cmd/advise_auto_json/$op"
+            local filepath="$___X_CMD_ADVISE_TMPDIR/$op"
 
             # TODO: There is one more solution. But it is not not worked in ZSH. Please figure it out.
             # complete -C "___advise_completer \"$filepath\"" "$aliasname"
@@ -70,49 +69,11 @@ advise(){
             fi
             ;;
          _x_cmd_advise_json)
-            cat <<A
-{
-      "ls": "--- Show all available advise json obj",
-      "rm": {
-          "#1": "ls \${TMPDIR%/}/.x-cmd/advise_auto_json",
-          "#desc": "Remove one obj, if no obj is given, remove all obj"
-      },
-      "which": {
-          "#1": "ls \${TMPDIR%/}/.x-cmd/advise_auto_json",
-          "#desc": "Show the path of the obj"
-      },
-      "cat": {
-          "#n": "ls \${TMPDIR%/}/.x-cmd/advise_auto_json",
-          "#desc": "Show the content of the obj"
-      },
-      "init|new": "--- Create a new obj",
-      "man": {
-          "ls": null,
-          "update": null,
-          "rm": "___advise_man_ls",
-          "which": "___advise_man_ls",
-          "load": "___advise_man_ls",
-          "#desc": "Manager for x-cmd/advise"
-      },
-      "del": null,
-      "obj-new": null,
-      "obj-del": null
-}
-A
+            cat "$___X_CMD_ROOT_MOD/advise/lib/advise.advise.json"
             return 126
             ;;
         ""|help)
-            printf "advise    x-bash complete function.
-    Uasge:  advise <subcmd> [<obj>...]
-    Please visit our homepage for more information: https://x-cmd.com
-SUBCOMMAND:
-    ls             Show all available advise json obj.
-    rm [<obj>]     Remove one obj, if no obj is given, remove all obj.
-    which <obj>    Show the path of the obj.
-    cat <obj>      Show the content of the obj.
-    init <obj>     Create a new obj.
-    man            Manager for x-cmd/advise.
-" >&2; return 1
+            cat "$___X_CMD_ROOT_MOD/advise/lib/help.txt" >&2; return 1
             ;;
         *)
             ___advise_main "$op" "$@" ;;
@@ -244,7 +205,7 @@ ___advise_main(){
     local func="${1:?Provide function name}"
     local filepath="${2}"
     local alias_name="${3}"
-    local advise_json_dir="${TMPDIR%/}/.x-cmd/advise_auto_json"
+    local advise_json_dir="$___X_CMD_ADVISE_TMPDIR"
     local tmp_filepath
     tmp_filepath=${advise_json_dir}/$func
 
@@ -254,7 +215,7 @@ ___advise_main(){
         filepath=$tmp_filepath
         cat >"$filepath"
     elif [ -z "$filepath" ]; then
-        ___advise_update "$func"
+        # ___advise_update "$func"
         local filepath=$tmp_filepath
         if [ ! -f "$filepath" ]; then
             local content
@@ -317,7 +278,7 @@ ___advise_get_result_from_awk(){
         {
             cat "$filepath"
             printf "\034%s\034" "$s"
-        } | awk -f "$___ADVISE_AWK_PATH" 2>/dev/null
+        } | awk -f "$___X_CMD_ROOT_MOD/advise/lib/advise.awk" 2>/dev/null
     )"
     local cmd="${result##*\#> }"
     cmd_result=""
@@ -354,7 +315,7 @@ ___advise_run(){
     fi
 
     local filepath
-    [ -z "$___ADVISE_RUN_CMD_FOLDER" ] && ___ADVISE_RUN_CMD_FOLDER="${TMPDIR%/}/.x-cmd/advise_auto_json"
+    [ -z "$___ADVISE_RUN_CMD_FOLDER" ] && ___ADVISE_RUN_CMD_FOLDER="$___X_CMD_ADVISE_TMPDIR"
     case "$resname" in
         /*) filepath="$resname" ;;
         -)  filepath=/dev/stdin ;;
@@ -458,100 +419,21 @@ if [ -n "$ZSH_VERSION" ] && [ -z "$___X_CMD_ADVISE_ZSH_COMPLETE_LOADED" ] ; then
     zstyle ':completion:*:*:*:*:*' menu select
     zstyle ':completion:*' matcher-list 'm:{a-zA-Z-_}={A-Za-z_-}' 'r:|=*' 'l:|=* r:|=*'
     zstyle ':completion:*' sort false
-    [ "$(autoload | grep compinit)" = "" ] && autoload -Uz compinit && compinit
+    if ! command -v compinit > /dev/null; then
+        autoload -Uz compinit && compinit
+    fi
 fi
 
-advise init advise
+# consider init in the + .
+# ___x_cmd_advise init advise
 
-# Section: man
+# xrc:mod advise/lib/man
 
-___advise_man_exists(){
-    [ -d "$___X_CMD_ROOT/.tmp/advise/src" ]
-}
-
-___advise_man_update(){
-    local CACHE="$___X_CMD_ROOT/.tmp/advise/all.tgz"
-    if ___x_cmd_curl_gitx x-cmd advise main "dist/all.tgz" "$CACHE" -; then
-        local srcfolder="$___X_CMD_ROOT/.tmp/advise/src"
-        [ -d "$srcfolder" ] && rm -rf "$srcfolder"
-        mkdir -p "$srcfolder"
-        tar xvf "$CACHE" -C "$srcfolder"
-    fi
-}
-
-___advise_man_ls(){
-    if ___advise_man_exists || ___advise_man_update; then
-        ls "$___X_CMD_ROOT/.tmp/advise/src"
-    fi
-}
-
-___advise_man_which(){
-    local name="${1:?Provide name}"
-    if ___advise_man_exists || ___advise_man_update; then
-        local p="$___X_CMD_ROOT/.tmp/advise/src/$name/advise.json"
-        [ -f "$p" ] && printf "%s" "$p"
-    fi
-
-    return 1
-}
-
-___advise_man_load(){
-    if [[ ! "${1:-""}" == "" ]]; then
-        if [ -z "$ZSH_VERSION" ];then
-            if [[ ! "$BASH_VERSION" =~ (^3.*|^4.[0-3]) ]]; then
-                complete -o nosort -F "___advise_man_completer" "$1" && return 1
-            else
-                complete -F "___advise_man_completer" "$1" && return 1
-            fi
-        else
-            compdef "___advise_man_completer" "$1" && return 1
-        fi
-    fi
-    local i
-    for i in $(___advise_man_ls); do
-        if [ -z "$ZSH_VERSION" ];then
-            if s=$(complete -p "$i" 1>/dev/null 2>&1); then
-                [[ "$s" == *___advise_completer* ]] && continue
-            fi
-
-            if [[ ! "$BASH_VERSION" =~ (^3.*|^4.[0-3]) ]]; then
-                complete -o nosort -F "___advise_man_completer" "$i"
-            else
-                complete -F "___advise_man_completer" "$i"
-            fi
-
-        else
-            compdef "___advise_man_completer" "$i"
-        fi
-    done
-}
-
-___advise_man_rm(){
-    local name="${1:-}"
-    local srcfolder="$___X_CMD_ROOT/.tmp/advise/src/$name"
-    if ___advise_man_exists; then
-        rm -rf "$srcfolder"
-    fi
-}
-
-___advise_man_completer() {
-    # Interesting ... Passing
-    ___ADVISE_RUN_CMD_FOLDER="$___X_CMD_ROOT/.tmp/advise/src/" ___advise_run ""
-}
-
-___advise_man(){
-    local op="${1:?Provide subcommand}"; shift
-    case "$op" in
-        ls)         ___advise_man_ls              ;;
-        update)     ___advise_man_update          ;;
-        which)      ___advise_man_which "$@"      ;;
-        load)       ___advise_man_load "$@"      ;;
-        rm)         ___advise_man_rm "$@"         ;;
-        *)          ___advise_man_load "$@"       ;;
-    esac
+___x_cmd_advise_man(){
+    xrc:mod advise/lib/man && ___x_cmd_advise_man "$@"
 }
 
 # EndSection
 fi
 
-xrc setmain advise
+xrc setmain ___x_cmd_advise

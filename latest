@@ -18,7 +18,7 @@ ___x_cmd_man() {
             x tldr "$op" "$@"
             return
             ;;
-        -k|ls)
+        ls)
             shift
             ___x_cmd_man_ls "$@"
             return
@@ -41,7 +41,7 @@ ___x_cmd_man() {
                 esac
             done
             # TODO: combine the result of man -k and tldr cat
-            ___x_cmd_man_search "$1"
+            ___x_cmd_man_ls "$1"
         fi
     fi
     exec 3<&-
@@ -56,17 +56,15 @@ x man
 Usage:
     x man [man document]
     x man :[tldr document]
-    x man [-k|search] [ module ]
+    x man [-k|ls] [ module ]
 
 Example:
-    Show man document for ssh:
+    Show man document for ssh. Show search if it doesn't exists:
         x man ssh
     Show tldr document for ssh:
         x man :ssh
-    Search document in man:
-        x man -k ssh        or      x man search ssh
-    Search document in tldr
-        x man :ls ssh       or      x tldr ls ssh
+    List document with 'ssh' in title in man and tldr:
+        x man ls ssh
 A
 }
 

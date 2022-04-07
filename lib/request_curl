@@ -3,11 +3,11 @@
 # author:       Li Junhao           l@x-cmd.com
 # maintainer:   Li Junhao
 # license:      GPLv3
-___x_cmd_http_not_secure_request_nc(){
+___x_cmd_http___not_secure_request_nc(){
     printf "GET %s HTTP/1.1\r\nHost: %s\r\nUser-Agent: curl/7.64.1\r\nAccept: */*\r\nConnection: close\r\n\r\n" "$path" "$host" | nc "$host" 80
 }
 
-___x_cmd_http_not_secure_request_bash()(
+___x_cmd_http___not_secure_request_bash()(
     host="$host" path="$path" bash -c '
         exec 88<>"/dev/tcp/$host/80"
         printf "GET %s HTTP/1.1\r\nHost: %s\r\nUser-Agent: curl/7.64.1\r\nAccept: */*\r\nConnection: close\r\n\r\n" "$path" "$host" >&88
@@ -19,7 +19,7 @@ ___x_cmd_http_not_secure_request_bash()(
 
 ___X_CMD_HTTP_NOT_SECURE_REQUEST_HANDLER_R="$(printf "\r")"
 
-___x_cmd_http_not_secure_request_handler(){
+___x_cmd_http___not_secure_request_handler(){
     local file="${1:?Provide cache filepath}"
     local line
     while read -r line; do
@@ -33,8 +33,8 @@ ___x_cmd_http_not_secure_request_handler(){
     cat >"$file"
 }
 
-# Test: ___x_cmd_http_not_secure_get gitee.com/ a.txt
-___x_cmd_http_not_secure_get(){
+# Test: ___x_cmd_http___not_secure_get gitee.com/ a.txt
+___x_cmd_http___not_secure_get(){
     local path="${1:?Provide path}"
     local file="${2:?Provide cache file}"
 
@@ -49,7 +49,7 @@ ___x_cmd_http_not_secure_get(){
 
     if command -v bash 1>/dev/null; then
         ___x_cmd_http_not_secure_request(){
-            ___x_cmd_http_not_secure_request_bash
+            ___x_cmd_http___not_secure_request_bash
         }
     elif command -v wget >/dev/null; then
         ___x_cmd_http_not_secure_request(){
@@ -57,7 +57,7 @@ ___x_cmd_http_not_secure_get(){
         }
     elif command -v nc 1>/dev/null; then
         ___x_cmd_http_not_secure_request(){
-           ___x_cmd_http_not_secure_request_nc
+           ___x_cmd_http___not_secure_request_nc
         }
     else
         printf "Not support without wget, bash or nc." >&2
@@ -65,10 +65,10 @@ ___x_cmd_http_not_secure_get(){
     fi
 
     local code=0
-    ___x_cmd_http_not_secure_request | ___x_cmd_http_not_secure_request_handler "$file"| ___x_cmd_httpget_handle_resp_header "$file" "$code"
+    ___x_cmd_http_not_secure_request | ___x_cmd_http___not_secure_request_handler "$file"| ___x_cmd_httpget_handle_resp_header "$file" "$code"
 }
 
-___x_cmd_http_download_curl(){
+___x_cmd_http___download_curl(){
     xrc os
     local arch
     arch="$(os arch)"
@@ -86,11 +86,11 @@ ___x_cmd_http_download_curl(){
     esac
     if [ ! -e "$target/$app" ];then
         mkdir -p "$target"
-        ___x_cmd_http_not_secure_get "http://$url/$app.tar.gz" "$target/$app.tar.gz" 2>/dev/stdout || return 1
+        ___x_cmd_http___not_secure_get "http://$url/$app.tar.gz" "$target/$app.tar.gz" 2>/dev/stdout || return 1
         local tarsha
         tarsha="$(sha256sum "$target"/"$app".tar.gz)"
         [ "$sha" = "${tarsha%% *}" ] && tar zxvf "$target/$app.tar.gz" -C "$target" && return 0
-        ___xrc_log error "$app sha256 match fail"
+        x:error "$app sha256 match fail"
         return 1
     fi
     return 0

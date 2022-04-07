@@ -1,0 +1,5 @@
+pt="$(x wsroot)/latest"
+time bash <<A
+. "$pt"
+A
+

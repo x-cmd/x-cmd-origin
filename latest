@@ -55,7 +55,4 @@ ___x_cmd_zuz_run(){
 # EndSection
 
 xrc zuz/lib/cat zuz/lib/ls zuz/lib/uz zuz/lib/z
-
-# TODO: FIX it
-# @see: https://e.gitee.com/lteam18/issues/kanban?issue=I4S27Y
-# xrc setmain ___x_cmd_zuz
+xrc setmain ___x_cmd_zuz

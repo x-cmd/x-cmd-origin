@@ -21,8 +21,7 @@ ___x_cmd_zuz_ls(){
             ___x_cmd_zuz_run tar -t <"$target_file"  # bsdtar
             ;;
         *.tgz)
-            logger_msg=
-            ___x_cmd_zuz_run gzip --list "$target_file"
+            ___x_cmd_zuz_run tar -t <"$target_file"  # bsdtar
             ;;
         *.xz)
             zuz_log error "Unsupported to list xz file.">&2
@@ -65,7 +64,7 @@ ___x_cmd_zuz_ll(){
             ;;
         *.tgz)
             logger_msg=
-            ___x_cmd_zuz_run gzip --list "$target_file"
+            ___x_cmd_zuz_run tar -t <"$target_file"  # bsdtar
             ;;
         *.xz)
             zuz_log error "Unsupported to list xz file.">&2

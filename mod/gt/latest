@@ -5,9 +5,7 @@
 # maintainer:   Li Junhao
 
 # loading dependencies
-# TODO: wait ccmd fix
-# xrc http param json str ui ccmd
-xrc http param json str ui
+xrc http param str ui
 xrc ui/lib/table gh/lib/resource
 
 

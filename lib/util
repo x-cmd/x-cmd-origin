@@ -1,0 +1,134 @@
+
+___x_cmd_abspath(){
+    local target_path="${1:-Please provide path}"
+    # $(dirname "$filepath")/
+    if [ "${target_path#/}" = "${target_path}" ]; then
+        printf "%s" "$(cd "$(dirname "$target_path")" && pwd)/$(basename "$target_path")"
+    else
+        printf "%s" "$target_path"
+    fi
+}
+
+___x_cmd_repeat(){
+    local IFS="
+"
+    local t="${1:?Provide time}"; shift
+    local j
+    for j in $(seq "$t"); do
+        "$@"
+    done
+}
+
+___x_cmd_which_panic(){
+    local ___X_CMD_WHICH_ONE_RESULT
+    if ! ___x_cmd_which_one "$p"; then
+        printf "%s\n" "Fail to find path for $p" >&2
+        return 1
+    else
+        printf "%s\n" "$___X_CMD_WHICH_ONE_RESULT"
+    fi
+}
+
+___x_cmd_which(){
+    local p
+    for p in "$@"; do
+        ___x_cmd_which_panic || return 1
+    done
+}
+
+___x_cmd_shell_exec(){
+    local shell="${1:?Provide shell}"
+    shift
+    if [ -x "/bin/$shell" ]; then
+        # "/bin/$shell" $X_CMD_SRC_PATH/boot && ___x_cmd_source "$@"
+        "/bin/$shell" "$@"
+    elif [ -x "/usr/bin/$shell" ]; then
+        # "/usr/bin/$shell" $X_CMD_SRC_PATH/boot && ___x_cmd_source "$@"
+        "/usr/bin/$shell" "$@"
+    else
+        command "$shell" "$@"
+    fi
+}
+
+
+# Section : help and advise.json
+___x_cmd__x_cmd_advise_json(){
+    xrc cat x-cmd/lib/x.json
+    return 126
+}
+
+___x_cmd_x_cmd_help(){
+    printf "x     x-bash core function.
+    Uasge:  x <subcommand> [<subcommand>...]
+    Please visit our homepage for more information: https://x-cmd.com
+" >&2;
+
+    xrc advise/lib/advise_get
+    ___x_cmd_advise_get_help "$(xrc which x-cmd/lib/x.json)"
+}
+# EndSection
+
+
+# Section : varset
+
+___x_cmd_varset(){
+    local _______variable_name="${1}"
+    if [ "$#" -eq 1 ]; then
+        eval printf "%s" "\"\$$_______variable_name\""
+        return
+    fi
+
+    local result
+    shift 1
+
+    local ___X_CMD_EVAL_CON_SEPERATOR
+    ___X_CMD_EVAL_CON_SEPERATOR="$(printf "\001")"
+
+    result="$("$@"; printf "${___X_CMD_EVAL_CON_SEPERATOR}")"
+    result="${result%${___X_CMD_EVAL_CON_SEPERATOR}}"
+    eval "$_______variable_name=\"\$result\""
+}
+
+___x_cmd_varset_without_end(){
+    local _______variable_name="${1}"
+    if [ "$#" -eq 1 ]; then
+        eval printf "%s" "\"\$$_______variable_name\""
+        return
+    fi
+
+    local result
+    shift 1
+    result="$("$@")"
+    eval "$_______variable_name=\"\$result\""
+}
+
+# EndSection
+
+
+# Section : utilties in static-build
+
+# _x_xrc_static_run(){
+#     local name=$1;  shift
+#     xrc static-build
+#     static_build_xrc "$name"
+#     "_${name}_bin" "$@"
+# }
+
+___x_cmd_static_build_file(){
+    local app="${1:?Provide app name}"
+    local repo="${2:?Provide repo name}"
+    shift 2
+    eval " ___x_cmd_$app(){
+        xrc static-build && static_build_init $app $repo ___x_cmd_$app && ___x_cmd_$app  \"\$@\"
+    }"
+    ___x_cmd_"$app" "$@"
+}
+
+___x_cmd_static_build_help(){
+    if [ "$#" -eq 2 ]; then
+        ___x_cmd_static_build_file "$@" "--help"
+    else
+        ___x_cmd_static_build_file "$@"
+    fi
+}
+# EndSection

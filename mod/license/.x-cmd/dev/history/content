@@ -1,0 +1,33 @@
+
+___x_cmd_license___header(){
+    local license="${1:?Provide license}"
+
+    {
+        read -r license_full_name
+        read -r url
+    } <<A
+$(___x_cmd_license_meta_get_name_url "$license")
+A
+
+    ___x_cmd_license___header_
+}
+
+___x_cmd_license___header_(){
+    ___x_cmd_httpget_gitx x-cmd license main lib/header/HEADER "$___X_CMD_ROOT_TMP/license/header/HEADER"
+    awk \
+        -v year="${year:-2022}" \
+        -v email="${email:-agent@x-cmd.com}" \
+        -v name="${name:-x-cmder}" \
+        -v url="${url:?Provide web url}" \
+        -v license_full_name="${license_full_name:?Provide license_full_name}" \
+        '
+    {
+        gsub("<YEAR>", year, $0)
+        gsub("<NAME>", name, $0)
+        gsub("<EMAIL>", "(" email ")", $0)
+        gsub("<WEB-URL>", url, $0)
+        gsub("<LICENSE-NAME>", license_full_name, $0)
+        print $0
+    }
+    ' <"$___X_CMD_ROOT_TMP/license/header/HEADER"
+}

@@ -1,0 +1,15 @@
+{
+  "--name": {
+    "#1": [],
+    "#desc": "Provide name"
+  },
+  "--email": {
+    "#1": [],
+    "#desc": "Provide email"
+  },
+  "--year": {
+    "#1": [],
+    "#desc": "year"
+  },
+  "#1": ["gplv3", "apachev2", "mplv2"]
+}

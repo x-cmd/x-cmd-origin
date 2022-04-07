@@ -1,0 +1,16 @@
+
+# TODO: we will find a more suitable place for the code below.
+
+alias giss="git status -s"
+alias gip="x yanfa ws pull"
+alias giP="x yanfa ws push"
+giam(){
+    local msg="${1:-...}"
+    shift
+    if [ $# -eq 0 ]; then
+        ( cd "$(x wsroot)" && git add . )
+    else
+        git add "$@"
+    fi
+    git commit -m "$msg"
+}

@@ -1,0 +1,242 @@
+# shellcheck shell=sh disable=SC3043
+
+___x_cmd_yanfa_pkg_gitx(){
+    if [ -z "$___X_CMD_IN_CHINA_NET" ]; then
+        printf "%s\n" "github.com"
+    else
+        printf "%s\n" "gitee.com"
+    fi
+}
+
+# Section: module add pull update
+___x_cmd_yanfa_pkg_add(){
+    local name="${1:?Provide module name}"
+    # local position="${2:-"git@gitee.com/x-bash/$name.git"}"
+    local position="${2:-"https://$(___x_cmd_yanfa_pkg_gitx)/x-bash/$name.git"}"
+    local branch="${3:-main}"
+    git subtree add --prefix="mod/$name" "$position" "$branch" --squash
+}
+
+___x_cmd_yanfa_pkg_pull(){
+    param:void
+    local name="${1:?Provide module name}"
+    # local position="${2:-"git@gitee.com/x-bash/$name.git"}"
+    local position="${2:-"https://$(___x_cmd_yanfa_pkg_gitx)/x-bash/$name.git"}"
+    local branch="${3:-main}"
+    git subtree pull --prefix="mod/$name" "$position" "$branch" --squash
+}
+
+___x_cmd_yanfa_pkg_update_main0(){
+    local mod="$1"
+    if [ -e "mod/$mod" ]; then
+        ___x_cmd_yanfa_pkg_pull "$mod"
+    else
+        ___x_cmd_yanfa_pkg_add "$mod"
+    fi
+}
+
+___x_cmd_yanfa_pkg_update0(){
+    param:void
+    local IFS
+    local mod
+    git prune
+
+    ___x_cmd_yanfa_pkg_lsmod "$@" | \
+    while read -r mod; do
+        ___x_cmd_yanfa_pkg_update_main0 "$mod"
+    done
+}
+
+___x_cmd_yanfa_pkg_update_main(){
+    local mod="$1"
+    if [ -e "mod/$mod" ]; then
+        printf "%s\n" "Pull: $mod"
+        ___x_cmd_yanfa_pkg_pull "$mod"
+    else
+        printf "%s\n" "Add: $mod"
+        ___x_cmd_yanfa_pkg_add "$mod"
+    fi 1>"$TMPDIR/$mod.out" 2>&1
+    printf "Write: %s\n" "$TMPDIR/$mod.out"
+}
+
+___x_cmd_yanfa_pkg_update(){
+    param:void
+    local IFS
+    local mod
+    git prune
+
+    ___x_cmd_yanfa_pkg_lsmod "$@" | {
+        while read -r mod; do
+            # OUT=/dev/null
+            x job put 7 ___x_cmd_yanfa_pkg_update_main "$mod"
+            printf "%s\n" "Update: $mod" >&2
+        done
+
+        x job wait
+    } | while read -r line; do
+        printf "%s\n" "$line"
+        case "$line" in
+            Write*)
+                printf "%s\n" "---------------"
+                cat "${line#Write: }"
+                printf "%s\n" "---------------"
+        esac
+    done
+}
+
+# EndSection
+
+# Section: information
+
+___x_cmd_yanfa_pkg_lsmod(){
+    param:void
+    ___x_cmd_yanfa_mod_ls "$@"
+}
+
+___x_cmd_yanfa_pkg_lsfile()(
+    param:void
+    cd "$(x wsroot)/mod" || return
+
+    ___x_cmd_yanfa_pkg_lsmod "$@" | (
+        cd "$(x wsroot)/mod" && \
+        while read -r line; do
+            ( cd "$line" && ___x_cmd_yanfa_mod_lsfile | x arg1 printf "%s/%s\n" "$line" )
+        done
+    )
+)
+
+___x_cmd_yanfa_pkg_install()(
+    param:void
+    cd "$(x wsroot)/mod" || return
+
+    ___x_cmd_yanfa_pkg_lsmod "$@" | (
+        cd "$(x wsroot)/mod" && \
+        while read -r line; do
+            ( cd "$line" && ___x_cmd_yanfa_mod_install )
+        done
+    )
+)
+
+___x_cmd_yanfa_pkg_wc(){
+    param:void
+    cd "$(x wsroot)/mod" &&
+        ___x_cmd_yanfa_pkg_lsfile "$@" | xargs wc | sort -n -r | less
+}
+
+# EndSection
+
+# Section: tgz tar 7z
+
+___x_cmd_yanfa_pkg_tgz()(
+    param:void
+    case "${1:-all}" in
+        core)       scope=core ;;
+        all)        scope=all ;;
+        *)          return 1 ;;
+    esac
+
+    WSROOT="$(x wsroot)"
+
+    cd "$WSROOT/mod" &&
+    mkdir -p "$WSROOT/dist" &&
+        eval "tar czvf $scope.tgz $(___x_cmd_yanfa_pkg_lsfile "$scope" | sort | uniq | tr '\n' ' ')" &&
+        mv $scope.tgz "$WSROOT/dist/$scope.tgz" &&
+        ls -alh "$WSROOT/dist/$scope.tgz"
+)
+
+___x_cmd_yanfa_pkg_tar()(
+    param:void
+    case "${1:-all}" in
+        core)       scope=core ;;
+        all)        scope=all ;;
+        *)          return 1 ;;
+    esac
+
+    WSROOT="$(x wsroot)"
+
+    cd "$WSROOT/mod" &&
+    mkdir -p "$WSROOT/dist" &&
+        eval "tar cvf $scope.tar $(___x_cmd_yanfa_pkg_lsfile "$scope" | sort | uniq | tr '\n' ' ')" &&
+        mv $scope.tar "$WSROOT/dist/$scope.tar" &&
+        ls -alh "$WSROOT/dist/$scope.tar"
+)
+
+___x_cmd_yanfa_pkg_7z()(
+    param:void
+    case "${1:-all}" in
+        core)       scope=core ;;
+        all)        scope=all ;;
+        *)          return 1 ;;
+    esac
+
+    WSROOT="$(x wsroot)"
+
+    cd "$WSROOT/mod" &&
+    mkdir -p "$WSROOT/dist" &&
+        eval "7z a $WSROOT/dist/all.7z $(___x_cmd_yanfa_pkg_lsfile "$scope" | sort | uniq | tr '\n' ' ')" &&
+        mv $scope.7z "$WSROOT/dist/$scope.7z" &&
+        ls -alh "$WSROOT/dist/$scope.7z"
+)
+
+# EndSection
+
+___x_cmd_yanfa_pkg_pub0(){
+    param:void
+    ___x_cmd_yanfa_pkg_update0 "$@" && ___x_cmd_yanfa_pkg_tgz "$@" && git add . && git commit -m ...
+    ___x_cmd_yanfa_ws_push
+}
+
+___x_cmd_yanfa_pkg_pub(){
+    param:void
+    ___x_cmd_yanfa_pkg_update "$@" && ___x_cmd_yanfa_pkg_tgz "$@" && git add . && git commit -m ...
+    ___x_cmd_yanfa_ws_push
+}
+
+___x_cmd_yanfa_pkg(){
+
+    if [ -f "$(x wsroot)/.x-cmd/$1" ]; then
+        x _ws "$@"
+        return
+    fi
+
+    param:dsl <<A
+subcommand:
+    install         "install all modules"
+
+    update          "update or add module"
+    pub0            "publish the package"
+    pub             "publish the package"
+    lsmod           "ls module"
+    lsfile          ""
+    wc              "count"
+
+    tgz             "compress modules of core/all/<special-release> into <name>.tgz"
+    tar             "compress modules"
+    7z              "compress modules of 7z"
+
+    init            "init"
+
+    pull            "pull"
+    push            "push"
+    name            "get workspace name from git config"
+A
+    param:run
+
+    if [ -z "$PARAM_SUBCMD" ]; then
+        ___x_cmd_yanfa_pkg help
+        return 1
+    fi
+
+    if command -v "___x_cmd_yanfa_pkg_${PARAM_SUBCMD}" >/dev/null; then
+        "___x_cmd_yanfa_pkg_${PARAM_SUBCMD}" "$@"
+    else
+        case "$PARAM_SUBCMD" in
+            pull|push|name)
+                "___x_cmd_yanfa_ws_$PARAM_SUBCMD" "$@"
+                ;;
+            init)
+                "___x_cmd_yanfa_init" "$@"
+        esac
+    fi
+
+}

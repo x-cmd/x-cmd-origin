@@ -1,0 +1,156 @@
+
+___x_cmd_search_path(){
+    local cur="${1:?Provide starting path}"
+    cur="$(cd "$cur" 1>/dev/null 2>&1 && pwd)"
+
+    local relative_filepath="${2:?Provide relative filepath}"
+    while [ ! "$cur" = "" ]; do
+        if [ -f "$cur/$relative_filepath" ]; then
+            printf "%s" "$cur"
+            return 0
+        fi
+        cur=${cur%/*}
+    done
+    return 1
+}
+
+___x_cmd_is_interative_tty(){
+    [ "${-#*i}" != "$-" ]
+}
+
+___x_cmd_is_suitable_advise_env(){
+    [ -n "$___X_CMD_ADVISE_ENABLE" ] && [ -n "${BASH_VERSION}${ZSH_VERSION}" ] && [ "${-#*i}" != "$-" ]
+}
+
+___x_cmd_readlink_recursive(){
+    if [ -L "${1:?Provide link}" ]; then
+        local next_link
+        next_link="$(readlink "${1}")" || return
+        if [ "${next_link#/}" = "$next_link" ]; then
+            next_link="$(dirname "${1}")/$next_link"
+        fi
+        ___x_cmd_readlink_recursive "$next_link"
+    else
+        [ ! -e "${1}" ] && return 1        # File Not Exists
+        printf "%s" "$1"
+    fi
+}
+
+___x_cmd_definelazyloader(){
+    local funcname="${1:?Provide function name}"
+    local respath="${2:?Provide resource path}"
+    eval "$funcname(){
+        if [ \"\$___X_CMD_DEFINELAZYLOADER\" = \"$funcname\" ]; then
+            printf \"No such function [%s] in [%s]\" \"$funcname\" \"$respath\"
+            return 1
+        fi
+
+        if ! xrc $respath; then
+            printf \"Fail to xrc: %s\" \"$respath\"
+            return 1
+        fi
+
+        local ___X_CMD_DEFINELAZYLOADER=$funcname
+        $funcname \"\$@\"
+    }"
+}
+
+# VAR   SEP    IT
+___x_cmd_trimutil(){
+    eval "
+[ -z \"\$${O}\" ] && return 1
+IT=\"\${${O}%%${SEP:-
+}*}\"
+if [ \"\${IT}\" = \"\${$O}\" ]; then
+    $O=\"\"
+else
+    $O=\"\${${O}#*${SEP:-
+}}\"
+fi
+return 0
+"
+}
+
+# f(){
+#     local IT
+#     local SEP=,
+#     local a
+#     a="abc,cde,eft"
+#     while O=a ___x_cmd_trimutil; do
+#         printf "%s\n" "$IT"
+#     done
+# }
+
+# f
+
+___x_cmd_pidofsubshell(){
+    sh -c 'printf "%s\n" "$PPID"'
+}
+
+# To prevent dash inline environment problem: just for dash
+if [ "$___X_CMD_SHELL" = dash ]; then
+    alias ___x_cmd_shift1='[ $# -gt 0 ] && shift ; '
+else
+    alias ___x_cmd_shift1="shift ; "
+fi
+
+# Section: q1 q2
+case "$___X_CMD_SHELL" in
+    bash|zsh)
+___x_cmd_q1(){
+    printf "'%s'" "${1//\'/\\\'}"
+}
+
+___x_cmd_q2(){
+    printf "\"%s\"" "${1//\"/\\\"}"
+}
+    ;;
+    *)
+___x_cmd_q1(){
+    awk '
+BEGIN{ RS="\001"; S="'\''"; }
+{
+    gsub(S, "\\" S, $0)
+    printf(S "%s" S, $0)
+}' <<A
+$1
+A
+}
+
+___x_cmd_q2(){
+    awk '
+BEGIN{ RS="\001"; S="\""; }
+{
+    gsub(S, "\\" S, $0)
+    printf(S "%s" S, $0)
+}' <<A
+$1
+A
+}
+    ;;
+esac
+# EndSection
+
+# # TODO: xrc_log +xrc
+# ___xrc_log(){
+#     local level="$1"; shift
+#     [ "$level" = debug ] && [ -z "$___X_CMD_XRC_LOG_DEBUG_MODE" ] && return
+#     printf "[%s]: %s\n" "$level" "$@" 1>&2
+# }
+
+
+___x_cmd_llist(){
+    xrc xrc/lib/llist && ___x_cmd_llist "$@" ;
+}
+
+___x_cmd_awk(){
+    xrc awk/latest && ___x_cmd_awk "$@"
+}
+
+___x_cmd_evex(){
+    if [ "$#" -lt 2 ]; then
+        eval "${1:-:}"
+    else
+        "$@"
+    fi
+}

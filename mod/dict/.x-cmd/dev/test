@@ -26,12 +26,12 @@ c='{
   "3": "c"
 }'
 
-___dict_pjsonparse(){
+___x_cmd_dict_pjsonparse(){
     awk -v op=flat-leaf -f "$(xrc which json/lib/v0_walk.awk)" \
         | awk 'BEGIN{ORS="\003"} { start=index($0, "\"")
           tmp=index($0, "--->")
           print substr($0,start+1,tmp-start-3) "\003" substr($0,tmp+start+3,length($0)-tmp-6)
         } END{ print NR }'
 }
-# printf "%s" "$c" | ___dict_pjsonparse
-printf "%s" "$c" | ___dict_pjsonparse
+# printf "%s" "$c" | ___x_cmd_dict_pjsonparse
+printf "%s" "$c" | ___x_cmd_dict_pjsonparse

@@ -1,0 +1,41 @@
+test_dict_dump_json(){
+    test_dict_setup
+    local expected='{
+  "3": "c",
+  "2": "b",
+  "1": "a",
+  "2 \" 3 ": "b"
+}'
+
+    if [ -n "${BASH_VERSION}" ]; then
+        case "${BASH_VERSION}" in
+            3*|4.0*|4.1*)
+                expected='{
+  "1": "a",
+  "2": "b",
+  "2 \" 3 ": "b",
+  "3": "c"
+}'
+                ;;
+            4*) expected='{
+  "2 \" 3 ": "b",
+  "1": "a",
+  "2": "b",
+  "3": "c"
+}' ;;
+        esac
+    elif [ -n "${ZSH_VERSION}" ]; then
+        expected='{
+  "1": "a",
+  "2": "b",
+  "3": "c",
+  "2 \" 3 ": "b"
+}'
+    fi
+
+    @assert stdout "dict @b json" <<A
+${expected}
+A
+}
+
+test_dict_dump_json

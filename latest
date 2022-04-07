@@ -3,28 +3,11 @@
 # author:       Li Junhao           l@x-cmd.com
 # license:      GPLv3
 
-# TODO: Protecting strategy defined in ENV diff from people and teams. It should be enable to be managed by command line
-# TODO: rmrf
-___x_cmd_rmrf(){
-    local
-    for i in "$@"; do
-        # using pattern search
-        case "$i" in
-            /)          printf "%s" "Try to 'rm -rf $i'" >&2;       return 1    ;;
-            /bin)       printf "%s" "Try to 'rm -rf $i'" >&2;       return 1    ;;
-            /usr)       printf "%s" "Try to 'rm -rf $i'" >&2;       return 1    ;;
-            /home)      printf "%s" "Try to 'rm -rf $i'" >&2;       return 1    ;;
-            /var)       printf "%s" "Try to 'rm -rf $i'" >&2;       return 1    ;;
-        esac
-        rm -rf "$i"
-    done
-}
-
 ___x_cmd_rm(){
 
     # TODO: add safely rm facility
     rm "$@"
-    # while [ "$#" -eq 1 ]; do 
+    # while [ "$#" -eq 1 ]; do
     #     :
     # fi
 }

@@ -1,7 +1,5 @@
-# shellcheck shell=sh
-# shellcheck disable=SC2039,3043
-
-# author:       Li Junhao           l@x-cmd.com
+# Author:       Li Junhao       l@x-cmd.com                 # xrc
+# shellcheck    shell=sh        disable=SC2039,3043
 
 xrc param static-build/lib/staticbin os
 
@@ -17,13 +15,9 @@ ___x_cmd_ffmpeg_download(){
     esac
     ___x_cmd_staticbin_init \
         ___x_cmd_ffmpeg_download \
-        "$___X_CMD_ROOT/.bin/ffmpeg" \
-        "$exe" \
-        "$(___x_cmd_ffmpeg_bin_download_url "$exe")" \
-        &&(
-            cd "$___X_CMD_ROOT/.bin/ffmpeg" && {
-                chmod +x "$exe"
-            }
+            "$___X_CMD_ROOT/.bin/ffmpeg" "$exe" "$(___x_cmd_ffmpeg_bin_download_url "$exe")" \
+        && (
+            cd "$___X_CMD_ROOT/.bin/ffmpeg" && chmod +x "$exe"
         )&& ___x_cmd_ffmpeg_download "$@"
 }
 
@@ -37,18 +31,14 @@ ___x_cmd_ffmpeg_bin_download_url(){
 }
 
 ___x_cmd_ffmpeg(){
-    local op
-    op="$1"
-    # file to file
+    local op="$1"
+
     case "$op" in
-        show)       ___x_cmd_ffmpeg_show "$@" ;;
-        convert)    ___x_cmd_ffmpeg_convert "$@" ;;
-        play)       ___x_cmd_ffmpeg_play "$@" ;;
-        -*)         ___x_cmd_ffmpeg_origin "$@" ;;
-        *)
-            : detect input and output
-            : then convert the input to output
-            ;;
+        show)       shift; ___x_cmd_ffmpeg_show "$@" ;;
+        convert)    shift; ___x_cmd_ffmpeg_convert "$@" ;;
+        play)       shift; ___x_cmd_ffmpeg_play "$@" ;;
+        -*)         shift; ___x_cmd_ffmpeg_origin "$@" ;;
+        *)          ___x_cmd_ffmpeg_download "$@" ;;
     esac
 
 }
@@ -70,4 +60,4 @@ ___x_cmd_ffmpeg_show(){
 
 # EndSection
 
-xrc setmain ___x_cmd_ffmpeg_download
+xrc setmain ___x_cmd_ffmpeg

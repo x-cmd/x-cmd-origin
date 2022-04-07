@@ -44,14 +44,6 @@ function jiter_print_color( obj, item ){
         JITER_LAST_IS_VALUE = 1
     } else if (item ~ /^,$/) {
         printf( "%s\n%s", JO_TH_COMMA, JITER_PRINT_INDENT )
-    } else if (item ~ /^[tfn"0-9+-]/)  #"        # (item !~ /^[\{\}\[\]]$/)
-    {
-        if (JITER_LAST_IS_VALUE == 0) {
-            printf( "%s",   TH_KEY item  TH_END)
-        } else {
-            JITER_LAST_IS_VALUE = 0
-            printf( "%s", jiter_print_colorize_value(item) )
-        }
     } else if (item ~ /^[\[\{]$/) { # }
         JITER_LAST_IS_VALUE = 0
         JITER_LEVEL += JITER_LEVEL_STEP
@@ -61,7 +53,16 @@ function jiter_print_color( obj, item ){
         JITER_PRINT_INDENT = JITER_PRINT_INDENT INDENT
         JITER_STATE = item
         if (item == "[")    printf("%s\n%s", JO_TH_LBOX, JITER_PRINT_INDENT)
+
         else                printf("%s\n%s", JO_TH_LCURLY, JITER_PRINT_INDENT)
+    } else if (item ~ /^[\[\{tfn"0-9+-]/)  #"        # (item !~ /^[\{\}\[\]]$/)
+    {
+        if (JITER_LAST_IS_VALUE == 0) {
+            printf( "%s",   TH_KEY item  TH_END)
+        } else {
+            JITER_LAST_IS_VALUE = 0
+            printf( "%s", jiter_print_colorize_value(item) )
+        }
     } else {
         JITER_STATE = obj[ JITER_LEVEL ]
         JITER_PRINT_INDENT = obj[ JITER_LEVEL + JITER_LEVEL_INDENT ]

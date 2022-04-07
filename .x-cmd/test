@@ -18,7 +18,7 @@ test_jo(){
     ___x_cmd_jo '[1, 2 3 {a: a, a1:123,abv:[1 2 3] ,d:{d1:12, d2:asc,d3:true , d4:{e1:true,2e:null}}}  ]'
 }
 test_list(){
-    ___x_cmd_jo list 1 2 3 aaa a1 2b c3c3c true false null "123"
+    ___x_cmd_jo list 1 2 3 aaa a1 2b c3c3c true false null "123" :"ef" "[7, 8, 9]" "{a:1, b:2}"
 }
 test_dict(){
     local abc=123

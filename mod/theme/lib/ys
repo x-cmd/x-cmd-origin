@@ -1,5 +1,4 @@
-# shellcheck shell=sh
-# shellcheck disable=SC2039
+# shellcheck shell=sh   disable=SC2039,SC3043
 ___x_cmd_theme_set_theme_color cyan
 ______x_cmd_theme_prompt_get_info(){
     ___x_cmd_theme_scm && case "${___X_CMD_THEME_SCM_TYPE}" in

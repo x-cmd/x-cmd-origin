@@ -1,0 +1,44 @@
+# Author:       Li Junhao   l@x-cmd.com     # xrc
+# shellcheck    shell=sh    disable=SC2039,SC3043
+___x_cmd_http_resp() {
+    param:dsl      '
+subcommands:
+    header              "Show header of latest response"
+    body                "Show body of latest response"
+    header_filepath     "show header filepath of latest response"
+    body_filepath       "show body filepath of latest response"
+'
+    param:run
+
+    if [ -z "$PARAM_SUBCMD" ]; then
+        ___x_cmd_http_resp body "$@"
+        return
+    fi
+
+    "______x_cmd_http_resp_${PARAM_SUBCMD}" "$@"
+}
+
+______x_cmd_http_resp_header(){
+    if [ -z "$1" ]; then
+        cat "$(______x_cmd_http_resp_header_filepath)"
+    else
+        local filepath
+        filepath="$(______x_cmd_http_resp_header_filepath)"
+        local filter=${1:?provide filter} A
+        A="$(grep "$filter:" "$filepath")"
+        A="${A##$filter: }"
+        printf "%s" "${A%"${A##*[![:space:]]}"}"
+    fi
+}
+
+______x_cmd_http_resp_header_filepath(){
+    printf "%s" "${TMPDIR%/}/x-cmd-x-bash-std-http-header.$O"
+}
+
+______x_cmd_http_resp_body(){
+    cat "$(______x_cmd_http_resp_body_filepath)"
+}
+
+______x_cmd_http_resp_body_filepath(){
+    printf "%s" "${TMPDIR%/}/x-cmd-x-bash-std-http-body.$O"
+}

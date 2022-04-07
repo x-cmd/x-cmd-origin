@@ -1,1 +1,1 @@
-x dev pkg "$@"
+x yanfa pkg "$@"

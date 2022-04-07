@@ -4,12 +4,13 @@ hub
 install
 +awk
 +x_fs
-+dev
 shall
 +p7zip
 +log
 +boot
 +job
+
+yanfa
 
 # resource access operation
 +cd

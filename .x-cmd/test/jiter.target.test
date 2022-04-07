@@ -49,9 +49,10 @@ f3(){
 code="$(cat default.awk json.awk jiter.awk )"
 
 f5(){
-    print '
+    printf '
 [
     {
+        "test": [1, 3, 4, "test1", "test2", "test3" ],
         "data":{
             "list":[
                 {
@@ -68,7 +69,8 @@ f5(){
 ]
 '| awk "$code"'
 {
-    jiter_print_eqarr_after_tokenize($0, ".1.data", "", "\n")
+    # jiter_print_eqarr_after_tokenize($0, ".1.data", "", "\n")
+    jiget_after_tokenize_unquote($0, ".1.test")
 }'
 }
 time (f5)

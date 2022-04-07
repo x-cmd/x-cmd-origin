@@ -489,7 +489,7 @@ function ___json_stringify_compact_dict(arr, keypath,     _klist, _l, _i, _key, 
 
     for (_i=1; _i<=_l; _i++){
         _key = _klist[ _i ]
-        _val = arr[ keypath S _key ]
+        # _val = arr[ keypath S _key ]
         _ret = _ret "," _key ":" ___json_stringify_compact_value( arr, keypath S _key )
     }
     _ret = substr(_ret, 3)
@@ -543,7 +543,7 @@ function ___json_stringify_machine_dict(arr, keypath,     _klist, _l, _i, _key, 
 
     for (_i=1; _i<=_l; _i++){
         _key = _klist[ _i ]
-        _val = arr[ keypath S _key ]
+        # _val = arr[ keypath S _key ]
         _ret = _ret "\n,\n" _key "\n:\n" ___json_stringify_machine_value( arr, keypath S _key )
     }
     _ret = substr(_ret, 4)
@@ -599,7 +599,7 @@ function ___json_stringify_format_dict(arr, keypath, indent,    _klist, _l, _i, 
 
     for (_i=1; _i<=_l; _i++){
         _key = _klist[ _i ]
-        _val = arr[ keypath S _key ]
+        # _val = arr[ keypath S _key ]
         _ret = _ret ",\n" draw_space(indent) _key ": " ___json_stringify_format_value( arr, keypath S _key, indent+INDENT_LEN )
     }
     _ret = substr(_ret, 2)

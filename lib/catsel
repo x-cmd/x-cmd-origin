@@ -15,18 +15,15 @@ ___x_cmd_ui_catsel_mainloop_awk(){
 
 ___x_cmd_ui_catsel_mainloop_awk_exec(){
     command awk "$@" \
-        -f "$___X_CMD_ROOT/awk/lib/default.awk" \
-        -f "$___X_CMD_ROOT/awk/lib/str.awk" \
-        -f "$___X_CMD_ROOT/awk/lib/wcwidth.awk" \
-        -f "$___X_CMD_ROOT/awk/lib/ui.awk" \
-        -f "$___X_CMD_ROOT/ui/lib/theme.awk" \
-        -f "$___X_CMD_ROOT/ui/lib/share.awk" \
-        -f "$___X_CMD_ROOT/ls/lib/catsel.awk"
-        # -f "./lib/theme.awk" \
-        # -f "./lib/share.awk" \
-        # -f "./lib/catsel.awk"
+        -v TH_THEME_COLOR="\\033[${___X_CMD_THEME_COLOR_CODE}m" \
+        -f "$___X_CMD_ROOT_MOD/awk/lib/default.awk" \
+        -f "$___X_CMD_ROOT_MOD/awk/lib/str.awk" \
+        -f "$___X_CMD_ROOT_MOD/awk/lib/wcwidth.awk" \
+        -f "$___X_CMD_ROOT_MOD/awk/lib/ui.awk" \
+        -f "$___X_CMD_ROOT_MOD/ui/lib/theme.awk" \
+        -f "$___X_CMD_ROOT_MOD/ui/lib/share.awk" \
+        -f "$___X_CMD_ROOT_MOD/ls/lib/catsel.awk"
 }
-
 # ___x_cmd_ui_catsel
 # echo "___X_CMD_UI_CATSEL_FINAL_COMMAND:" "$___X_CMD_UI_CATSEL_FINAL_COMMAND"
 # echo "___X_CMD_UI_CATSEL_CURRENT_ITEM:" "$___X_CMD_UI_CATSEL_CURRENT_ITEM"

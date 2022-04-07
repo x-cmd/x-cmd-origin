@@ -1,0 +1,66 @@
+# Author:       Li Junhao           l@x-cmd.com     # xrc
+# shellcheck    shell=sh            disable=SC3043
+
+# : <<'DOCTEST'
+# > x job put 3 sleep 3s; x job put 3 sleep 3s; x job put 3 sleep 3s; x job active
+# 3
+# > x job put 2 sleep 3s; x job put 2 sleep 3s; x job put 2 sleep 3s; [ "$(x job active)" -le 2 ] && echo yes
+# yes
+# DOCTEST
+
+___x_cmd_job(){
+    if [ "$#" -eq 0 ]; then
+        ___x_cmd_job help
+        return 1
+    fi
+
+    local op="${1}"; shift
+    case "$op" in
+        active)                 ___x_cmd_job_active "$@" ;;
+        offer)                  ___x_cmd_job_offer "$@" ;;
+        put)                    ___x_cmd_job_put "$@" ;;
+        wait)                   ___x_cmd_job_wait_until_finished "$@" ;;
+        pool)                   ___x_cmd_job_pool "$@" ;;
+        help)                   ___x_cmd_job_help "$@" ;;
+        _x_cmd_advise_json)     ___x_cmd_job_x_cmd_advise_json "$@" ;;
+    esac
+}
+
+
+xrc:mod     job/lib/pool    job/lib/help
+
+___x_cmd_job_active(){
+    jobs -r | wc -l | tr -d ' '
+}
+
+___x_cmd_job_offer(){
+    local MAX="${1:?Provide the max number of jobs could hold}"
+    shift
+    local cur
+    cur=$(___x_cmd_job_active)
+    if [ "$cur" -lt "${MAX}" ]; then
+        if [ -z "${OUT}${ERR}" ]; then
+            ( "$@" ) 1>&1 2>&2 &   # 1>&1 2>&2 works
+        else
+            ( "$@" ) 1>"${OUT:-/dev/stdout}" 2>"${ERR:-/dev/stderr}" &   # 1>&1 2>&2 works
+        fi
+        return 0
+    fi
+    return 1
+}
+
+# Will block
+___x_cmd_job_put(){
+    until ___x_cmd_job_offer "$@"; do
+        sleep "${interval:-3}"
+    done
+}
+
+___x_cmd_job_wait_until_finished(){
+    while [ "$(___x_cmd_job_active)" -ne "${1:-0}" ]; do
+        sleep "${interval:-1}"
+    done
+}
+
+xrc setmain ___x_cmd_job
+

@@ -1,0 +1,11 @@
+
+___x_cmd_job_pool_test_ping(){
+    local outfile=${1:?Provide output file path}
+    jobpool.create queue4ping 100
+    for ip in ${2:?Provide ip range like 192.168.6}.{1..255}; do
+        echo "$ip"
+        jobpool.put "ping -c 2 $ip && echo $ip >>$outfile";
+    done
+    jobpool.clear
+}
+

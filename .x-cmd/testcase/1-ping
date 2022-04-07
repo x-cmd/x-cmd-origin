@@ -1,0 +1,8 @@
+___x_cmd_job_test_ping(){
+    local outfile=${1:?Provide output file path}
+    for ip in ${2:?Provide ip range like 192.168.6}.{1..255}; do
+        echo "$ip"
+        ___x_cmd_job_put 100 "ping -c 2 $ip 1>/dev/null 2>&1 && echo $ip >>$outfile";
+    done
+    ___x_cmd_job_wait_until_finished
+}

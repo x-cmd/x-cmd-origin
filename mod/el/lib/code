@@ -1,5 +1,7 @@
 
 
+alias co=code
+
 cox(){
     local COX_TGT="${COX_TGT:-x-bash}"
 
@@ -32,4 +34,7 @@ coxb(){
     COX_TGT=x-bash cox "$@"
 }
 
+coboot(){
+    code "$HOME/.x-cmd/.boot" "$HOME/.bashrc" "$HOME/.bash_profile"
+}
 

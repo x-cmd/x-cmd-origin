@@ -3,14 +3,14 @@
 # author:       Li Junhao           l@x-cmd.com
 # maintainer:   Li Junhao
 
-_X_CMD_DOCKER_BIN="$(command -v docker)"
+___X_CMD_DOCKER_BIN="$(command -v docker)"
 
 ___x_cmd_xdk_easy_env(){
     # Thanks to: https://scripter.co/nim-check-if-stdin-stdout-are-associated-with-terminal-or-pipe/
     if [ -t 0 ]; then
-        $_X_CMD_DOCKER_BIN run -it "$@";    # xdk run -it "$@"
+        $___X_CMD_DOCKER_BIN run -it "$@";    # xdk run -it "$@"
     else
-        $_X_CMD_DOCKER_BIN run -i "$@"
+        $___X_CMD_DOCKER_BIN run -i "$@"
     fi
 }
 
@@ -51,7 +51,7 @@ ___x_cmd_xdk(){
             alias xdkc="xdk centos:latest"
             ;;
         run)
-            $_X_CMD_DOCKER_BIN run \
+            $___X_CMD_DOCKER_BIN run \
                 -v "/root/.x-cmd/x:/bin/x" \
                 -v "/root/.x-cmd/bin/x-cmd:/var/x-cmd/bin/x" \
                 ${1:+"$@"}
@@ -72,21 +72,22 @@ ___x_cmd_xdk(){
             [ -z "$name" ] &&  return 1
             xdk empower "$name"
 
-            $_X_CMD_DOCKER_BIN exec ${1:+"$@"}
+            $___X_CMD_DOCKER_BIN exec ${1:+"$@"}
             ;;
         emp|empower)
             local container
             for container in "$@"; do
-                $_X_CMD_DOCKER_BIN cp    /root/.x-cmd/x             "$container:/bin/x"
-                $_X_CMD_DOCKER_BIN cp    /root/.x-cmd/bin/x-cmd     "$container:/var/x-cmd/bin/x-cmd"
+                $___X_CMD_DOCKER_BIN cp    /root/.x-cmd/x             "$container:/bin/x"
+                $___X_CMD_DOCKER_BIN cp    /root/.x-cmd/bin/x-cmd     "$container:/var/x-cmd/bin/x-cmd"
             done
             ;;
+        _x_cmd_advise_json)     xrc cat xdk/lib/xdk.advise.json; return 126 ;;
         *)
             local name
             if name="$(___x_cmd_xdk_accept "$op")"; then
                 ___x_cmd_xdk_easy_env "$name" ${1:+"$@"}
             else
-                $_X_CMD_DOCKER_BIN "$op" ${1:+"$@"}
+                $___X_CMD_DOCKER_BIN "$op" ${1:+"$@"}
             fi
             ;;
     esac
@@ -96,28 +97,6 @@ ___x_cmd_xdk(){
 
 alias xdku="xdk ubuntu:latest"
 alias xdkc="xdk centos:latest"
-
-if [ -n "${BASH_VERSION}${ZSH_VERSION}" ] && [ "${-#*i}" != "$-" ]; then
-    xrc advise/latest
-    advise xdk - <<A
-{
-    "alias": {},
-    "run":  {
-        "centos": {},
-        "ubuntu": {},
-        "alpine": {},
-        "busybox": {}
-    },
-    "exec": {},
-    "empower": {},
-    "centos": {},
-    "ubuntu": {},
-    "alpine": {},
-    "busybox": {}
-}
-A
-
-fi
 
 xdk(){
     ___x_cmd_xdk "$@"

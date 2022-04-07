@@ -25,9 +25,4 @@ A
     "___x_cmd_hub_$PARAM_SUBCMD" "$@"
 }
 
-___x_cmd_hub_advise_json(){
-    cat "$___X_CMD_ROOT/hub/lib/hub.advise.json"
-    return 126
-}
-
 xrc setmain ___x_cmd_hub

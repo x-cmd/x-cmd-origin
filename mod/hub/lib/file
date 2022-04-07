@@ -26,7 +26,10 @@ ___x_cmd_hub_file_ls(){
     fi
     hub_log debug "response: ${res}"
 
-    printf "%s" "$res" | x jq -r ".[]"
+    local code
+    code="$(xrc cat awk/lib/default.awk awk/lib/json.awk awk/lib/jiter.awk )"
+    printf "%s" "$res" | awk "$code"'
+        { jiget_after_tokenize_unquote($0, ".") }'
 }
 
 ___x_cmd_hub_file_which(){

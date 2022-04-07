@@ -62,7 +62,7 @@
         "-o": ["AddKeysToAgent=yes", "AddKeysToAgent=ask", "AddKeysToAgent=confirm", "AddKeysToAgent=no", "AddressFamily=any", "AddressFamily=inet", "AddressFamily=inet6", "BatchMode", "BindAddress", "BindInterface", "CanonicalDomains", "CanonicalizeFallbackLocal", "CanonicalizeHostname", "CanonicalizeMaxDots", "CanonicalizePermittedCNAMEs", "CASignatureAlgorithms", "CertificateFile", "ChallengeResponseAuthentication", "CheckHostIP", "Ciphers", "ClearAllForwardings", "Compression", "ConnectionAttempts", "ConnectTimeout", "ControlMaster", "ControlPath", "ControlPersist", "DynamicForward", "EnableSSHKeysign", "EscapeChar", "ExitOnForwardFailure", "FingerprintHash", "ForwardAgent", "ForwardX11", "ForwardX11Timeout", "ForwardX11Trusted", "GatewayPorts", "GlobalKnownHostsFile", "GSSAPIAuthentication", "GSSAPIDelegateCredentials", "HashKnownHosts", "HostbasedAuthentication", "HostbasedKeyTypes", "HostKeyAlgorithms", "HostKeyAlias", "Hostname", "IdentitiesOnly", "IdentityAgent", "IdentityFile", "IgnoreUnknown", "Include", "IPQoS", "KbdInteractiveAuthentication", "KbdInteractiveDevices", "KexAlgorithms", "LocalCommand", "LocalForward", "LogLevel", "MACs", "NoHostAuthenticationForLocalhost", "NumberOfPasswordPrompts", "PasswordAuthentication", "PermitLocalCommand", "PKCS11Provider", "Port", "PreferredAuthentications", "ProxyCommand", "ProxyJump", "ProxyUseFdpass", "PubkeyAcceptedKeyTypes", "PubkeyAuthentication", "RekeyLimit", "RemoteCommand", "RemoteForward", "RequestTTY", "RevokedHostKeys", "SecurityKeyProvider", "SendEnv", "ServerAliveCountMax", "ServerAliveInterval", "SetEnv", "StreamLocalBindMask", "StreamLocalBindUnlink", "StrictHostKeyChecking", "SyslogFacility", "TCPKeepAlive", "Tunnel", "TunnelDevice", "UpdateHostKeys", "User", "UserKnownHostsFile", "VerifyHostKeyDNS", "VisualHostKey", "XAuthLocation", "GSSAPIKeyExchange", "GSSAPIRenewalForcesRekey", "GSSAPIServerIdentity", "GSSAPITrustDns", "SmartcardDevice", "UsePrivilegedPort", "Cipher", "CompressionLevel", "Protocol", "RhostsRSAAuthentication", "RSAAuthentication"],
         "-Q": "ssh -Q help",
         "#1": "advise ls",
-        "#n": "___advise_get_result 2"
+        "#n": "___x_cmd_advise_get_result 2"
     },
     "segment|seg": {
         "update": null,
@@ -118,9 +118,9 @@
             "#desc": "cmd for oseg description"
         },
         "#1": "advise ls",
-        "#n": "___advise_get_result 2",
+        "#n": "___x_cmd_advise_get_result 2",
         "#desc": "cmd for 中文 测试 description"
     },
     "#1": "advise ls",
-    "#n": "___advise_get_result 1"
+    "#n": "___x_cmd_advise_get_result 1"
 }

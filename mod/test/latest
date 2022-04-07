@@ -1,0 +1,38 @@
+# shellcheck disable=SC1090,SC1091
+# load in need
+
+x log init test
+xrc ui/latest
+
+xrc:mod:lib test    cycle
+
+# TODO: add advise.json
+# TODO: subcmd: ls
+
+# TODO: select specific testcase: x test folder 1-wabc; x test folder ~^[0-9]+-[frame]
+
+___x_cmd_test(){
+    case "$1" in
+        :)          ;;
+        :*)         : other shell ;;
+        bench)      shift; ( . "$___X_CMD_ROOT_MOD/test/lib/bench"; ___x_cmd_test_bench "$@" ) ;;
+        errexit)    shift; ___x_cmd_test_errexit "$@" ;;
+        *)          ___x_cmd_test_cycle_exec "$@" ;;
+    esac
+}
+
+___X_CMD_TEST_ASSERT_ERREXIT=1
+___x_cmd_test_errexit(){
+    case "$1" in
+        "")
+            if [ -z "$___X_CMD_TEST_ASSERT_ERREXIT" ]; then
+                test:info Error Exit is OFF
+                return 1
+            else
+                test:info Error Exit is ON
+                return 0
+            fi ;;
+        on|enable)          ___X_CMD_TEST_ASSERT_ERREXIT=1  ;;
+        off|disable)        ___X_CMD_TEST_ASSERT_ERREXIT="" ;;
+    esac
+}

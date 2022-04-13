@@ -13,7 +13,7 @@ awk "$SSS"'
 
 END{
     jdict_push(arr, S "\"" 1 "\"" S "\"" 2 "\"","\"d\"",9)
-    print jstr(arr)
+    print jstr1(arr)
     # jdict_rm(arr, jpath("1.2"), q("a"))
     # jlist_push(arr, jpath("1.2.b"),9)
     # jlist_rm(arr, jpath("1.2.b"), 6)

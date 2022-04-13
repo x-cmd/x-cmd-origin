@@ -8,36 +8,30 @@ ___x_cmd_ui_gridselect(){
     ___X_CMD_UI_GRIDSELECT_DISPLAY_ITEM_INDEX=0
     ___X_CMD_UI_GRIDSELECT_MULTIPLE_STATE=0
     ___X_CMD_UI_GRIDSELECT_HELP_STATE=1
-    local O="${O:-___X_CMD_UI_GRIDSELECT_DEFAULT}"
     case "${1}" in
-        num)        ___X_CMD_UI_GRIDSELECT_DISPLAY_ITEM_INDEX=1
-                    shift && ___x_cmd_ui_gridselect_main "$@"
-                    ;;
-        multiple)   ___X_CMD_UI_GRIDSELECT_MULTIPLE_STATE=1
-                    shift && ___x_cmd_ui_gridselect_main "$@"
-                    ;;
-        nohelp)     ___X_CMD_UI_GRIDSELECT_HELP_STATE=0
-                    shift && ___x_cmd_ui_gridselect_main "$@"
-                    ;;
-        *)          ___x_cmd_ui_gridselect_main "$@"
-                    ;;
+        num)        ___X_CMD_UI_GRIDSELECT_DISPLAY_ITEM_INDEX=1 && shift ;;
+        multiple)   ___X_CMD_UI_GRIDSELECT_MULTIPLE_STATE=1 && shift ;;
+        nohelp)     ___X_CMD_UI_GRIDSELECT_HELP_STATE=0 && shift ;;
+        *)          ;;
     esac
+    ___x_cmd_ui_gridselect_main "$@"
 }
 
 ___x_cmd_ui_gridselect_control_awk(){
     command awk \
         "$@" \
+        -v TH_THEME_COLOR="\\033[${___X_CMD_THEME_COLOR_CODE}m" \
         -v ITEM_INDEX_STATE="$___X_CMD_UI_GRIDSELECT_DISPLAY_ITEM_INDEX" \
         -v SELECT_MULTIPLE_STATE="$___X_CMD_UI_GRIDSELECT_MULTIPLE_STATE" \
         -v SELECT_HELP_STATE="$___X_CMD_UI_GRIDSELECT_HELP_STATE" \
         -v SELECT_FOCUS_ITEM_IDX="$___X_CMD_UI_SELECT_FOCUS_ITEM_IDX" \
-        -f "$___X_CMD_ROOT/awk/lib/default.awk" \
-        -f "$___X_CMD_ROOT/awk/lib/str.awk" \
-        -f "$___X_CMD_ROOT/awk/lib/wcwidth.awk" \
-        -f "$___X_CMD_ROOT/awk/lib/ui.awk" \
-        -f "$___X_CMD_ROOT/ui/lib/theme.awk" \
-        -f "$___X_CMD_ROOT/ui/lib/share.awk" \
-        -f "$___X_CMD_ROOT/ui/lib/gridselect.awk"
+        -f "$___X_CMD_ROOT_MOD/awk/lib/default.awk" \
+        -f "$___X_CMD_ROOT_MOD/awk/lib/str.awk" \
+        -f "$___X_CMD_ROOT_MOD/awk/lib/wcwidth.awk" \
+        -f "$___X_CMD_ROOT_MOD/awk/lib/ui.awk" \
+        -f "$___X_CMD_ROOT_MOD/ui/lib/theme.awk" \
+        -f "$___X_CMD_ROOT_MOD/ui/lib/share.awk" \
+        -f "$___X_CMD_ROOT_MOD/ui/lib/gridselect.awk"
 }
 
 ___x_cmd_ui_gridselect_control_main(){

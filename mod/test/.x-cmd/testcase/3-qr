@@ -1,0 +1,2 @@
+@warn 'warn log in testcase'
+@error 'error log in testcase'

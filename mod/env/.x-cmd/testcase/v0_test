@@ -1,0 +1,93 @@
+# shellcheck shell=sh disable=SC1072 #source
+
+test_go(){
+    x env install go 1.9 2>/dev/null
+    @assert stdout x env current go << A
+1.9
+A
+    @assert stdout x env exec go 1.9 run "$(x wsroot)/.x-cmd/helloworld/hi.go" << A
+hello world
+A
+}
+
+test_gradle(){
+    x env install gradle 7.4.2 2>/dev/null
+    @assert stdout x env current gradle << A
+7.4.2
+A
+    @assert stdout x env exec gradle 7.4.2 -version << A
+
+------------------------------------------------------------
+Gradle 7.4.2
+------------------------------------------------------------
+
+Build time:   2022-03-31 15:25:29 UTC
+Revision:     540473b8118064efcc264694cbcaa4b677f61041
+
+Kotlin:       1.5.31
+Groovy:       3.0.9
+Ant:          Apache Ant(TM) version 1.10.11 compiled on July 10 2021
+JVM:          19-ea (Oracle Corporation 19-ea+15-942)
+OS:           Linux 5.15.28-1-MANJARO amd64
+A
+}
+
+test_java(){
+    x env install java 19.ea.15-open 2>/dev/null
+    @assert stdout x env current java << A
+19.ea.15-open
+A
+    @assert stdout x env exec java 19.ea.15-open --version << A
+openjdk 19-ea 2022-09-20
+OpenJDK Runtime Environment (build 19-ea+15-942)
+OpenJDK 64-Bit Server VM (build 19-ea+15-942, mixed mode, sharing)
+A
+}
+
+test_kotlin(){
+    x env install kotlin 1.6.10 2>/dev/null
+    @assert stdout x env current kotlin << A
+1.6.10
+A
+    @assert stdout x env exec kotlin 1.6.10 -version << A
+Kotlin version 1.6.10-release-923 (JRE 19-ea+15-942)
+A
+}
+
+# test_maven(){
+#     :
+# }
+
+test_node(){
+    x env install node v17.8.0 2>/dev/null
+    @assert stdout x env current node << A
+v17.8.0
+A
+    @assert stdout x env exec node v17.8.0 "$(x wsroot)/.x-cmd/helloworld/hi.js" << A
+hello world
+A
+}
+
+test_python(){
+    x env install python py39_4.11.0 2>/dev/null
+    @assert stdout x env current python << A
+py39_4.11.0
+A
+    @assert stdout x env exec python py39_4.11.0 "$(x wsroot)/.x-cmd/helloworld/hi.py" << A
+hello world
+A
+}
+
+# test_ruby(){
+#     :
+# }
+
+# test_scala(){
+#     :
+# }
+
+# test_springboot(){
+#     :
+# }
+
+@assert:file:func "" "test"

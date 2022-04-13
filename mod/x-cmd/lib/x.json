@@ -28,19 +28,6 @@
     "login": "--- Login user account",
     "register": {},
     "token": {},
-    "hub": {
-        "file": {
-            "ls": null,
-            "which": "x hub file ls",
-            "upload": "x hub file ls",
-            "share": "x hub file ls",
-            "private": "x hub file ls"
-        },
-        "login": null,
-        "register": null,
-        "token": null,
-        "#desc": "Hub... "
-    },
     "log": {
         "init": "--- Generate function \\'<module>_log\\'",
         "timestamp": {
@@ -56,7 +43,10 @@
     },
     "clear": {},
     "reinstall": {},
-    "z|uz": null,
+    "z|uz|zl": {
+        "#desc": "compress and decompress file",
+        "#n": "___advise_ls"
+    },
     "sh|bash|zsh|fish|ksh|dash|ash": {
         "#desc": "Execute your script use the corresponding shell",
         "#1": "___advise_ls"
@@ -85,6 +75,7 @@
     },
     "#1": [
         "cd --- Change the working directory",
+        "hub --- Manage your script file in x-service",
         "dev",
         "man --- An interface to the system reference manuals",
         "env --- Inject the environment",

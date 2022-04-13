@@ -9,7 +9,6 @@ ___x_cmd_env_main() {
     ___x_cmd_env_main "$@"
 }
 
-
 ___x_cmd_env_util_add_path(){
     local dir="${1:?Provide a directory}"
     local tmp="$PATH:"
@@ -19,24 +18,22 @@ ___x_cmd_env_util_add_path(){
         return 1
     fi
 
-    local tmp0="${tmp%:"$dir":}"
-    if [ "$tmp" = "$tmp0" ]; then
-        PATH="$dir:$PATH"
-    else
-        local tmp1="${tmp##:"$dir":}"
-        PATH="$dir:$tmp0:$tmp1"
-    fi
+    PATH="$dir"
+    local cur
+    while [ ! "$tmp" = "" ]; do
+        cur=${tmp%%:*}
+        tmp=${tmp#*:}
+        if [ "$cur" != "$dir" ]; then
+            PATH="$PATH:$cur"
+        fi
+    done
 }
 
 ___x_cmd_env_main_init_file_load(){
-    mkdir -p "$___X_CMD_ROOT/.env/env"
+    [ ! -d "$___X_CMD_ROOT/.env/env" ] && mkdir -p "$___X_CMD_ROOT/.env/env"
     if [ ! -f "$___X_CMD_ROOT/.env/env/use" ]; then
         return
     fi
-
-    # PATH="$(tr "\n" ":" < "$___X_CMD_ROOT/.env/env/use"):$PATH"
-    # PATH="${PATH#:}"
-    # PATH="${PATH%:}"
 
     local line
     while read -r line; do

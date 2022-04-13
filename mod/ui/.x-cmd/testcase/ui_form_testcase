@@ -1,0 +1,35 @@
+. ./lib/form
+. ./lib/region
+# xrc ui/lib/form
+
+form1(){
+    # local ___X_CMD_UI_FORM_EXIT_STRATEGY="execute|save|exit"
+    local ___X_CMD_UI_FORM_EXIT_STRATEGY="execute|exit"
+
+    ___x_cmd_ui_form \
+    "Text atype" atype 1                       "=" private public -- \
+    "Text repo" repo "abc12"                              "=~" "abc1[0-9]+"   -- \
+    "Text user" user ""                              "=~*" "12[0-9]+" -- \
+    "Text mul_line_arg1" mul_line_arg1 "xxx"   "*" -- \
+    "Text mul_line_arg2" mul_line_arg2  ""  -- \
+    "Text repo" repo ""                     "=~" "abc" "cde" "def" -- \
+    "Text repo2_1_1" repo2_1_1 ""            "=" "abc" "cde" "def" -- \
+    "Text repo2_1_2" repo2_1_2 ""            "=" "cde"
+
+    echo "$atype"
+    echo "$repo"
+    echo "$user"
+    echo "$mul_line_arg1"
+    echo "$mul_line_arg2"
+    echo "$repo"
+    echo "$repo2_1_1"
+    echo "$repo2_1_2"
+    echo "___X_CMD_UI_FORM_EXIT:" "$___X_CMD_UI_FORM_EXIT"
+}
+form2(){
+    # local ___X_CMD_UI_FORM_EXIT_STRATEGY="execute|save|exit"
+    local ___X_CMD_UI_FORM_EXIT_STRATEGY="execute"
+    ___x_cmd_ui_form nohelp "Are you sure you want to delete repo" tf 1 = "yes" "no"
+    echo "tf: $tf"
+    echo "___X_CMD_UI_FORM_EXIT:" "$___X_CMD_UI_FORM_EXIT"
+}

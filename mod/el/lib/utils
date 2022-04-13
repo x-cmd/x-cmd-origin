@@ -1,7 +1,4 @@
 
-
-
-# Section: shell
 alias ll="ls -al"
 alias lh="ls -alh"
 
@@ -18,6 +15,3 @@ rmrf(){
         rm -rf "$i"
     done
 }
-# EndSection
-
-

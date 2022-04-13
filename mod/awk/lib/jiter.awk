@@ -31,6 +31,51 @@ function jiter_load( obj ){
     JITER_CURLEN        = obj[ "CURLEN" ]
     JITER_LAST_KL       = obj[ "LAST_KL" ]
 }
+
+function jiget( item, arrl, arr){
+    if ( JITER_EQARR_PRINT == 0) {
+        if ( jiter_eqarr( item, arrl, arr ) != true ) return false
+        jiter_init()
+        JITER_EQARR_PRINT = 1
+    }
+    jiter_skip( item )
+    if ( item ~ /^[tfn"0-9+-]/ ) printf("%s\n", item) #/"
+    if ( JITER_SKIP_LEVEL > 0 ) return false
+    JITER_EQARR_PRINT = 0
+    return true
+}
+
+function jiget_unquote( item, arrl, arr){
+    if ( JITER_EQARR_PRINT == 0) {
+        if ( jiter_eqarr( item, arrl, arr ) != true ) return false
+        jiter_init()
+        JITER_EQARR_PRINT = 1
+    }
+    jiter_skip( item )
+    if ( item ~ /^[tfn"0-9+-]/ ) printf("%s\n", json_str_unquote2(item)) #/"
+    if ( JITER_SKIP_LEVEL > 0 ) return false
+    JITER_EQARR_PRINT = 0
+    return true
+}
+
+function jiget_after_tokenize( item, keypath,     _arr, _arrl, _par, _parl){
+    keypath = substr(jpath(keypath), 2)
+    _parl = split(keypath, _par, S)
+    _arrl = json_split2tokenarr( _arr, item )
+    for (i=1; i<=_arrl; ++i) {
+        jiget( _arr[i], _parl, _par)
+    }
+}
+
+function jiget_after_tokenize_unquote( item, keypath,     _arr, _arrl, _par, _parl){
+    keypath = substr(jpath(keypath), 2)
+    _parl = split(keypath, _par, S)
+    _arrl = json_split2tokenarr( _arr, item )
+    for (i=1; i<=_arrl; ++i) {
+        jiget_unquote( _arr[i], _parl, _par)
+    }
+}
+
 # EndSection
 
 # Notice: Intentionaly left JITER_STACK_FOR_GRID_CHECK undeleted for efficenty, for the memory leak of JITER_STACK_FOR_GRID_CHECK is slight.

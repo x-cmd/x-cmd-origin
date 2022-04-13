@@ -1,0 +1,5 @@
+x assert true [ 10 -gt 11 ]
+
+@info hi
+@debug 'Debug log in testcase'
+@info 'info log in testcase'

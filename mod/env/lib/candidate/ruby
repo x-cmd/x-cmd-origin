@@ -1,45 +1,121 @@
-# shellcheck shell=sh disable=SC2039,SC1090,SC3043,SC2263    # xrc
+# shellcheck shell=sh disable=SC2039,SC1090,SC3043,SC2263,SC2120    # xrc
 
-___x_cmd_env_ruby_la(){
-    :
+# Section: Ruby ls_remote
+
+___x_cmd_env_ruby_ls_remote(){
+    local cache_expiration="${2-1}"
+    local cache_path="$___X_CMD_ENV_PATH/ruby/cache/cache_list"
+    ___x_cmd_httpget "https://www.ruby-lang.org/en/downloads/releases/" "$cache_path" "$cache_expiration" && \
+     awk '(match($0,/Ruby [.-9]+(-[a-z0-9]+)?/)){ print substr($0,RSTART+5,RLENGTH-5)}' < "$cache_path"
 }
 
-___x_cmd_env_ruby_ls(){
-    :
+# EndSection
+
+# Section: download
+
+___x_cmd_env_ruby_download_archive(){
+    local version="${1:?Provide a version}"
+    local t_version
+    local compression
+    case "$(___x_cmd_os name)" in
+        linux)      compression=tar.gz                ;;
+        win)        compression=zip                   ;;
+        macOS)      compression=tar.gz                ;;
+        *)          return 1 ;;
+    esac
+
+    case ${version} in
+        3.1*)  t_version=3.1    ;;
+        3.0*)  t_version=3.0    ;;
+        2.7*)  t_version=2.7    ;;
+        2.6*)  t_version=2.6    ;;
+        2.5*)  t_version=2.5    ;;
+        2.4*)  t_version=2.4    ;;
+        2.3*)  t_version=2.3    ;;
+        2.2*)  t_version=2.2    ;;
+        2.1*)  t_version=2.1    ;;
+        2.0*)  t_version=2.0    ;;
+        1.9*)  t_version=1.9    ;;
+        1.8*)  t_version=1.8    ;;
+        1.6*)  t_version=1.6    ;;
+    esac
+
+    if ___x_cmd_env_util_is_archive_cached ruby "$version" 2>/dev/null; then
+		env_log info  "Archive existed: $version"
+		return 0
+	fi
+    local archive_path="$___X_CMD_ENV_PATH/ruby/archive/ruby-${version}.${compression}"
+    mkdir -p "$(dirname "${archive_path}")"
+    local download_url="https://cache.ruby-lang.org/pub/ruby/${t_version}/ruby-${version}.${compression}"
+    env_log info "Downloading ruby ${download_url}"
+    echo "${download_url}"
+    if ! curl --progress-bar --location --retry-max-time 10 --retry 0 "${download_url}" --output "${archive_path}"; then
+		env_log info "Download failure"
+		return 1
+	fi
+    env_log info "Download completed $download_url"
 }
 
-___x_cmd_env_ruby_download(){
-    :
+# EndSection
+
+# Section: unpack
+
+ ___x_cmd_env_ruby_unpack_win(){
+    x uz "$archive_path" "$(dirname "$archive_path")" || return 1
+    local version_path="${___X_CMD_ENV_PATH}/ruby/versions/${version}/bin"
+    mkdir -p "${version_path}" && (
+    mv "${archive_unpack_files}/"*/* "${version_path}" || return 1
+    cd "${version_path}" || exit
+    )
 }
 
-___x_cmd_env_ruby_install(){
-    :
+___x_cmd_env_ruby_unpack_other(){
+    local version_path="${___X_CMD_ENV_PATH}/ruby/versions/${version}"
+    tar -xzf "${archive_path}" -C "${archive_unpack_files}" --strip-components 1 || return 1
+    mkdir -p "${version_path}" && mv "${archive_unpack_files}/"* "${version_path}"
 }
 
-___x_cmd_env_ruby_uninstall(){
-    :
+___x_cmd_env_ruby_unpack(){
+    local version="${1:?Provide a version}"
+    local platform
+    {
+        read -r platform
+    } <<A
+$(x os name; x os arch)
+A
+    local compression='tar.gz'; [ "${platform}" = 'win' ] && compression='zip' # TODO: tar.xz support
+    local archive_path="$___X_CMD_ENV_PATH/ruby/archive/ruby-${version}.${compression}"
+    local archive_unpack_files
+    archive_unpack_files="$(dirname "$archive_path")/ruby-${version}"
+    mkdir -p "$archive_unpack_files"
+    case "$platform" in
+        win)    ___x_cmd_env_ruby_unpack_win    ;;
+        *)      ___x_cmd_env_ruby_unpack_other  ;;
+    esac
+    local code=$?
+    rm -rf "${archive_unpack_files}"
+    env_log info "Done unpacking!"
+    return $code
 }
 
-___x_cmd_env_ruby_try(){
-    :
+# EndSection
+
+# Section: ui_catsel
+
+#TODO: Should be optimized
+___x_cmd_env_ruby_ui_catsel(){
+    case "$#" in
+        0)
+            ___x_cmd_env_ruby_ls_remote | awk '{ split($0,arr,"."); vmap[arr[1]]=1 } END{ for(key in vmap){print key} }'
+            ;;
+        1)
+			___x_cmd_env_ruby_ls_remote | awk '{ split($0,arr,"."); vmap[arr[2]]=1 } END{ for(key in vmap){print key} }'
+			;;
+		2)
+            ___x_cmd_env_ruby_ls_remote | grep "$1" | grep "$2" \
+            | awk -v a="$1" -v b="$2" '{ split($0,arr,a"."b"."); if(arr[1]=="" && arr[2]!=""){ vmap[$0]=1 } } END{ for(key in vmap){ print key } }'
+            ;;
+    esac
 }
 
-___x_cmd_env_ruby_use(){
-    :
-}
-
-___x_cmd_env_ruby_ws(){
-    :
-}
-
-___x_cmd_env_ruby_current(){
-    :
-}
-
-___x_cmd_env_ruby_which(){
-    :
-}
-
-___x_cmd_env_ruby_exec(){
-    :
-}
+# EndSection

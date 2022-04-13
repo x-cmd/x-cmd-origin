@@ -82,7 +82,7 @@ function view_body(             model_row_i, col_i, _col_start, model_start_row,
     if (model_row == 0) {
         _data = "We couldn’t find any data ..."
         _data = str_pad_center(_data, max_col_size, length(_data))
-        return th(TH_TABLE_UNFIND, _data)
+        return th(TH_DATA_UNFIND, _data)
     }
 
     _col_start = view_body_cal_beginning_col()

@@ -1,0 +1,52 @@
+# Author:       Li Junhao       l@x-cmd.com         # xrc
+# shellcheck    shell=sh        disable=SC3043
+
+xrc param
+
+___x_cmd_license(){
+    param:dsl '
+options:
+    --name              "Provide name"           <name>="x-cmder"
+    --email             "Provide email"          <email>="agent@x-cmd.com"
+    --year              "year"                   <year>="2022"
+    #1                  "license name"           <license>  =   gplv3     apachev2     mplv2
+'
+
+    param:run
+    ___x_cmd_license_main "${1:?Provide license}"
+}
+
+xrc:mod license/lib/meta
+
+___x_cmd_license_main(){
+    local license="$1"
+
+    {
+        read -r license_full_name
+        read -r url
+    } <<A
+$(___x_cmd_license_meta_get_name_url "$license")
+A
+
+    ___x_cmd_httpget_gitx x-cmd license main \
+            "lib/body/$license" \
+            "$___X_CMD_ROOT_TMP/license/body/$license"
+    awk \
+        -v year="${year}" \
+        -v email="${email}" \
+        -v name="${name}" \
+        -v url="${url:?Provide web url}" \
+        -v license_full_name="${license_full_name:?Provide license_full_name}" \
+        '
+    {
+        gsub("<YEAR>", year, $0)
+        gsub("<NAME>", name, $0)
+        gsub("<EMAIL>", "(" email ")", $0)
+        gsub("<WEB-URL>", url, $0)
+        gsub("<LICENSE-NAME>", license_full_name, $0)
+        print $0
+    }
+    ' < "$___X_CMD_ROOT_TMP/license/body/$license"
+}
+
+xrc setmain ___x_cmd_license

@@ -1,0 +1,111 @@
+# Section : run by file: get_engine_by_file* and run_by_file*
+
+___x_cmd___xrc_run(){
+    local fp="${1:?filepath}"; shift
+
+    local main
+    if ! main="$(___x_cmd_ldict get ___X_CMD_XRC_SET_MAIN_DICT "$fp")"; then
+        ___x_cmd_xrc_source_file "$fp" # xrc
+        local code=$?
+        if ! main="$(___x_cmd_ldict get ___X_CMD_XRC_SET_MAIN_DICT "$fp")"; then
+            return "$code"
+        fi
+    fi
+
+    "$main" "$@"
+}
+
+___x_cmd___source_run(){
+    local ___x_cmd_x_source_run_filepath="${1:?filepath}";        shift
+    ___x_cmd_source "$___x_cmd_x_source_run_filepath" "$@"
+}
+
+___x_cmd___run_with_engine(){
+    local engine="${1:?Please provide engine}";
+    local filepath="${2:?Please provide filepath}";        shift 2
+    case "$engine" in
+        xrc)        ___x_cmd___xrc_run "$filepath" "$@" ;;
+        source)     ___x_cmd___source_run "$filepath" "$@" ;;
+        xsh)        ( ___x_cmd___source_run "$filepath" "$@"; ) ;;
+        7z)         ___x_cmd_main 7z x "$filepath" "$@"      ;;
+        *)          ___x_cmd_main "$engine" "$filepath" "$@" ;;
+    esac
+}
+
+___x_cmd___get_engine_by_file_header(){
+    local filepath="${1:?Please provide filepath}"; shift
+    case "$(head -n1 "$filepath")" in
+        *source*)       printf "%s" source          ;;
+        *xrc*)          printf "%s" xrc             ;;
+        *xsh*)          printf "%s" xsh             ;;
+        *python*)       printf "%s" python          ;;
+        *perl*)         printf "%s" perl            ;;
+        *ruby*)         printf "%s" ruby            ;;
+        *node*)         printf "%s" node            ;;
+        *ts*)           printf "%s" ts              ;;
+
+        *bash*)         printf "%s" bash            ;;
+        *zsh*)          printf "%s" zsh             ;;
+        *fish*)         printf "%s" fish            ;;
+        *ksh*)          printf "%s" ksh             ;;
+
+        *sh*)           printf "%s" sh              ;;
+        *)              return 127
+    esac
+}
+
+___x_cmd_get_engine_by_file_ext(){
+    local filepath="${1:?filepath}"; shift
+    local ext="${filepath##*.}"
+    case "$ext" in
+        "$filepath")    return 126                  ;;
+        py)             printf "%s" python          ;;
+        pl)             printf "%s" perl            ;;
+        rb)             printf "%s" ruby            ;;
+        js)             printf "%s" node            ;;
+        ts)             printf "%s" ts              ;;
+
+        7z)             printf "%s" 7z              ;;
+
+        bash)           printf "%s" bash            ;;
+        zsh)            printf "%s" zsh             ;;
+        fish)           printf "%s" fish            ;;
+        ksh)            printf "%s" ksh             ;;
+        sh)             printf "%s" sh              ;;
+
+        *)              return 126                  ;;
+    esac
+}
+
+
+___x_cmd_get_engine_by_file(){
+    local filepath="${1:?filepath}"
+    ___x_cmd_get_engine_by_file_ext "$filepath" || ___x_cmd___get_engine_by_file_header "$filepath"
+}
+
+___x_cmd_run_by_file(){
+    local filepath="${1:?filepath}"; shift
+
+    if [ -L "$filepath" ]; then
+        filepath="$(___x_cmd_readlink_recursive "$filepath")"
+        filepath="$(___x_cmd_abspath "$filepath")"
+    fi
+
+    if [ -x "$filepath" ]; then
+        # In bash and dash. The file mount into the docker container using [ -x <path> ]
+        #   does not correctly determine whether the file has execute permissions or not.
+        exec 3>&1
+        local err
+        if err="$("$filepath" "$@" 2>/dev/stdout 1>&3)" || [ "${err%Permission denied}" = "$err" ]; then
+            exec 3<&-
+            printf "%s\n" "$err" >&2
+            return
+        fi
+    fi
+
+    local engine
+    engine="$(___x_cmd_get_engine_by_file "$filepath")" || engine=source
+    ___x_cmd___run_with_engine "$engine" "$filepath" "$@"
+}
+
+## EndSection

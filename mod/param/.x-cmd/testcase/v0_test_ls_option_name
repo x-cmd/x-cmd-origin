@@ -1,0 +1,21 @@
+# shellcheck shell=sh disable=SC2039,SC2142,SC3043
+
+ls_option_name(){
+    param:dsl <<A
+option:
+    -y|--fsdfsd|-o          "Test regex arg1"  <regex_arg1>=888         =~  "[0-9]+" "[a-z]+"
+    -u|--usdasd|-p          "Test regex arg2"  <regex_arg2>=123         =~  "[0-9]+"
+    --license               "Test regex arg3"  <regex_arg3>="0BSD"      =   "MulanPSL-2.0" "0BSD" "AFL-3.0" "AGPL-3.0" "" "XXXX License"
+A
+    param:run
+}
+
+test_ls_option_name(){
+    @assert stdout ls_option_name _ls_option_name <<A
+y
+u
+license
+A
+}
+
+@assert:file:func

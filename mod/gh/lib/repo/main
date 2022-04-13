@@ -148,8 +148,9 @@ options:
 '
     param:run
 
-    ___x_cmd_ui_select "Are you sure you want to delete repo $*" "yes" "no" "---" "---"
-    [ "$___X_CMD_UI_SELECT_CURRENT_ITEM" = "yes" ] || return
+    local ___X_CMD_UI_FORM_EXIT_STRATEGY="execute|exit"
+    ___x_cmd_ui_form "Are you sure you want to delete repo $*" tf 1 = "yes" "no"
+    [ "$tf" != "yes" ] && return
 
     local i
     for i in "$@"; do

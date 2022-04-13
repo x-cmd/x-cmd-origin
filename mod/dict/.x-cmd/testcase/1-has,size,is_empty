@@ -1,0 +1,23 @@
+
+test_dict_has(){
+    test_dict_setup
+    @assert true dict @b has 2
+    @assert false dict @b has 4
+}
+
+test_dict_size(){
+    test_dict_setup
+    assert "$(dict @b size)" = 4
+}
+
+test_dict_is_empty(){
+    dict @b free
+    dict @b make
+    @assert true dict @b is_empty
+    dict @b put 1 a
+    @assert false dict @b is_empty
+}
+
+test_dict_has
+test_dict_size
+test_dict_is_empty

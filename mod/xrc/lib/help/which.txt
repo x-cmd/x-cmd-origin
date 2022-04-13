@@ -1,0 +1,3 @@
+xrc which       Download lib files and print the local path.
+    Uasge:  xrc which <lib> [<lib>...]
+    Example: source "$(xrc which str)"

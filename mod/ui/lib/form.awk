@@ -74,7 +74,6 @@ NR==1{
 BEGIN {
     if (exit_strategy == "")  exit_strategy = "execute|save|exit"
     exit_strategy_arrl = split(exit_strategy, exit_strategy_arr, "|")
-
     ctrl_exit_strategy =  ctrl_rstate_init( EXIT, 1, exit_strategy_arrl )
 }
 
@@ -108,10 +107,11 @@ function view(            _ctrl_current, _component_help, _component_body, _comp
     _component_exit = view_exit( _ctrl_current )
     _component_help = view_help( _ctrl_current )
 
-    send_update( _component_body "\n" _component_exit "\n\n" _component_help  )
+    send_update( _component_body "\n" _component_exit _component_help  )
 }
 
 function view_help( _ctrl_current, data ){
+    if ( FORM_HELP_STATE == "0" ) return
     data = "Press <Arrow-Up> and <Arrow-Down> to alternate question" "\n"
     if (rule[ _ctrl_current ATT_OP ] == "=") {
         data = data "Press <Arrow-Left> and <Arrow-Right> to alternative choice, or input digit."
@@ -158,6 +158,7 @@ function view_body( _ctrl_current,                          data, _question, _li
 
 # I don't know ... It has not been well-designed yet.
 function view_exit( _ctrl_current,  data,           _is_focused, _is_selected ){
+    if (exit_strategy_arrl == 1) return
     _is_focused = _ctrl_current == rulel+1
     if ( _is_focused ) {
         STYLE_EXIT      = TH_FORM_A_FOCUSED_SELECTED
@@ -171,7 +172,7 @@ function view_exit( _ctrl_current,  data,           _is_focused, _is_selected ){
         _is_selected    = _ctrl_exit_strategy == i
         data            = data "   " th( _is_selected ? STYLE_EXIT : STYLE_EXIT_NOT,    exit_strategy_arr[i] )
     }
-    return data
+    return data "\n"
 }
 
 # EndSection
@@ -185,6 +186,7 @@ NR>1{
         gsub(/^C:/, "", cmd)
         idx = index(cmd, ":")
         ctrl(substr(cmd, 1, idx-1), substr(cmd, idx+1))
+        if ( ( exit_strategy_arrl == 1 ) && ( ctrl_rstate_get( CURRENT ) == rulel + 1 ) ) exit(0)
     }
 }
 

@@ -19,7 +19,7 @@ xcmd/gentoo/stage3
 "
 
     local image
-    echo "$container_list" | while read -r image; do
+    printf "%s" "$container_list" | while read -r image; do
         docker run -it -v  "$(pwd):/pd/" "${image}" "$@"
     done
 }

@@ -1,45 +1,57 @@
 # shellcheck shell=sh disable=SC2039,SC1090,SC3043,SC2263    # xrc
+# Section: ls remote
 
-___x_cmd_env_go_ls(){
-    :
-}
+___x_cmd_env_perl_ls_remote(){
+    local cache_path="$___X_CMD_ENV_PATH/perl/cache/version_list"
+    local cache_expiration=${2:-1}
 
-___x_cmd_env_go_la(){
-    :
+    ___x_cmd_httpget "https://www.cpan.org/src/README.html" "$cache_path" "$cache_expiration" && \
+        awk 'match($0, /<td><a href="https:\/\/www.cpan.org\/src\/5.0\/perl-[0-9.]{1,}tar/){gsub(/^[ ]+/,"",$0);gsub(/<t[\/]?d>/,"",$0);
+        gsub(/<a href="https:\/\/www.cpan.org\/src\/5.0\/perl-[0-9.]{1,}[a-z.]{1,}[2]?">perl-/,"",$0);
+        gsub(/.tar.[a-z]{1,}[2]?<\/a><\/td>/,"",$0);
+        print $0}' < "$cache_path"
 }
+# EndSection
 
-___x_cmd_env_go_download(){
-    :
-}
+# Section: download
+___x_cmd_env_perl_download_archive(){
+    local version=${1:?Provide a version}
+    local archive_path="$___X_CMD_ENV_PATH/perl/archive/perl-${version}.tar.gz"
 
-___x_cmd_env_go_install(){
-    :
-}
+	if ___x_cmd_env_util_is_archive_cached perl "$version" 2>/dev/null; then
+		env_log info  "Archive existed: $version"
+		return 0
+	fi
+    mkdir -p "$(dirname "${archive_path}")"
+    local archive_path=$___X_CMD_ENV_PATH/perl/archive/perl-${version}.tar.gz
+    env_log info "Downloading perl-${version}"
 
-___x_cmd_env_go_uninstall(){
-    :
-}
+    download_url="https://www.cpan.org/src/5.0/perl-${version}.tar.gz"
 
-___x_cmd_env_go_try(){
-    :
-}
+    if ! curl --progress-bar --location --retry-max-time 10 --retry 0 "$download_url" --output "$archive_path" ; then
+        env_log error "Download failure from $download_url"
+        return 1
+    fi
+        env_log info "Download Successfully"
 
-___x_cmd_env_go_use(){
-    :
 }
+# EndSection
 
-___x_cmd_env_go_ws(){
-    :
-}
+# Section: unpack
 
-___x_cmd_env_go_current(){
-    :
-}
+___x_cmd_env_perl_unpack(){
+   local version="${1:?Provide a version}"
+    env_log info "Unpacking: perl ${version}"
 
-___x_cmd_env_go_which(){
-    :
-}
+    local archive_path="$___X_CMD_ENV_PATH/perl/archive/perl-$version.tar.gz"
+	x uz "$archive_path" "$(dirname "$archive_path")"  2>/dev/null || return 1
 
-___x_cmd_env_go_exec(){
-    :
+    local archive_unpack_files
+    archive_unpack_files="$(dirname "$archive_path")/perl-$version"
+
+    local versions_path="$___X_CMD_ENV_PATH/perl/versions"
+	mkdir -p "$versions_path/${version}"
+	mv -f "$archive_unpack_files/"* "$versions_path/${version}"
+	rm -rf "$archive_unpack_files"
 }
+# EndSection

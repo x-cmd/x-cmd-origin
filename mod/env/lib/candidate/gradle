@@ -1,14 +1,18 @@
-# shellcheck shell=sh disable=SC2039,SC1090,SC3043,SC2263    # xrc
+# shellcheck shell=sh disable=SC2039,SC1090,SC3043,SC2263,SC2120    # xrc
 
 # Section: gradle ls_remote and la
+
+___x_cmd_env_gradle_sort_versions(){
+	sort -t . -n -k 1,1n -k 2,2n
+}
 
 ___x_cmd_env_gradle_ls_remote(){
     # local pattern="${1:-""}"	# TODO: ls remote filter
     local cache_expiration="${2:-1}"
     local cache_path="$___X_CMD_ENV_PATH/gradle/cache/version_list"
 
-    ___x_cmd_httpget "https://services.gradle.org/distributions/" "$cache_path" "$cache_expiration" 2>/dev/null && \
-    awk 'match($0, /gradle-([0-9.]+)-all.zip"/){ print substr($0, RSTART+7, RLENGTH-16)}' <"$cache_path"
+    ___x_cmd_httpget "https://services.gradle.org/distributions/" "$cache_path" "$cache_expiration" && \
+    awk 'match($0, /gradle-([0-9.]+)-all.zip"/){ print substr($0, RSTART+7, RLENGTH-16)}' <"$cache_path" | ___x_cmd_env_gradle_sort_versions | uniq
 }
 
 # EndSection
@@ -48,8 +52,24 @@ ___x_cmd_env_gradle_unpack(){
 
     local versions_path="$___X_CMD_ENV_PATH/gradle/versions"
 	mkdir -p "$versions_path/${version}"
-	mv -f "$archive_unpack_files/"* "$versions_path/${version}"
+	mv -f "$archive_unpack_files/"* "${versions_path}/${version}"
 	rm -rf "$archive_unpack_files"
+}
+
+# EndSection
+
+# Section: ui_catsel
+
+#TODO: Should be optimized
+___x_cmd_env_gradle_ui_catsel(){
+    case "$#" in
+        0)
+            ___x_cmd_env_gradle_ls_remote | awk '{ split($0,arr,"."); vmap[arr[1]]=1 } END{ for(key in vmap){print key} }'
+            ;;
+        1)
+            ___x_cmd_env_gradle_ls_remote | grep ^"$1" | awk '{ print $0 }'
+            ;;
+    esac
 }
 
 # EndSection

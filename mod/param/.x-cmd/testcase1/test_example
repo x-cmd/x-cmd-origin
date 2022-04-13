@@ -1,0 +1,87 @@
+#! /bin/sh
+
+xrc param/latest
+
+param_type      github     License  -   <<A
+aaa
+bbb
+
+ccc
+A
+
+aaa(){
+    param:scope "github/$O"
+    param:dsl <<A
+option:
+    -y|--fsdfsd|-o          "Test regex arg1"  <regex_arg1>=888  =~  "[0-9]+"
+    -u|--usdasd|-p          "Test regex arg2"  <regex_arg2>=123  =~  "[0-9]+"
+    --license               "Test regex arg3"  <regex_arg3>   =   "MulanPSL-2.0" "0BSD" "AFL-3.0" "AGPL-3.0" "" "XXXX License"
+    -z                      "Test regex arg4"
+    -k                      "Test regex arg5"  <regex_arg4>:License=aaa
+    #1                      "Test rest argument #1 when exist option and flag"
+    #2                      "Test rest argument #2 when exist option and flag"
+    #3|--regex_arg3|-s      "Repo name 3"        <>:repo
+    #4                      "Repo name 4"        <>:repo
+    #5                      "Repo name 5"        <license> =      "gplv3"    "apachev2"    "mplv2"
+subcommand:
+    bbb                     "This is a bbb"
+A
+    param:run
+
+    # echo "y: ${y}"
+    # echo "test continue"
+    echo "-y: ${y}\n-u: ${u}\n--license: ${license}\n-z: ${z}\n-k: ${k}\n#1: $1\n#2: $2\n#3: $3\n#4: $4\n#5: $5"
+}
+
+aaa -y 11 -u 22 --license 0BSD -z aa bb cc dd mplv2
+# aaa --help
+# aaa _x_cmd_advise_json
+# X_CMD_ADVISE_FUNC_NAME=aaa aaa  _x_cmd_advise_json
+# aaa 11 22 "aa ss" 'ss aa'
+# aaa --regex_arg3 33 11 22
+# aaa --regex_arg3 33 44 55 50
+# aaa --regex_arg3 33
+# aaa 11 22 33 44
+# aaa 11 22
+# aaa
+
+# aaa -z -y 123 dd gg
+
+# aaa _has_subcmd ccc
+# echo $?
+
+# aaa _has_subcmd bbb
+# echo $?
+
+# aaa _dryrun -y qwe
+# echo $?
+
+# aaa _dryrun -y 123
+# echo $?
+
+# aaa -y 777
+
+
+# # option with argumrnt
+# # option with no argumrnt -> flag
+# aaa -y -c -d
+# # subcommand
+# aaa bbb ccc
+
+
+# param_type      github     License  -   <<A
+# $(cat .x-cmd/testcases/license.txt)
+# A
+
+# ___x_cmd_gh_repo_create() {
+#     param:scope     "github/$O"
+#     param:dsl       '
+# type:
+#     access  =   private public
+# option:
+#     --l          "The"          <>:License=""
+#     --a                         "aaa"          <>=""    = ""  AAA
+# '
+#     param:run
+#     echo "@@@ $l @@@ $a"
+# }

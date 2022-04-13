@@ -1,0 +1,152 @@
+# Author:       Li Junhao   l@x-cmd.com     # xrc
+# shellcheck    shell=sh    disable=SC2039,SC3043
+# Notice: ___x_cmd_http_qs_put will put the empty value
+
+: <<'DOCTEST'
+> ___x_cmd_http_make git https://api.git.com
+> O=git ___x_cmd_http_qs token token123
+> O=git ___x_cmd_http_header put content-type application/json
+> O=git ___x_cmd_http_header put accept application/json
+> O=git ___x_cmd_http_qs dump json
+{
+  "token": "token123"
+}
+DOCTEST
+___x_cmd_http_qs() {
+    param:dsl      '
+subcommands:
+    dump                    "get all qs"
+    get                     "get qs"
+    put                     "put qs"
+    remove                  "remove qs"
+    mput                    "set more qs"
+'
+    param:run
+
+    if [ -z "$PARAM_SUBCMD" ]; then
+        ___x_cmd_http_qs dump "$@"
+        return
+    fi
+
+    "______x_cmd_http_qs_${PARAM_SUBCMD}" "$@"
+}
+
+______x_cmd_http_qs_dump(){
+    case "$1" in
+        json)
+            O=$O dict scope qs | ___x_cmd_dict_pjson
+            ;;
+        curl)
+            local line
+            printf "%s" " -G "
+            O=$O dict scope qs | KV_SEP="=" ___x_cmd_dict_pprint | while read -r line; do
+                # printf "--data-urlencode \"%s\" " "$line"
+                printf " %s " "--data-urlencode $line"
+            done
+            ;;
+        *) O=$O dict scope qs | KV_SEP="=" ___x_cmd_dict_pprint ;;
+    esac
+}
+
+______x_cmd_http_qs_get(){
+    O=$O dict get qs "${1:?header key}"
+}
+
+______x_cmd_http_qs_put(){
+    local header_key="${1:?header key}"
+    if [ $# -eq 1 ]; then
+        eval O=$O dict put qs "\$header_key" "\$${header_key}"
+    else
+        O=$O dict put qs "$header_key" "$2"
+    fi
+}
+
+______x_cmd_http_qs_remove(){
+    O=$O dict drop qs "${1:?header key}"
+}
+
+______x_cmd_http_qs_mput(){
+    # Notice 1: `___x_cmd_http_qs_put abc=``  will put the entry { abc: "" }
+    # Notice 2: `abc=; ___x_cmd_http_qs_put abc` will NOT put any entry
+    local value
+    local i
+    for i in "$@"; do
+        # if [[ "$i" = *=* ]]; then
+        if [ "$i" != "${i%%=*}" ]; then
+            ______x_cmd_http_qs_put "${i%%=*}" "${i#*=}"
+        else
+            eval value="\"\$${i}\""
+            [ -n "$value" ] && ______x_cmd_http_qs_put "$i" "$value"
+        fi
+    done
+}
+
+: <<'DOCTEST'
+> ___x_cmd_http_make git https://api.git.com
+> O=git ___x_cmd_http_body token token123
+> O=git ___x_cmd_http_header put content-type application/json
+> O=git ___x_cmd_http_header put accept application/json
+> O=git ___x_cmd_http_body_dump_json
+{
+  "token": "token123"
+}
+DOCTEST
+
+___x_cmd_http_body() {
+    param:dsl      '
+subcommands:
+    dump                "dump the body. "dump json" will dump the body in json form"
+    get                 "get the value by key in body"
+    put                 "put the kv pair in body"
+    remove              "remove the kv pair in body by key"
+    mput                "put multiple kv pair in body"
+'
+    param:run
+
+    if [ -z "$PARAM_SUBCMD" ]; then
+        ___x_cmd_http_resp body "$@"
+        return
+    fi
+
+    "______x_cmd_http_body_${PARAM_SUBCMD}" "$@"
+}
+
+______x_cmd_http_body_dump(){
+    local O="${O:?Provide Object name}"
+    case "$1" in
+        json)       O=$O dict scope body | ___x_cmd_dict_pjson        ;;
+        *)          O=$O dict scope body ;;
+    esac
+}
+
+______x_cmd_http_body_get(){
+    O=$O dict get body "${1:?body key}"
+}
+
+______x_cmd_http_body_put(){
+    local body_key="${1:?body key}"
+    if [ $# -eq 1 ]; then
+        eval O="$O" dict put body "\$body_key" "\$${body_key}"
+    else
+        O=$O dict put body "$body_key" "$2"
+    fi
+}
+______x_cmd_http_body_remove(){
+    O=$O dict drop body "${1:?body key}"
+}
+
+______x_cmd_http_body_mput(){
+    # Notice 1: `___x_cmd_http_qs_put abc=""`  will put the entry { abc: "" }
+    # Notice 2: `abc=; ___x_cmd_http_qs_put abc` will NOT put any entry
+    local value
+    local i
+    for i in "$@"; do
+        # if [[ "$i" = *=* ]]; then
+        if [ "$i" != "${i%%=*}" ]; then
+            ______x_cmd_http_body_put "${i%=*}" "${i##*=}"
+        else
+            eval value="\"\$${i}\""
+            [ -n "$value" ] && ______x_cmd_http_body_put "$i" "$value"
+        fi
+    done
+}

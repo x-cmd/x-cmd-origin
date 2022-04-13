@@ -1,0 +1,24 @@
+# shellcheck shell=sh disable=SC2039,SC2142,SC3043
+
+quote(){
+    param:dsl <<A
+option:
+    -m                      "Test regex arg4"    <>
+    #1                      "Repo name 1"        <>:repo
+A
+    param:run
+    printf "m: %s\n#1: %s" "${m}" "$1"
+}
+
+test_quote(){
+    @assert stdout quote -m "xxx'cscsdc" "echo \"\${name}\""<<A
+m: xxx'cscsdc
+#1: echo "\${name}"
+A
+    @assert stdout quote -m "aaa 'ddd'" "aaa \"ddd\""<<A
+m: aaa 'ddd'
+#1: aaa "ddd"
+A
+}
+
+@assert:file:func

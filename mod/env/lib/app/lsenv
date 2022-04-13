@@ -10,13 +10,14 @@ ___x_cmd_ui_lsenv(){
 ___x_cmd_ui_lsenv_mainloop_awk_(){
     command awk "$@" \
         -v CANDIDATE="$CANDIDATE" \
-        -f "$___X_CMD_ROOT/awk/lib/default.awk" \
-        -f "$___X_CMD_ROOT/awk/lib/str.awk" \
-        -f "$___X_CMD_ROOT/awk/lib/wcwidth.awk" \
-        -f "$___X_CMD_ROOT/awk/lib/ui.awk" \
-        -f "$___X_CMD_ROOT/ui/lib/theme.awk" \
-        -f "$___X_CMD_ROOT/ui/lib/share.awk" \
-        -f "$___X_CMD_ROOT/env/lib/app/lsenv.awk"
+        -v TH_THEME_COLOR="\\033[${___X_CMD_THEME_COLOR_CODE}m" \
+        -f "$___X_CMD_ROOT_MOD/awk/lib/default.awk" \
+        -f "$___X_CMD_ROOT_MOD/awk/lib/str.awk" \
+        -f "$___X_CMD_ROOT_MOD/awk/lib/wcwidth.awk" \
+        -f "$___X_CMD_ROOT_MOD/awk/lib/ui.awk" \
+        -f "$___X_CMD_ROOT_MOD/ui/lib/theme.awk" \
+        -f "$___X_CMD_ROOT_MOD/ui/lib/share.awk" \
+        -f "$___X_CMD_ROOT_MOD/env/lib/app/lsenv.awk"
         # -f "./lib/app/lsenv.awk"
 }
 

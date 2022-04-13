@@ -1,5 +1,9 @@
-___X_CMD_ALIAS_SEP="$(printf "\001")"
-___X_CMD_ALIAS_ITEM_SEP="$(printf "\002")"
+# ___X_CMD_ALIAS_SEP="$(printf "\001")"
+# ___X_CMD_ALIAS_ITEM_SEP="$(printf "\002")"
+
+___X_CMD_ALIAS_SEP="$___X_CMD_UNSEENCHAR_001"
+___X_CMD_ALIAS_ITEM_SEP="$___X_CMD_UNSEENCHAR_002"
+
 
 ___x_cmd_alias(){
     case "$#" in

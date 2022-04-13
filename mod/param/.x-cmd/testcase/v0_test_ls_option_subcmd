@@ -1,0 +1,74 @@
+# shellcheck shell=sh disable=SC2039,SC2142,SC3043
+
+arg_sep="$(printf "\006")"
+
+ls_option_subcmd(){
+    param:dsl <<A
+option:
+    -y|--fsdfsd|-o          "Test regex arg1"  <regex_arg1>=888         =~  "[0-9]+" "[a-z]+"
+    -u|--usdasd|-p          "Test regex arg2"  <regex_arg2>=123         =~  "[0-9]+"
+    --license               "Test regex arg3"  <regex_arg3>="0BSD"      =   "MulanPSL-2.0" "0BSD" "AFL-3.0" "AGPL-3.0" "" "XXXX License"
+    -z                      "Test regex arg4"
+    #1|--regex_arg3|-s      "Repo name 1"
+    #2                      "Repo name 2"        <>=456                 =~  "[0-9]+"
+    #3                      "Repo name 3"        <license>=gplv3        =   gplv3    apachev2    mplv2
+subcommand:
+    aaa                     "This is a aaa"
+    bbb                     "This is a bbb"
+    ccc                     "This is a ccc"
+A
+    param:run
+}
+
+test_ls_option_subcmd(){
+    @assert stdout ls_option_subcmd _ls_option_subcmd 789 apachev2<<A
+-y|--fsdfsd|-o
+Test regex arg1
+${arg_sep}888
+=~${arg_sep}[0-9]+${arg_sep}[a-z]+
+
+-u|--usdasd|-p
+Test regex arg2
+${arg_sep}123
+=~${arg_sep}[0-9]+
+
+--license
+Test regex arg3
+${arg_sep}0BSD
+=${arg_sep}MulanPSL-2.0${arg_sep}0BSD${arg_sep}AFL-3.0${arg_sep}AGPL-3.0${arg_sep}${arg_sep}XXXX License
+
+-z
+Test regex arg4
+
+
+
+#1|--regex_arg3|-s
+Repo name 1
+
+
+
+#2
+Repo name 2
+${arg_sep}456
+=~${arg_sep}[0-9]+
+
+#3
+Repo name 3
+${arg_sep}gplv3
+=${arg_sep}gplv3${arg_sep}apachev2${arg_sep}mplv2
+
+---------------------
+aaa
+This is a aaa
+bbb
+This is a bbb
+ccc
+This is a ccc
+---------------------
+_ls_option_subcmd
+789
+apachev2
+A
+}
+
+@assert:file:func

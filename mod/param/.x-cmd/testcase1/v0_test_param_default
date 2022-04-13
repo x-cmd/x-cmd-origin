@@ -1,0 +1,134 @@
+# shellcheck shell=sh disable=SC2039,SC2142,SC3043
+
+arg_sep="$(printf "\005")"
+dict_sep="$(printf "\003")"
+
+param_default put paramtest/ccc pd public
+
+# move some order to param default test
+
+paramtest_default(){
+    param:scope     "paramtest/$O"
+    param:dsl       '
+option:
+    --pd|-d    "Test param default setting"   <param_default>=private
+'
+    param:run
+    echo "param default: $pd"
+}
+
+w() {
+    local arg1
+    local arg2
+    local arg3
+    arg1=$(param_default get "gitee/$O" "arg1 ee")
+    arg2=$(param_default get "gitee/$O" arg2)
+    arg3=$(param_default get "gitee/$O" arg3)
+
+    assert "$arg1" = 1
+    assert "$arg2" = 11
+    assert "$arg3" = 111
+
+    case "$BASH_VERSION" in
+        5*)
+            assert stdout param_default dump gitee/"$O"<<A
+{
+  "arg3": "111",
+  "arg2": "11",
+  "arg1 ee": "1"
+}
+A
+        ;;
+        *)
+            assert stdout param_default dump gitee/"$O"<<A
+{
+  "arg1 ee": "1",
+  "arg2": "11",
+  "arg3": "111"
+}
+A
+
+            assert stdout param_default dump gitee<<A
+{
+  "c${arg_sep}arg1 ee": "1",
+  "c${arg_sep}arg2": "11",
+  "c${arg_sep}arg3": "111"
+}
+A
+        ;;
+    esac
+
+    assert stdout param_default dump_raw gitee/"$O"<<A
+c${arg_sep}arg1 ee${dict_sep}1${dict_sep}c${arg_sep}arg2${dict_sep}11${dict_sep}c${arg_sep}arg3${dict_sep}111${dict_sep}3
+A
+    assert stdout param_default dump_raw gitee<<A
+c${arg_sep}arg1 ee${dict_sep}1${dict_sep}c${arg_sep}arg2${dict_sep}11${dict_sep}c${arg_sep}arg3${dict_sep}111${dict_sep}3
+A
+}
+
+test_param_default_load(){
+    local test_json="{
+  \"e${arg_sep}arg1\": \"1\",
+  \"e${arg_sep}arg2\": \"11\",
+  \"e${arg_sep}arg3\": \"111\"
+}"
+    local json_path
+    json_path="$(x wsroot)/.x-cmd/testcase1/test_json"
+    echo "$test_json" > "$json_path"
+
+    param_default clear cc/e
+    param_default load cc/e "${json_path}"
+    param_default remove cc/e arg1
+
+    case "$BASH_VERSION" in
+        5*)
+            assert stdout param_default dump cc<<A
+{
+  "e${arg_sep}arg3": "111",
+  "e${arg_sep}arg2": "11"
+}
+A
+            ;;
+        *)
+            assert stdout param_default dump cc<<A
+{
+  "e${arg_sep}arg2": "11",
+  "e${arg_sep}arg3": "111"
+}
+A
+    esac
+
+}
+
+test_param_default_remove(){
+    param_default clear gitee_a
+    assert stdout param_default dump gitee_a<<A
+{
+}
+A
+    param_default put gitee_a arg1 1
+    assert stdout param_default dump gitee_a<<A
+{
+  "arg1": "1"
+}
+A
+    param_default remove gitee_a arg1
+    assert stdout param_default dump gitee_a<<A
+{
+}
+A
+}
+
+test_param_default(){
+    param_default clear gitee/c
+    param_default put gitee/c "arg1 ee" 1
+    param_default put gitee/c arg2 11
+    param_default put gitee/c arg3 111
+
+    O=ccc
+    assert stdout paramtest_default<<A
+param default: public
+A
+
+    O=c w -a private --repo "中文" --user "7777" work a b
+}

@@ -11,15 +11,15 @@ ___x_cmd_hub_register(){
                 ___x_cmd_ui_select "_SELECT" \
                     "Register Methods:" \
                         "Open Browser to x-cmd.com" \
-                        "Weixin QR"
-                        # "Email Verification"
+                        "Weixin QR" \
+                        "Email Verification"
                         # "Telegram Bot"
 
                 # TODO: Should move official site login to the first of the list
                 case "$_SELECT" in
                     1)          ___x_cmd_hub_register_official_site "$@"  ;;
                     2)          ___x_cmd_hub_register_weixin        "$@"  ;;
-                    # 3)          ___x_cmd_hub_register_email         "$@"  ;;
+                    3)          ___x_cmd_hub_register_email         "$@"  ;;
                     # 4)          ___x_cmd_hub_register_telegram      "$@"  ;;
                     *)          hub_log error "Unknown _SELECT: $_SELECT" ;;
                 esac
@@ -83,32 +83,45 @@ ___x_cmd_hub_register_weixin(){
 
 # EndSection
 
-# Section: frozen
+# Section: email
+___x_cmd_hub_register_email_witharg(){
+    local email="${1:?Provide email}"
+    local username="${2:?Provide username}"
+    local token_to_activate
+    token_to_activate="$(___x_cmd_hub_token_generate)"
+
+    local res
+    if ! res="$(___x_cmd_httpget "$___X_CMD_HUB_SERVICE_URL/api/v0/account/register/$email?token_to_activate=${token_to_activate}&username=${username}")" ; then
+        hub_log error "Failed to login with email: $email, res: $res"
+        return 1
+    fi
+    hub_log debug "Register with email: $email, res: $res"
+    printf "%s" "Please check your email $email to approve, then press [Enter] to continue: " >&2
+    read -r _
+
+    local userinfo
+    if userinfo="$(___x_cmd_hub_get_and_save_userinfo_by_token "${token_to_activate}")" ; then
+        hub_log info "Register Successfully, ${userinfo}"
+    else
+        hub_log error "Register Failed"
+    fi
+}
 
 ___x_cmd_hub_register_email(){
-    local email="${1:-""}"
+    local email="${1}"
+    local username="${2}"
+
     if [ -z "$email" ]; then
         printf "%s" "Email: "
         read -r email
     fi
 
-    local res
-    hub_log debug "Registering email: $email"
-    if ! res="$(___x_cmd_httpget "$___X_CMD_HUB_SERVICE_URL/api/v0/account/register/$email")" ; then
-        hub_log error "Failed to ls file: $res"
-        return 1
+    if [ -z "$username" ]; then
+        printf "%s" "Username: "
+        read -r username
     fi
-    hub_log debug "response: ${res}"
 
-    local ticket
-    ticket="$(printf "%s" "$res" | x jq -r '.ticket')"
-
-    # if [ "$msg" = "$result" ]; then
-    #     ticket="${result#TICKET=}"
-    #     ___x_cmd_hub_verify "$email" "$ticket"
-    # else
-    #     printf "%s\n" "$result"
-    # fi
+    ___x_cmd_hub_register_email_witharg "$email" "$username"
 }
 
 # EndSection

@@ -1,45 +1,111 @@
-# shellcheck shell=sh disable=SC2039,SC1090,SC3043,SC2263    # xrc
+# shellcheck shell=sh disable=SC2039,SC1090,SC3043,SC2263,SC2120    # xrc
 
-___x_cmd_env_go_ls(){
-    :
+# Section: Go ls_remote
+
+___x_cmd_env_go_sort_versions(){
+	sort -t . -n
 }
 
-___x_cmd_env_go_la(){
-    :
+___x_cmd_env_go_ls_remote(){
+    local cache_path="$___X_CMD_ENV_PATH/go/cache/version_list"
+    local cache_expiration="${2:-1}"
+    ___x_cmd_httpget "https://go.dev/project" "$cache_path" "$cache_expiration" && \
+        awk 'match($0,/Go [.-9]+<\/a>/){print substr ($0,RSTART+3,RLENGTH-7)}' < "$cache_path" | ___x_cmd_env_go_sort_versions | uniq
+}
+# EndSection
+
+# Section: download
+
+___x_cmd_env_go_download_archive(){
+    local version="${1:?Provide a version}"
+    if ___x_cmd_env_util_is_archive_cached go "$version" 2>/dev/null; then
+        env_log info "Archive existed: $version"
+        return 0
+    fi
+
+    xrc os
+    case "$(___x_cmd_os name)" in
+        linux)      platform=linux                ;;
+        win)        platform=windows              ;;
+        macOS)      platform=darwin               ;;
+        *)          return 1 ;;
+    esac
+    case "$(___x_cmd_os arch)" in
+        x86)        arch=386                  ;;
+        x64)        arch=amd64                ;;
+        arm64)      arch=arm64                ;;
+        ARMv6)      arch=armv6l               ;;
+        *)          return 1 ;;
+    esac
+
+    local compression='tar.gz'; [ "${platform}" = 'windows' ] && compression='zip' # TODO: tar.xz support
+    download_url="https://golang.google.cn/dl/go${version}.${platform}-${arch}.${compression}"
+    env_log info "Downloading go ${download_url}"
+
+    local archive_path="$___X_CMD_ENV_PATH/go/archive/go-${version}.${compression}"
+    mkdir -p "$(dirname "$archive_path")"
+    if ! curl --progress-bar --location --retry-max-time 10 --retry 0 "${download_url}" --output "${archive_path}"; then
+	    env_log info "Download failure"
+	    return 1
+	fi
+   env_log info "Download Done"
 }
 
-___x_cmd_env_go_download(){
-    :
+# EndSection
+
+# Section: unpack
+
+___x_cmd_env_go_unpack(){
+    local version="${1:?Provide go version}"
+    local platform
+    local arch
+    {
+        read -r platform
+        read -r arch
+    } <<A
+$(x os name; x os arch)
+A
+
+    local compression='tar.gz'; [ "${platform}" = 'win' ] && compression='zip' # TODO: tar.xz support
+    local archive_path="$___X_CMD_ENV_PATH/go/archive/go-${version}.${compression}"
+    local archive_unpack_files
+    archive_unpack_files="$(dirname "$archive_path")/go-${version}"
+    mkdir -p "$archive_unpack_files"
+    case "$platform" in
+        win)    ___x_cmd_env_go_unpack_win    ;;
+        *)      ___x_cmd_env_go_unpack_other  ;;
+    esac
+    local code=$?
+    rm -rf "${archive_unpack_files}"
+    env_log info "Done unpacking!"
+    return $code
 }
 
-___x_cmd_env_go_install(){
-    :
+___x_cmd_env_go_unpack_win(){
+    x uz "$archive_path" "$(dirname "$archive_path")" || return 1
+    local version_path="${___X_CMD_ENV_PATH}/go/versions/${version}/bin"
+    mkdir -p "${version_path}" && (
+        mv "${archive_unpack_files}/"*/* "${version_path}" || return 1
+        cd "${version_path}" && chmod +x go.exe npm npx
+    )
 }
 
-___x_cmd_env_go_uninstall(){
-    :
+___x_cmd_env_go_unpack_other(){
+    local version_path="${___X_CMD_ENV_PATH}/go/versions/${version}"
+    tar -xzf "${archive_path}" -C "${archive_unpack_files}" --strip-components 1 || return 1
+    mkdir -p "${version_path}" && mv "${archive_unpack_files}/"* "${version_path}"
 }
 
-___x_cmd_env_go_try(){
-    :
+# EndSection
+
+# Section: ui_catsel
+
+#TODO: Should be optimized
+___x_cmd_env_go_ui_catsel(){
+    case "$#" in
+        0)  ___x_cmd_env_go_ls_remote | awk '{ split($0,arr,"."); vmap[arr[1]]=1 } END{ for(key in vmap){print key} }' ;;
+        1)  ___x_cmd_env_go_ls_remote | grep ^"$1" | awk '{ print $0 }' ;;
+    esac
 }
 
-___x_cmd_env_go_use(){
-    :
-}
-
-___x_cmd_env_go_ws(){
-    :
-}
-
-___x_cmd_env_go_current(){
-    :
-}
-
-___x_cmd_env_go_which(){
-    :
-}
-
-___x_cmd_env_go_exec(){
-    :
-}
+# EndSection

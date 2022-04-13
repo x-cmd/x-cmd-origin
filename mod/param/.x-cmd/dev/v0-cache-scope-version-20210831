@@ -203,12 +203,12 @@ _param_main() {
             # printf "%s" "$___X_BASH_PARAM_VALUE"
             param_default dump_raw "$___X_BASH_PARAM_SCOPE"
         fi
-    }   
+    }
 )"
     time awk \
             -v ARG_SEP="$PARAM_ARG_SEP" \
             -v RS="$PARAM_RS_SEP" \
-            -f "$PARAM_AWK_PATH" <<A
+            -f "$PARAM_AWK_PATH<<A
 $s
 A
 

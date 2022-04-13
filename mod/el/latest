@@ -1,36 +1,12 @@
-# shellcheck shell=sh disable=SC3043  # xrc
+# Author:       Li Junhao      l@x-cmd.com      # xrc
+# shellcheck    shell=sh       disable=SC3043
 
-# author:       Li Junhao           l@x-cmd.com
-# maintainer:   Li Junhao
+xrc:mod:lib el  alpine code container git k8s udpn utils wubi alphabet a2
 
-
-___x_cmd_el_xrc_lib(){ xrc "el/lib/${1:?Provide module}"; }
-x marg1 ___x_cmd_el_xrc_lib <<A
-alpine
-code
-container
-git
-k8s
-udpn
-utils
-wubi
-A
-
-# x margs [ alpine code container git k8s updn utils wubi ] xrc el/lib/\$1
-
-# x marg1 - xrc el/lib/\$1 <<A
-# alpine
-# code
-# container
-# git
-# k8s
-# udpn
-# utils
-# wubi
-# A
++ yanfa
 
 + xdk
-alias xdk=xdk  # xdk="x dk"
+alias xdk=xdk   # xdk="x dk"
 alias l='x ll'
 
 if [ -z "$___X_CMD_THEME_NAME" ]; then

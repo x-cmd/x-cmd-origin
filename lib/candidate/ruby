@@ -3,10 +3,11 @@
 # Section: Ruby ls_remote
 
 ___x_cmd_env_ruby_ls_remote(){
-    local cache_expiration="${2-1}"
+    local cache_expiration="${2:-86400}"
     local cache_path="$___X_CMD_ENV_PATH/ruby/cache/cache_list"
     ___x_cmd_httpget "https://www.ruby-lang.org/en/downloads/releases/" "$cache_path" "$cache_expiration" && \
-     awk '(match($0,/Ruby [.-9]+(-[a-z0-9]+)?/)){ print substr($0,RSTART+5,RLENGTH-5)}' < "$cache_path"
+     awk '(match($0,/Ruby [.-9]+(-[a-z0-9]+)?/)){ print substr($0,RSTART+5,RLENGTH-5)}' < "$cache_path" \
+        | ___x_cmd_env_common_sort_version
 }
 
 # EndSection
@@ -41,19 +42,19 @@ ___x_cmd_env_ruby_download_archive(){
     esac
 
     if ___x_cmd_env_util_is_archive_cached ruby "$version" 2>/dev/null; then
-		env_log info  "Archive existed: $version"
+		env:info  "Archive existed: $version"
 		return 0
 	fi
     local archive_path="$___X_CMD_ENV_PATH/ruby/archive/ruby-${version}.${compression}"
     mkdir -p "$(dirname "${archive_path}")"
     local download_url="https://cache.ruby-lang.org/pub/ruby/${t_version}/ruby-${version}.${compression}"
-    env_log info "Downloading ruby ${download_url}"
+    env:info "Downloading ruby ${download_url}"
     echo "${download_url}"
     if ! curl --progress-bar --location --retry-max-time 10 --retry 0 "${download_url}" --output "${archive_path}"; then
-		env_log info "Download failure"
+		env:info "Download failure"
 		return 1
 	fi
-    env_log info "Download completed $download_url"
+    env:info "Download completed $download_url"
 }
 
 # EndSection
@@ -94,7 +95,7 @@ A
     esac
     local code=$?
     rm -rf "${archive_unpack_files}"
-    env_log info "Done unpacking!"
+    env:info "Done unpacking!"
     return $code
 }
 

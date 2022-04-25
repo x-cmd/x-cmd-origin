@@ -1,0 +1,2 @@
+# shellcheck shell=sh disable=SC1072 #source
+

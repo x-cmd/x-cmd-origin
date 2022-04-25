@@ -5,7 +5,7 @@ ___x_cmd_env_util_is_downloaded(){
     local version="${2:?Provide version}"
 
     if [ ! -d "$___X_CMD_ENV_PATH/${candidate}/versions/${version}" ]; then
-        env_log error "${candidate} of ${version} does not exist !"
+        env:error "${candidate} of ${version} does not exist !"
         return 1
     fi
     return 0
@@ -16,7 +16,7 @@ ___x_cmd_env_util_is_archive_cached(){
     local version="${2:?Provide version}"
 
     if [ -z "$(find "$___X_CMD_ENV_PATH/$candidate/archive" -name "$candidate-$version.*")" ]; then
-        env_log error "The archive of ${candidate} ${version} does not exist !"
+        env:error "The archive of ${candidate} ${version} does not exist !"
         return 1
     fi
 
@@ -55,7 +55,7 @@ ___x_cmd_env_util_make_shim_dir(){
     local versions_path="$___X_CMD_ENV_PATH/$candidate/versions"
 
     if [ ! -d "$versions_path/$version" ]; then
-        env_log error "Versions path not found: $versions_path/$version"
+        env:error "Versions path not found: $versions_path/$version"
         return 1
     fi
 

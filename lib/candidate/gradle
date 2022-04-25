@@ -2,17 +2,18 @@
 
 # Section: gradle ls_remote and la
 
-___x_cmd_env_gradle_sort_versions(){
-	sort -t . -n -k 1,1n -k 2,2n
-}
-
 ___x_cmd_env_gradle_ls_remote(){
-    # local pattern="${1:-""}"	# TODO: ls remote filter
-    local cache_expiration="${2:-1}"
+    local pattern="${1:-""}"	# TODO: ls remote filter
+    local cache_expiration="${2:-86400}"
     local cache_path="$___X_CMD_ENV_PATH/gradle/cache/version_list"
 
     ___x_cmd_httpget "https://services.gradle.org/distributions/" "$cache_path" "$cache_expiration" && \
-    awk 'match($0, /gradle-([0-9.]+)-all.zip"/){ print substr($0, RSTART+7, RLENGTH-16)}' <"$cache_path" | ___x_cmd_env_gradle_sort_versions | uniq
+    awk -v pattern="$pattern" 'match($0, /gradle-([0-9.]+)-all.zip"/){
+        version = substr($0, RSTART+7, RLENGTH-16)
+        if (pattern == "" || index(version, pattern) > 0) {
+            print version
+        }
+    }' <"$cache_path" | ___x_cmd_env_common_sort_version | ___x_cmd_env_common_simplify_version
 }
 
 # EndSection
@@ -23,7 +24,7 @@ ___x_cmd_env_gradle_download_archive(){
     local version="${1:?Provide gradle version}"
 
     if ___x_cmd_env_util_is_archive_cached gradle "$version" 2>/dev/null; then
-        env_log info "Archive existed: $version"
+        env:info "Archive existed: $version"
         return 0
     fi
 
@@ -31,18 +32,18 @@ ___x_cmd_env_gradle_download_archive(){
     mkdir -p "$(dirname "$archive_path")"
     local download_url="https://services.gradle.org/distributions/gradle-$version-all.zip"
 
-    env_log info "Downloading $download_url"
+    env:info "Downloading $download_url"
     if ! curl --progress-bar --location --retry-max-time 10 --retry 0 "$download_url" --output "$archive_path" ; then
-        env_log error "Download failure from $download_url"
+        env:error "Download failure from $download_url"
         return 1
     fi
 
-    env_log info "Download completed $download_url"
+    env:info "Download completed $download_url"
 }
 
 ___x_cmd_env_gradle_unpack(){
 	local version="${1:?Provide a version}"
-    env_log info "Unpacking: gradle ${version}"
+    env:info "Unpacking: gradle ${version}"
 
     local archive_path="$___X_CMD_ENV_PATH/gradle/archive/gradle-$version.zip"
 	x uz "$archive_path" "$(dirname "$archive_path")" || return 1

@@ -2,19 +2,11 @@
 
 ___X_CMD_ENV_NODE_MIRROR="https://nodejs.org/dist"
 
-# Section: full_version, ls_local, ls_remote
-
-___x_cmd_env_node_full_version(){
-    ___x_cmd_env_node_ls_remote "$1" "$2" | awk 'END{ if (NR<=0) { exit(1) } else print $1;}'
-}
-
-___x_cmd_env_node_sort_versions(){
-    sort -t. -u -k 1.2,1n -k 2,2n -k 3,3n
-}
+# Section: ls_remote
 
 ___x_cmd_env_node_ls_remote(){
     local pattern="${1:-""}"
-    local cache_expiration="${2:-1}"
+    local cache_expiration="${2:-86400}"
     local cache_path="$___X_CMD_ENV_PATH/node/cache/version_list"
 
 	___x_cmd_httpget "$___X_CMD_ENV_NODE_MIRROR/index.tab" "$cache_path" "$cache_expiration" && \
@@ -28,7 +20,7 @@ ___x_cmd_env_node_ls_remote(){
                 else                                                    print version, codename
             }
             prev_codename=codename
-        }' <"$cache_path" | ___x_cmd_env_node_sort_versions
+        }' <"$cache_path" | ___x_cmd_env_common_sort_version | ___x_cmd_env_common_simplify_version
 }
 
 # EndSection
@@ -40,7 +32,7 @@ ___x_cmd_env_node_download_archive(){
     local version="${1:?Provide node version}"
 
     if ___x_cmd_env_util_is_archive_cached node "$version" 2>/dev/null; then
-        env_log info "Archive existed: $version"
+        env:info "Archive existed: $version"
         return 0
     fi
 
@@ -60,8 +52,8 @@ A
     # TODO: Consider use config instead of code in the future
     local version_without_v="${version#v}"
     if [ "$platform-$arch" = "darwin-arm64" ] && [ "${version_without_v%%.*.*}" -lt 16 ]; then
-        env_log warn "You are using darwin arm64, but node $version is not available for this platform. (node < 16.x)"
-        env_log warn "Use x86_64 instead."
+        env:warn "You are using darwin arm64, but node $version is not available for this platform. (node < 16.x)"
+        env:warn "Use x86_64 instead."
         arch="x64"
     fi
 
@@ -70,13 +62,13 @@ A
     local download_url="${___X_CMD_ENV_NODE_MIRROR}/${version}/${slug}.${compression}"
     if ! curl -L -C - --progress-bar "${download_url}" -o "${archive_path}"; then
         rm -rf "${archive_path}"
-        env_log error "Download from ${download_url} failed."
+        env:error "Download from ${download_url} failed."
         return 1
     fi
 
     # TODO: checksum
 
-    env_log info "Downloaded ${download_url} to ${archive_path}"
+    env:info "Downloaded ${download_url} to ${archive_path}"
 }
 # EndSection
 
@@ -122,7 +114,7 @@ A
     local code=$?
 
     rm -rf "${archive_unpack_files}"
-    env_log info "Done unpacking!"
+    env:info "Done unpacking!"
     return $code
 }
 

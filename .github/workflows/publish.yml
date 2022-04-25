@@ -1,19 +1,21 @@
-name: 'github actions publish x-cmd/dev'
-
+name: Publish-Cron
 on:
+  # push:
   workflow_dispatch:
   # schedule:
   #   - cron: '30 11 * * *'
 
 jobs:
-  bot:
+  publisher:
     runs-on: ubuntu-latest
+    env:
+      ssh_key: ${{ secrets.SSH_PRIVATE_KEY }}
+      git_user: agent-zero
+      git_email: 0@x-cmd.com
+      ___X_CMD_CODESORUCE_REPO: dev
+      CONCURRENCY: 10
     steps:
-      - name: install x-cmd && setup ssh publish
-        run:  |
-              eval "$(curl https://get.x-cmd.com/dev)" || true
-              git clone git@gitee.com:x-cmd/x-cmd.git && cd x-cmd || exit
-              x gh-action ssh "$SSH_PRIVATE_KEY" agent-zero 0@x-cmd.com || true
-              xws pub0 || true
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      - name: main
+        uses: x-cmd/action@main
+        with:
+          code: x log +yanfa && x ws pub0 || true

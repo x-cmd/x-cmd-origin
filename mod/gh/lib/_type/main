@@ -2,7 +2,7 @@
 # shellcheck disable=SC2039,3043
 # Define in param
 param_type      github     Bool                 =       true   false
-param_type      github     UserGroup            =       owner collaborator organization_member  admin
+param_type      github     UserGroup            =       owner collaborator organization_member "" admin
 param_type      github     UserSort             =       created updated pushed full_name
 param_type      github     Direction            =       desc asc
 param_type      github     Authority            =       all public private
@@ -10,7 +10,7 @@ param_type      github     OrgMemberRole        =       admin member all
 param_type      github     OrgMemberFilter      =       2fa_disabled all
 param_type      github     PrState              =       open merged closed all
 param_type      github     PrSort               =       created updated popularity long-running
-param_type      github     Status               =       enable  disable ""
+param_type      github     Status               =       enable  disable "\"\""
 param_type      github     RepoVisibility       =       private public
 param_type      github     RepoPerm             =       pull    push     admin
 param_type      github     RepoPath             "=~"    "[-A-Za-z0-9_/]+"      # TODO: make it fit it github definition

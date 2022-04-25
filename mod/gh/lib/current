@@ -2,23 +2,19 @@
 # shellcheck disable=SC2039,3043
 
 ___x_cmd_gh_current(){
-    param:dsl       '
-subcmd:
-    repo        "Save the config in memory into file"
-    owner       "get current owner"
-    type        "get current owner type"
-'
+    param:subcmd ___x_cmd_gh_current            \
+        owner       "get current owner"         \
+        repo        "Save the config in memory into file"
+    param:subcmd:try
+
+    param:subcmd ___x_cmd_gh_current_owner            \
+        type        "get current owner type"
+    param:subcmd:try
     param:run
 
-    if [ -z "$PARAM_SUBCMD" ]; then
-        echo "Command Not Found. Show help." >&2
-        return 0
-    fi
-
-    case "${PARAM_SUBCMD}" in
-        type)       "___x_cmd_gh_current_owner_${PARAM_SUBCMD}"   "$@"     ;;
-        *)          "___x_cmd_gh_current_${PARAM_SUBCMD}"        "$@"     ;;
-    esac
+    gh_log warn "Subcmd Not Found."
+    ___x_cmd_gh_current _param_help_doc
+    return 1
 }
 
 # shellcheck disable=SC2120

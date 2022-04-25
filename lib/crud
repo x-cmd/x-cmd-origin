@@ -2,7 +2,7 @@
 # shellcheck    shell=sh    disable=SC2039,SC3043
 # crud
 ___x_cmd_http_get() (   # Notice: Using subshell
-    url=$1
+    url=${1:?Provide https url}
     shift
     ___x_cmd_http_qs mput "$@"
     X=GET ___x_cmd_http_request "$url"
@@ -44,7 +44,7 @@ ___x_cmd_http_patch() {
         form)   ;;
         text)   ;;
         bin)    ;;
-        *)      X=PATCH ___x_cmd_http_request "$@" ;;
+        *)      X=PATCH ___x_cmd_http_request "$content_op" "$@" ;;
     esac
 }
 

@@ -5,19 +5,21 @@ ___x_cmd_test_bench(){
     # }
 
     case "$1" in
-        echo)       ___x_cmd_test_bench_run echo 1000000 ;;
+        echo)       ___x_cmd_test_bench_run echo 100000 ;;
         trim)       ___x_cmd_test_bench_run trim 100000 ;;
         strim)      ___x_cmd_test_bench_run strim 100000 ;;
         plus)       ___x_cmd_test_bench_run plus 1000000 ;;
         get)        ___x_cmd_test_bench_run get 1000000 ;;
         file)       ___x_cmd_test_bench_run file 10000 ;;
         command)    ___x_cmd_test_bench_run command 100000 ;;
+        whileshift) ___x_cmd_test_bench_run whileshift 10000 ;;
         varget)     ___x_cmd_test_bench_run varget 100000 ;;
+        strcon)     ___x_cmd_test_bench_run strcon 10000 ;;
         ""|all)     ___x_cmd_test_bench_all ;;
     esac
 }
 
-
+# . ./bench.bash
 if [ -z "$USING_POSIX" ]; then
     # xrc:mod test/lib/bench.bash
     . ./lib/bench.bash
@@ -32,7 +34,21 @@ alias b="___x_cmd_test_bench"
 ___x_cmd_test_bench_echo_inner(){
     local i
     for i in $(seq 1 "$1"); do
-        echo "1"
+        echo "Moving:   latest                                /Users/l/.x-cmd/test/latest
+Moving:   lib/bench                             /Users/l/.x-cmd/test/lib/bench
+Moving:   lib/cycle                             /Users/l/.x-cmd/test/lib/cycle
+Moving:   lib/bench.other                       /Users/l/.x-cmd/test/lib/bench.other
+Moving:   lib/bench.bash                        /Users/l/.x-cmd/test/lib/bench.bash
+echo      3098  0.003098 ms       322
+plus      3564  0.003564 ms       280
+strim     459   0.00459 ms        217
+trim      2873  0.02873 ms         34
+varget    1264  0.01264 ms         79
+get       5970  0.00597 ms        167
+file      71    0.0071 ms         140
+command   3240  0.0324 ms          30
+whileshift854   0.0854 ms          11
+strcon    2407  0.2407 ms           4"
     done
 }
 
@@ -83,6 +99,35 @@ ___x_cmd_test_bench_varget_inner(){
 }
 
 
+___x_cmd_test_whileshift_f(){
+    while [ $# -gt 0 ]; do
+        shift
+    done
+}
+
+___x_cmd_test_bench_whileshift_inner(){
+    local i
+    for i in $(seq 1 "$1"); do
+        ___x_cmd_test_whileshift_f v___x_cmd_test_bench_run___x_cmd_test_bench_run1 v___x_cmd_test_bench_run___x_cmd_test_bench_run2 v___x_cmd_test_bench_run___x_cmd_test_bench_run3 v___x_cmd_test_bench_run___x_cmd_test_bench_run4 v___x_cmd_test_bench_run___x_cmd_test_bench_run5 v___x_cmd_test_bench_run___x_cmd_test_bench_run6 v___x_cmd_test_bench_run___x_cmd_test_bench_run7 v___x_cmd_test_bench_run___x_cmd_test_bench_run8 v___x_cmd_test_bench_run___x_cmd_test_bench_run9 v___x_cmd_test_bench_run___x_cmd_test_bench_run10
+    done
+}
+
+
+___x_cmd_test_strcon_f(){
+    local a
+    while [ $# -gt 0 ]; do
+        a="$a
+___x_cmd_test_strcon_f  ___x_cmd_test_strcon_f ___x_cmd_test_strcon_f ___x_cmd_test_strcon_f$#"
+        shift
+    done
+}
+
+___x_cmd_test_bench_strcon_inner(){
+    local i
+    for i in $(seq 1 "$1"); do
+        ___x_cmd_test_strcon_f v___x_cmd_test_bench_run___x_cmd_test_bench_run1 v___x_cmd_test_bench_run___x_cmd_test_bench_run2 v___x_cmd_test_bench_run___x_cmd_test_bench_run3 v___x_cmd_test_bench_run___x_cmd_test_bench_run4 v___x_cmd_test_bench_run___x_cmd_test_bench_run5 v___x_cmd_test_bench_run___x_cmd_test_bench_run6 v___x_cmd_test_bench_run___x_cmd_test_bench_run7 v___x_cmd_test_bench_run___x_cmd_test_bench_run8 v___x_cmd_test_bench_run___x_cmd_test_bench_run9 v___x_cmd_test_bench_run___x_cmd_test_bench_run10
+    done
+}
 
 # Section: data
 data="

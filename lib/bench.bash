@@ -1,7 +1,7 @@
 
 ___x_cmd_test_bench_all(){
     local i
-    for i in echo plus strim trim varget get file command; do
+    for i in echo plus strim trim varget get file command whileshift strcon; do
         ___x_cmd_test_bench "$i"
     done
 }
@@ -11,7 +11,7 @@ ___x_cmd_test_bench_run(){
     [ "${name#___x_cmd_test_bench}" = "$name" ] && name="___x_cmd_test_bench_${name}_inner"
 
     local display="${name#___x_cmd_test_bench_}"
-    printf "%-10s" "${display%_inner}"
+    printf "%-11s" "${display%_inner}"
     local cycle="$2"
     ( time "$name" "$cycle" >/dev/null ) 2>&1 \
         | tee /dev/stdout | awk -v cycle="$cycle" 'NR==2{

@@ -18,52 +18,26 @@ option:
 }
 
 w() {
-    local arg1
-    local arg2
-    local arg3
-    arg1=$(param_default get "gitee/$O" "arg1 ee")
-    arg2=$(param_default get "gitee/$O" arg2)
-    arg3=$(param_default get "gitee/$O" arg3)
+    @assert "$(param_default get "gitee/$O" "arg1 ee")"     = 1
+    @assert "$(param_default get "gitee/$O" arg2)"          = 11
+    @assert "$(param_default get "gitee/$O" arg3)"          = 111
 
-    assert "$arg1" = 1
-    assert "$arg2" = 11
-    assert "$arg3" = 111
+    local a="c${arg_sep}arg1 ee${dict_sep}1"
+    local b="c${arg_sep}arg2${dict_sep}11"
+    local c="c${arg_sep}arg3${dict_sep}111"
 
-    case "$BASH_VERSION" in
-        5*)
-            @assert stdout param_default dump gitee/"$O"<<A
-{
-  "arg3": "111",
-  "arg2": "11",
-  "arg1 ee": "1"
-}
+    case "${BASH_VERSION}" in
+        4*|5*)
+            @assert stdout param_default dump_raw "gitee/$O" <<A
+$c${dict_sep}$b${dict_sep}$a${dict_sep}3
 A
         ;;
         *)
-            @assert stdout param_default dump gitee/"$O"<<A
-{
-  "arg1 ee": "1",
-  "arg2": "11",
-  "arg3": "111"
-}
+            @assert stdout param_default dump_raw "gitee/$O" <<A
+$a${dict_sep}$b${dict_sep}$c${dict_sep}3
 A
-
-            @assert stdout param_default dump gitee<<A
-{
-  "c${arg_sep}arg1 ee": "1",
-  "c${arg_sep}arg2": "11",
-  "c${arg_sep}arg3": "111"
-}
-A
-        ;;
     esac
-
-    @assert stdout param_default dump_raw gitee/"$O"<<A
-c${arg_sep}arg1 ee${dict_sep}1${dict_sep}c${arg_sep}arg2${dict_sep}11${dict_sep}c${arg_sep}arg3${dict_sep}111${dict_sep}3
-A
-    @assert stdout param_default dump_raw gitee<<A
-c${arg_sep}arg1 ee${dict_sep}1${dict_sep}c${arg_sep}arg2${dict_sep}11${dict_sep}c${arg_sep}arg3${dict_sep}111${dict_sep}3
-A
+    @assert "$(param_default dump_raw gitee)" "$(param_default dump_raw "gitee/$O")"
 }
 
 test_param_default_load(){

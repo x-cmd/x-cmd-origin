@@ -1,0 +1,339 @@
+. ~/.x-cmd/xrc/latest
+
+# shellcheck shell=sh disable=SC2039,SC2142,SC3043
+___X_CMD_XRC_MODULE_IMPORTED=
+xrc param/latest
+
+# Section: define functions for param testcase
+
+param_type_unset    paramtest
+
+# param_type    paramtest     mline_arg_type  "=~"  "[A-Za-z0-9_\\n]+"
+param_type    paramtest     access          "="   "private"         "public"          "inner-public"
+param_type    paramtest     url_type        "=~"  "https?://.+"
+param_type    paramtest     atlist_type     "=~"  "[-0-9,]+"
+
+
+param_gh(){
+    param:subcmd param_gh                    \
+        "repo|re"          "repo command"            \
+        current       "set current owner, repo" \
+        org           "manage org"              \
+        user          "user"                    \
+        config        "save, load, which"       \
+        token         "set token"               \
+        auth          "Authorize gh"
+    param:subcmd:try
+
+    param:subcmd param_gh_repo               \
+        release       "manage release"          \
+        member        "Authorize gh"
+    param:subcmd:try
+    param:run
+}
+
+param_gh_repo(){
+    param:subcmd param_gh_repo     \
+        create         "create repo"          \
+        rm             "remove repo"
+    param:subcmd:try
+    param:run
+}
+
+param_tldr(){
+    param:subcmd param_tldr \
+        update      "Update" \
+        ls          "List all possible commands" \
+        lang        "Set Prefered language or show languange candidates" \
+        cat         "Concatenate tldr file to standard output"
+    param:subcmd:try
+    param:run
+}
+param_tldr_update(){
+    param:void
+}
+param_tldr_ls(){
+    param:void
+}
+param_tldr_lang_aaa(){
+    param:void
+}
+param_tldr_lang(){
+    param:subcmd param_tldr_lang \
+    aaa "aaa desc"
+    param:subcmd:try
+
+    param:dsl <<A
+advise:
+    #1          ___x_cmd_tldr_lang
+options:
+    #1          "use the selected file to rollback"
+A
+    param:run
+}
+param_tldr_cat(){
+    param:dsl <<A
+advise:
+    #1          ___x_cmd_tldr_lsname
+options:
+    #1          "use the selected file to rollback"
+A
+    param:run
+}
+
+paramtest(){
+    param:plugin    "paramtest"
+    param:scope     "paramtest/$O"
+    param:dsl  <<A
+subcommand:
+    option|op-test  "Test option"
+    subcmd          "Test subcommand"
+    marg            "Test multiple argement"
+    rarg            "Test rest argement"
+    namelist        "Test name list"
+    snl             "Test small name list"
+    advise_null     "Test advise null"
+    subcmd_null     "Test subcommand null"
+options:
+    --candi_null    "Test null option to use candidate"  <candi_null>:candis="abc"        =  abc  cde     def
+A
+    param:run
+
+    if [ -z "$PARAM_SUBCMD" ]; then
+        echo "candi_null: $candi_null"
+        echo "rest argument $1"
+        return 0
+    fi
+
+    paramtest_"${PARAM_SUBCMD}" "$@"
+}
+
+param_default put paramtest/xxx priviledge public
+
+paramtest_advise_null(){
+    param:void
+    echo "ddd"
+}
+
+paramtest_namelist(){
+    param:scope     "paramtest/$O"
+    param:dsl       '
+type:
+    access  =   private public
+    repo_t  =~  "cde"   "def"
+advise:
+    repo  list_repo all
+    #1    list_repo
+option:
+    #1|--mul_line_arg|-m    "Test multiple line argument"                <mline_arg>:mline_arg_type
+    #3|--regex_arg2         "Test an argument with regex 2"              <>=20    =~  ([1-9]?[0-9]|100)
+    #2|--regex_arg1         "Test an argument with regex 1"              <>=0     =~  [0-9]*
+    --repo|-r               "Provide repo name"                          <>:repo_type   =~  "abc"   "cde"   "def"
+    --repo2|-b|m            "Provide two repo name"
+        <arg1>:repo_type=""               =   "abc"   "cde"   "def"
+        <arg2>:repo_t=
+    --priviledge|-p         "Provide privilidge"                         <priviledge_type>:access=private
+    --no_type_arg|-n        "Test no type argument but have default"     <no_type_arg>=default
+    --flag1|-f              "Flag1 that you can use $\\{flag1:-false} to get the bool value"
+    --flag1222|-g           "Flag1222 that you can use $\\{flag1222:-false} to get the bool value"
+'
+    param:run
+    echo "regex_arg1: $regex_arg1"
+    echo "regex_arg2: $regex_arg2"
+    echo "param repo: $repo"
+    echo "param repo2: $repo2_n $repo2_1_1 $repo2_1_2"
+    echo "param priviledge: $priviledge"
+    echo "param no_type_arg: $no_type_arg"
+    echo "multiple line argument: $mul_line_arg"
+    echo "flag1: ${flag1:-false}"
+    echo "flag1222: ${flag1222:-false}"
+    echo "rest argument: $4"
+}
+
+paramtest_snl() {
+    param:scope     "paramtest/$O"
+    param:dsl       '
+options:
+    #1|--org           "org space address"    <>
+'
+    param:run
+    echo "org: ${org##*/}"
+}
+
+paramtest_rarg() {
+    param:scope     "paramtest/$O"
+    param:dsl       '
+options:
+    #1              "Test rest argument #1 request"  <rarg>:atlist_type  =   "private"         "public"          "inner-public"
+    #2              "Test rest argument #2 request"  <arg2>              =~  "[-0-9,]+"
+    #3              "Test rest argument #3 request"  <arg3>
+    #4              "Test rest argument #4 request"  <arg4>="iii"
+    #5              "Test rest argument #5 request"
+'
+    param:run
+    echo "rest argument1:$1"
+    echo "rest argument2:$2"
+    echo "rest argument3:$3"
+    echo "rest argument4:$4"
+    echo "rest argument5:$5"
+}
+
+paramtest_option(){
+    param:scope     "paramtest/$O"
+    param:dsl      <<A
+type:
+    access  =   private public
+    repo_t  =~  "cde"   "def"
+advise:
+    repo  list_repo all
+    #1    list_repo
+option:
+    --mul_line_arg|-m       "Test multiple line argument"            <mline_arg>:mline_arg_type
+    --regex_arg1            "Test an argument with regex 1"          <>=0     =~  [0-9]*
+    --regex_arg2            "Test an argument with regex 2"          <>=20    =~  ([1-9]?[0-9]|100)
+    --repo|-r               "Provide repo name"                      <>:repo_type   =~  "abc"   "cde"   "def"
+    --repo2|-b|m            "Provide two repo name"
+        <arg1>:repo_type=""               =   "abc"   "cde"   "def"
+        <arg2>:repo_t=
+    --priviledge|-p         "Provide privilidge"                     <priviledge_type>:access=private
+    --no_type_arg|-n        "Test no type argument but have default" <no_type_arg>=default
+    --flag1|-f              "Flag1 that you can use \\\$\{flag1:-false} to get the bool value"
+    --flag1222|-g           "Flag1222 that you can use \\\$\{flag1222:-false} to get the bool value"
+    #1                      "Test rest argument #1 when exist option and flag"
+    #222222                 "Provide number #2"
+    #3                      "Provide number #3"
+A
+    param:run
+    echo "regex_arg1: $regex_arg1"
+    echo "regex_arg2: $regex_arg2"
+    echo "param repo: $repo"
+    echo "param repo2: $repo2_n  $repo2_1_1 $repo2_1_2"
+    echo "param priviledge: $priviledge"
+    echo "param no_type_arg: $no_type_arg"
+    echo "multiple line argument: $mul_line_arg"
+    echo "flag1: ${flag1:-false}"
+    echo "flag1222: ${flag1222:-false}"
+    echo "rest argument: $1"
+}
+
+paramtest_marg() {
+    param:scope     "paramtest/$O"
+    param:dsl       '
+option:
+    --card|-c|m "Provide multiple action card in following format. [ <title> <message-url> <picture-url> ] ..."
+            <title>
+            <message-url>:url_type
+            <picture-url>:url_type
+'
+    param:run
+
+    IFS="
+"
+    for i in $(param_marg card); do
+        echo "title: $(param_marg_get card "$i" 1)"
+        echo "message-url: $(param_marg_get card "$i" 2)"
+        echo "picture-url: $(param_marg_get card "$i" 3)"
+    done
+}
+
+paramtest_longoption(){
+    param:scope     "paramtest/$O"
+    param:dsl      <<A
+type:
+    access  =   private public
+    repo_t  =~  "cde"   "def"
+advise:
+    repo  list_repo all
+    #1    list_repo
+option:
+    --mul_line_arg|-m       "Test multiple line argument Test multiple line argument Test multiple line argument Test multiple line argument Test multiple line argument Test multiple line argument Test multiple line argument Test multiple line argument Test multiple line argument Test multiple line argument Test multiple line argument Test multiple line argument"            <mline_arg>:mline_arg_type
+    --regex_arg1            "Test an argument with regex 1"          <>=0     =~  [0-9]*
+    --regex_arg2            "Test an argument with regex 2"          <>=20    =~  ([1-9]?[0-9]|100)
+    --flag1|-f              "Flag1 that you can use \\\$\{flag1:-false} to get the bool value Flag1 that you can use \\\$\{flag1:-false} to get the bool value Flag1 that you can use \\\$\{flag1:-false} to get the bool value Flag1 that you can use \\\$\{flag1:-false} to get the bool value"
+    --flag1222|-g           "Flag1222 that you can use \\\$\{flag1222:-false} to get the bool value"
+    --candi_null    "Test null option to use candidate"  <candi_null>:candis="abc"        =  abc  cde     def
+    --name          "Provide name"      <name>=""
+    --description   "Description"       <desc>="a b"
+    --cidr          "Subnet of 172.16.0.0/12, 10.0.0.0/8, 192.168.0.0/16"    <cidr>=3
+    #1                      "Test rest argument #1 when exist option and flag Test rest argument #1 when exist option and flag Test rest argument #1 when exist option and flag Test rest argument #1 when exist option and flag Test rest argument #1 when exist option and flag"
+    #222222                 "Provide number #2"
+    #3                      "Provide number #3"
+
+A
+    param:run
+    echo "regex_arg1: $regex_arg1"
+    echo "regex_arg2: $regex_arg2"
+    echo "param repo: $repo"
+    echo "param repo2: $repo2_n  $repo2_1_1 $repo2_1_2"
+    echo "param priviledge: $priviledge"
+    echo "param no_type_arg: $no_type_arg"
+    echo "multiple line argument: $mul_line_arg"
+    echo "flag1: ${flag1:-false}"
+    echo "flag1222: ${flag1222:-false}"
+    echo "rest argument: $1"
+}
+
+paramtest_option(){
+    param:scope     "paramtest/$O"
+    param:dsl      <<A
+type:
+    access  =   private public
+    repo_t  =~  "cde"   "def"
+advise:
+    repo  list_repo all
+    #1    list_repo
+option:
+    --mul_line_arg|-m       "Test multiple line argument"            <mline_arg>:mline_arg_type
+    --regex_arg1            "Test an argument with regex 1"          <>=0     =~  [0-9]*
+    --regex_arg2            "Test an argument with regex 2"          <>=20    =~  ([1-9]?[0-9]|100)
+    --repo|-r               "Provide repo name"                      <>:repo_type   =~  "abc"   "cde"   "def"
+    --repo2|-b|m            "Provide two repo name"
+        <arg1>:repo_type=""               =   "abc"   "cde"   "def"
+        <arg2>:repo_t=
+    --priviledge|-p         "Provide privilidge"                     <priviledge_type>:access=private
+    --no_type_arg|-n        "Test no type argument but have default" <no_type_arg>=default
+    --flag1|-f              "Flag1 that you can use \\\$\{flag1:-false} to get the bool value"
+    --flag1222|-g           "Flag1222 that you can use \\\$\{flag1222:-false} to get the bool value"
+    #1                      "Test rest argument #1 when exist option and flag"
+    #222222                 "Provide number #2"
+    #3                      "Provide number #3"
+A
+    param:run
+    echo "regex_arg1: $regex_arg1"
+    echo "regex_arg2: $regex_arg2"
+    echo "param repo: $repo"
+    echo "param repo2: $repo2_n  $repo2_1_1 $repo2_1_2"
+    echo "param priviledge: $priviledge"
+    echo "param no_type_arg: $no_type_arg"
+    echo "multiple line argument: $mul_line_arg"
+    echo "flag1: ${flag1:-false}"
+    echo "flag1222: ${flag1222:-false}"
+    echo "rest argument: $1"
+}
+
+paramtest_subcmd(){
+    param:scope     "paramtest/$O"
+    param:dsl       '
+subcommand:
+    sscmd1|s1|s-s1|longlongsubcommand   "Test sub sub command1"
+    sscmd2                              "Test sub sub command2"
+    subcmd_null                         "Test 2 subcommand null"
+'
+    param:run
+    paramtest_subcmd_"${PARAM_SUBCMD}" "$@"
+}
+
+paramtest_subcmd_sscmd1(){
+    param:scope     "paramtest/$O"
+    param:dsl       '
+subcommand:
+    subcmd_null        "Test 3 subcommand null"
+options:
+    --ss1_opt1|-s      "Test sub sub command1 option1"
+    --ss1_opt2|-d      "Test sub sub command1 option2"
+    --ss1_opt3|-f      "Test sub sub command1 option3"
+'
+    param:run
+    echo "sscmd1:${PARAM_SUBCMD}"
+    echo "param sscmd1_opt1: $ss1_opt1"
+}

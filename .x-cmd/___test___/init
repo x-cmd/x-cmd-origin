@@ -1,0 +1,2 @@
+test:debug "copy all files from ./* to ~/.x-cmd/param/"
+cp -r "$(x wsroot)"/* "$___X_CMD_ROOT_MOD/param/"

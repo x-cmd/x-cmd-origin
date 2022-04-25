@@ -4,12 +4,6 @@
 
 test_error_help(){
 
-    echo "======== test option wasn't expected ============="
-    paramtest --not_exist_flag
-    paramtest -acvP
-    paramtest option --not_exist_flag
-    paramtest --not_exist_option ccc
-    paramtest option --not_exist_option ccc
     echo "======== test require argument help ============="
     paramtest option --mul_line_arg
     echo "============= test unmatch help ================="

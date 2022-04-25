@@ -1,0 +1,46 @@
+# shellcheck shell=sh disable=SC2039,SC2142,SC3043
+
+
+test_rest_arg(){
+    @assert stdout "O=xxx; paramtest uuu--oo00"<<A
+candi_null: abc
+rest argument uuu--oo00
+A
+    @assert stdout paramtest rarg private 687 arg4<<A
+rest argument1:private
+rest argument2:687
+rest argument3:arg4
+rest argument4:iii
+rest argument5:
+A
+}
+
+test_snl(){
+    @assert stdout "O=xxx; paramtest snl --org bash-gitee"<<A
+org: bash-gitee
+A
+}
+
+test_namelist(){
+    local mul_line_arg
+    mul_line_arg="aaa
+bbb
+ccc"
+
+    @assert stdout "O=xxx; paramtest --candi_null abc namelist --regex_arg1 0 --repo abc -b abc cde -m \"$mul_line_arg\" --flag1 \"$mul_line_arg\" 0 20 ddd"<<A
+regex_arg1: 0
+regex_arg2: 20
+param repo: abc
+param repo2: 1 abc cde
+param priviledge: public
+param no_type_arg: default
+multiple line argument: aaa
+bbb
+ccc
+flag1: true
+flag1222: false
+rest argument: ddd
+A
+}
+
+@assert:file:func

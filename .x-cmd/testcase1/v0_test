@@ -43,7 +43,7 @@ A
 # EndSection
 
 # Section: Testcase for generate advise json.
-
+local space="$(printf " ")"
 test_advise_json(){
     X_CMD_ADVISE_FUNC_NAME=paramtest
     assert stdout paramtest _x_cmd_advise_json<<A
@@ -83,8 +83,8 @@ test_advise_json(){
       "#1": [  ],
       "#desc": "Test no type argument but have default"
     },
-    "--flag1|-f": "--- Flag1 that you can use $\{flag1:-false} to get the bool value ",
-    "--flag1222|-g": "--- Flag1222 that you can use $\{flag1222:-false} to get the bool value ",
+    "--flag1|-f": "--- Flag1 that you can use $\{flag1:-false} to get the bool value",
+    "--flag1222|-g": "--- Flag1222 that you can use $\{flag1222:-false} to get the bool value",
     "#1": "list_repo",
     "#222222": [  ],
     "#3": [  ]
@@ -93,19 +93,13 @@ test_advise_json(){
     "#desc": "Test subcommand",
     "sscmd1|s1|s-s1|longlongsubcommand": {
       "#desc": "Test sub sub command1",
-      "--ss1_opt1|-s": "--- Test sub sub command1 option1 ",
-      "--ss1_opt2|-d": "--- Test sub sub command1 option2 ",
-      "--ss1_opt3|-f": "--- Test sub sub command1 option3 ",
-      "subcmd_null": {
-        "#desc": "Test 3 subcommand null"
-      }
+      "--ss1_opt1|-s": "--- Test sub sub command1 option1",
+      "--ss1_opt2|-d": "--- Test sub sub command1 option2",
+      "--ss1_opt3|-f": "--- Test sub sub command1 option3",
+      "subcmd_null":${space}
     },
-    "sscmd2": {
-      "#desc": "Test sub sub command2"
-    },
-    "subcmd_null": {
-      "#desc": "Test 2 subcommand null"
-    }
+    "sscmd2": ,
+    "subcmd_null":${space}
   },
   "marg": {
     "#desc": "Test multiple argement",
@@ -143,8 +137,8 @@ test_advise_json(){
       "#1": [  ],
       "#desc": "Test no type argument but have default"
     },
-    "--flag1|-f": "--- Flag1 that you can use $\{flag1:-false} to get the bool value ",
-    "--flag1222|-g": "--- Flag1222 that you can use $\{flag1222:-false} to get the bool value ",
+    "--flag1|-f": "--- Flag1 that you can use $\{flag1:-false} to get the bool value",
+    "--flag1222|-g": "--- Flag1222 that you can use $\{flag1222:-false} to get the bool value",
     "#1|--mul_line_arg|-m": "list_repo",
     "#3|--regex_arg2": [  ],
     "#2|--regex_arg1": [  ]
@@ -156,9 +150,7 @@ test_advise_json(){
   "advise_null": {
     "#desc": "Test advise null"
   },
-  "subcmd_null": {
-    "#desc": "Test subcommand null"
-  }
+  "subcmd_null":${space}
 }
 A
 }

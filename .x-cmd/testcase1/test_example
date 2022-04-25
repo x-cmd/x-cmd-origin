@@ -17,6 +17,8 @@ option:
     -u|--usdasd|-p          "Test regex arg2"  <regex_arg2>=123  =~  "[0-9]+"
     --license               "Test regex arg3"  <regex_arg3>   =   "MulanPSL-2.0" "0BSD" "AFL-3.0" "AGPL-3.0" "" "XXXX License"
     -z                      "Test regex arg4"
+    -z2                     "Test regex flag"
+    -z3                     "Test regex flag"
     -k                      "Test regex arg5"  <regex_arg4>:License=aaa
     #1                      "Test rest argument #1 when exist option and flag"
     #2                      "Test rest argument #2 when exist option and flag"

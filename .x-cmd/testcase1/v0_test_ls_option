@@ -40,16 +40,16 @@ Test regex arg3
 ${arg_sep}0BSD
 =${arg_sep}MulanPSL-2.0${arg_sep}0BSD${arg_sep}AFL-3.0${arg_sep}AGPL-3.0${arg_sep}${arg_sep}XXXX License
 
--z
-Test regex arg4
-
-
-
 -k
 Test regex arg5
 ${arg_sep}abc
 =${arg_sep}abc${arg_sep}cde${arg_sep}def
 ${arg_sep}666
+
+
+-z
+Test regex arg4
+
 
 
 #1|--regex_arg3|-s

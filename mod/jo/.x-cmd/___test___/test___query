@@ -1,0 +1,22 @@
+
+test_query_eqarr_all(){
+
+    @assert stdout "data | ___x_cmd_jo_query 1.files\\\\.associations" << A
+{"*.json":"json","**/*.awk":"awk","index.html":"shellscript","**/*.md":"markdown","*":"shellscript","LICENSE":"text"}
+A
+    @assert stdout "data  | ___x_cmd_jo_query 1.explicitFolding\\\\.rules" << A
+{"awk":{"beginRegex":"^\\\\s*#\\\\s*Section:?","endRegex":"^\\\\s*#\\\\s*EndSection","autoFold":true},"shellscript":[{"beginRegex":"^\\\\s*#\\\\s*Section:?","endRegex":"^\\\\s*#\\\\s*EndSection","autoFold":true}]}
+A
+}
+
+test_query_eqarr(){
+
+    @assert stdout "data | ___x_cmd_jo_query 1.files\\\\.associations 1.index\\\\.html" << A
+"shellscript"
+A
+    @assert stdout "data | ___x_cmd_jo_query 1.explicitFolding\\\\.rules .awk 1.1.endRegex" << A
+{beginRegex":"^\\\\s*#\\\\s*Section:?","endRegex":"^\\\\s*#\\\\s*EndSection","autoFold":true}
+A
+}
+@assert:file:func
+

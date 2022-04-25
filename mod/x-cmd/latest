@@ -3,7 +3,7 @@
 
 ___x_cmd_log init x
 
-xrc:mod:lib x-cmd glob con alias args rmrf util lang ws exe
+xrc:mod:lib x-cmd trace glob con alias args rmrf util lang ws exe tomod
 
 # Section : x main function
 
@@ -38,7 +38,6 @@ ___x_cmd_main_otherwise(){
 
 ___x_cmd_alias_init ___x_cmd
 
-#       7zd)                                    shift;  ( xrc p7zip/v0   &&  p7zd "$@" ) ;;
 ___x_cmd_main(){
     local subcmd="$1"
     case "$subcmd" in
@@ -50,26 +49,25 @@ ___x_cmd_main(){
         arg1)                                   shift;  ___x_cmd_args 1 "$@"    ;;
         marg1)                                  shift;  ___x_cmd_margs 1 "$@"   ;;
 
+        readl|rl)                               shift;  ___x_cmd_readl "$@"   ;;
+        readeval|reval)                         shift;  ___x_cmd_reval "$@"   ;;
+        readml)                                 shift;  ___x_cmd_readml "$@"   ;;
+        writeml)                                shift;  ___x_cmd_writeml "$@"   ;;
+
         js|node)                                shift;  ___x_cmd_node "$@" ;;
         python|py)                              shift;  ___x_cmd_python "$@" ;;
         pip|pip3)                               shift;  ___x_cmd_pip3 "$@" ;;
 
-        jar|java|npm|npx|ts|    _ws|wsroot|ws|      args|margs|conjoin|con|rmrf|repeat|     which|search_path|_x_cmd_advise_json|       ls|ll   |ssl    | abspath  )
+        alias|unalias)                          shift;  "___x_cmd_$subcmd"  ___x_cmd "$@"   ;;
+        jar|java|npm|npx|ts|    _ws|wsroot|ws|      args|margs|conjoin|con|rmrf|repeat|     which|search_path|_x_cmd_advise_json|       ls|ll   |ssl    | abspath \
+            | ps|du|sqlite|cat|bw | 7z|7zd )
                                                 shift;  "___x_cmd_$subcmd" "$@" ;;
 
-        curl|jq|yq|tmux|git|tesseract|magick|    ps|du|sqlite|cat|bw|    nmap|ncat|nping|traceroute)     # TODO: we will rename ___x_cmd_curl to make room for it
-                                                shift;  ___x_cmd_static_build_file     "$subcmd" "$subcmd"      "$@"    ;;
-
-        7z|7za|7zr)                             shift;  ___x_cmd_static_build_file      p7zip 7za               "$@"    ;;
-
+        curl|jq|yq|tmux|git|tesseract|magick)   shift;  ___x_cmd_static_build_file     "$subcmd" "$subcmd"      "$@"    ;;
+        nmap|ncat|nping|traceroute)             shift;  ___x_cmd_static_build_file      nmap "$subcmd"          "$@"    ;;
 
         sh|bash|zsh|fish|ksh|dash|ash)          shift;  ___x_cmd_shell_exec "$subcmd" "$@" ;;
-
         run)                                    shift;  ___x_cmd_run_by_file "$@"       ;;
-
-        \.)                                     shift;  command code . ;;      # Test is a inner module.
-
-        alias|unalias)                          shift;  "___x_cmd_$subcmd"  ___x_cmd "$@"   ;;
 
         test)                                   shift;  { command -v ___x_cmd_test >/dev/null 2>&1 || xrc:mod test/latest; } && ___x_cmd_test "$@" ;;
         login)                                  shift;  xrc hub/latest && ___x_cmd_hub login "$@" ;;

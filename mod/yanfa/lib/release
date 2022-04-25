@@ -1,0 +1,264 @@
+# shellcheck shell=sh disable=SC3043
+
+# Section: main
+___x_cmd_yanfa_release(){
+
+    if [ -f "$(x wsroot)/.x-cmd/$1" ]; then
+        x _ws "$@"
+        return
+    fi
+
+    param:dsl <<A
+subcommand:
+    install         "install all modules"
+
+    update          "update or add module"
+    pub             "publish the package"
+    lsmod           "ls module"
+    lsfile          ""
+    wc              "count"
+
+    tgz             "compress modules of core/all/<special-release> into <name>.tgz"
+    tar             "compress modules"
+    7z              "compress modules of 7z"
+
+    init            "init"
+
+    pull            "pull"
+    push            "push"
+    name            "get workspace name from git config"
+A
+    param:run
+
+    if [ -z "$PARAM_SUBCMD" ]; then
+        ___x_cmd_yanfa_release help
+        return 1
+    fi
+
+    if command -v "___x_cmd_yanfa_release_${PARAM_SUBCMD}" >/dev/null; then
+        "___x_cmd_yanfa_release_${PARAM_SUBCMD}" "$@"
+    else
+        case "$PARAM_SUBCMD" in
+            pull|push|name)
+                "___x_cmd_yanfa_ws_$PARAM_SUBCMD" "$@"
+                ;;
+            init)
+                "___x_cmd_yanfa_init" "$@"
+        esac
+    fi
+
+}
+# EndSection
+
+# Section: pub
+___x_cmd_yanfa_release_pub()(
+    param:void
+    # set -o errexit
+    if {
+        yanfa:info "<release-pub> update"
+        ___x_cmd_yanfa_release_update "${CONCURRENCY:-7}"
+    } && {
+        yanfa:info "<release-pub> create tgz"
+        ___x_cmd_yanfa_release_tgz "$@"
+        yanfa:info "<release-pub> create tgz exit: $?"
+    } && {
+        yanfa:info "<release-pub> Add && Commit && Push"
+        git add . && git commit -m ... && ___x_cmd_yanfa_ws_push
+        yanfa:info "<release-pub> Add && Commit && Push exit: $?"
+    }; then
+        yanfa:info "<release-pub> OK"
+    else
+        yanfa:info "<release-pub> Fail"
+        return 1
+    fi
+)
+# EndSection
+
+# Section: module add pull update
+___x_cmd_yanfa_release_gitx(){
+    if [ -z "$___X_CMD_IN_CHINA_NET" ]; then
+        printf "%s\n" "github.com"
+    else
+        printf "%s\n" "gitee.com"
+    fi
+}
+
+___X_CMD_YANFA_RELEASE_TMP="${TMPDIR}/release/mod"
+
+
+___x_cmd_yanfa_release_add()(
+    x:trace yanfa/relesae/add
+    local name="${1:?Provide module name}"
+    # local position="${2:-"git@gitee.com/x-bash/$name.git"}"
+    local position="${2:-"https://$(___x_cmd_yanfa_release_gitx)/x-bash/$name.git"}"
+    local branch="${3:-main}"
+
+    cd "$___X_CMD_YANFA_RELEASE_TMP" || exit 1
+
+    for ((i=1; i<=3; i=i+1)); do
+        if git clone --quiet --depth=1 "$position" -b "$branch"; then
+            yanfa:debug "[$mod/$branch] Cloning success from $position"
+            exit 0
+        fi
+        yanfa:info "Fail to git clone. Retry it after 5 seconds"
+        if ! sleep 5; then
+            yanfa:info "Sleep interrupted."
+        fi
+    done
+    yanfa:debug error "Fail to git clone after 3 attemps. Mission abort."
+    exit 1
+)
+
+___x_cmd_yanfa_release_update(){
+    x:trace yanfa/relesae/update
+    param:void
+
+    local IFS=""
+    local mod
+
+    rm -rf "$___X_CMD_YANFA_RELEASE_TMP" # TODO: x rmrf
+    mkdir -p "$___X_CMD_YANFA_RELEASE_TMP"
+
+    ___x_cmd_yanfa_release_lsmod | {
+        while read -r mod; do
+            # OUT=/dev/null
+            x job put "${1:-7}" ___x_cmd_yanfa_release_add "$mod"
+        done
+
+        x job wait
+    } | while read -r line; do
+        printf "%s\n" "$line"
+        case "$line" in
+            Write*)
+                printf "%s\n" "---------------"
+                cat "${line#Write: }"
+                printf "%s\n" "---------------"
+        esac
+    done
+
+    yanfa:debug "Starting CPFILE"
+    ___x_cmd_yanfa_release_cpfile
+    yanfa:debug "FINISIH CPFILE exit: $?"
+}
+
+# EndSection
+
+# Section: information
+
+# shellcheck disable=SC2120
+___x_cmd_yanfa_release_lsmod(){
+    x:trace yanfa/relesae/lsmod
+    param:void
+    ___x_cmd_yanfa_mod_ls "$@"
+    local code=$?
+    yanfa:info "___x_cmd_yanfa_release_lsmod: $code"
+    return $code
+}
+
+___x_cmd_yanfa_release_lsfile()(
+    x:trace yanfa/relesae/lsfile
+    param:void
+    [ -d "$___X_CMD_YANFA_RELEASE_TMP" ] || return 1
+
+    ___x_cmd_yanfa_release_lsmod | (
+        cd "$___X_CMD_YANFA_RELEASE_TMP" && \
+        while read -r line; do
+            (
+                # if ! cd "$line"; then
+                #     yanfa:info "___x_cmd_yanfa_release_lsfile while-loop: fail to cd - $line"
+                #     exit 1
+                # else
+                #     ___x_cmd_yanfa_mod_lsfile | x arg1 printf "%s/%s\n" "$line"
+                # fi
+                cd "$line" && ___x_cmd_yanfa_mod_lsfile | x arg1 printf "%s/%s\n" "$line"
+            )
+        done
+    )
+
+    local code=$?
+    yanfa:info "___x_cmd_yanfa_release_lsfile: $code"
+    return $code
+)
+
+___x_cmd_yanfa_release_cpfile_inner(){
+    # x:trace yanfa/relesae/cpfile/inner        # Use debug
+    if [ -d "$2" ]; then
+        local p="$2/$1"
+        [ -d "${p%/*}" ] || mkdir -p "${p%/*}"
+        if ! cp "$1" "$p"; then
+            yanfa:info fail to cp [src=$1] to [dst=$p]
+        fi
+    else
+        if ! cp "$1" "$2"; then
+            yanfa:info fail to cp [src=$1] to [dst=$2]
+        fi
+    fi
+}
+
+___x_cmd_yanfa_release_cpfile()(
+    x:trace yanfa/relesae/cpfile
+    yanfa:debug "Staring"
+    local tgt
+    tgt="$(x wsroot)/mod"
+    [ -d "$tgt" ] && rm -rf "$tgt"
+    mkdir -p "$tgt"
+
+    ___x_cmd_yanfa_release_lsfile | while read -r line; do
+        (
+            cd "$___X_CMD_YANFA_RELEASE_TMP"
+            ___x_cmd_yanfa_release_cpfile_inner "$line" "$tgt"
+            # yanfa:debug "<release_cpfile> $line => $tgt: $?"
+        )
+    done
+    # TODO: In Github Action, it return 1. Resulting in breaking. cpfile_inner is OK. The bug might be in while pipe.
+    yanfa:debug "exit: $?"
+)
+
+___x_cmd_yanfa_release_wc(){
+    x:trace yanfa/relesae/wc
+    param:void
+    cd "$(x wsroot)/mod" &&
+        ___x_cmd_yanfa_release_lsfile "$@" | xargs wc | sort -n -r | less
+}
+
+# EndSection
+
+# Section: tgz tar 7z
+
+___x_cmd_yanfa_release_tgz()(
+    param:void
+    case "${1:-all}" in
+        core)       scope=core ;;
+        all)        scope=all ;;
+        *)          return 1 ;;
+    esac
+
+    WSROOT="$(x wsroot)"
+
+    [ -f "$scope.tgz" ] && rm "$scope.tgz"
+
+    cd "$WSROOT/mod" &&
+        mkdir -p "$WSROOT/dist" &&
+        tar czf "$scope.tgz" * 2>/dev/null &&
+        mv "$scope.tgz" "$WSROOT/dist/$scope.tgz" &&
+        ls -alh "$WSROOT/dist/$scope.tgz"
+)
+
+___x_cmd_yanfa_release_7z()(
+    param:void
+    case "${1:-all}" in
+        core)       scope=core ;;
+        all)        scope=all ;;
+        *)          return 1 ;;
+    esac
+
+    WSROOT="$(x wsroot)"
+
+    cd "$WSROOT/mod" &&
+        mkdir -p "$WSROOT/dist" &&
+        7z a "$scope.7z" * &&
+        mv "$scope.7z" "$WSROOT/dist/$scope.7z" &&
+        ls -alh "$WSROOT/dist/$scope.7z"
+)
+
+# EndSection

@@ -22,6 +22,7 @@ ___x_cmd_yanfa_mod_lsfile0()(
 )
 
 ___x_cmd_yanfa_mod_lsfile()(
+    x:trace yanfa/mod/install/tmp
     param:void
     if [ -f "$(x wsroot)/.x-cmd/lsfile" ]; then
         # TODO: using engine to directly run the local file
@@ -34,24 +35,49 @@ ___x_cmd_yanfa_mod_lsfile()(
 ___x_cmd_yanfa_mod_install_tmp(){
     local src="$2"
     local dst="$1/$src"
+    yanfa:debug "$(printf "Moving:   %-30s\t%s\n" "$src" "$dst")"
     mkdir -p "$(dirname "$dst")"
-    printf "Moving:   %-30s\t%s\n" "$src" "$dst"
     cp "$src" "$dst"
 }
 
 ___x_cmd_yanfa_mod_install()(
+    x:trace yanfa/mod/install
     param:void
     local current_folder
-    current_folder="$(basename "$(x wsroot)")"
-    current_folder="$HOME/.x-cmd/$current_folder"
-    rm -rf "$current_folder"
-    mkdir -p "$current_folder"
+    current_folder="$HOME/.x-cmd/$(basename "$(x wsroot)")"
+    [ ! -d "$current_folder" ] || (
+        rm -rf "$current_folder" && mkdir -p "$current_folder"
+    )
 
     if [ -f "$(x wsroot)/.x-cmd/install" ]; then
+        yanfa:info "Running in workspace: install"
         # TODO: using engine to directly run the local file
-        X_DISABLE_WORKSPACE_EXECUTION_CONFIRMATION=1 x ws install "$@"
+        x ws install "$@"
     else
-        ___x_cmd_yanfa_mod_lsfile | x arg1 ___x_cmd_yanfa_mod_install_tmp "$current_folder"
+        yanfa:info "Running module yanfa subcmd: install to $current_folder"
+
+        ___x_cmd_yanfa_mod_lsfile | {
+            awk=0
+            sh=0
+            txt=0
+            json=0
+            total=0
+            while read -r line; do
+                res="$res\t$line"
+                total=$(( total + 1 ))
+                case "$line" in
+                    *.txt)      txt=$(( txt+1 )) ;;
+                    *.awk)      awk=$(( awk+1 )) ;;
+                    *.json)     json=$(( json+1 )) ;;
+                    *)          sh=$(( sh + 1 )) ;;
+                esac
+                ___x_cmd_yanfa_mod_install_tmp "$current_folder" "$line"
+            done
+            x log :yanfa info "Installed $total files: sh=$sh awk=$awk json=$json txt=$txt"
+        }
+
+        # buggy code
+        # ___x_cmd_yanfa_mod_lsfile | ___x_cmd_args 1 ___x_cmd_yanfa_mod_install_tmp "$current_folder"
     fi
 )
 
@@ -76,6 +102,7 @@ ___x_cmd_yanfa_mod_tgz(){
 # EndSection
 
 ___x_cmd_yanfa_mod_wc(){
+    x:trace yanfa/mod/wc
     param:void
     ___x_cmd_yanfa_mod_lsfile "$@" | xargs wc | sort -n -r | less
 }
@@ -123,6 +150,9 @@ ___x_cmd_yanfa_mod_ls_latest(){
     # ___x_cmd_curl_gitx modlist
     curl https://gitee.com/x-cmd/x-cmd/raw/main/modlist 2>/dev/null \
         | ___x_cmd_yanfa_mod_ls_awk_
+    local code=$?
+    yanfa:warn "___x_cmd_yanfa_mod_ls_latest: $code"
+    return $code
 }
 
 ___x_cmd_yanfa_mod_ls_awk_(){
@@ -140,20 +170,21 @@ ___x_cmd_yanfa_mod_ls(){
     param:void
     local fp="${MODLIST:-""}"
     if [ -z "$fp" ]; then
-        fp="$(___x_cmd_yanfa_mod_getfp)" || {
-            printf "Cannot find file modlist. Using ls_latest\n" >&2
+        if ! fp="$(___x_cmd_yanfa_mod_getfp)"; then
+            x log :yanfa "Cannot find file modlist. Using ls_latest, source is https://github.com/x-cmd/x-cmd/raw/main/modlist"
             ___x_cmd_yanfa_mod_ls_latest
             return
-        }
+        fi
     fi
 
+    x log :yanfa "Getting source from local modlist: $fp"
     ___x_cmd_yanfa_mod_ls_awk_ "$@" <"$fp"
 }
 
 # EndSection
 
 ___x_cmd_yanfa_mod(){
-
+    x:trace yanfa/mod
     if [ -f "$(x wsroot)/.x-cmd/$1" ]; then
         x _ws "$@"
         return

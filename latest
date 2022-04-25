@@ -1,0 +1,15 @@
+# shellcheck shell=sh disable=SC3043,SC2164 # xrc
+
+# author:       Li Junhao           l@x-cmd.com
+# license:      GPLv3
+
+# Section: main
+
+___x_cmd_du(){
+    : refer ncdu
+
+    command du "$@"
+}
+# EndSection
+
+xrc setmain ___x_cmd_du

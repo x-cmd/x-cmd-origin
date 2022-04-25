@@ -131,6 +131,13 @@ ___x_cmd_assert_otherwise(){
 
         true)               ___x_cmd_assert_t "$@" ;;
         false)              ___x_cmd_assert_f "$@" ;;
+
+        return0)              ___x_cmd_assert_return0 "$@" ;;
+        return*)              ___x_cmd_assert_returnn "${op#return}" "$@" ;;
+
+        exit0)              ___x_cmd_assert_exit0 "$@" ;;
+        exit*)              ___x_cmd_assert_exitn "${op#exit}" "$@" ;;
+        errexit)            ___x_cmd_assert_errexit "$@" ;;
         
         func)               ___x_cmd_assert_func "$@" ;;
 
@@ -261,7 +268,7 @@ ___x_cmd_assert_grep(){
 # Section: value true false int float
 
 ___x_cmd_assert_t(){
-    if ! "$@"; then
+    if ! ___x_cmd_evex "$@"; then
         printf "%s\n" "${MSG:-"Expect command execution to be true: $*"}" >&2
         return 1
     fi
@@ -278,8 +285,77 @@ ___x_cmd_assert_func(){
 }
 
 ___x_cmd_assert_f(){
-    if "$@"; then
+    if ___x_cmd_evex "$@"; then
         printf "%s\n" "${MSG:-"Expect command execution to be false: $*"}" >&2
+        return 1
+    fi
+}
+
+___x_cmd_assert_return0(){
+    if ! ___x_cmd_evex "$@"; then
+        printf "%s\n" "${MSG:-"Expect command return 0: $*"}" >&2
+        return 1
+    fi
+}
+
+___x_cmd_assert_returnn(){
+    local code="${1:?Provide exit code}"; shift
+    if [ "$code" -lt 0 ] || [ "$code" -gt 255 ]; then
+        printf "%s\n" "Expect return code 0 to 255" >&2
+        return 1
+    fi 
+
+    if [ "$code" -eq 0 ]; then
+        ___x_cmd_assert_return0 "$@"
+        return
+    fi
+
+    if ___x_cmd_evex "$@"; then
+        printf "%s\n" "${MSG:-"Expect command return 0: $*"}" >&2
+        return 1
+    else
+        local errcode=$?
+        if [ "$errcode" -ne "$code" ]; then
+            printf "%s\n" "${MSG:-"Expect command return $errcode: $*"}" >&2
+            return 1
+        fi
+    fi
+}
+
+___x_cmd_assert_exit0(){
+    if ! ( ___x_cmd_evex "$@"; return 1; ); then
+        printf "%s\n" "${MSG:-"Expect command execution exist normally: $*"}" >&2
+        return 1
+    fi
+}
+
+___x_cmd_assert_exitn(){
+    local code="${1:?Provide exit code}"; shift
+    if [ "$code" -lt 0 ] || [ "$code" -gt 255 ]; then
+        printf "%s\n" "Expect exit1 to exit255" >&2
+        return 1
+    fi 
+
+    if [ "$code" -eq 0 ]; then
+        ___x_cmd_assert_exit0 "$@"
+        return
+    fi
+
+    if ( ___x_cmd_evex "$@"; return 0; ); then
+        printf "%s\n" "${MSG:-"Expect command execution to be errexit but exit with 0: $*"}" >&2
+        return 1
+    else
+        local errcode=$?
+        if [ "$errcode" -ne "$code" ]; then
+            printf "%s\n" "${MSG:-"Expect command execution to be errexit with $code but exit with $errcode: $*"}" >&2
+            return 1
+        fi
+    fi
+}
+
+___x_cmd_assert_errexit(){
+    if ( ___x_cmd_evex "$@"; return 0; ); then
+        printf "%s\n" "${MSG:-"Expect command execution to be errexit: $*"}" >&2
         return 1
     fi
 }

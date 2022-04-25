@@ -3,7 +3,7 @@
 
 
 if [ -z "${ZSH_VERSION}${BASH_VERSION}" ]; then
-    x log info "advise is only available in 'bash' or 'zsh'."
+    x:info "advise is only available in 'bash' or 'zsh'."
 else
 
 ___X_CMD_ADVISE_TMPDIR="${TMPDIR%/}/.x-cmd/advise_auto_json"
@@ -219,10 +219,13 @@ ___advise_main(){
         local filepath=$tmp_filepath
         if [ ! -f "$filepath" ]; then
             local content
-            content="$(X_CMD_ADVISE_FUNC_NAME=$func eval "$func" _x_cmd_advise_json 2>/dev/null)"
-            if [ $? = 126 ]; then
+            x:debug "Start gen advise for $func"
+            content="$(X_CMD_ADVISE_FUNC_NAME=$func "$func" _x_cmd_advise_json)"
+            if [ $? -eq 126 ]; then
                 printf "%s" "$content" >"$filepath"
+                x:debug "Finished gen advise for $func"
             else
+                x:error "Failed gen advise $func : you should define _x_cmd_advise_json correctly in your function."
                 return 0
             fi
         fi

@@ -1,0 +1,16 @@
+# shellcheck shell=sh disable=SC3043,SC2164 # xrc
+
+# author:       Li Junhao           l@x-cmd.com
+# license:      GPLv3
+
+# Section: main
+
+___x_cmd_ed(){
+    : config change -- using config syntax sense
+    : x ed config-sshd=/etc/ssh/sshd_config User=YES NoPassword=NO
+
+    command ed "$@"
+}
+# EndSection
+
+xrc setmain ___x_cmd_ed

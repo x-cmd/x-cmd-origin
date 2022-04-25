@@ -4,7 +4,8 @@
 x log init hub
 xrc param/latest
 
-mkdir -p "$___X_CMD_ROOT/.env/hub"
+___X_CMD_HUB_ENV="$___X_CMD_ROOT/.hub"
+[ -d "$___X_CMD_HUB_ENV" ] && mkdir -p "$___X_CMD_HUB_ENV"
 
 ___X_CMD_HUB_SERVICE_URL="https://hub.x-cmd.com"
 ___X_CMD_HUB_WECHAT_AUTHORIZE_URL_PREFIX="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx9564dec6fe13a20a&redirect_uri=https%3A%2F%2Fhub.x-cmd.com%2F"
@@ -19,6 +20,8 @@ subcommands:
     login          "Login to hub service"
     register       "Register to hub service"
     token          "User token management"
+    user           "get user info"
+    logout         "Logout from hub service"
 A
     param:run
     [ -z "${PARAM_SUBCMD}" ] && ___x_cmd_hub help && return

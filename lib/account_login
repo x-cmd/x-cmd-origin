@@ -31,6 +31,12 @@ ___x_cmd_hub_login(){
     esac
 }
 
+___x_cmd_hub_logout(){
+    param:void
+    ___x_cmd_hub_token "" && \
+        hub:info "Logout Successfully"
+}
+
 # Section: telegram, weixin, official_site
 
 ___x_cmd_hub_login_telegram_qr(){
@@ -50,19 +56,15 @@ ___x_cmd_hub_login_weixin_qr(){
     read -r _
 
     local userinfo
-    if userinfo="$(___x_cmd_hub_get_and_save_userinfo_by_token "${token_to_activate}")" ; then
-        hub_log info "Login Successfully, ${userinfo}"
+    if userinfo="$(___x_cmd_hub_get_userinfo_by_token "${token_to_activate}")" ; then
+        ___x_cmd_hub_token "${token_to_activate}"
+        hub:info "Login Successfully, ${userinfo}, save token to ${___X_CMD_HUB_ENV}/.token"
     else
-        hub_log error "Login Failed"
+        hub:error "Login Failed"
     fi
 }
 
 ___x_cmd_hub_login_official_site(){
-    # if [ -n "$(___x_cmd_hub_token)" ]; then
-    #     # TODO: ask
-    #     printf "Detect token in this folder. Erase the token in the disk?\n" >&2
-    #     ___x_cmd_hub_token ""
-    # fi
 
     local token_to_activate
     token_to_activate="$(___x_cmd_hub_token_generate)"
@@ -73,10 +75,11 @@ ___x_cmd_hub_login_official_site(){
     read -r _
 
     local userinfo
-    if userinfo="$(___x_cmd_hub_get_and_save_userinfo_by_token "${token_to_activate}")" ; then
-        hub_log info "Login Successfully, ${userinfo}"
+    if userinfo="$(___x_cmd_hub_get_userinfo_by_token "${token_to_activate}")" ; then
+        ___x_cmd_hub_token "${token_to_activate}"
+        hub:info "Login Successfully, ${userinfo}, save token to ${___X_CMD_HUB_ENV}/.token"
     else
-        hub_log error "Login Failed"
+        hub:error "Login Failed"
     fi
 }
 
@@ -90,18 +93,19 @@ ___x_cmd_hub_login_email_witharg(){
 
     local res
     if ! res="$(___x_cmd_httpget "$___X_CMD_HUB_SERVICE_URL/api/v0/account/login/$email?token_to_activate=${token_to_activate}")" ; then
-        hub_log error "Failed to login with email: $email, res: $res"
+        hub:error "Failed to login with email: $email, res: $res"
         return 1
     fi
-    hub_log debug "Login with email: $email, res: $res"
+    hub:debug "Login with email: $email, res: $res"
     printf "%s" "Please check your email $email to approve, then press [Enter] to continue: " >&2
     read -r _
 
     local userinfo
-    if userinfo="$(___x_cmd_hub_get_and_save_userinfo_by_token "${token_to_activate}")" ; then
-        hub_log info "Login Successfully, ${userinfo}"
+    if userinfo="$(___x_cmd_hub_get_userinfo_by_token "${token_to_activate}")" ; then
+        ___x_cmd_hub_token "${token_to_activate}"
+        hub:info "Login Successfully, ${userinfo}, save token to ${___X_CMD_HUB_ENV}/.token"
     else
-        hub_log error "Login Failed"
+        hub:error "Login Failed"
     fi
 }
 
@@ -114,21 +118,4 @@ ___x_cmd_hub_login_email(){
     ___x_cmd_hub_login_email_witharg "$email"
 }
 
-___x_cmd_hub_verify(){
-    local email="${1:?email}"
-    local code
-    printf "%s" "Code: "
-    read -r code
-
-    result="$(___x_cmd_httpget "$___X_CMD_HUB_SERVICE_URL/api/v0/account/verify/$email/$code")"
-
-    local token="${result#TOKEN=}"
-    if [ "$token" != "$result" ]; then
-        printf "%s" "$email" > "$___X_CMD_HUB_ENV/.me"
-        printf "%s" "$token" > "$___X_CMD_HUB_ENV/.token"
-        printf "%s\n" "Login Success."
-    else
-        printf "%s\n" "$result"
-    fi
-}
 # EndSection

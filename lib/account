@@ -1,8 +1,8 @@
 # shellcheck shell=sh disable=SC3043,SC1091,SC3028
 
-xrc http
+xrc ui/lib/select http
 
-# Section(utils): ___x_cmd_hub_token_generate, ___x_cmd_hub_get_and_save_userinfo_by_token
+# Section(utils): ___x_cmd_hub_token_generate
 
 if command -v md5sum >/dev/null; then
     # TODO(refactor): to remove " -" from the end of the string
@@ -37,7 +37,7 @@ ___x_cmd_hub_token_generate(){
 
 ___x_cmd_hub_print_qrcode(){
     x qr enc -s 1 -m 3 -t ANSIUTF8 "$1"
-    hub_log debug "QR Code url: $1"
+    hub:debug "QR Code url: $1"
 }
 
 ___x_cmd_hub_wechat_register_url(){
@@ -53,42 +53,39 @@ ___x_cmd_hub_wechat_login_url(){
 
 # EndSection
 
-# Section(env): ___x_cmd_hub_login_user, ___x_cmd_hub_token, ___x_cmd_hub_get_and_save_userinfo_by_token
+# Section(env): ___x_cmd_hub_user, ___x_cmd_hub_token, ___x_cmd_hub_get_userinfo_by_token
 
-___x_cmd_hub_login_user(){
-    cat "$___X_CMD_HUB_ENV/.me" 2>/dev/null
+___x_cmd_hub_user(){
+    param:void
+    ___x_cmd_hub_get_userinfo_by_token "$(___x_cmd_hub_token)"
 }
-
-___X_CMD_HUB_ENV="$___X_CMD_ROOT/.env/hub"
 
 # shellcheck disable=SC2120
+
+# The only one true way to get and set the token
 ___x_cmd_hub_token(){
     param:void
-    if [ -z "$1" ]; then
+    if [ "$#" -eq 0 ]; then
         cat "$___X_CMD_HUB_ENV/.token" 2>/dev/null
-        return
+    else
+        printf "%s\n" "${1}" > "$___X_CMD_HUB_ENV/.token"
     fi
-
-    if [ "$1" != "${1#*/}" ]; then
-        hub_log debug "userid: ${1%/*}, token: ${1##*/}"
-        printf "%s\n" "${1%/*}"  > "$___X_CMD_HUB_ENV/.me"
-        printf "%s\n" "${1##*/}" > "$___X_CMD_HUB_ENV/.token"
-        return
-    fi
-
-    # Use your token to get user info
-    ___x_cmd_hub_get_and_save_userinfo_by_token "$1"
 }
 
-___x_cmd_hub_get_and_save_userinfo_by_token(){
-    local token="${1:?Please provide token}"
+# TODO: We should cache the user info, and update it when the token is expired
+___x_cmd_hub_get_userinfo_by_token(){
+    local token="${1}"
+    if [ -z "$token" ]; then
+        hub:error "Token is empty, please login first"
+        return 1
+    fi
 
     local res
     if ! res="$(___x_cmd_httpget "$___X_CMD_HUB_SERVICE_URL/api/v0/account/user?token=${token}")" ; then
-        hub_log error "Failed to get userinfo by token: $res"
+        hub:error "Failed to get userinfo by token: $res"
         return 1
     fi
-    hub_log debug "response: ${res}"
+    hub:debug "Get response: ${res}"
 
     local userid
     local username
@@ -102,11 +99,9 @@ A
 
     userid="${userid#id=}"
     username="${username#username=}"
-    ___x_cmd_hub_token "${userid}/${token}"
     printf "%s\n" "${username} ${userid}"
 }
 
 # EndSection
 
-xrc ui/lib/select
 ___x_cmd_source_inner_lib hub account_login account_registration

@@ -2,7 +2,7 @@
 ___X_CMD_BOOT_MOD="$___X_CMD_ROOT/.boot/mod"
 
 ___x_cmd_boot_mod(){
-    subcmd="$1"; shift
+    local subcmd="$1"; shift
     case "$subcmd" in
         load)       . "$___X_CMD_BOOT_MOD" ;;
         path)       printf "%s" "$___X_CMD_BOOT_MOD" ;;

@@ -1,23 +1,19 @@
 # shellcheck shell=sh
 # shellcheck disable=SC2039,3043
 ___x_cmd_gh_repo_branch(){
-    param:dsl       '
-subcommand:
-    ls              "list repo branch"
-    info            "get repo branch info"
-    rename          "rename the repo branch"
-    rm              "Remove repo branch"
-    default         "set default branch"
-    protection      "protection branch management"
-'
+    param:subcmd ___x_cmd_gh_repo_branch            \
+        ls              "list repo branch"          \
+        info            "get repo branch info"      \
+        rename          "rename the repo branch"    \
+        rm              "Remove repo branch"        \
+        default         "set default branch"        \
+        protection      "protection branch management"
+    param:subcmd:try
     param:run
 
-    if [ -z "$PARAM_SUBCMD" ]; then
-        gh_log error "subcommand not found. show help."
-        return 0
-    fi
-
-    "___x_cmd_gh_repo_branch_$PARAM_SUBCMD" "$@"
+    gh_log warn "Command Not Found. Show help."
+    ___x_cmd_gh_repo_branch _param_help_doc
+    return 1
 }
 
 # Section:list & info
@@ -103,21 +99,17 @@ options:
 # EndSection
 
 ___x_cmd_gh_repo_branch_protection(){
-    param:dsl       '
-subcommand:
-    info            "protection branch info"
-    ls              "protection branch list"
-    set             "set branch to protection branch"
-    rm              "remove branch protection"
-'
+    param:subcmd ___x_cmd_gh_repo_branch_protection \
+        info            "protection branch info"    \
+        ls              "protection branch list"    \
+        rm              "remove branch protection"  \
+        set             "set branch to protection branch"
+    param:subcmd:try
     param:run
-    if [ -z "$PARAM_SUBCMD" ]; then
-        gh_log warn "Command Not Found. Show help."
-        ___x_cmd_gh_repo _param_help_doc
-        return 1
-    fi
 
-    "___x_cmd_gh_repo_${PARAM_SUBCMD}" "$@"
+    gh_log warn "Command Not Found. Show help."
+    ___x_cmd_gh_repo_branch_protection _param_help_doc
+    return 1
 }
 
 # Section:protection

@@ -32,8 +32,8 @@ ___x_cmd_gh_get_multi() {
 }
 
 ___x_cmd_gh_http(){
-    if ! O="___x_cmd_gh_${O:-GITHUB_DEFAULT}" http header get Content-Type 1>/dev/null 2>&1; then
-         O="___x_cmd_gh_${O:-GITHUB_DEFAULT}" http header put Content-Type application/json
+    if ! O="___x_cmd_gh_${O:-GITHUB_DEFAULT}" http header get Accept 1>/dev/null 2>&1; then
+         O="___x_cmd_gh_${O:-GITHUB_DEFAULT}" http header put Accept application/vnd.github.v3+json
     fi
     O="___x_cmd_gh_${O:-GITHUB_DEFAULT}" http "$@"
 }

@@ -2,20 +2,16 @@
 # shellcheck disable=SC2039,3043
 
 ___x_cmd_gh_config(){
-    param:dsl       '
-subcmd:
-    which      "Show current config path"
-    get        "Print the value of a given configuration key"
-    set        "Update configuration with a value for the given key"
-'
+    param:subcmd ___x_cmd_gh_config                                 \
+        which      "Show current config path"                        \
+        get        "Print the value of a given configuration key"   \
+        set        "Update configuration with a value for the given key"
+    param:subcmd:try
     param:run
 
-    if [ -z "$PARAM_SUBCMD" ]; then
-        echo "Command Not Found. Show help." >&2
-        return 0
-    fi
-
-    "___x_cmd_gh_config_${PARAM_SUBCMD}" "$@"
+    gh_log warn "Subcmd Not Found."
+    ___x_cmd_gh_config _param_help_doc
+    return 1
 }
 
 # Section: try

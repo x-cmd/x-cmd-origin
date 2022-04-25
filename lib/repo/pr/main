@@ -2,23 +2,18 @@
 # shellcheck disable=SC2039,3043
 
 ___x_cmd_gh_repo_pr(){
-    param:dsl       '
-subcmd:
-    ls              "list pull requests"
-    info            "pull request info"
-    add             "create pull request"
-    update          "update pull requests"
-    merge           "merge pull requests"
-'
+    param:subcmd ___x_cmd_gh_repo_pr            \
+        ls              "list pull requests"    \
+        info            "pull request info"     \
+        add             "create pull request"   \
+        update          "update pull requests"  \
+        merge           "merge pull requests"
+    param:subcmd:try
     param:run
 
-    if [ -z "$PARAM_SUBCMD" ]; then
-        gh_log error "Command Not Found. Show help."
-        ___x_cmd_gh_repo_pr _param_help_doc
-        return 1
-    fi
-
-    "___x_cmd_gh_repo_pr_${PARAM_SUBCMD}" "$@"
+    gh_log warn "Command Not Found. Show help."
+    ___x_cmd_gh_repo_pr _param_help_doc
+    return 1
 }
 
 
@@ -164,22 +159,17 @@ options:
 }
 
 ___x_cmd_gh_repo_pr_comments(){
-    param:dsl       '
-subcmd:
-    ls              "list pull requests comments"
-    info            "pull request comments info"
-    add             "create pull request comments"
-    update          "update pull requests comments"
-'
+    param:subcmd ___x_cmd_gh_repo_pr_comments   \
+        ls      "list pull requests comments"   \
+        info    "pull request comments info"    \
+        add     "create pull request comments"  \
+        update  "update pull requests comments"
+    param:subcmd:try
     param:run
 
-    if [ -z "$PARAM_SUBCMD" ]; then
-        gh_log error "Command Not Found. Show help."
-        ___x_cmd_gh_repo_pr_comments _param_help_doc
-        return 1
-    fi
-
-    "___x_cmd_gh_repo_pr_comments_${PARAM_SUBCMD}" "$@"
+    gh_log warn "Command Not Found. Show help."
+    ___x_cmd_gh_repo_pr_comments _param_help_doc
+    return 1
 }
 # TODO:github API error
 # Section:fail

@@ -12,29 +12,29 @@ xrc:inner:lib gh utils resource config token repo/main repo/branch/main current 
 x log init gh
 
 ___x_cmd_gh(){
-    param:dsl       '
-subcommand:
-    repo                                    "repo command"
-    current                                 "set current owner, repo"
-    org                                     "manage org"
-    user                                    "user"
-    config                                  "save, load, which"
-    token                                   "set token"
-    release                                 "manage release"
-    auth                                    "Authorize gh"
-'
+    param:subcmd ___x_cmd_gh                    \
+        repo          "repo command"            \
+        current       "set current owner, repo" \
+        org           "manage org"              \
+        user          "user"                    \
+        config        "save, load, which"       \
+        token         "set token"               \
+        auth          "Authorize gh"
+    param:subcmd:try
+
+    param:subcmd ___x_cmd_gh_repo               \
+        release       "manage release"          \
+        member        "Authorize gh"
+    param:subcmd:try
     param:run
 
-    if [ -z "${PARAM_SUBCMD}" ]; then
-        gh_log warn "Subcmd Not Found."
-        ___x_cmd_gh _param_help_doc
-        return 1
-    fi
-
-    case "${PARAM_SUBCMD}" in
-        pr|release|member|tag)                                  "___x_cmd_gh_repo_${PARAM_SUBCMD}"   "$@"        ;;
-        *)                                                      "___x_cmd_gh_${PARAM_SUBCMD}"  "$@"              ;;
-    esac
+    gh_log warn "Subcmd Not Found."
+    ___x_cmd_gh _param_help_doc
+    return 1
+    # case "${PARAM_SUBCMD}" in
+    #     pr|release|member|tag)                                  "___x_cmd_gh_repo_${PARAM_SUBCMD}"   "$@"        ;;
+    #     *)                                                      "___x_cmd_gh_${PARAM_SUBCMD}"  "$@"              ;;
+    # esac
 }
 
 

@@ -10,13 +10,14 @@ ___x_cmd_http_request() {
     local data=${2:-"$D"}
 
     local paths
-    paths="$(___x_cmd_http_cd "$1")"
+    paths="$(___x_cmd_http_cd path "$1")"
     if [ -z "$data" ]; then
         data="$(___x_cmd_http_body dump json "")"
     fi
     local tmp
     tmp=$(mktemp)
     if [ "$data" = "-" ];then
+        rm "$tmp"
         tmp="$data"
     else
         printf "%s" "$data" >"$tmp"
@@ -36,8 +37,8 @@ ___x_cmd_http_request() {
         http_log debug curl -D "$header_filepath" -X "$X" "$(___x_cmd_http_header_dump curl)" -d "@$tmp" "$paths"
         eval curl -D "$header_filepath" -X "$X" "$(___x_cmd_http_header_dump curl)" -d "@$tmp" "$paths" 1>"$data_filepath" 2>/dev/null #2>(http_log debug)
     fi
-    http_log debug "http request data :$(cat "$tmp")"
-    rm "$tmp"
+    http_log debug "http request data:$(cat "$tmp")"
+    [ "$tmp" != "-" ] && rm "$tmp"
 
     http_log debug "Response Header is: $(cat "$header_filepath")"
 

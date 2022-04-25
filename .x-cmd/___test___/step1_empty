@@ -1,0 +1,12 @@
+# shellcheck shell=sh disable=SC2039,SC2142,SC3043
+
+###
+ # @Description: empty cmd check Test
+ # TODO: wait assert fix it
+### 
+
+# test_empty_subcmd(){
+#     @assert false "___x_cmd_ps1env"
+# }
+
+# @assert:file:func

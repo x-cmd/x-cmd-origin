@@ -1,4 +1,4 @@
-
+# shellcheck shell=sh disable=SC3043
 # Section 2: param_marg -- Helper for param user: Handle param marg
 
 ___x_cmd_param_marg(){
@@ -16,7 +16,7 @@ ___x_cmd_param_marg(){
 # done
 
 param_marg() {
-    local a=${1:?Provide option name}
+    local a="${1:?Provide option name}"
     if [ -n "$2" ]; then
         param_marg_get "$@"
     else
@@ -25,22 +25,21 @@ param_marg() {
 }
 
 param_marg_get() {
-    local a=${1:?Provide option name}
-    local n=${2:?Provide option argument index}
+    local a="${1:?Provide option name}"
+    local n="${2:?Provide option argument index}"
     if [ -z "$3" ]; then
-        eval "echo \"\$${a}_${n}\""
+        eval "printf \"%s\\n\" \"\$${a}_${n}\""
     else
-        eval "echo \"\$${a}_${n}_${3}\""
+        eval "printf \"%s\\n\" \"\$${a}_${n}_${3}\""
     fi
 }
 
 param_marg_len() {
-    local a=${1:?Provide option name}
-    eval "echo \"\$${a}_n\""
+    local a="${1:?Provide option name}"
+    eval "printf \"%s\\n\" \"\$${a}_n\""
 }
 
 param_marg_seq() {
-    local a=${1:?Provide option name}
+    local a="${1:?Provide option name}"
     seq "$(param_marg_len "$a")"
 }
-

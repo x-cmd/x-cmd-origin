@@ -11,8 +11,8 @@ A
 }
 
 test_dryrun(){
-    assert false dryrun _dryrun -y qwe
-    assert true dryrun _dryrun -y 123
+    @assert false dryrun _dryrun -y qwe
+    @assert true dryrun _dryrun -y 123
 
     @assert stdout dryrun -y 777 <<A
 y: 777

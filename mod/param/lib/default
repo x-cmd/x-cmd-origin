@@ -28,7 +28,7 @@ param_default() {
                         ___x_cmd_dict @"${O}" load_json "$(cat "$json_path")"
                     ;;
         dump)       if [ -n "$object_name" ]; then
-                        ___x_cmd_dict @"${O}" scope "${object_name}" | ______x_cmd_dict_pjson
+                        ___x_cmd_dict @"${O}" scope "${object_name}" | ___x_cmd_dict_pjson
                     else
                         ___x_cmd_dict @"${O}" json
                     fi ;;

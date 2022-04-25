@@ -16,13 +16,19 @@ function generate_advise_json_subcmd(indent, indent_str, indent_str2, indent_str
         split(subcmd_id( i ), _name_arr, "|") # get the subcmd name list
 
         subcmd_funcname = "${X_CMD_ADVISE_FUNC_NAME}_" _name_arr[ 1 ]
-        subcmd_invocation = sprintf(" PARAM_SUBCMD_DEF=''; %s=%s %s _x_cmd_advise_json %d %s 2>/dev/null",
+        subcmd_invocation = sprintf("%s=%s %s _x_cmd_advise_json %d 2>/dev/null",
             "X_CMD_ADVISE_FUNC_NAME",
             subcmd_funcname,
             subcmd_funcname,
-            (indent + 1),
-            single_quote_string( subcmd_desc(i)) )
-        _ret = _ret "\n" indent_str2 sprintf("%s: $(%s)", quote_string( subcmd_id( i ) ), subcmd_invocation) ","
+            (indent + 1) )
+
+        subcmd_invocation = sprintf("%s$( s=$(%s); %s )",
+            subcmd_desc(i),
+            subcmd_invocation,
+            "if [ $? -eq 126 ] && [ ${#s} != " (indent*2+5) " ] ; then printf \002,${s#{}\002 ; else printf '\n" indent_str "  }'; fi" )
+
+        _ret = _ret "\n" indent_str2 sprintf("%s: %s", quote_string( subcmd_id( i ) ),
+            "{\n" indent_str4 s_wrap2("#desc") ": " subcmd_invocation      ) ","
     }
     return _ret
 }
@@ -44,13 +50,7 @@ function generate_advise_json(      indent, indent_str,
 
     indent = arg_arr[2] + 0;  indent_str4 = ( (indent_str2 = (( indent_str = str_rep("  ", indent)) "  " )) "  " )
 
-    desc = arg_arr[3]
-
     ADVISE_JSON = "{"
-
-    if (desc != "") {
-        ADVISE_JSON = ADVISE_JSON "\n" indent_str2 sprintf( "%s: %s", s_wrap2( "#desc" ), quote_string(desc) ) ","
-    }
 
     for (i=1; i <= namedopt_len(); ++i) {
         option_id       = namedopt_get( i )
@@ -85,8 +85,10 @@ function generate_advise_json(      indent, indent_str,
     if (ADVISE_JSON != "{")     ADVISE_JSON = substr(ADVISE_JSON, 1, length(ADVISE_JSON)-1)  # remove extra comma
     ADVISE_JSON = ADVISE_JSON "\n" indent_str "}"
 
-    printf("printf %s %s; return 126;", s_wrap2("%s"), quote_string(ADVISE_JSON))
+    ADVISE_JSON = quote_string(ADVISE_JSON)
+    gsub(/\002/, "\"", ADVISE_JSON)
+    printf("printf %s %s; return 126;", s_wrap2("%s"), ADVISE_JSON)
 }
 ## EndSection
 
-NR==4{   generate_advise_json();     exit_now(1);    }
+NR==4{  generate_advise_json();     exit_now(1);    }

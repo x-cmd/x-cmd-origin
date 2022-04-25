@@ -1,0 +1,27 @@
+
+hyphen_args(){
+    param:dsl <<A
+option:
+    -y|--fsdfsd|-o          "Test regex arg1"  <regex_arg1>=888  =~  "[0-9]+"
+    -u                      "Test regex arg1"  <regex_arg1>=999  =~  "[0-9]+"
+A
+    param:run
+
+    printf "y: %s\n%s\n%s\n%s" "$y" "$1" "$2" "$3"
+}
+
+test_hyphen_args(){
+    @assert stdout hyphen_args -y 123 -asd --d fff <<A
+y: 123
+-asd
+--d
+fff
+A
+    @assert stdout hyphen_args -y 456 --jkl -dfg kkk <<A
+y: 456
+--jkl
+-dfg
+kkk
+A
+}
+@assert:file:func

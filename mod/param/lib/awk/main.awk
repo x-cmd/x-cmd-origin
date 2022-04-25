@@ -6,6 +6,10 @@ function exec_help(){
     exit_now(1) # TODO: should I return 0?
 }
 
+BEGIN{
+    HAS_SPE_ARG = false
+}
+
 NR==4 {
     if( arg_arr[1] == "_dryrun" ){
         DRYRUN_FLAG = true
@@ -20,8 +24,8 @@ NR==4 {
 
     if ( "help" == arg_arr[1] ) {
         has_help_subcmd = false
-        for (i=1; i <= subcmd_arr[ L ]; ++i) {
-            if ( "help" == subcmd_arr[i] )  has_help_subcmd = true
+        for (i=1; i <= subcmd_len(); ++i) {
+            if ( "help" == subcmd_id( i ) )  has_help_subcmd = true
         }
         if (has_help_subcmd == false)                                   exec_help()
     }
@@ -54,13 +58,13 @@ function arg_typecheck_then_generate_code(option_id, optarg_id, arg_var_name, ar
 
     _ret = assert( optarg_id, arg_var_name, arg_val )
     if ( _ret == true ) {
-        append_code_assignment( arg_var_name, arg_val )
+        code_append_assignment( arg_var_name, arg_val )
     } else if ( false == IS_INTERACTIVE ) {
         panic_error( _ret )
     } else {
-        append_query_code(   arg_var_name,
-            option_arr[ option_id S OPTION_DESC ],
-            oparr_join( optarg_id S OPTARG_OPARR )       )
+        code_query_append(   arg_var_name,
+            option_desc_get( option_id ),
+            oparr_join_quoted( optarg_id )       )
     }
 }
 
@@ -77,9 +81,9 @@ function handle_arguments_restargv_typecheck(is_interative, i, argval, is_dsl_de
             else                                panic_error( _ret )
         } else {
             # TODO: XXX
-            append_query_code(  "_X_CMD_PARAM_ARG_" i,
-                option_arr[ _option_id S OPTION_DESC ],
-                oparr_join( _optarg_id S OPTARG_OPARR )      )
+            code_query_append(  "_X_CMD_PARAM_ARG_" i,
+                option_desc_get( _option_id ),
+                oparr_join_quoted( _optarg_id )      )
             return false
         }
     }
@@ -93,9 +97,9 @@ function handle_arguments_restargv_typecheck(is_interative, i, argval, is_dsl_de
         else                                    panic_error( _ret )
     } else {
         # TODO: XXX
-        append_query_code(  "_X_CMD_PARAM_ARG_" i,
-            option_arr[ _option_id S OPTION_DESC ],
-            oparr_join( _optarg_id S OPTARG_OPARR )          )
+        code_query_append(  "_X_CMD_PARAM_ARG_" i,
+            option_desc_get( _option_id ),
+            oparr_join_quoted( _optarg_id )          )
         return false
     }
 }
@@ -119,14 +123,13 @@ function handle_arguments_restargv(         final_rest_argv_len, i, arg_val, opt
             }
 
             option_id = option_alias_2_option_id[ "#" i ]
-            tmp = option_arr[ option_id S OPTION_NAME ]
-            gsub(/^--?/, "", tmp)
+            tmp = option_name_get_without_hyphen( option_id )
             if( tmp != "" ) {
-                append_code_assignment( tmp, arg_val )
+                code_append_assignment( tmp, arg_val )
                 set_arg_namelist[ i ] = tmp
                 _need_set_arg = true
             } else {
-                append_code_assignment( "_X_CMD_PARAM_ARG_" i , arg_val )
+                code_append_assignment( "_X_CMD_PARAM_ARG_" i , arg_val )
                 set_arg_namelist[ i ] = "_X_CMD_PARAM_ARG_" i
                 _need_set_arg = true
             }
@@ -136,32 +139,30 @@ function handle_arguments_restargv(         final_rest_argv_len, i, arg_val, opt
             option_id = option_alias_2_option_id[ "#" i ]
             named_value = rest_arg_named_value[ option_id ]
 
-            # Using something better, like OPTARG_DEFAULT_REQUIRED_VALUE
+            # TODO: Using something better, like OPTARG_DEFAULT_REQUIRED_VALUE
             if (named_value != "") {
-                tmp = option_arr[ option_id S OPTION_NAME ]
-                gsub(/^--?/, "", tmp)
+                tmp = option_name_get_without_hyphen( option_id )
                 set_arg_namelist[ i ] = tmp
                 _need_set_arg = true
                 continue                # Already check
             }
 
-            arg_val = option_arr[ option_id S 1 S OPTARG_DEFAULT ]
-            if (arg_val == OPTARG_DEFAULT_REQUIRED_VALUE) {
+            arg_val = optarg_default_get( option_id SUBSEP 1 )
+            if ( optarg_default_value_eq_require(arg_val) ) {
                 # Don't define a default value
                 # TODO: Why can't exit here???
                 if (false == IS_INTERACTIVE)   return panic_required_value_error( option_id )
 
-                tmp = option_arr[ option_id S OPTION_NAME ]
-                gsub(/^--?/, "", tmp)
+                tmp = option_name_get_without_hyphen( option_id )
                 if( tmp != "" ) {
-                    append_query_code( tmp,
-                        option_arr[ option_id S OPTION_DESC ],
-                        oparr_join( optarg_id S OPTARG_OPARR ) )
+                    code_query_append( tmp,
+                        option_desc_get( option_id ),
+                        oparr_join_quoted( optarg_id ) )
                     set_arg_namelist[ i ] = tmp
                 } else {
-                    append_query_code( "_X_CMD_PARAM_ARG_" i,
-                        option_arr[ option_id S OPTION_DESC ],
-                        oparr_join( optarg_id S OPTARG_OPARR ) )
+                    code_query_append( "_X_CMD_PARAM_ARG_" i,
+                        option_desc_get( option_id ),
+                        oparr_join_quoted( optarg_id ) )
                     set_arg_namelist[ i ] = "_X_CMD_PARAM_ARG_" i
                 }
                 _need_set_arg = true
@@ -170,14 +171,13 @@ function handle_arguments_restargv(         final_rest_argv_len, i, arg_val, opt
                 # Already defined a default value
                 # TODO: Tell the user, it is wrong because of default definition in DSL, not the input.
                 handle_arguments_restargv_typecheck( false, i, arg_val, true )
-                tmp = option_arr[ option_id S OPTION_NAME ]
-                gsub(/^--?/, "", tmp)
+                tmp = option_name_get_without_hyphen( option_id )
                 if( tmp != "" ) {
-                    append_code_assignment( tmp, arg_val )
+                    code_append_assignment( tmp, arg_val )
                     set_arg_namelist[ i ] = tmp
                     _need_set_arg = true
                 } else {
-                    append_code_assignment( "_X_CMD_PARAM_ARG_" i , arg_val )
+                    code_append_assignment( "_X_CMD_PARAM_ARG_" i , arg_val )
                     set_arg_namelist[ i ] = "_X_CMD_PARAM_ARG_" i
                     _need_set_arg = true
                 }
@@ -188,11 +188,12 @@ function handle_arguments_restargv(         final_rest_argv_len, i, arg_val, opt
     #TODO: You should set the default value, if you have no .
 
     if (QUERY_CODE != ""){
-        QUERY_CODE="___x_cmd_ui form " substr(QUERY_CODE, 9)
-        append_code(QUERY_CODE)
+        QUERY_CODE = "local ___X_CMD_UI_FORM_EXIT_STRATEGY=\"execute|exit\"; x ui form " substr(QUERY_CODE, 9)
+        QUERY_CODE = QUERY_CODE ";\nif [ \"$___X_CMD_UI_FORM_EXIT\" = \"exit\" ]; then return 1; fi;"
+        code_append(QUERY_CODE)
         if( HAS_PATH == true){
-            append_code( "local path >/dev/null 2>&1" )
-            append_code( "path=$___x_cmd_param_path" )
+            code_append( "local path >/dev/null 2>&1" )
+            code_append( "path=$___x_cmd_param_path" )
         }
     }
 
@@ -201,17 +202,18 @@ function handle_arguments_restargv(         final_rest_argv_len, i, arg_val, opt
         for ( _index=1; _index<=final_rest_argv_len; ++_index ) {
             tmp = tmp " " "\"$" set_arg_namelist[ _index ] "\""
         }
-        append_code( tmp )
+        code_append( tmp )
     }
 
 }
 
-function handle_arguments(          i, j, arg_name, arg_name_short, arg_val, option_id, option_argc, count, sw, tmp, arg_arr_len ) {
+function handle_arguments(          i, j, arg_name, arg_name_short, arg_val, option_id, option_argc, count, sw, arg_arr_len, _tmp, _subcmd_id ) {
 
-    # append_code( "local PARAM_SUBCMD" )     # Avoid the external environment influence.
+    # code_append( "local PARAM_SUBCMD" )     # Avoid the external environment influence.
 
     arg_arr_len = arg_arr[ L ]
     i = 1
+    arr_clone(arg_arr, tmp_arr)
     while (i <= arg_arr_len) {
 
         arg_name = arg_arr[ i ]
@@ -230,28 +232,29 @@ function handle_arguments(          i, j, arg_name, arg_name_short, arg_val, opt
                 for (j=1; j<=arg_len; ++j) {
                     arg_name_short  = "-" arg_arr[ j ]
                     option_id       = option_alias_2_option_id[ arg_name_short ]
-                    option_name     = option_arr[ option_id S OPTION_NAME ]
+                    option_name     = option_name_get_without_hyphen( option_id )
 
                     if (option_name == "") {
-                        panic_invalid_argument_error(arg_name_short)
+                        HAS_SPE_ARG = true
+                        break
                     }
-                    append_code_assignment( option_name, "true" )
+                    code_append_assignment( option_name, "true" )
                 }
                 continue
             } else if( arg_name ~ /^--?/ ) {
-                panic_invalid_argument_error(arg_name)
+                break
             }
         }
+        if( HAS_SPE_ARG == true )        arr_clone(tmp_arr, arg_arr)
 
         option_arr_assigned[ option_id ] = true
 
-        option_argc     = option_arr[ option_id L ]
-        option_m        = option_arr[ option_id S OPTION_M ]
-        option_name     = option_arr[ option_id S OPTION_NAME ]
-        gsub(/^--?/, "", option_name)
+        option_argc     = option_argc_get( option_id )
+        option_m        = option_multarg_get( option_id )
+        option_name     = option_name_get_without_hyphen( option_id )
 
         # If option_argc == 0, op
-        if (option_m == true) {
+        if ( option_multarg_is_enable( option_id ) ) {
             if (option_assignment_count[ option_id ] != "") {
                 counter = option_assignment_count[ option_id ] + 1
             } else {
@@ -265,7 +268,7 @@ function handle_arguments(          i, j, arg_name, arg_name_short, arg_val, opt
 
         if (option_argc == 0) {
             # print code XXX=true
-            append_code_assignment( option_name, "true" )
+            code_append_assignment( option_name, "true" )
         } else if (option_argc == 1) {
             i = i + 1
             arg_val = arg_arr[ i ]
@@ -303,18 +306,19 @@ function handle_arguments(          i, j, arg_name, arg_name_short, arg_val, opt
 
     # if subcommand declaration exists
     if ( HAS_SUBCMD == true ) {
-        if (subcmd_map[ subcmd_id_lookup[ arg_arr[i] ] ] == "") {
+        _subcmd_id = subcmd_id_by_name( arg_arr[i] )
+        if (! subcmd_exist_by_id( _subcmd_id ) ) {
             HAS_SUBCMD = false  # No subcommand found
         } else {
-            split(subcmd_id_lookup[ arg_arr[i] ], _tmp, "|")
-            append_code_assignment( "PARAM_SUBCMD", _tmp[1] )
-            append_code( "shift " i )
+            split( _subcmd_id , _tmp, "|" )
+            code_append_assignment( "PARAM_SUBCMD", _tmp[1] )
+            code_append( "shift " i )
             return
             # i += 1
         }
     }
 
-    append_code( "shift " (i-1) )
+    code_append( "shift " (i-1) )
 
     if (final_rest_argv[ L ] < arg_arr_len - i + 1) {
         final_rest_argv[ L ] = arg_arr_len - i + 1
@@ -327,17 +331,21 @@ function handle_arguments(          i, j, arg_name, arg_name_short, arg_val, opt
     arg_arr[ L ]=arg_arr[ L ]-i+1
 
     handle_arguments_restargv()
+    if( HAS_PATH == true ){
+        code_append( "local path >/dev/null 2>&1" )
+        code_append( "path=$___x_cmd_param_path" )
+    }
 }
 
 END{
 
     if (EXIT_CODE == "000") {
-        print_code()
+        code_print()
     }
     if (EXIT_CODE == 0) {
         handle_arguments()
         # debug( CODE )
-        print_code()
+        code_print()
     }
 }
 # EndSection

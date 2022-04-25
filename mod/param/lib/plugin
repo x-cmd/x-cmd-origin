@@ -1,4 +1,4 @@
-
+# shellcheck shell=sh disable=SC3043
 # Section 7: param plugin
 
 PARAM_SUBCMD_VAR_PREFIX=___X_CMD_X_BASH_PARAM_SUBCMD___

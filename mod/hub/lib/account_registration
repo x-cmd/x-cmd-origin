@@ -21,7 +21,7 @@ ___x_cmd_hub_register(){
                     2)          ___x_cmd_hub_register_weixin        "$@"  ;;
                     3)          ___x_cmd_hub_register_email         "$@"  ;;
                     # 4)          ___x_cmd_hub_register_telegram      "$@"  ;;
-                    *)          hub_log error "Unknown _SELECT: $_SELECT" ;;
+                    *)          hub:error "Unknown _SELECT: $_SELECT" ;;
                 esac
                 ;;
         *)
@@ -53,10 +53,10 @@ ___x_cmd_hub_register_official_site(){
     read -r _
 
     local userinfo
-    if userinfo="$(___x_cmd_hub_get_and_save_userinfo_by_token "${token_to_activate}")" ; then
-        hub_log info "Register Successfully, ${userinfo}"
+    if userinfo="$(___x_cmd_hub_get_userinfo_by_token "${token_to_activate}")" ; then
+        hub:info "Register Successfully, ${userinfo}"
     else
-        hub_log error "Register Failed"
+        hub:error "Register Failed"
     fi
 }
 
@@ -74,10 +74,10 @@ ___x_cmd_hub_register_weixin(){
     read -r _
 
     local userinfo
-    if userinfo="$(___x_cmd_hub_get_and_save_userinfo_by_token "${token_to_activate}")" ; then
-        hub_log info "Register Successfully, ${userinfo}"
+    if userinfo="$(___x_cmd_hub_get_userinfo_by_token "${token_to_activate}")" ; then
+        hub:info "Register Successfully, ${userinfo}"
     else
-        hub_log error "Register Failed"
+        hub:error "Register Failed"
     fi
 }
 
@@ -92,18 +92,18 @@ ___x_cmd_hub_register_email_witharg(){
 
     local res
     if ! res="$(___x_cmd_httpget "$___X_CMD_HUB_SERVICE_URL/api/v0/account/register/$email?token_to_activate=${token_to_activate}&username=${username}")" ; then
-        hub_log error "Failed to login with email: $email, res: $res"
+        hub:error "Failed to login with email: $email, res: $res"
         return 1
     fi
-    hub_log debug "Register with email: $email, res: $res"
+    hub:debug "Register with email: $email, res: $res"
     printf "%s" "Please check your email $email to approve, then press [Enter] to continue: " >&2
     read -r _
 
     local userinfo
-    if userinfo="$(___x_cmd_hub_get_and_save_userinfo_by_token "${token_to_activate}")" ; then
-        hub_log info "Register Successfully, ${userinfo}"
+    if userinfo="$(___x_cmd_hub_get_userinfo_by_token "${token_to_activate}")" ; then
+        hub:info "Register Successfully, ${userinfo}"
     else
-        hub_log error "Register Failed"
+        hub:error "Register Failed"
     fi
 }
 

@@ -21,10 +21,10 @@ ___x_cmd_hub_file_ls(){
 
     local res
     if ! res="$(___x_cmd_httpget "$___X_CMD_HUB_SERVICE_URL/api/v0/file/ls?token=$(___x_cmd_hub_token)&res=${respath}")" ; then
-        hub_log error "Failed to ls file: $res"
+        hub:error "Failed to ls file: $res"
         return 1
     fi
-    hub_log debug "response: ${res}"
+    hub:debug "response: ${res}"
 
     local code
     code="$(xrc cat awk/lib/default.awk awk/lib/json.awk awk/lib/jiter.awk )"
@@ -33,39 +33,43 @@ ___x_cmd_hub_file_ls(){
 }
 
 ___x_cmd_hub_file_which(){
-    param:void
+    param:dsl<<A
+advise:
+    #1    x hub file ls
+option:
+    #1    "Resourse path"
+A
+    param:run
     local respath="${1:?Provide respath}"
     respath="$(___x_cmd_hub_file_normalize_respath "$respath")"
 
-    local CACHE="${___X_CMD_ROOT%/}/${respath#/}"
-    mkdir -p "${CACHE%/*}"
-    if ___x_cmd_httpget "$___X_CMD_HUB_SERVICE_URL/api/v0/file/cat?token=$(___x_cmd_hub_token)&res=${respath}" >"$CACHE"; then
-        printf "%s" "$CACHE"
+    local cache_path="${___X_CMD_HUB_ENV}/.cache/${respath#/}"
+    local cache_expiration=1
+    mkdir -p "${cache_path%/*}"
+    local error_msg
+    if ___x_cmd_httpget "$___X_CMD_HUB_SERVICE_URL/api/v0/file/cat?token=$(___x_cmd_hub_token)&res=${respath}" "$cache_path" "$cache_expiration" error_msg; then
+        chmod +x "$cache_path"
+        hub:debug "Downloaded ${respath} to ${cache_path}"
+        printf "%s\n" "$cache_path"
     else
-        printf "Failed: %s" "$CACHE" 2>/dev/null
+        hub:error "Failed: $error_msg. Please check the respath."
         return 1
     fi
 }
 
+# TODO: Should be review. @el
 ___x_cmd_hub_file_normalize_respath(){
     local respath="${1}"
     case "$respath" in
         @me/*|@i/*|@/*)
-            local user
-            user=$(___x_cmd_hub_login_user)
-            if [ -z "$user" ]; then
-                printf "Cannot not find out login user for resource: %s" "$respath" >&2
-                return 1
-            fi
-            printf "%s" "$user/${respath#@*/}"
             ___X_CMD_WHICH_ONE_RESOURCE_TYPE=me@hub
-            ;;
+            printf "%s" "$respath" ;;
         *@*)
             ___X_CMD_WHICH_ONE_RESOURCE_TYPE=hub
             printf "%s" "$respath" ;;
         *)
             ___X_CMD_WHICH_ONE_RESOURCE_TYPE=hub
-            printf "%s" "$(___x_cmd_hub_login_user)/${respath#/}" ;;
+            printf "%s" "@me/${respath#/}" ;;
     esac
 }
 
@@ -75,7 +79,7 @@ ___x_cmd_hub_file_upload(){
     local respath="${2:?provide respath}"
 
     [ ! -f "$localfp" ] && {
-        hub_log error "File Not Existed: $localfp"
+        hub:error "File Not Existed: $localfp"
         return
     }
 
@@ -91,8 +95,12 @@ ___x_cmd_hub_file_share(){
     local respath="${1:?Please provide path}"
     respath="$(___x_cmd_hub_file_normalize_respath "$respath")"
 
-    curl "$___X_CMD_HUB_SERVICE_URL/api/v0/file/share/true?token=$(___x_cmd_hub_token)&res=${respath}" 2>/dev/null
-    printf "\n"
+    if ! res="$(___x_cmd_httpget "$___X_CMD_HUB_SERVICE_URL/api/v0/file/share/true?token=$(___x_cmd_hub_token)&res=${respath}")" ; then
+        hub:error "Failed to share file: $res"
+        return 1
+    fi
+
+    hub:info "File shared successfully: $res"
 }
 
 ___x_cmd_hub_file_private(){
@@ -100,6 +108,10 @@ ___x_cmd_hub_file_private(){
     local respath="${1:?Please provide path}"
     respath="$(___x_cmd_hub_file_normalize_respath "$respath")"
 
-    curl "$___X_CMD_HUB_SERVICE_URL/api/v0/file/share/false?token=$(___x_cmd_hub_token)&res=${respath}" 2>/dev/null
-    printf "\n"
+    if ! res="$(___x_cmd_httpget "$___X_CMD_HUB_SERVICE_URL/api/v0/file/share/false?token=$(___x_cmd_hub_token)&res=${respath}")" ; then
+        hub:error "Failed to private file: $res"
+        return 1
+    fi
+
+    hub:info "File private successfully: $res"
 }

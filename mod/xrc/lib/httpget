@@ -1,3 +1,4 @@
+# shellcheck    shell=sh        disable=SC2039,SC1090,SC3043,SC2263
 
 ___x_cmd_httpget_handle_resp_header(){
     local url="${1:?Provide url}"
@@ -18,11 +19,30 @@ ___x_cmd_httpget_handle_resp_header(){
     esac
 }
 
+___x_cmd_fileage(){
+    if stat -c "%Y" /bin/sh 2>/dev/null 1>&2; then
+        ___x_cmd_httpget_fileage(){
+            ___X_CMD_FILEAGE="$(( $(date +%s) - $(stat -c "%Y" "$1") ))"
+        }
+    elif stat -f "%m" /bin/sh 2>/dev/null 1>&2; then
+        ___x_cmd_httpget_fileage(){
+            ___X_CMD_FILEAGE="$(( $(date +%s) - $(stat -f "%m" "$1") ))"
+        }
+    else
+        return 1
+    fi
+
+    ___x_cmd_httpget_fileage "$@"
+}
+
 # TODO: rename to ___x_cmd_httpget_with_cache
 ___x_cmd_httpget() {
+    ___X_CMD_HTTPGET_AGE=-1
+
     local url="${1:?Provide url}"
     local cache="$2"
     local cache_expiration="$3"
+    local error_msg_varname="$4"
 
     local redirect_path=            # "&1"
     if [ -n "$cache" ]; then
@@ -35,10 +55,19 @@ ___x_cmd_httpget() {
                     ;;
                 -)  # force update
                     ;;
-                *)  # days
-                    if [ -n "$(find "$cache" -mtime "-$cache_expiration" 2>/dev/null)" ]; then
+                *)
+                    # days
+                    # if [ -n "$(find "$cache" -mtime "-$cache_expiration" 2>/dev/null)" ]; then
+                    if ! ___x_cmd_fileage "$cache"; then
+                        x:error "Fail to get file age: $cache"
+                        return 1
+                    fi
+
+                    if [ "$___X_CMD_FILEAGE" -lt "$cache_expiration" ]; then
                         x:debug "Function ___x_cmd_httpget() terminated. Because local cache existed within days: $cache_expiration"
                         return 0
+                    else
+                        ___X_CMD_FILEAGE="-$___X_CMD_FILEAGE"
                     fi
             esac
         fi
@@ -55,10 +84,14 @@ ___x_cmd_httpget() {
         if [ -n "$cache" ]; then
             x:debug "Copy the temp file to CACHE file: $cache"
             mv "$redirect_path" "$cache"
+            ___X_CMD_HTTPGET_AGE=0
         fi
     else
         code=$?
-        [ -n "$cache" ] && rm -f "$redirect_path"    # In centos, file in "$redirect_path" is write protected.
+        if [ -n "$cache" ] ; then
+            [ -n "$error_msg_varname" ] && eval "$error_msg_varname=\"$(cat "$redirect_path")\""
+            rm -f "$redirect_path" # In centos, file in "$redirect_path" is write protected.
+        fi
         return $code
     fi
 }

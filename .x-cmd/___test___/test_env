@@ -1,0 +1,36 @@
+test_env_one(){
+    @assert stdout 'data | ___x_cmd_jo_env aaa=.files\\.defaultLanguage;echo "$aaa"' << A
+shellscript
+A
+    @assert stdout ' data | ___x_cmd_jo_env . .files\\.associations.index\\.html; echo "$html"' << A
+shellscript
+A
+    @assert stdout 'data | ___x_cmd_jo_env . .files\\.associations.\*\\.json; echo "$json"' << A
+json
+A
+}
+test_env_multi(){
+    @assert stdout ' data | ___x_cmd_jo_env . aaa=.files\\.defaultLanguage bbb=.files\\.defaultLanguage; echo "$aaa $bbb"' << A
+shellscript shellscript
+A
+}
+
+aa(){
+    echo "$vvv"
+}
+bb(){
+    echo "$vvv"
+    echo "$www"
+}
+test_env_fun(){
+    @assert stdout 'data | ___x_cmd_jo_env . vvv=.files\\.defaultLanguage -- aa' << A
+shellscript
+A
+    @assert stdout 'data | ___x_cmd_jo_env . vvv=.files\\.defaultLanguage www=.files\\.trimTrailingWhitespace -- bb ' << A
+shellscript
+true
+A
+
+}
+
+@assert:file:func

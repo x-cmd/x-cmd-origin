@@ -34,10 +34,11 @@ test_posix(){
 }
 
 case "$1" in
+    query) x _test_query ;;
     list|dict|posix|jo)  test_${1} ;;
     *)          jo_log info "copy all files from ./* to ~/.x-cmd/jo/"
                 cp -r ./* ~/.x-cmd/jo
-                echo "x test [list|dict|posix|jo]"
+                echo "x _test [list|dict|posix|jo]"
 esac
 
 

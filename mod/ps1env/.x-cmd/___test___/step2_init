@@ -1,0 +1,28 @@
+# shellcheck shell=sh disable=SC2154
+
+###
+ # @Description: ___x_cmd_ps1env_init Test
+### 
+
+test_cmd_init_symbol(){
+    @assert stdout "___x_cmd_ps1env init http && ___x_cmd_theme_control_subenv_prompt"<<A
+http
+A
+    @assert stdout "___x_cmd_ps1env init http && echo \"\$___X_CMD_THEME_CONTROL_SUBENV_PROMT\""<<A
+http
+A
+}
+
+test_cmd_init_alias_quit(){
+    if [ -n "$ZSH_VERSION" ]; then
+        @assert stdout "___x_cmd_ps1env init http && alias %q"<<A
+%q=___x_cmd_ps1env_reset
+A
+    else
+        @assert stdout "___x_cmd_ps1env init http && alias %q"<<A
+alias %q='___x_cmd_ps1env_reset'
+A
+    fi
+}
+
+@assert:file:func

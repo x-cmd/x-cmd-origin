@@ -1,0 +1,29 @@
+# shellcheck shell=sh disable=SC1091
+WORK_DIR="$(x wsroot)"
+test:debug "copy file from ./* to $___X_CMD_ROOT_MOD/ps1env/"
+cp -r "$WORK_DIR"/* "$___X_CMD_ROOT_MOD/ps1env/"
+. "$___X_CMD_ROOT_MOD/ps1env/latest"
+
+___X_CMD_XRC_MODULE_IMPORTED=
+xrc ps1env/latest param/latest
+
+cmd(){
+    param:dsl <<A
+subcommand:
+    sub1        "s"
+A
+    param:run
+
+    echo "subcomand: $PARAM_SUBCMD"
+}
+
+init_cmd(){
+    ___x_cmd_ps1env init "cmd"
+    ___x_cmd_ps1env alias +         "cmd"
+    ___x_cmd_ps1env alias :h        "cmd help"
+    ___x_cmd_ps1env alias sub1      "cmd sub1"
+    ___x_cmd_ps1env alias ",sub1"   "cmd sub1"
+    ___x_cmd_ps1env alias "+sub1"   "cmd sub1"
+    ___x_cmd_ps1env alias "@sub1"   "cmd sub1"
+    ___x_cmd_ps1env alias "1sub"    "cmd sub1"
+}

@@ -9,7 +9,7 @@ ___X_CMD_PS1ENV_OVERRIDE_ALIAS=""
 
 ___x_cmd_ps1env(){
     local subcmd
-    subcmd="${1:?Subcommand}";    shift
+    subcmd="${1:?Please Provide Subcommand}";    shift
 
     case "$subcmd" in
         init)                   ___x_cmd_ps1env_init "$@" ;;
@@ -28,11 +28,11 @@ A
 
 # Section: advise
 
-___x_cmd_ps1env_init(){
+___x_cmd_ps1env_init() {
     ___x_cmd_ps1env_reset
 
     ___X_CMD_PS1ENV_PS1="$PS1"
-    ___x_cmd_theme_control_subenv_prompt "${1:?Please provide}"
+    ___x_cmd_theme_control_subenv_prompt "${1:?Please provide symbol}"
 
     ___x_cmd_ps1env_alias %q "___x_cmd_ps1env_reset"
 }
@@ -48,6 +48,7 @@ ______x_cmd_ps1env_inner_alias() {
 ___x_cmd_ps1env_alias(){
     local s
     if s=$(______x_cmd_ps1env_inner_alias "$1" 2>/dev/null); then
+        [ -n "$ZSH_VERSION" ] && s="alias -- ${s}"
         eval "___X_CMD_PS1ENV_OVERRIDE_ALIAS=\"
 \$s
 \$___X_CMD_PS1ENV_OVERRIDE_ALIAS
@@ -83,10 +84,7 @@ A
 
     ___X_CMD_PS1ENV_BIND=
 
-    # TODO: In zsh not have alias prefix, that can not run eval alias
-    # TODO: TO reolad laster alias
-    # TODO: Need to test ash dash ksh alias. zsh need add --
-    # eval "$___X_CMD_PS1ENV_OVERRIDE_ALIAS"
+    eval "$___X_CMD_PS1ENV_OVERRIDE_ALIAS"
     ___X_CMD_PS1ENV_OVERRIDE_ALIAS=
 }
 
@@ -154,9 +152,10 @@ ________x_cmd_theme_env_load_format_wrapper() {
 
     ________x_cmd_theme_env_load_format
 }
+
 # PS1 inject
 if ! ___x_cmd_theme_control_is_using_x_theme; then
-    xrc theme/_v0/style
+    xrc theme/lib/style
     if [ -n "$ZSH_VERSION" ]; then
         setopt PROMPT_SUBST
         # PROMPT interprete %n... after evaluation.

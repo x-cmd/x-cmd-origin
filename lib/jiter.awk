@@ -110,13 +110,14 @@ function jiter_eqarr_parse( obj, item, arrl, arr ){
     return true
 }
 
-function jiter_eqarr( item, arrl, arr,    _ret, _curlevel ){
+function jiter_eqarr( item, arrl, arr,    _ret, _curlevel, _tgt ){
     if ( JITER_SKIP_LEVEL == 0 ) {
         _ret = jiter_for_current_key( item, JITER_STACK_FOR_GRID_CHECK )
 
         if ( _ret == "" ) return false
         _curlevel = (JITER_CURLEN == 0) ? JITER_LEVEL : JITER_LEVEL + 1
-        if ( arr[ _curlevel ] == _ret ) {           # diff
+        _tgt = arr[ _curlevel ]
+        if ( ( _tgt == "" ) || ( _tgt == _ret ) ) {           # diff
             if ( _curlevel == arrl ) return true
             return false
         }

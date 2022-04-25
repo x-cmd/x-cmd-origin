@@ -3,6 +3,12 @@
 
 # license:      GPLv3
 
+# Section: ENV ___X_CMD_ENV_PATH
+
+___X_CMD_ENV_PATH="$___X_CMD_ROOT/.env"
+
+# EndSection
+
 # Inject the environment.
 ___x_cmd_env_main() {
     xrc env/lib/main
@@ -20,13 +26,28 @@ ___x_cmd_env_util_add_path(){
 
     PATH="$dir"
     local cur
-    while [ ! "$tmp" = "" ]; do
+    while [ -n "$tmp" ]; do
         cur=${tmp%%:*}
         tmp=${tmp#*:}
         if [ "$cur" != "$dir" ]; then
             PATH="$PATH:$cur"
         fi
     done
+}
+
+___x_cmd_env_util_cmd_to_candidate(){
+    local cmd="$1"
+    local candidate
+    find "$___X_CMD_ENV_PATH"/*/versions/*/bin/"$cmd" | while read -r cmd_path; do
+        cmd_path="${cmd_path%/versions/*/bin/"$cmd"}"
+        candidate="${cmd_path##*/}"
+        if [ -n "$candidate" ]; then
+            printf "%s\n" "$candidate"
+            return 0
+        fi
+    done
+
+    return 1
 }
 
 ___x_cmd_env_main_init_file_load(){
@@ -57,6 +78,20 @@ ___x_cmd_env_advise_ls_local_version(){
     local candidate_idx="${1:-2}"
     [ -n "$ZSH_VERSION" ] && candidate_idx=$((candidate_idx+1))
     x env ls "${COMP_WORDS[candidate_idx]}"
+}
+
+___x_cmd_env_advise_cmd_ls_local_version(){
+    local cmd_idx="${1:-2}"
+    [ -n "$ZSH_VERSION" ] && cmd_idx=$((cmd_idx+1))
+    local candidate
+    candidate="$(___x_cmd_env_util_cmd_to_candidate "${COMP_WORDS[cmd_idx]}")"
+    x env ls "$candidate"
+}
+
+___x_cmd_env_advise_ls_cmd(){
+    find "$___X_CMD_ENV_PATH"/*/versions/*/bin/* | while read -r cmd_path; do
+        printf "%s\n" "${cmd_path##*/}"
+    done
 }
 
 # EndSection

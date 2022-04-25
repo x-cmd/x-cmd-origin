@@ -192,11 +192,11 @@ function prepare_selected_item_data(        _selected, _selected_keypath ){
 
 function get_data( curkp,            cmd_format, _curkp_arrl, _curkp_arr, _line, curkp_to_json, _len, _max_len, i ){
     if (data[ curkp L ] != "")  return
-    cmd_format = "ls ~/.x-cmd/.env/ 2>/dev/null"
+    cmd_format = ". ~/.x-cmd/xrc/latest; xrc env/lib/main ; ___x_cmd_env_candidate_all"
     # cmd_format = "cd ~/.x-cmd/env/lib/app/candidate/sdk; ls; cd - >/dev/null"
     if (curkp != ".") {
         _curkp_arrl  = split( curkp, _curkp_arr, S)
-        cmd_format = "cat ~/.x-cmd/.env/%s/cache/%s.json  2>/dev/null"
+        cmd_format = "cat ~/.x-cmd/.env/info/%s.json  2>/dev/null"
 
         cmd_format = sprintf(cmd_format, _curkp_arr[2], _curkp_arr[2])
         cmd_format = ". ~/.x-cmd/xrc/latest; xrc env/lib/app/lsenv;" cmd_format "| ___x_cmd_ui_get_env_ls %s"

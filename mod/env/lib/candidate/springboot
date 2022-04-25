@@ -3,10 +3,17 @@
 # Section: Springboot ls_remote
 
 ___x_cmd_env_springboot_ls_remote(){
+    local pattern="${1:-""}"
+    local cache_expiration="${2:-86400}"
     local cache_path="$___X_CMD_ENV_PATH/springboot/cache/version_list"
-    local cache_expiration="${2:-1}"
     ___x_cmd_httpget "https://repo.spring.io/ui/api/v1/ui/nativeBrowser/release/org/springframework/boot/spring-boot-cli" "$cache_path" "$cache_expiration" &&\
-    awk ' match($0,/"[.-9]+(RELEASE)?[0-9A-Z.]+?/){ print substr($0,RSTART+1, RLENGTH-1)} ' < "$cache_path"
+    awk -v pattern="$pattern" 'match($0,/"[.-9]+(RELEASE)?[0-9A-Z.]+?/){
+        version = substr($0,RSTART+1, RLENGTH-1)
+        if (pattern == "" || index(version, pattern) > 0) {
+            print version
+        }
+    } ' < "$cache_path" \
+        | ___x_cmd_env_common_sort_version | ___x_cmd_env_common_simplify_version
 }
 
 # EndSection
@@ -17,14 +24,14 @@ ___x_cmd_env_springboot_download_archive(){
     local version="${1:?Provide a version}"
     local archive_path="$___X_CMD_ENV_PATH/springboot/archive/springboot-${version}.zip"
     if ___x_cmd_env_util_is_archive_cached springboot "$version" 2>/dev/null; then
-        env_log info "Archive existed: $version"
+        env:info "Archive existed: $version"
         return 0
     fi
     mkdir -p "$(dirname "${archive_path}")"
-    download_url="https://repo.spring.io/simple/release/org/springframework/boot/spring-boot-cli/${version}/spring-boot-cli-${version}-bin.zip"
-    env_log info "Downloading"
+    local download_url="https://repo.spring.io/simple/release/org/springframework/boot/spring-boot-cli/${version}/spring-boot-cli-${version}-bin.zip"
+    env:info "Downloading"
     if ! curl --progress-bar --location --retry-max-time 10 --retry 0 "$download_url" --output "$archive_path" ; then
-        env_log error "Download failure from $download_url"
+        env:error "Download failure from $download_url"
         return 1
     fi
 }
@@ -36,7 +43,7 @@ ___x_cmd_env_springboot_download_archive(){
 ___x_cmd_env_springboot_unpack(){
 	local version="${1:?Provide a version}"
     local archive_path="$___X_CMD_ENV_PATH/springboot/archive/springboot-$version.zip"
-    env_log info "Unpacking: springboot ${version}"
+    env:info "Unpacking: springboot ${version}"
     x uz "$___X_CMD_ENV_PATH/springboot/archive/springboot-$version.zip" "$(dirname "$archive_path")" || return 1
     local archive_unpack_files
     local versions_path="$___X_CMD_ENV_PATH/springboot/versions"
@@ -51,7 +58,7 @@ ___x_cmd_env_springboot_unpack(){
 # Section: current
 
 ___x_cmd_env_springboot_current(){
-    ___x_cmd_env_common_current spring "$@"
+    ___x_cmd_env_common_current spring
 }
 
 # EndSection

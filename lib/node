@@ -1,88 +1,79 @@
 # shellcheck shell=sh disable=SC3043,SC2034
 
-___x_cmd_nvm_install(){
-    local VERSION="${1:?Provide node version}"
+# Section: util
 
-    xrc os
-    if [ "$(os name)-$(os arch)" = "darwin-arm64" ]; then
-        # FIXME: If you use bash5 which installed by brew, it will not work.
-        arch -x86_64 /bin/bash <<A
-. $___X_CMD_ROOT/.boot/boot
-x nvm install $VERSION
-A
-    else
-        x nvm install "$VERSION"
+# TODO: Wait 'x exec npm=[version-not-install]' to remove this function
+___x_cmd_node_exec_default(){
+    local cmd="$1" ; shift
+
+    if command -v "$cmd" > /dev/null ; then
+        "$cmd" "$@"
+        return
     fi
-}
 
-___x_cmd_nvm_exec_default(){
-    local VERSION=14.17.1
-    {
-        if ! x nvm which $VERSION; then
-            if ___x_cmd_nvm_install $VERSION; then
-                x nvm which $VERSION
-            else
-                return
-            fi
-        fi
-    } 1>/dev/null
+    ___x_cmd_env_main download node
 
     eval "
-    ___x_cmd_nvm_exec_default(){
-        x nvm exec $VERSION \"\$@\"
-    }
-    "
-
-    ___x_cmd_nvm_exec_default "$@"
-}
-
-___x_cmd_node_bin(){
-    local nodepath
-    nodepath="$(___x_cmd_nvm_exec_default which node)"
-
-    eval "
-___x_cmd_node_bin(){
-    $(printf "%s" "$nodepath" | tail -n1) \"\$@\" ;
+___x_cmd_node_exec_default(){
+    local cmd=\"\$1\" ; shift
+    ___x_cmd_env_main exec \$cmd \"\$@\"
 }"
 
-    ___x_cmd_node_bin "$@"
+    ___x_cmd_env_main exec "$cmd" "$@"
+}
+
+___x_cmd_node_arg(){
+    local IFS
+    IFS="$(printf "\034")"
+    local all="$*"
+
+    local p
+    p="$(xrc which node/lib/node_argparse.awk)"
+
+    awk \
+        -v ARG_SEP="$IFS" \
+        -f "$p" <<A
+$all
+A
+}
+
+# EndSection
+
+# Section: bin node、npm、ts、npx
+
+___x_cmd_node_bin(){
+    ___x_cmd_node_exec_default node "$@"
 }
 
 ___x_cmd_npm(){
-    ___x_cmd_nvm_exec_default npm "$@"
+    ___x_cmd_node_exec_default npm "$@"
 }
 
 ___x_cmd_npx(){
-    ___x_cmd_nvm_exec_default npx "$@"
+    ___x_cmd_node_exec_default npx "$@"
 }
 
-___x_cmd_tsnode(){
+# TODO: To be removed
+___x_cmd_ts_deprecated(){
 
     {
     local tspath
-    if ! tspath=$(___x_cmd_nvm_exec_default which ts-node); then
+    if ! tspath=$(___x_cmd_env_main which ts-node); then
         x npm install -g ts-node typescript @types/node || return
-        if ! tspath="$(___x_cmd_nvm_exec_default which ts-node)"; then
-            ___xrc_log warn "ts installation failure."
+        if ! tspath="$(___x_cmd_node_exec_default which ts-node)"; then
+            x:log warn "ts installation failure."
             return 0
         fi
     fi
 
-#     echo "
-# ___x_cmd_tsnode(){
-#     $(printf "%s" "$tspath" | tail -n1) \"\$@\"
-# }
-#     "
-
     eval "
-___x_cmd_tsnode(){
-    $(printf "%s" "$tspath" | tail -n1) \"\$@\"
+___x_cmd_ts(){
+    ___x_cmd_node_exec_default ts-node \"\$@\"
 }
     "
 
-    } 1>/dev/null 2>&1
-
-    ___x_cmd_tsnode "$@"
+    }
+    ___x_cmd_ts "$@"
 }
 
 # TODO: to fix
@@ -99,23 +90,6 @@ ___x_cmd_ts(){
     script="$1"
     shift
     x npx @typeshell/exec "$argstr" "$script" "$@"
-}
-
-___x_cmd_node_arg(){
-    local IFS
-    IFS="$(printf "\034")"
-    local all="$*"
-
-    local p
-    p="$(xrc which node/lib/node_argparse.awk)"
-    # p="$(xrc which ./_v0/node_argparse.awk)"
-
-    awk \
-        -v ARG_SEP="$IFS" \
-        -f "$p" <<A
-$all
-A
-
 }
 
 ___x_cmd_node_inner(){

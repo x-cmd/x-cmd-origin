@@ -102,6 +102,7 @@ ___x_cmd_ui_region___run_clear(){
                     for i in $(seq $LINES); do
                         printf "%${COLUMNS}s\n" ""
                     done
+                    # printf "\033[2J"
                     ;;
             esac
             printf "\033[34h\033[?25h"
@@ -165,6 +166,7 @@ ___x_cmd_ui_region___autorefresh_with_keyboard_mainloop(){
 
 ___x_cmd_ui_region_autorefresh_with_keyboard(){
     ___x_cmd_ui_region_run ___x_cmd_ui_region___autorefresh_with_keyboard_mainloop "$@"
+    if [ -z "$BASH_VERSION" ] && [ -z "$ZSH_VERSION" ]; then stty -raw; fi       # For kill ___x_cmd_ui_getchar in alpine
 }
 # EndSection
 

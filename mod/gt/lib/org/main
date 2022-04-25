@@ -6,29 +6,26 @@
 
 ___x_cmd_gt_org(){
     param:scope     "gitee/$O"
-    param:dsl       '
-subcmd:
-    ls                      "List all org"
-    info                    "Show org information"
-    create                  "Create org"
-    repo                    "List all repos"
-    quit                    "Quit org"
-    issue                   "List all issues"
-    member                  "org member management"
-'
+    param:subcmd ___x_cmd_gt_org                            \
+        ls                      "List all org"              \
+        info                    "Show org information"      \
+        create                  "Create org"                \
+        repo                    "List all repos"            \
+        quit                    "Quit org"                  \
+        issue                   "List all issues"           \
+        member                  "org member management"
+    param:subcmd:try
     param:run
-    if [ -z "$PARAM_SUBCMD" ]; then
-        gt_log warn "Subcmd Not Found."
-        ___x_cmd_gt_org _param_help_doc
-        return 1
-    fi
 
-    "___x_cmd_gt_org_${PARAM_SUBCMD}" "$@"
+    gt_log warn "Subcmd Not Found."
+    ___x_cmd_gt_org _param_help_doc
+    return 1
 }
 
 # Section: list & info
 # shellcheck disable=SC2154
-___x_cmd_gt_org_ls() {
+# https://gitee.com/api/v5/swagger#/getV5UserOrgs
+___x_cmd_gt_org_ls(){
     param:scope     "gitee/$O"
     param:dsl       '
 options:
@@ -51,9 +48,9 @@ options:
     return 1
 }
 
-# NOTE: ______x_cmd_gt_owner_type_query
 # shellcheck disable=SC2154
-___x_cmd_gt_org_info() {
+# https://gitee.com/api/v5/swagger#/getV5OrgsOrg
+___x_cmd_gt_org_info(){
     param:scope     "gitee/$O"
     param:dsl       '
 options:
@@ -77,7 +74,8 @@ options:
 # Section: create
 # It is very rare TODO: batch?
 # shellcheck disable=SC2181
-___x_cmd_gt_org_create() {
+# https://gitee.com/api/v5/swagger#/postV5UsersOrganization
+___x_cmd_gt_org_create(){
     param:scope     "gitee/$O"
     param:dsl       '
 options:
@@ -108,11 +106,10 @@ options:
 
 # Section: org repo
 ___x_cmd_gt_org_repo(){
-    param:dsl       '
-subcmd:
-    ls          "list repo"
-    create      "org repo create"
-'
+    param:subcmd ___x_cmd_gt_org_repo           \
+        ls          "list repo"                 \
+        create      "org repo create"
+    param:subcmd:try
     param:run
 
     if [ -z "$PARAM_SUBCMD" ]; then
@@ -125,7 +122,7 @@ subcmd:
 }
 
 # https://gitee.com/api/v5/swagger#/getV5OrgsOrgRepos
-___x_cmd_gt_org_repo_ls() {
+___x_cmd_gt_org_repo_ls(){
     param:scope     "gitee/$O"
     param:dsl       '
 options:
@@ -155,7 +152,8 @@ options:
 
 # Section: quit
 # shellcheck disable=SC2181
-___x_cmd_gt_org_quit() {
+# https://gitee.com/api/v5/swagger#/deleteV5UserMembershipsOrgsOrg
+___x_cmd_gt_org_quit(){
     param:scope     "gitee/$O"
     param:dsl       '
 options:

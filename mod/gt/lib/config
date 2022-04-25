@@ -2,12 +2,11 @@
 # shellcheck disable=SC2039,3043
 
 ___x_cmd_gt_config(){
-    param:dsl       '
-subcmd:
-    which       "Show current config path"
-    get         "Print the value of a given configuration key"
-    set         "Update configuration with a value for the given key"
-'
+    param:subcmd ___x_cmd_gt_config                                        \
+        which       "Show current config path"                             \
+        get         "Print the value of a given configuration key"         \
+        set         "Update configuration with a value for the given key"
+    param:subcmd:try
     param:run
     if [ -z "$PARAM_SUBCMD" ]; then
         gt_log warn "Subcmd Not Found."
@@ -18,13 +17,13 @@ subcmd:
     "___x_cmd_gt_config_${PARAM_SUBCMD}" "$@"
 }
 
-___x_cmd_gt_config_which() {
+___x_cmd_gt_config_which(){
     param:void
     local O="${O:-GITEE_DEFAULT}"
     printf "%s" "$HOME/.x-cmd/.config/x-bash/app.gitee.config/$O"
 }
 
-___x_cmd_gt_config_get() {
+___x_cmd_gt_config_get(){
     param:scope     "gitee/$O"
     param:dsl       '
 type:
@@ -39,7 +38,7 @@ options:
     ___x_cmd_git_config_get "$HOME/.x-cmd/.config/x-bash/app.gitee.config/$O" "$host" "$1"
 }
 
-___x_cmd_gt_config_set() {
+___x_cmd_gt_config_set(){
     param:scope     "gitee/$O"
     param:dsl       '
 type:

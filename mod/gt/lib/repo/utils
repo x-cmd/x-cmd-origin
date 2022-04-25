@@ -4,7 +4,7 @@
 ############################
 # Section 6: Repo Path & Clone
 ############################
-___x_cmd_gt_repo_url_http() {
+___x_cmd_gt_repo_url_http(){
     param:scope  "gitee/$O"
     param:dsl    '
 options:
@@ -18,12 +18,12 @@ options:
     done
 }
 
-___x_cmd_gt_repo_url() {
+___x_cmd_gt_repo_url(){
     param:void
     ___x_cmd_gt_repo_url_ssh ${1:+"$@"}
 }
 
-___x_cmd_gt_repo_url_ssh() {
+___x_cmd_gt_repo_url_ssh(){
     param:scope     "gitee/$O"
     param:dsl       '
 options:
@@ -37,27 +37,27 @@ options:
     done
 }
 
-___x_cmd_gt_repo_clone() {
+___x_cmd_gt_repo_clone(){
     ___x_cmd_gt_repo_clone_ssh "$@" && return 0
     ___x_cmd_gt_repo_clone_https "$@" && return 0
     return $?
 }
 
 # shellcheck disable=SC2120
-___x_cmd_gt_repo_clone_ssh() {
+___x_cmd_gt_repo_clone_ssh(){
     param:void
     git clone "$(___x_cmd_gt_repo_url_ssh "$@")"
 }
 
 # shellcheck disable=SC2120
-___x_cmd_gt_repo_clone_https() {
+___x_cmd_gt_repo_clone_https(){
     param:void
     git clone "$(___x_cmd_gt_repo_url_http "$@")"
 }
 
 # https://gitee.com/api/v5/swagger#/postV5ReposOwnerRepoForks
 # TODO Not available Gitee return Not Found Project
-___x_cmd_gt_repo_fork() {
+___x_cmd_gt_repo_fork(){
     param:scope    "gitee/$O"
     param:dsl       '
 options:

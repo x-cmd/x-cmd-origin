@@ -8,67 +8,41 @@
 xrc http param str ui
 xrc ui/lib/table gh/lib/resource
 
-
-# TODO: Precompile it into one file.
-____x_cmd_gt_xrc(){
-    local i
-    for i in "$@"; do
-    xrc "gt/lib/$i"
-    done
-}
-
-____x_cmd_gt_xrc utils config token user current issue enterprise/main enterprise/member enterprise/team org/main org/member \
+xrc:inner:lib gt utils config token user current issue enterprise/main enterprise/member enterprise/team org/main org/member \
     repo/utils repo/main repo/pr/main repo/release/main repo/member repo/tag repo/page repo/branch _type/main
-
-
-# define lazy loader TODO: advise fix it
-# ___x_cmd_definelazyloader   ___x_cmd_gt_issue            gt/lib/issue
-# ___x_cmd_definelazyloader   ___x_cmd_gt_repo             gt/lib/repo/main
-# ___x_cmd_definelazyloader   ___x_cmd_gt_repo_pr          gt/lib/repo/pr/main
-# ___x_cmd_definelazyloader   ___x_cmd_gt_repo_release     gt/lib/repo/release/main
-# ___x_cmd_definelazyloader   ___x_cmd_gt_repo_member      gt/lib/repo/member
-# ___x_cmd_definelazyloader   ___x_cmd_gt_repo_tag         gt/lib/repo/tag
-# ___x_cmd_definelazyloader   ___x_cmd_gt_repo_page        gt/lib/repo/page
-# ___x_cmd_definelazyloader   ___x_cmd_gt_org              gt/lib/org/main
-# ___x_cmd_definelazyloader   ___x_cmd_gt_enterprise       gt/lib/enterprise/main
 
 
 x log init gt
 ___x_cmd_gt(){
-    param:dsl       '
-subcmd:
-    repo                             "repo command"
-    issue                            "issue"
-    pr                               "pull request"
-    member                           "repo member"
-    current                          "set current owner, repo"
-    release                          "release management"
-    enterprise                       "manage enterprise"
-    org                              "manage org"
-    tag                              "repo tag"
-    user                             "user"
-    config                           "save, load, which"
-    token                            "set token"
-    new                              "new client"
-'
-    param:run
-    if [ -z "$PARAM_SUBCMD" ]; then
-        gt_log warn "Subcmd Not Found."
-        ___x_cmd_gt _param_help_doc
-        return 1
-    fi
+    param:subcmd ___x_cmd_gt                                        \
+        repo                             "repo command"             \
+        issue                            "issue"                    \
+        current                          "set current owner, repo"  \
+        enterprise                       "manage enterprise"        \
+        org                              "manage org"               \
+        user                             "user"                     \
+        config                           "save, load, which"        \
+        token                            "set token"
+    param:subcmd:try
 
-    case "${PARAM_SUBCMD}" in
-        pr|release|member|tag)        "___x_cmd_gt_repo_${PARAM_SUBCMD}"   "$@"        ;;
-        *)                            "___x_cmd_gt_${PARAM_SUBCMD}"        "$@"        ;;
-    esac
+    param:subcmd ___x_cmd_gt_repo                                        \
+        pr                               "pull request"             \
+        release                          "release management"       \
+        member                           "repo member"              \
+        tag                              "repo tag"
+    param:subcmd:try
+    param:run
+
+    gt_log warn "Subcmd Not Found."
+    ___x_cmd_gt _param_help_doc
+    return 1
 }
 
 
 ############################
 # Section 10: Instantiation
 ############################
-___x_cmd_gt_make() {
+___x_cmd_gt_make(){
     param:void
 
     local O_ORIGINAL="${1:?Provide client name by O environment}"
@@ -82,7 +56,7 @@ ___x_cmd_gt_make() {
 
     if [ -n "$token" ]; then
         O="___x_cmd_gt_$O_ORIGINAL" http header put Authorization "token $token"
-        O="$O_ORIGINAL" ___x_cmd_gt_current_owner || return 1
+        O="$O_ORIGINAL" ___x_cmd_gt_current_owner 1>/dev/null || return 1
         gt_log info "Hi $___X_CMD_GITEE_DEFAULT_OWNER! You've successfully authenticated."
         return 0
     fi

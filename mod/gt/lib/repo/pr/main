@@ -3,19 +3,18 @@
 
 
 ___x_cmd_gt_repo_pr(){
-    param:dsl       '
-subcmd:
-    ls              "List pull requests"
-    log             "List pull requests log"
-    commit          "List pull requests commit"
-    info            "Show pull request info"
-    view            "open pull request in browser"
-    create          "Create pull request"
-    update          "Update pull requests"
-    merge           "Merge pull requests"
-    assign          "Assign request to somebody"
-    testers         "Designation pull requests testers"
-'
+    param:subcmd ___x_cmd_gt_repo_pr                            \
+        ls              "List pull requests"                    \
+        log             "List pull requests log"                \
+        commit          "List pull requests commit"             \
+        info            "Show pull request info"                \
+        view            "open pull request in browser"          \
+        create          "Create pull request"                   \
+        update          "Update pull requests"                  \
+        merge           "Merge pull requests"                   \
+        assign          "Assign request to somebody"            \
+        testers         "Designation pull requests testers"
+    param:subcmd:try
     param:run
     if [ -z "$PARAM_SUBCMD" ]; then
         gt_log warn "Subcmd Not Found."
@@ -29,7 +28,7 @@ subcmd:
 
 # Section: ls info log commit view
 
-___x_cmd_gt_repo_pr_ls() {
+___x_cmd_gt_repo_pr_ls(){
 
     param:scope     "gitee/$O"
     param:dsl       '
@@ -81,7 +80,7 @@ alias ___parse_pr_init_owner_repo_and_pr='
     ___parse_pr_init_owner_repo_and_pr_main || return
 '
 
-___x_cmd_gt_repo_pr_info() {
+___x_cmd_gt_repo_pr_info(){
     param:scope     "gitee/$O"
     param:dsl       '
 options:
@@ -95,7 +94,7 @@ options:
 }
 
 
-___x_cmd_gt_repo_pr_log() {
+___x_cmd_gt_repo_pr_log(){
     param:scope     "gitee/$O"
     param:dsl       '
 type:
@@ -110,7 +109,7 @@ options:
     ___x_cmd_gt_http get "/v5/repos/${owner_repo}/pulls/$pr/operate_logs" sort
 }
 
-___x_cmd_gt_repo_pr_commit() {
+___x_cmd_gt_repo_pr_commit(){
     param:scope     "gitee/$O"
     param:dsl       '
 options:
@@ -122,7 +121,7 @@ options:
     ___x_cmd_gt_http get "/v5/repos/${owner_repo}/pulls/$pr/commits"
 }
 
-___x_cmd_gt_repo_pr_view() {
+___x_cmd_gt_repo_pr_view(){
     param:scope     "gitee/$O"
     param:dsl       '
 options:
@@ -140,7 +139,7 @@ options:
 # Section: create update merge
 
 # shellcheck disable=SC2154,SC2181
-___x_cmd_gt_repo_pr_create() {
+___x_cmd_gt_repo_pr_create(){
     local O="${O:-GITEE_DEFAULT}"
     param:scope     "gitee/$O"
     param:dsl       '
@@ -181,7 +180,7 @@ options:
     fi
 }
 
-___x_cmd_gt_repo_pr_update() {
+___x_cmd_gt_repo_pr_update(){
     local O="${O:-GITEE_DEFAULT}"
     param:scope     "gitee/$O"
 ##TODO:state
@@ -205,7 +204,7 @@ options:
         labels assignees_number testers_number state
 }
 
-___x_cmd_gt_repo_pr_merge() {
+___x_cmd_gt_repo_pr_merge(){
     param:scope     "gitee/$O"
     param:dsl       '
 type:

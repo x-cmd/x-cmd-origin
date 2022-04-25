@@ -4,16 +4,16 @@
 ############################
 # Section 2: Wrapping std/http module with object naming changing
 ############################
-___x_cmd_gt_resp_header() {
+___x_cmd_gt_resp_header(){
     http "___x_cmd_gt_${O:-GITEE_DEFAULT}" resp header "$@"
 }
 
 # TODO: Not supported yet
-___x_cmd_gt_resp_body() {
+___x_cmd_gt_resp_body(){
     http "___x_cmd_gt_${O:-GITEE_DEFAULT}" resp body "$@"
 }
 
-___x_cmd_gt_get_multi() {
+___x_cmd_gt_get_multi(){
     if [ -n "$page" ] || [ -n "$per_page" ]; then
         ___x_cmd_gt_http get "$@" page per_page
         return "$?"
@@ -45,7 +45,7 @@ alias ___x_cmd_gt_param_init_owner_repo='
     ___x_cmd_gt_param_normalize_repo  || return
 '
 
-___x_cmd_gt_param_normalize_repo() {
+___x_cmd_gt_param_normalize_repo(){
     local op="$repo"
     [ -z "$op" ] && op="$1"
     case "$op" in
@@ -82,7 +82,7 @@ ___x_cmd_gt_param_normalize_repo() {
 
 ### Repo #1
 
-___x_cmd_gt_parse_owner_repo() {
+___x_cmd_gt_parse_owner_repo(){
     local O="${O:-GITEE_DEFAULT}"
     if [ -z "$repo" ]; then
         repo="$(___x_cmd_gt_current_repo)"

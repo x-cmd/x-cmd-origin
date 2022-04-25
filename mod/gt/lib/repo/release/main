@@ -2,16 +2,15 @@
 # shellcheck disable=SC2039,3043
 
 ___x_cmd_gt_repo_release(){
-    param:dsl    <<A
-subcmd:
-    ls              "List repo's release"
-    create          "Create repo release"
-    update          "Update release information"
-    rm              "Remove repo release"
-    latest          "Show latest release"
-    info            "Show detailed information of repo"
-    attachment      "attachment management"
-A
+    param:subcmd ___x_cmd_gt_repo_release                       \
+        ls              "List repo's release"                   \
+        create          "Create repo release"                   \
+        update          "Update release information"            \
+        rm              "Remove repo release"                   \
+        latest          "Show latest release"                   \
+        info            "Show detailed information of repo"     \
+        attachment      "attachment management"
+    param:subcmd:try
     param:run
     if [ -z "$PARAM_SUBCMD" ]; then
         gt_log warn "Subcmd Not Found."
@@ -23,7 +22,8 @@ A
 }
 
 # shellcheck disable=SC2086,SC2154
-___x_cmd_gt_repo_release_ls() {
+# https://gitee.com/api/v5/swagger#/getV5ReposOwnerRepoReleases
+___x_cmd_gt_repo_release_ls(){
     param:scope     "gitee/$O"
     param:dsl    '
 type:
@@ -50,7 +50,7 @@ options:
 
 # shellcheck disable=SC2086,SC2154
 # TODO:https://gitee.com/api/v5/swagger#/getV5ReposOwnerRepoReleasesTagsTag
-___x_cmd_gt_repo_get_release_by_tag() {
+___x_cmd_gt_repo_get_release_by_tag(){
     param:scope     "gitee/$O"
     param:dsl    '
 options:
@@ -64,7 +64,8 @@ options:
 }
 
 # shellcheck disable=SC2154,SC2181
-___x_cmd_gt_repo_release_create() {
+# https://gitee.com/api/v5/swagger#/postV5ReposOwnerRepoReleases
+___x_cmd_gt_repo_release_create(){
     local O="${O:-GITEE_DEFAULT}"
 
     param:scope  "gitee/$O"
@@ -105,7 +106,7 @@ alias ______x_cmd_gt_repo_release_init_owner_repo_and_release="
 
 # shellcheck disable=SC2154,SC2181
 # TODO:https://gitee.com/api/v5/swagger#/patchV5ReposOwnerRepoReleasesId
-___x_cmd_gt_repo_release_update() {
+___x_cmd_gt_repo_release_update(){
     local O="${O:-GITEE_DEFAULT}"
     param:scope  "gitee/$O"
     param:dsl    '
@@ -124,8 +125,8 @@ options:
     ___x_cmd_ui tf "true" "Success release" "name: $name" "body: $body" "prerelease: $prerelease"  && return 0
 }
 
-# TODO:https://gitee.com/api/v5/swagger#/deleteV5ReposOwnerRepoReleasesId
-___x_cmd_gt_repo_release_rm() {
+# TODO: https://gitee.com/api/v5/swagger#/deleteV5ReposOwnerRepoReleasesId
+___x_cmd_gt_repo_release_rm(){
     local O="${O:-GITEE_DEFAULT}"
     param:scope  "gitee/$O"
     param:dsl    '
@@ -138,8 +139,8 @@ options:
     ___x_cmd_gt_http delete "/v5/repos/${owner_repo}/releases/$release"
 }
 
-# TODO:https://gitee.com/api/v5/swagger#/getV5ReposOwnerRepoReleasesLatest
-___x_cmd_gt_repo_release_latest() {
+# TODO: https://gitee.com/api/v5/swagger#/getV5ReposOwnerRepoReleasesLatest
+___x_cmd_gt_repo_release_latest(){
     local O="${O:-GITEE_DEFAULT}"
     param:scope     "gitee/$O"
     param:dsl    '
@@ -152,8 +153,8 @@ options:
     ___x_cmd_gt_http get "/v5/repos/${owner_repo}/releases/latest"
 }
 
-# TODO:https://gitee.com/api/v5/swagger#/getV5ReposOwnerRepoReleasesId
-___x_cmd_gt_repo_release_info() {
+# TODO: https://gitee.com/api/v5/swagger#/getV5ReposOwnerRepoReleasesId
+___x_cmd_gt_repo_release_info(){
     local O="${O:-GITEE_DEFAULT}"
     param:scope     "gitee/$O"
     param:dsl    '

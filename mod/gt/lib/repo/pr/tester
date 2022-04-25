@@ -3,14 +3,13 @@
 
 ___x_cmd_gt_repo_pr_testers(){
     param:scope     "gitee/$O"
-    param:dsl       '
-subcmd:
-    add             "Add assignee"
-    del             "Del assignee"
-    reset           "Reset all assignee"
-    test            "test pass"
-'
-
+    param:subcmd ___x_cmd_gt_repo_pr_testers                \
+        add             "Add assignee"                      \
+        del             "Del assignee"                      \
+        reset           "Reset all assignee"                \
+        test            "test pass"
+    param:subcmd:try
+    param:run
     if [ -z "$PARAM_SUBCMD" ]; then
         ___x_cmd_gt_repo_pr_assign help
         return
@@ -20,7 +19,7 @@ subcmd:
 }
 
 # https://gitee.com/api/v5/swagger#/postV5ReposOwnerRepoPullsNumberTesters
-___x_cmd_gt_repo_pr_testers_add() {
+___x_cmd_gt_repo_pr_testers_add(){
     param:scope     "gitee/$O"
     param:dsl       '
 options:
@@ -33,7 +32,8 @@ options:
     ___x_cmd_gt_http post "/v5/repos/${owner_repo}/pulls/$pr/testers" testers
 }
 
-___x_cmd_gt_repo_pr_testers_delete() {
+# https://gitee.com/api/v5/swagger#/deleteV5ReposOwnerRepoPullsNumberTesters
+___x_cmd_gt_repo_pr_testers_delete(){
     param:scope     "gitee/$O"
     param:dsl       '
 options:
@@ -46,7 +46,8 @@ options:
     ___x_cmd_gt_http delete "/v5/repos/${owner_repo}/pulls/$pr/testers?testers=$testers"
 }
 
-___x_cmd_gt_repo_pr_testers_reset() {
+# https://gitee.com/api/v5/swagger#/patchV5ReposOwnerRepoPullsNumberTesters
+___x_cmd_gt_repo_pr_testers_reset(){
     param:scope     "gitee/$O"
     param:dsl       '
 options:
@@ -60,7 +61,8 @@ options:
     ___x_cmd_gt_http patch "/v5/repos/${owner_repo}/pulls/$pr/testers" reset_all
 }
 
-___x_cmd_gt_repo_pr_testers_test() {
+#
+___x_cmd_gt_repo_pr_testers_test(){
     param:scope     "gitee/$O"
     param:dsl       '
 options:

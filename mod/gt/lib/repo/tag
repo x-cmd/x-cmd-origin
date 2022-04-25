@@ -2,11 +2,10 @@
 # shellcheck disable=SC2039,3043
 
 ___x_cmd_gt_repo_tag(){
-    param:dsl    '
-subcmd:
-    ls              "List repo tag"
-    add             "Add repo tag"
-'
+    param:subcmd ___x_cmd_gt_repo_tag                   \
+        ls              "List repo tag"                 \
+        add             "Add repo tag"
+    param:subcmd:try
     param:run
     if [ -z "$PARAM_SUBCMD" ]; then
         gt_log warn "Subcmd Not Found."
@@ -18,7 +17,8 @@ subcmd:
 }
 
 # shellcheck disable=SC2154,SC2086
-___x_cmd_gt_repo_tag_ls() {
+# https://gitee.com/api/v5/swagger#/getV5ReposOwnerRepoTags
+___x_cmd_gt_repo_tag_ls(){
     param:scope     "gitee/$O"
     param:dsl    '
 options:
@@ -46,7 +46,8 @@ options:
 # #2: tag_name
 # #3: tag_message
 # shellcheck disable=SC2154,SC2181
-___x_cmd_gt_repo_tag_add() {
+# https://gitee.com/api/v5/swagger#/postV5ReposOwnerRepoTags
+___x_cmd_gt_repo_tag_add(){
     param:scope     "gitee/$O"
     param:dsl    '
 options:

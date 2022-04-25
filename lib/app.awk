@@ -147,6 +147,7 @@ function get_theme_tag(         _cmd, i, _tag, _line, _theme){
             if ( max_theme_len < _theme_len ) max_theme_len = _theme_len
         }
     }
+    THEME_TAG_ITEM[ _tag L ] = i
     ctrl_rstate_init( SELECTED_THEME_TAG_IDX, 1, THEME_TAG_L )
 }
 

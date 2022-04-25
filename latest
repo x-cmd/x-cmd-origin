@@ -61,7 +61,7 @@ ___x_cmd_theme___which___filepath(){
 
 ___x_cmd_theme___which_tgz___tgzfilepath(){
     tgzfilepath="$___X_CMD_ROOT/.tmp/theme/theme.tgz"
-    if ! ___x_cmd_httpget_gitx x-cmd theme main "dist/theme.tgz" "$tgzfilepath"; then
+    if ! ___x_cmd_httpget_gitx x-cmd theme main "dist/theme.tgz" "$tgzfilepath" 3600; then # 1-day
         if [ ! -f "$cache" ]; then
             x:error "Unaviable theme.tgz. Unable to fetch theme.tgz."
             return 1

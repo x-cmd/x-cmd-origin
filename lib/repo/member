@@ -9,23 +9,20 @@
 # gt repo member +el:admin -user-a +user-b
 # shellcheck disable=SC2154,SC2086
 ___x_cmd_gt_repo_member(){
-    param:dsl       '
-subcmd:
-    ls              "List repo member"
-    add             "Add repo member"
-    rm              "Remove member"
-'
+    param:subcmd ___x_cmd_gt_repo_member                \
+        ls              "List repo member"              \
+        add             "Add repo member"               \
+        rm              "Remove member"
+    param:subcmd:try
     param:run
-    if [ -z "$PARAM_SUBCMD" ]; then
-        gt_log warn "Subcmd Not Found."
-        ___x_cmd_gt_repo_member _param_help_doc
-        return 1
-    fi
 
-    "___x_cmd_gt_repo_member_$PARAM_SUBCMD" "$@"
+    gt_log warn "Subcmd Not Found."
+    ___x_cmd_gt_repo_member _param_help_doc
+    return 1
 }
 
-___x_cmd_gt_repo_member_ls() {
+# https://gitee.com/api/v5/swagger#/getV5ReposOwnerRepoCollaborators
+___x_cmd_gt_repo_member_ls(){
     param:scope     "gitee/$O"
     param:dsl       '
 options:
@@ -36,26 +33,27 @@ options:
     param:run
     ___x_cmd_gt_param_init_owner_repo
 
-    if [ -t 1 ]; then
+    if [ ! -t 1 ] || [ -n "$ENFORCE_JSON" ]; then
+        ___x_cmd_gt_get_multi "/v5/repos/${owner_repo}/collaborators" && \
+            return 0
+    else
         if ___ui_table_json NameSpace=.login Name=.name Admin=.permissions.admin PushPermissions=.permissions.push \
             -- "___x_cmd_gt_get_multi" "/v5/repos/${owner_repo}/collaborators"; then
             return 0
         fi
-    else
-        ___x_cmd_gt_get_multi "/v5/repos/${owner_repo}/collaborators" && \
-            return 0
     fi
     gt_log error "Please provide correct repo name"
     return 1
 }
 
 # shellcheck disable=SC2181,SC2154
-___x_cmd_gt_repo_member_add() {
+# https://gitee.com/api/v5/swagger#/putV5ReposOwnerRepoCollaboratorsUsername
+___x_cmd_gt_repo_member_add(){
     param:scope     "gitee/$O"
     param:dsl       '
 options:
     --repo|-r           "Provide owner name and repo name.(default:the current user repo)"   <>:RepoName
-    --permission|-p     "permission"                                                         <>:RepoNamePerm="push"
+    --permission|-p     "permission"                                                         <>:RepoPerm="push"
     #n                  "Username list"                                                      <>
 '
     param:run
@@ -66,26 +64,33 @@ options:
         gt_log error "At least one user's spatial address is needed, gt member add <user>"
         return 1
     fi
-    local username
 
+    local username
     for username in "$@"; do
         ___x_cmd_gt_http put json "/v5/repos/$owner_repo/collaborators/${username##*/}" permission | \
-        (
-            ___x_cmd_git_json_query_rename id=.id
-            if [ -n "$id" ]; then
-                ___x_cmd_ui_tf true  "Add $username to $owner_repo successfully"
-                return 0
-            else
-                ___x_cmd_ui_tf false "Add user failure: $username to $owner_repo"
-                return 1
-            fi
-        )
+            ___x_cmd_gt_repo_member_add_json_status_handler
     done
 }
 
-# https://gitee.com/api/v5/swagger#/deleteV5ReposOwnerRepoCollaboratorsUsername
+___x_cmd_gt_repo_member_add_json_status_handler(){
+    if [ ! -t 1 ] || [ -n "$ENFORCE_JSON" ]; then
+        cat
+        return
+    fi
+
+    ___x_cmd_git_json_query_rename id=.id
+    if [ -n "$id" ]; then
+        ___x_cmd_ui_tf true  "Add $username to $owner_repo successfully"
+        return 0
+    else
+        ___x_cmd_ui_tf false "Add user failure: $username to $owner_repo"
+        return 1
+    fi
+}
+
 # shellcheck disable=SC2181
-___x_cmd_gt_repo_member_rm() {
+# https://gitee.com/api/v5/swagger#/deleteV5ReposOwnerRepoCollaboratorsUsername
+___x_cmd_gt_repo_member_rm(){
     param:scope     "gitee/$O"
     param:dsl       '
 options:

@@ -3,13 +3,12 @@
 
 ___x_cmd_gt_repo_pr_assign(){
     param:scope     "gitee/$O"
-    param:dsl       '
-subcmd:
-    add             "Add assignee"
-    del             "Del assignee"
-    reset           "Reset all assignee"
-    review          "review pass"
-'
+    param:subcmd ___x_cmd_gt_repo_pr_assign             \
+        add             "Add assignee"                  \
+        del             "Del assignee"                  \
+        reset           "Reset all assignee"            \
+        review          "review pass"
+    param:subcmd:try
     param:run
     if [ -z "$PARAM_SUBCMD" ]; then
         ___x_cmd_gt_repo_pr_assign help
@@ -19,7 +18,7 @@ subcmd:
     "___x_cmd_gt_repo_pr_assign_$PARAM_SUBCMD" "$@"
 }
 
-___x_cmd_gt_repo_pr_assign_add() {
+___x_cmd_gt_repo_pr_assign_add(){
     param:scope     "gitee/$O"
     param:dsl       '
 options:
@@ -34,7 +33,7 @@ options:
     ___x_cmd_gt_http post "/v5/repos/${owner_repo}/pulls/$pr/assignees" assignees
 }
 
-___x_cmd_gt_repo_pr_assign_del() {
+___x_cmd_gt_repo_pr_assign_del(){
     param:scope     "gitee/$O"
     param:dsl       '
 options:
@@ -47,7 +46,7 @@ options:
     ___x_cmd_gt_http delete "/v5/repos/${owner_repo}/pulls/$pr/assignees?assignees=$assignees"
 }
 
-___x_cmd_gt_repo_pr_assign_reset() {
+___x_cmd_gt_repo_pr_assign_reset(){
     param:scope     "gitee/$O"
     param:dsl       '
 options:
@@ -62,7 +61,7 @@ options:
     ___x_cmd_gt_http patch "/v5/repos/${owner_repo}/pulls/$pr/assignees" reset_all
 }
 
-___x_cmd_gt_repo_pr_assign_review() {
+___x_cmd_gt_repo_pr_assign_review(){
     param:scope     "gitee/$O"
     param:dsl       '
 options:

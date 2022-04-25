@@ -3,16 +3,15 @@
 # TODO: need to update $O : https://gitee.com/api => https://api.gitee.com
 
 ___x_cmd_gt_enterprise_team(){
-    param:dsl       '
-subcmd:
-    ls              "List enterprise team"
-    create          "Create a team"
-    info            "Show team info"
-    update          "Setup team info"
-    rm              "Remove the team"
-    repo            "List enterprise team repo"
-    member          "enterprise team member management"
-'
+    param:subcmd ___x_cmd_gt_enterprise_team                    \
+        ls              "List enterprise team"                      \
+        create          "Create a team"                             \
+        info            "Show team info"                            \
+        update          "Setup team info"                           \
+        rm              "Remove the team"                           \
+        repo            "List enterprise team repo"                 \
+        member          "enterprise team member management"
+    param:subcmd:try
     param:run
 
     if [ -z "$PARAM_SUBCMD" ]; then
@@ -26,7 +25,7 @@ subcmd:
 # Section: list & info
 # @see: https://gitee.com/api/v8/swagger#/getEnterpriseIdGroups
 # shellcheck disable=SC2154
-___x_cmd_gt_enterprise_team_ls() {
+___x_cmd_gt_enterprise_team_ls(){
     param:scope     "gitee/$O"
     param:dsl       '
 type:
@@ -49,7 +48,8 @@ options:
 }
 
 # shellcheck disable=SC2154
-___x_cmd_gt_enterprise_team_info() {
+# https://gitee.com/api/v8/swagger#/getEnterpriseIdGroupsGroupId
+___x_cmd_gt_enterprise_team_info(){
     param:scope     "gitee/$O"
     param:dsl       '
 type:
@@ -66,7 +66,8 @@ options:
 # EndSection
 
 # Section: create & update & rm
-___x_cmd_gt_enterprise_team_create() {
+# https://gitee.com/api/v8/swagger#/postEnterpriseIdGroups
+___x_cmd_gt_enterprise_team_create(){
     param:scope     "gitee/$O"
     param:dsl       '
 options:
@@ -84,7 +85,8 @@ options:
 }
 
 # shellcheck disable=SC2034,SC2154
-___x_cmd_gt_enterprise_team_update() {
+# https://gitee.com/api/v8/swagger#/putEnterpriseIdGroupsGroupId
+___x_cmd_gt_enterprise_team_update(){
     param:scope     "gitee/$O"
     param:dsl       '
 type:
@@ -111,7 +113,7 @@ options:
 }
 
 # TODO: strange parameters： https://gitee.com/api/v8/swagger#/deleteEnterpriseIdGroupsGroupId
-___x_cmd_gt_enterprise_team_rm() {
+___x_cmd_gt_enterprise_team_rm(){
     param:scope     "gitee/$O"
     param:dsl       '
 options:
@@ -129,11 +131,10 @@ options:
 
 # Section: member
 ___x_cmd_gt_enterprise_team_member(){
-    param:dsl       '
-subcmd:
-    ls              "List enterprise team member"
-    rm              "Remove member of team"
-'
+    param:subcmd ___x_cmd_gt_enterprise_team_member                 \
+        ls              "List enterprise team member"               \
+        rm              "Remove member of team"
+    param:subcmd:try
     param:run
 
     if [ -z "$PARAM_SUBCMD" ]; then
@@ -144,7 +145,8 @@ subcmd:
     "___x_cmd_gt_enterprise_team_member_$PARAM_SUBCMD" "$@"
 }
 
-___x_cmd_gt_enterprise_team_member_ls() {
+# https://gitee.com/api/v8/swagger#/getEnterpriseIdGroupsGroupIdMembers
+___x_cmd_gt_enterprise_team_member_ls(){
     param:scope     "gitee/$O"
     param:dsl       '
 type:
@@ -167,7 +169,8 @@ options:
     ___x_cmd_gt_get_multi "/enterprises/${enterprise_id}/groups/${group_id}/members"  qt sort direction search
 }
 
-___x_cmd_gt_enterprise_team_rm() {
+# https://gitee.com/api/v8/swagger#/deleteEnterpriseIdGroupsGroupIdMembers
+___x_cmd_gt_enterprise_team_member_rm(){
     param:scope     "gitee/$O"
     param:dsl       '
 options:

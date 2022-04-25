@@ -10,25 +10,22 @@
 
 # gt repo member +el:admin -user-a +user-b
 ___x_cmd_gt_org_member(){
-    param:dsl       '
-subcmd:
-    ls              "List member"
-    user            "Show org member user info"
-    add             "Add member"
-    del             "Remove member"
-'
+    param:subcmd ___x_cmd_gt_org_member                     \
+        ls              "List member"                       \
+        user            "Show org member user info"         \
+        add             "Add member"                        \
+        rm              "Remove member"
+    param:subcmd:try
     param:run
 
-    if [ -z "$PARAM_SUBCMD" ]; then
-        gt_log warn "subcmd not found. show help." >&2
-        return 1
-    fi
-
-    "___x_cmd_gt_org_member_$PARAM_SUBCMD" "$@"
+    gt_log warn "Subcmd Not Found."
+    ___x_cmd_gt_org_member _param_help_doc
+    return 1
 }
 
 # shellcheck disable=SC2154
-___x_cmd_gt_org_member_ls() {
+# https://gitee.com/api/v5/swagger#/getV5OrgsOrgMembers
+___x_cmd_gt_org_member_ls(){
     param:scope     "gitee/$O"
     param:dsl       '
 options:
@@ -53,7 +50,8 @@ options:
 }
 
 # shellcheck disable=SC2154
-___x_cmd_gt_org_member_user() {
+# https://gitee.com/api/v5/swagger#/getV5OrgsOrgMembershipsUsername
+___x_cmd_gt_org_member_user(){
     param:scope     "gitee/$O"
     param:dsl      '
 options:
@@ -76,7 +74,8 @@ options:
 }
 
 # shellcheck disable=SC2181
-___x_cmd_gt_org_member_add() {
+# https://gitee.com/api/v5/swagger#/putV5OrgsOrgMembershipsUsername
+___x_cmd_gt_org_member_add(){
     param:scope     "gitee/$O"
     param:dsl       '
 type:
@@ -93,6 +92,7 @@ options:
         return 1
     fi
 
+    local username
     for username in "$@"; do
         # TODO:http handle，delete repo return data is null.Status: 204 No Content
         if ___x_cmd_gt_http put "/v5/orgs/${org##*/}/memberships/${username##*/}" "$gen_gt_json" >/dev/null; then
@@ -105,7 +105,8 @@ options:
 }
 
 # shellcheck disable=SC2181
-___x_cmd_gt_org_member_del() {
+# https://gitee.com/api/v5/swagger#/deleteV5OrgsOrgMembershipsUsername
+___x_cmd_gt_org_member_rm(){
     param:scope     "gitee/$O"
     param:dsl       '
 options:

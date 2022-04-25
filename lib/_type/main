@@ -1,3 +1,10 @@
+###
+ # @Author: Qbenben
+ # @Date: 2022-04-19 18:03:59
+ # @LastEditors: Qbenben
+ # @LastEditTime: 2022-04-19 18:03:59
+ # @Description:
+###
 # shellcheck shell=sh
 # shellcheck disable=SC2039,3043
 
@@ -9,8 +16,6 @@ param_type      gitee     Bool              =       true   false
 # param_type      gitee     URL               "=~"      "https?://.+|(\\s&&[^\\f\\n\\r\\t\\v])*"
 # param_type      gitee     ISOTime           "=~"      "/^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\.[0-9]+)?(Z|[+-](?:2[0-3]|[01][0-9]):[0-5][0-9])?$/|(\\s&&[^\\f\\n\\r\\t\\v])*"
 param_type      gitee     NatureNumber      "=~"      "[0-9]+"
-
-# Define in param
 param_type      gitee     UserName            "=~"    "[-A-Za-z0-9_]+"
 param_type      gitee     RepoName            "=~"    "[-A-Za-z0-9_]+"
 param_type      gitee     RepoPath            "=~"    "[-A-Za-z0-9_/]+"      # TODO: make it fit it gitee definition
@@ -18,19 +23,13 @@ param_type      gitee     RepoPerm            =       pull    push     admin
 param_type      gitee     RepoAccess          =       private public
 param_type      gitee     ExtraAccess         =       private public   innerSource
 param_type      gitee     UserRole            =       all member admin
-
 param_type      gitee     OrgSpaceName        "=~"    "[-A-Za-z0-9_]+"
 param_type      gitee     EnterpriseSpaceName "=~"    "[-A-Za-z0-9_]+"
-
 # param_type      gitee     Numbers           "=~"      "[0-9]+|(\\s&&[^\\f\\n\\r\\t\\v])*"
 param_type      gitee     Address             "=~"    "[-A-Za-z0-9_]+|https?://.+"
-
-# TODO:user name
-
-# param_type      gitee     Ignore            =   <<A
-# $(xrc cat gt/lib/_type/ignore)
-# A
-
-# param_type      gitee     License           =   <<A
-# $(xrc cat gt/lib/_type/license)
-# A
+param_type      github     Ignore               -   <<A
+$(xrc cat gt/lib/_type/ignore.txt)
+A
+param_type      github     License              -   <<A
+$(xrc cat gt/lib/_type/license.txt)
+A

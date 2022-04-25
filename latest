@@ -26,12 +26,12 @@ A
         return 126
         ;;
 
-        cow|tux)  shift;  ;;
+        cow|tux)  [ "$#" -ge 1 ] && shift;  ;;
     esac
         
     cat <<-A
  ______________________
-< ${*:-$text} >
+< $* >
  ----------------------
 A
 
@@ -61,7 +61,7 @@ A
 }
 
 if [ -n "${BASH_VERSION}${ZSH_VERSION}" ] && [ "${-#*i}" != "$-" ]; then
-    xrc advise/latest
+    xrc advise
     advise cowsay
 fi
 

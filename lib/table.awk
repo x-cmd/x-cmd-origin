@@ -46,7 +46,7 @@ function view_help(){
     return th_help_text( ctrl_help_get() )
 }
 function view_filter(       data){
-    if (ctrl_sw_get( FILTER_EDIT ) == true) return th_statusline_text( sprintf("FILTER: %s\n", filter[ ctrl_rstate_get( CURRENT_COLUMN ) ]) )
+    if (ctrl_sw_get( FILTER_EDIT ) == true) return th_statusline_text( sprintf("FILTER: %s\n", filter[ ctrl_rstate_get( CURRENT_COLUMN ) ] th(TH_CURSOR, " ")) )
     else return
 }
 
@@ -55,9 +55,9 @@ function view_header(       col_i, _col_start, data, _tmp){
     data = th( TH_TABLE_HEADER_ITEM_NORMAL, "     ")
     for (col_i=_col_start; col_i<=data_col_num; col_i++) {
         if (col_max[ col_i ] > COL_MAX_SIZE) {
-            _tmp = sprintf( "  %s", str_pad_right( data_header_arr[ col_i ], COL_MAX_SIZE + 6, data_header_arr_wlen[ 1 KSEP col_i ] ) )
+            _tmp = sprintf( "  %s ", str_pad_right( data_header_arr[ col_i ], COL_MAX_SIZE + 6, data_header_arr_wlen[ 1 KSEP col_i ] ) )
         } else {
-            _tmp = sprintf( "  %s", str_pad_right( data_header_arr[ col_i ], col_max[ col_i ], data_header_arr_wlen[ 1 KSEP col_i ] ) )
+            _tmp = sprintf( "  %s ", str_pad_right( data_header_arr[ col_i ], col_max[ col_i ], data_header_arr_wlen[ 1 KSEP col_i ] ) )
         }
         if ( ctrl_rstate_get( CURRENT_COLUMN ) == col_i ) _tmp = th(TH_TABLE_HEADER_ITEM_FOCUSED, _tmp)
         else _tmp = th( TH_TABLE_HEADER_ITEM_NORMAL,  _tmp )
@@ -113,12 +113,12 @@ function update_view_print_cell(model_row_i, data_row_i, col_i,       h, _size, 
 
     cord = data_row_i KSEP col_i
     if (col_max[ col_i ] <= COL_MAX_SIZE) {
-        _data =_data sprintf( "│ %s", str_pad_right( data[ cord ], col_max[ col_i ], data_wlen[ cord ] ) )
+        _data =_data sprintf( "│ %s ", str_pad_right( data[ cord ], col_max[ col_i ], data_wlen[ cord ] ) )
     } else {
         if (data_wlen[ cord ] > COL_MAX_SIZE){
-            _data =_data sprintf( "│ %s", str_pad_right( substr(data[ cord ], 1, COL_MAX_SIZE) "...", COL_MAX_SIZE + 3, COL_MAX_SIZE + 3) )
+            _data =_data sprintf( "│ %s ", str_pad_right( substr(data[ cord ], 1, COL_MAX_SIZE) "...", COL_MAX_SIZE + 3, COL_MAX_SIZE + 3) )
         } else {
-            _data =_data sprintf( "│ %s", str_pad_right( data[ cord ], COL_MAX_SIZE + 3, data_wlen[ cord ] ) )
+            _data =_data sprintf( "│ %s ", str_pad_right( data[ cord ], COL_MAX_SIZE + 3, data_wlen[ cord ] ) )
         }
     }
     return th(TH_TABLE_LINE_ITEM_FOCUSED, _data )

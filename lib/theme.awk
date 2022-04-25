@@ -14,6 +14,7 @@ BEGIN {
 
     # help
     TH_HELP                             =       TH_THEME_COLOR
+    TH_CURSOR                           =       TH_THEME_COLOR UI_TEXT_REV UI_TEXT_BLINK
 
     # Section: form
     TH_FORM_Q_HELP                        =      UI_TEXT_DIM
@@ -24,7 +25,6 @@ BEGIN {
     TH_FORM_Q_ARROW     =  TH_THEME_COLOR
     TH_FORM_Q_UNFOCUSED =  ""
 
-    TH_FORM_A_FOCUSED                            =       UI_TEXT_BLINK
     TH_FORM_A_FOCUSED_SELECTED                   =       UI_TEXT_REV TH_THEME_COLOR
     TH_FORM_A_FOCUSED_NOTSELECTED                =       UI_TEXT_DIM TH_THEME_COLOR
     TH_FORM_A_UNFOCUSED_SELECTED                 =       UI_TEXT_UNDERLINE TH_THEME_COLOR

@@ -1,0 +1,72 @@
+# shellcheck shell=sh disable=SC3043
+
+xrc ui/lib/getchar
+xrc ui/lib/region
+
+___x_cmd_ui_cowsay_mainloop(){
+    local text
+    trap "___x_cmd_ui_region___run_clear; exit 130" INT
+    x cowsay "$@" | ___x_cmd_ui_region_send
+    while ___x_cmd_ui_getchar; do
+        case "${___X_CMD_UI_GETCHAR_CHAR}" in
+            ENTER)      break;;
+            DELETE)     text="${text%?}";;
+            *)          text="${text}${___X_CMD_UI_GETCHAR_CHAR}";;
+        esac
+        x cowsay "$@" "$text" | ___x_cmd_ui_region_send
+    done
+    x cowsay "$@" "END" | ___x_cmd_ui_region_send
+}
+
+ui_cowsay(){
+    ___x_cmd_ui_region_run ___x_cmd_ui_cowsay_mainloop "$@"
+}
+ui_cowsay
+
+fff(){
+    (
+        ___x_cmd_pidofsubshell
+        (
+            local ticks=1
+            while true; do
+                ticks="$((ticks+1))"
+                ___x_cmd_ui_update_lines_columns
+                printf "R:%s:%s:%s\n" "$ticks" "$COLUMNS" "$LINES"
+                sleep "${___X_CMD_UI_REFRESH_INTERVAL:-0.1}"
+            done
+        ) &
+        while ___x_cmd_ui_getchar; do
+            printf "C:%s:%s\n" "${___X_CMD_UI_GETCHAR_TYPE}" "${___X_CMD_UI_GETCHAR_CHAR}" || break
+        done
+     ) | {
+        local PID_OF_UPSUBSHELL
+        read -r PID_OF_UPSUBSHELL
+
+        awk '
+function send_update(msg){
+    printf("%s %s %s\n", "UPDATE", max_col_size, max_row_size)
+    printf("%s" "\n" "\003\002\005" "\n", msg)
+
+    fflush()
+}{
+    if($0 ~ /^R:/) {
+        split(text, arr, ":")
+        max_col_size = arr[3]
+        max_row_size = arr[4]
+        next
+    }
+    if($0 ~ /^C:/) {
+        cmd=$0
+        gsub(/^C:/, "", cmd)
+        idx = index(cmd, ":")
+        if (substr(cmd, idx+1) == "ENTER")      exit(0)
+    }
+    send_update($0)
+}'
+        kill -SIGPIPE "$PID_OF_UPSUBSHELL"
+    }
+}
+fff1(){
+    ___x_cmd_ui_region_run fff
+    stty -raw
+}

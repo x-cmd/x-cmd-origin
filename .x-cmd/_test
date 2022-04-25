@@ -27,8 +27,12 @@ test_select(){
     select1
 }
 
+test_cowsay(){
+    . ./.x-cmd/testcase/test_cowsay
+}
+
 case "$1" in
-    table|form|grid|select|category|catsel|tf)
+    table|form|grid|select|category|catsel|tf|cowsay)
         test_${1} ;;
     bash3|bash4|bash5)
         docker run -it --rm -v "$(pwd)":/ui xcmd/${1}-dev bash -c "x update nightly && . ~/.x-cmd/xrc/latest && cd ui && bash && x _test"
@@ -41,7 +45,7 @@ case "$1" in
         ui_log info "copy all files from ./* to ~/.x-cmd/ui/"
         cp -r ./* ~/.x-cmd/ui
         . ~/.x-cmd/xrc/latest
-        echo "Usage: x _test {copy|bash:3|bash:4|bash:5|alpine|ubuntu|centos|table|form|grid|select|category|catsel|tf}"
+        echo "Usage: x _test {copy|bash:3|bash:4|bash:5|alpine|ubuntu|centos|table|form|grid|select|category|catsel|tf|cowsay}"
         return 1
         ;;
 esac

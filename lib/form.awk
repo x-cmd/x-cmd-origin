@@ -103,11 +103,12 @@ function ctrl( char_type, char_value,                   _ctrl_current ) {
 function view(            _ctrl_current, _component_help, _component_body, _component_exit  ){
     _ctrl_current = ctrl_rstate_get( CURRENT )
 
+    _component_line = ui_str_rep( "─", max_col_size )
     _component_body = view_body( _ctrl_current )
     _component_exit = view_exit( _ctrl_current )
     _component_help = view_help( _ctrl_current )
 
-    send_update( _component_body "\n" _component_exit _component_help  )
+    send_update( _component_line "\n" _component_body "\n" _component_exit _component_help  )
 }
 
 function view_help( _ctrl_current, data ){
@@ -119,6 +120,15 @@ function view_help( _ctrl_current, data ){
     return th( TH_FORM_Q_HELP, data )
 }
 
+function view_body_cal_beginning_col( _current_col, _current_row,        _col_size, j, _len){
+    _col_size = max_col_size - question_width - 6
+    for (j=_current_col; j>=1; --j) {
+        _len = length(rule[ _current_row L j ]) + 1
+        if (_col_size < _len) return j+1
+        _col_size -= _len
+    }
+    return 1
+}
 
 function view_body( _ctrl_current,                          data, _question, _line, _tmp, _is_focused, _is_selected,  i, j ){
     for (i=1; i<=rulel; ++i) {
@@ -141,12 +151,12 @@ function view_body( _ctrl_current,                          data, _question, _li
             _answer_style = TH_FORM_Q_TRUE
             if (op ~ "=~") _answer_style = (judgment_of_regexp( rule, i )) ? TH_FORM_Q_TRUE : TH_FORM_Q_FALSE
             _answer       = (op !~ /\*/) ? _answer : ui_str_rep( "*", length(_answer) )
-            _answer       = ( !_is_focused ) ? _answer : th(TH_FORM_A_FOCUSED, _answer)
+            _answer       = ( !_is_focused ) ? _answer : _answer th(TH_CURSOR, " ")
             _line         = _line th( _answer_style, _answer)
         } else {
             _answer     = ctrl_rstate_get( rule, i ATT_ANS )
-            for (j=1; j<=rule[ i L ]; ++j) {
-                # TODO: if it is too long, use multiple line
+            _col_start  = view_body_cal_beginning_col( _answer, i )
+            for (j=_col_start; j<=rule[ i L ]; ++j) {
                 _is_selected    = _answer == j
                 _line           = _line th( _is_selected ? STYLE_ANSWER_SELECTED: STYLE_ANSWER_UNSELECTED, rule[ i L j ] ) " "
             }
@@ -191,12 +201,14 @@ NR>1{
 }
 
 END {
-    for (i=1; i<=rulel; ++i) {
-        var =       rule[ i ATT_VAR ]
-        if (rule[ i ATT_OP ] == "=")    _answer = rule[ i L ctrl_rstate_get( rule, i ATT_ANS ) ]
-        else                            _answer = ctrl_lineedit_get( rule, i ATT_ANS )
-        send_env( var, _answer )
-    }
     send_env("___X_CMD_UI_FORM_EXIT", exit_strategy_arr[ ctrl_rstate_get( EXIT ) ])
+    if ( exit_strategy_arr[ ctrl_rstate_get( EXIT ) ] != "exit" ) {
+        for (i=1; i<=rulel; ++i) {
+            var =       rule[ i ATT_VAR ]
+            if (rule[ i ATT_OP ] == "=")    _answer = rule[ i L ctrl_rstate_get( rule, i ATT_ANS ) ]
+            else                            _answer = ctrl_lineedit_get( rule, i ATT_ANS )
+            send_env( var, _answer )
+        }
+    }
 }
 # EndSection

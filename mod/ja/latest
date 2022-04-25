@@ -1,0 +1,23 @@
+# Author:       Li Junhao           l@x-cmd.com                             # xrc
+# shellcheck    shell=sh            disable=SC2039,SC1090,SC3043,SC2263
+
+# license:      GPLv3
+. "$___X_CMD_ROOT_MOD/ja/lib/kp"
+. "$___X_CMD_ROOT_MOD/ja/lib/kpo"
+
+
+___x_cmd_jawk(){
+    case "$1" in
+        t|tokenized)        shift; ___x_cmd_jawk_tokenized "$@" ;;
+        kp)                 shift; ___x_cmd_jawk_kp "$@" ;;      # just extract keypath, provide jstr
+        kpo)                shift; ___x_cmd_jawk_kpo "$@" ;;      # extract keypath, but also provide utils, provide jstr
+        *)                  ___x_cmd_jawk_kpo "$@" ;;
+    esac
+}
+
+___x_cmd_jawk_tokenized(){
+    command awk -f "$___X_CMD_ROOT_MOD/awk/lib/json.awk" \
+                -f "$___X_CMD_ROOT_MOD/ja/lib/tokenized_main.awk"
+}
+
+xrc setmain ___x_cmd_jawk

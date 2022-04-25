@@ -1,0 +1,41 @@
+. "$___X_CMD_ROOT_MOD/ja/latest"
+
+function data_class(){
+    x jo '{
+        classA: [
+            {
+                name: el,
+                age: 12,
+                score: 100
+            },
+            {
+                name: alpha,
+                age: 13,
+                score: 100
+            },
+            aaa
+            bbb
+        ],
+        classB: [
+            {
+                name: John,
+                age: 12,
+                score: 70
+            },
+            {
+                name: Joseph,
+                age: 13,
+                score: 69
+            },
+            {
+                "author": {
+                    "node_id": "MDM6Qm90NDE4OTgyODI=",
+                },
+                "node_id": "aaa"
+            }
+        ]
+
+    }'
+}
+
+alias ja=___x_cmd_jawk

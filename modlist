@@ -72,7 +72,7 @@ test
 +tab
 
 # modules
-static-build
++pkg
 +ccmd
 xdk
 env

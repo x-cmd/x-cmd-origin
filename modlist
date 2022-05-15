@@ -2,8 +2,9 @@ jicheng
 
 +xrc
 +x-cmd
-hub
+pkg
 install
+hub
 +awk
 +x_fs
 shall
@@ -75,7 +76,6 @@ test
 +tab
 
 # modules
-+pkg
 +ccmd
 xdk
 env

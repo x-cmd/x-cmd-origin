@@ -32,7 +32,6 @@ yanfa
 
 +cp
 +rm
-+rmrf
 +mv
 
 +sync

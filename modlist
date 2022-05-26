@@ -48,9 +48,9 @@ tesseract
 
 # lang
 +python
++node
 +java
 +perl
-+node
 +go
 +terraform
 

@@ -2,14 +2,19 @@
 # shellcheck    shell=sh        disable=SC3043
 
 xrc param
-
+local license_name_path
+license_name_path="$(xrc which license/lib/license_name.txt)"
+param_type      license     License   -  <<A
+$(cat "$license_name_path")
+A
 ___x_cmd_license(){
+    param:scope     "license"
     param:dsl '
 options:
     --name              "Provide name"           <name>="x-cmder"
     --email             "Provide email"          <email>="agent@x-cmd.com"
     --year              "year"                   <year>="2022"
-    #1                  "license name"           <license>  =   gplv3     apachev2     mplv2
+    #1                  "license name"           <license>:License
 '
 
     param:run

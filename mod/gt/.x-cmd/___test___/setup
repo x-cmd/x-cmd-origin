@@ -1,0 +1,21 @@
+# shellcheck shell=sh disable=SC1091,SC2034,SC3028
+
+# Section: Global Variable Settings
+
+WORK_DIR="$(x wsroot)"
+# shellcheck disable=SC3028
+TEST_USER_TOKEN="79c6aaf0420b8599a4cda124ea833808"
+TEST_USER_NAME="x-cmd-agent-test-spy-0"
+TEST_USER_EMAIL="zhengqiubin@x-cmd.com"
+TEST_RANDOM_SPY="$(date +%s)"
+TEST_RANDOM_SPY_ONE="GT_TEST_${RANDOM}_${TEST_RANDOM_SPY}"
+TEST_RANDOM_SPY_TWO="GT_TEST_${RANDOM}_${TEST_RANDOM_SPY}"
+TEST_RANDOM_SPY_THREE="GT_TEST_${RANDOM}_${TEST_RANDOM_SPY}"
+
+
+# Section: Test Cycle
+test:debug "copy file from ./* to $___X_CMD_ROOT_MOD/gt/"
+cp -r "$WORK_DIR"/* "$___X_CMD_ROOT_MOD/gt/"
+xrc gt
+gt token $TEST_USER_TOKEN
+___X_CMD_XRC_MODULE_IMPORTED=

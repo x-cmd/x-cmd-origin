@@ -101,6 +101,14 @@ ___x_cmd_http_cd() {
                     return
             esac
             ;;
+        path)
+            shift
+            if [ -z "$url" ]; then
+                printf "%s" "${1#/}"
+            else
+                printf "%s" "${url%/}/${1#/}"
+            fi
+            ;;
         *)
             O=$O dict put url "${url%/}/${target_url#/}"
             printf "%s" "${url%/}/${1#/}"

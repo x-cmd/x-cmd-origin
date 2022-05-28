@@ -6,11 +6,10 @@
 ############################
 
 ___x_cmd_gt_repo_page(){
-    param:dsl       '
-subcmd:
-    info        "Show information of page"
-    build       "Build page"
-'
+    param:subcmd ___x_cmd_gt_repo_page                  \
+        info        "Show information of page"          \
+        build       "Build page"
+    param:subcmd:try
     param:run
     if [ -z "$PARAM_SUBCMD" ]; then
         gt_log warn "Subcmd Not Found."
@@ -22,7 +21,7 @@ subcmd:
 }
 
 # https://gitee.com/api/v5/swagger#/getV5ReposOwnerRepoPages
-___x_cmd_gt_repo_page_info() {
+___x_cmd_gt_repo_page_info(){
     param:scope     "gitee/$O"
     param:dsl       '
 options:
@@ -38,7 +37,7 @@ options:
 # https://gitee.com/api/v5/swagger#/postV5ReposOwnerRepoPagesBuilds
 # Even we could use it
 # {"message":"非付费pages，不允许部署 pages"}
-___x_cmd_gt_repo_page_build() {
+___x_cmd_gt_repo_page_build(){
     param:scope     "gitee/$O"
     param:dsl       '
 options:

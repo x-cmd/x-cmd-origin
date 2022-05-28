@@ -1,0 +1,95 @@
+gh_boot(){
+    printf "PARAM_SUBCMD: boot"
+}
+gh_current(){
+    printf "PARAM_SUBCMD: current"
+}
+gh_sh(){
+    printf "PARAM_SUBCMD: sh"
+}
+
+gh(){
+    param:scope "github/$O"
+
+    param:subcmd gh\
+        "repo" "This is a repo" \
+        "current"  "set current owner, repo" \
+        "cowsay"                                   "Generates ASCII art pictures of a cow with a message" \
+        "hub"                                      "Manage your script file in x-service" \
+        "jo"                                       "Command-line incomplete JSON processor" \
+        "issue"                                  "Install Command-line tools" \
+        "upgrade|update"                           "Upgrade or Update x-cmd" \
+        "proxy"                                    "Setting up mirror sources for various package management" \
+        "alias|unalias"                            "x alias or unalias" \
+        "boot"                                     "bootrc consider external module" \
+        "env"                                      "Inject the environment" \
+        "jar|java|python|js|node|npx|ts|rb|lua"    "Execute your script use these environments" \
+        "theme"                                    "Change terminal theme" \
+        "login"                                    "Login user account" \
+        "tldr"                                     "Collaborative cheatsheets for console commands" \
+        "man"                                      "An interface to the system reference manuals" \
+        "z|uz|zl"                                  "compress and decompress file" \
+        "advise"                                   "Generate command completion based on advise json" \
+        "cd"                                       "Change the working directory" \
+        "ws"                                       "Execute a file in workspace, usually the .x-cmd directory in the repository" \
+        "sh|bash|zsh|fish|ksh|dash|ash"            "Execute your script use the corresponding shell"
+    # echo "$PARAM_EXEC" >&2
+    param:subcmd:try
+
+    # param:run
+}
+
+# gh_repo(){
+#     param:subcmd gh_repo\
+#         issue "This is a issue" && \
+#     param:subcmd:try
+#     param:run
+# }
+
+gh_issue(){
+    # echo "issue" >&2
+    param:dsl <<A
+option:
+    -y|--fsdfsd|-o          "Test regex arg1"  <regex_arg1>=888  =~  "[0-9]+"
+    --license               "Test regex arg3"  <regex_arg3>=0BSD   =   "MulanPSL-2.0" "0BSD" "AFL-3.0" "AGPL-3.0" "" "XXXX License"
+    -z                      "Test regex flag"
+    -k                      "Test regex arg5"  <regex_arg4>:License=aaa
+    #1                      "Test rest argument #1 when exist option and flag"
+    #2|--regex_arg3|-s      "Repo name 3"        <>:repo=aaa
+    #3                      "Repo name 5"        <license>=gplv3      = gplv3    "apachev2"    "mplv2"
+A
+    param:run
+
+    echo "-y: ${y}\n--license: ${license}\n-z: ${z}\n-k: ${k}\n#1: $1\n#2: $2\n#3: $3\n"
+}
+
+# time (gh)
+# time (gh r)
+xrc ui
+# test_current(){
+#     for i in $(seq 1 10);do
+#         echo $i
+#         gh issue >/dev/null
+#     done
+# }
+# test_boot(){
+#     for i in $(seq 1 10000);do
+#         gh boot >/dev/null
+#     done
+# }
+# test_sh(){
+#     for i in $(seq 1 10000);do
+#         gh sh >/dev/null
+#     done
+# }
+# test(){
+#     for i in $(seq 1);do
+#         gh >/dev/null
+#     done
+# }
+time gh issue >/dev/null
+# time (test_boot)
+# time (test_sh)
+# time (test)
+# time (gh repo r)
+# time (gh repo issue "1" "2" "3")

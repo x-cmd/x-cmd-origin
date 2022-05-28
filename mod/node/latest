@@ -2,7 +2,7 @@
 
 # author:       Li Junhao           l@x-cmd.com
 
-xrc node/lib/node
+xrc:mod:lib node  node
 
 ___x_cmd_node(){
     ___x_cmd_node_inner "$@"

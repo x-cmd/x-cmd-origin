@@ -82,7 +82,8 @@ function rule_add_key( keypath, key,
     if (first ~ /-/) {
         # options
         last = keyarr[keyarrlen]
-        RULE_ID_ARGNUM[ keyid ] = 1
+        if( RULE_ID_DESC[ keypath ] ~ /---/)    RULE_ID_ARGNUM[ keyid ] = 0
+        else                                    RULE_ID_ARGNUM[ keyid ] = 1
 
         last = keyarr[keyarrlen]
         if (last ~ /^[rm|mr|r|m]$/) {
@@ -150,9 +151,7 @@ function rule_add_dict_val( keypath, val,
 
 # Section: JSON: utilities
 
-function json_walk_dict_as_candidates(keypath,
-    _tmp, _res, s){
-
+function json_walk_dict_as_candidates(keypath,              _tmp, _res, s){
     nth = -1
     s = JSON_TOKENS[ ++s_idx ]
     _res = ""
@@ -195,9 +194,7 @@ function json_walk_dict_as_candidates(keypath,
 function json_walk_dict(keypath, indent,
     data, nth, cur_keypath, cur_indent, key, value){
 
-    if (s != "{") {
-        return false
-    }
+    if (s != "{")   return false
 
     nth = -1
     s = JSON_TOKENS[++s_idx]
@@ -261,21 +258,13 @@ function json_walk_array(keypath, indent,
 }
 
 function json_walk_value(keypath, indent, struct_type){
-    if (json_walk_dict(keypath, indent) == true) {
-        return true
-    }
-
-    if (json_walk_array(keypath, indent) == true) {
-        return true
-    }
+    if (json_walk_dict(keypath, indent))    return true
+    if (json_walk_array(keypath, indent))   return true
 
     result = s
 
-    if (struct_type == "dict") {
-        rule_add_dict_val(keypath, s)
-    } else if (struct_type == "list") {
-        rule_add_list_val(keypath, s)
-    }
+    if (struct_type == "dict")              rule_add_dict_val(keypath, s)
+    else if (struct_type == "list")         rule_add_list_val(keypath, s)
 
     s = JSON_TOKENS[++s_idx]
     return true
@@ -306,9 +295,7 @@ function json_walk(text,   final, b_s, b_s_idx, b_s_len){
 # EndSection
 
 # Section: Main
-NR==1{
-    json_walk($0)
-}
+NR==1{      json_walk($0)       }
 
 # Use object
 

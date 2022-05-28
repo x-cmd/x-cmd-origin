@@ -1,7 +1,10 @@
+jicheng
+
 +xrc
 +x-cmd
 +curl
 hub
+pkg
 install
 +awk
 +x_fs
@@ -10,6 +13,9 @@ shall
 +log
 +boot
 +job
++ws
++wx
++path
 
 yanfa
 
@@ -43,10 +49,9 @@ tesseract
 
 # lang
 +python
++node
 +java
 +perl
-+node
-+nvm
 +go
 +terraform
 
@@ -72,7 +77,6 @@ test
 +tab
 
 # modules
-static-build
 +ccmd
 xdk
 env

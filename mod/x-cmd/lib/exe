@@ -109,3 +109,11 @@ ___x_cmd_run_by_file(){
 }
 
 ## EndSection
+
+___x_cmd_7z(){
+    ___x_cmd_static_build_file      p7zip 7za               "$@"
+}
+
+___x_cmd_7zd(){
+    ( xrc p7zip/v0   &&  p7zd "$@" )
+}

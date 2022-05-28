@@ -8,26 +8,23 @@
 
 # gt repo issue +el:admin -user-a +user-b
 ___x_cmd_gt_issue(){
-    param:dsl       '
-subcmd:
-    create          "create issue"
-    update          "update issue"
-    logs            "get issue logs"
-    comment         "comment management"
-'
+    param:subcmd ___x_cmd_gt_issue                  \
+        create          "create issue"              \
+        update          "update issue"              \
+        logs            "get issue logs"            \
+        comment         "comment management"
+    param:subcmd:try
     param:run
-    if [ -z "$PARAM_SUBCMD" ]; then
-        gt_log warn "Subcmd Not Found."
-        ___x_cmd_gt_issue _param_help_doc
-        return 1
-    fi
 
-    "___x_cmd_gt_issue_$PARAM_SUBCMD" "$@"
+    gt_log warn "Subcmd Not Found."
+    ___x_cmd_gt_issue _param_help_doc
+    return 1
 }
 
 
 # shellcheck disable=SC2154,SC2034
-___x_cmd_gt_issue_create() {
+# https://gitee.com/api/v5/swagger#/postV5ReposOwnerIssues
+___x_cmd_gt_issue_create(){
     param:scope     "gitee/$O"
     param:dsl      '
 options:
@@ -62,7 +59,8 @@ options:
 }
 
 # shellcheck disable=SC2154,SC2034
-___x_cmd_gt_issue_update() {
+# https://gitee.com/api/v5/swagger#/patchV5ReposOwnerIssuesNumber
+___x_cmd_gt_issue_update(){
     param:scope     "gitee/$O"
     param:dsl       '
 type:
@@ -100,6 +98,7 @@ options:
 }
 
 # shellcheck disable=SC2154
+# https://gitee.com/api/v5/swagger#/getV5ReposOwnerIssuesNumberOperateLogs
 ___x_cmd_gt_issue_logs(){
     param:scope     "gitee/$O"
     param:dsl       '
@@ -126,8 +125,8 @@ options:
 
 # shellcheck shell=sh
 # shellcheck disable=SC2039,3043,SC2154
-
-___x_cmd_gt_repo_issue() {
+# https://gitee.com/api/v5/swagger#/getV5ReposOwnerRepoIssuesComments
+___x_cmd_gt_repo_issue(){
     param:scope     "gitee/$O"
     param:dsl       '
 type:
@@ -183,6 +182,7 @@ options:
 }
 
 # shellcheck disable=SC2154
+# https://gitee.com/api/v5/swagger#/getV5OrgsOrgIssues
 ___x_cmd_gt_org_issue(){
     param:scope     "gitee/$O"
     param:dsl       '
@@ -216,6 +216,7 @@ options:
 }
 
 # shellcheck disable=SC2154
+# https://gitee.com/api/v5/swagger#/getV5EnterprisesEnterpriseIssues
 ___x_cmd_gt_enterprise_issue(){
     param:scope     "gitee/$O"
     param:dsl       '
@@ -255,13 +256,12 @@ options:
 
 ___x_cmd_gt_issue_comment(){
     param:scope     "gitee/$O"
-    param:dsl       '
-subcmd:
-    ls              "list all comment"
-    create          "create a comment"
-    update          "update a comment"
-    del             "delete a comment"
-'
+    param:subcmd ___x_cmd_gt_issue_comment          \
+        ls              "list all comment"          \
+        create          "create a comment"          \
+        update          "update a comment"          \
+        del             "delete a comment"
+    param:subcmd:try
     param:run
     if [ -z "$PARAM_SUBCMD" ]; then
         gt_log warn "subcmd not found. show help." >&2
@@ -271,6 +271,7 @@ subcmd:
     "___x_cmd_gt_issue_comment_$PARAM_SUBCMD" "$@"
 }
 
+# https://gitee.com/api/v5/swagger#/getV5ReposOwnerRepoIssuesNumberComments
 ___x_cmd_gt_issue_comment_ls(){
     param:scope     "gitee/$O"
     param:dsl       '
@@ -299,6 +300,7 @@ options:
 }
 
 # shellcheck disable=SC2086,SC2154
+# https://gitee.com/api/v5/swagger#/postV5ReposOwnerRepoIssuesNumberComments
 ___x_cmd_gt_issue_comment_create(){
     param:scope     "gitee/$O"
     param:dsl       '
@@ -325,6 +327,7 @@ options:
     }
 }
 
+# https://gitee.com/api/v5/swagger#/patchV5ReposOwnerRepoIssuesCommentsId
 ___x_cmd_gt_issue_comment_update(){
     param:scope     "gitee/$O"
     param:dsl       '
@@ -351,6 +354,7 @@ options:
 }
 
 # shellcheck disable=SC2181
+# https://gitee.com/api/v5/swagger#/deleteV5ReposOwnerRepoIssuesCommentsId
 ___x_cmd_gt_issue_comment_del(){
     param:scope     "gitee/$O"
     param:dsl       '

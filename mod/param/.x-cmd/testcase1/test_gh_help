@@ -1,0 +1,41 @@
+# shellcheck shell=sh
+
+xrc param/latest
+a(){
+    param:subcmd a                    \
+        repo          "repo command"            \
+        current       "set current owner, repo" \
+        org           "manage org"              \
+        user          "user"                    \
+        config        "save, load, which"       \
+        token         "set token"               \
+        auth          "Authorize gh"
+    param:subcmd:try
+    # param:run
+
+    param:subcmd a_repo               \
+        release       "manage release"          \
+        member        "Authorize gh"
+    param:subcmd:try
+
+    param:run
+
+
+    if [ -z "${PARAM_SUBCMD}" ]; then
+        a _param_help_doc
+        return 1
+    fi
+
+}
+
+a_repo(){
+    param:subcmd a_repo               \
+        aaa         "aaa"          \
+        bbb         "bbb"
+    param:subcmd:try
+    param:run
+    if [ -z "${PARAM_SUBCMD}" ]; then
+        a_repo _param_help_doc
+        return 1
+    fi
+}

@@ -1,0 +1,77 @@
+# shellcheck shell=sh disable=SC2039,SC2142,SC3043
+
+arg_sep="$(printf "\006")"
+
+ls_option(){
+    param:dsl <<A
+advise:
+    -y|--fsdfsd|-o      list_repo_1
+    #4                  list_repo_2
+option:
+    -y|--fsdfsd|-o          "Test regex arg1"  <regex_arg1>=888         =~  "[0-9]+" "[a-z]+"
+    -u|--usdasd|-p          "Test regex arg2"  <regex_arg2>=123         =~  "[0-9]+"
+    --license               "Test regex arg3"  <regex_arg3>="0BSD"      =   "MulanPSL-2.0" "0BSD" "AFL-3.0" "AGPL-3.0" "" "XXXX License"
+    -z                      "Test regex arg4"
+    -k                      "Test regex arg5"
+        <arg1>="abc"               =   "abc"   "cde"   "def"
+        <arg2>=666
+    #1|--regex_arg3|-s      "Repo name 1"
+    #2                      "Repo name 2"        <>=456                 =~  "[0-9]+"
+    #3                      "Repo name 3"        <license>=gplv3        =   gplv3    apachev2    mplv2
+    #4                      "Test rest argument #4 when exist option and flag"
+A
+    param:run
+}
+
+test_ls_option(){
+    @assert stdout ls_option _ls_option<<A
+-y|--fsdfsd|-o
+Test regex arg1
+${arg_sep}888
+=~${arg_sep}[0-9]+${arg_sep}[a-z]+
+list_repo_1
+-u|--usdasd|-p
+Test regex arg2
+${arg_sep}123
+=~${arg_sep}[0-9]+
+
+--license
+Test regex arg3
+${arg_sep}0BSD
+=${arg_sep}MulanPSL-2.0${arg_sep}0BSD${arg_sep}AFL-3.0${arg_sep}AGPL-3.0${arg_sep}${arg_sep}XXXX License
+
+-k
+Test regex arg5
+${arg_sep}abc
+=${arg_sep}abc${arg_sep}cde${arg_sep}def
+${arg_sep}666
+
+
+-z
+Test regex arg4
+
+
+
+#1|--regex_arg3|-s
+Repo name 1
+
+
+
+#2
+Repo name 2
+${arg_sep}456
+=~${arg_sep}[0-9]+
+
+#3
+Repo name 3
+${arg_sep}gplv3
+=${arg_sep}gplv3${arg_sep}apachev2${arg_sep}mplv2
+
+#4
+Test rest argument #4 when exist option and flag
+
+
+list_repo_2
+A
+}
+@assert:file:func

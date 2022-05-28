@@ -57,7 +57,7 @@ function view_body(            _col_num, _selected_item_idx, _iter_item_idx, _da
     view_item_index_len = length(model_len)
     if ( ITEM_INDEX_STATE == true ) view_item_len = view_item_len + view_item_index_len + 2
     if ( ctrl_sw_get( MULTIPLE_EDIT ) == true ) view_item_len = view_item_len + 2
-    view_body_col_num   = int(max_col_size / view_item_len)
+    view_body_col_num   = int( (max_col_size -1 ) / view_item_len) + 1
 
     _col_num             = int( ( model_len - 1 ) / view_body_row_num ) + 1
     if ( _col_num <= view_body_col_num ) view_body_row_num = int( (model_len - 1 ) / _col_num ) + 1
@@ -97,8 +97,8 @@ function view_body(            _col_num, _selected_item_idx, _iter_item_idx, _da
 }
 
 function view_statusline(){
-    if (ctrl_sw_get(FILTER_EDIT) == true) return th_statusline_text(sprintf("Filter> %s\n", filter[""] ))
-    if (ctrl_sw_get(FIND_EDIT) == true)   return th_statusline_text(sprintf("Find> %s\n", find[""] ))
+    if (ctrl_sw_get(FILTER_EDIT) == true) return th_statusline_text(sprintf("Filter> %s\n", filter[""] th(TH_CURSOR, " ")))
+    if (ctrl_sw_get(FIND_EDIT) == true)   return th_statusline_text(sprintf("Find> %s\n", find[""] th(TH_CURSOR, " ")))
 }
 # EndSection
 
@@ -222,6 +222,7 @@ function consume_info(){
 }
 
 function consume_item(       l ){
+    if ( $0 == "" ) return
     if ( $0 == "---" ) {
         DATA_MODE = DATA_MODE_INFO
         model_generate()

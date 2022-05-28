@@ -6,29 +6,25 @@
 
 ___x_cmd_gt_user(){
     param:scope     "gitee/$O"
-    param:dsl       '
-subcmd:
-    info        "Show information"
-    repo        "List all repos"
-    email       "Show user email"
-    issue       "List all issues"
-    key         "user key management"
-'
+    param:subcmd ___x_cmd_gt_user                   \
+        info        "Show information"              \
+        repo        "List all repos"                \
+        email       "Show user email"               \
+        issue       "List all issues"               \
+        key         "user key management"
+    param:subcmd:try
     param:run
-    if [ -z "$PARAM_SUBCMD" ]; then
-        gt_log warn "Subcmd Not Found."
-        ___x_cmd_gt_user _param_help_doc
-        return 1
-    fi
 
-    # list issues of user
-    # list repo of user
-    ___x_cmd_gt_user_"${PARAM_SUBCMD}" "$@"
+    gt_log warn "Subcmd Not Found."
+    ___x_cmd_gt_user _param_help_doc
+    return 1
 }
 
 # Section: info repo email issue
+
 # shellcheck disable=SC2154
-___x_cmd_gt_user_info() {
+# https://gitee.com/api/v5/swagger#/getV5UsersUsername
+___x_cmd_gt_user_info(){
     param:scope     "gitee/$O"
     param:dsl       '
 options:
@@ -43,6 +39,8 @@ options:
     else
         data=$(___x_cmd_gt_http get "/v5/users/$1")
     fi
+
+    [ ! -t 1 ] && printf "%s" "$data" && return 0
     printf "%s" "$data" \ |
     {
         ___x_cmd_git_json_query_rename name=.login email=.email html_url=.html_url types=.type
@@ -57,8 +55,19 @@ options:
 }
 
 # https://gitee.com/api/v5/swagger#/getV5UserRepos
-# ___x_cmd_gt_user_repo_list() {
-___x_cmd_gt_user_repo() {
+___x_cmd_gt_user_repo(){
+    param:scope     "gitee/$O"
+    param:subcmd ___x_cmd_gt_user_repo                  \
+        ls      "list repo of the designated user"
+    param:subcmd:try
+    param:run
+
+    gt_log warn "Subcmd Not Found."
+    ___x_cmd_gt_user_repo _param_help_doc
+    return 1
+}
+
+___x_cmd_gt_user_repo_ls(){
     param:scope     "gitee/$O"
     param:dsl       '
 type:
@@ -66,8 +75,6 @@ type:
     Group = owner collaborator organization_member enterprise_member admin
     Sort = created updated pushed full_name
     Direction = desc asc
-subcmd:
-    ls              "list repo of the designated user"
 options:
     --visibility    "visibility"        <>:Authority="all"
     --affiliation   "affiliation"       <>:Group="owner"
@@ -121,6 +128,7 @@ options:
     return 1
 }
 
+# https://gitee.com/api/v5/swagger#/getV5UserIssues
 ___x_cmd_gt_user_issue(){
     param:scope     "gitee/$O"
     param:dsl       '
@@ -167,13 +175,12 @@ options:
 # generate a key by openssl, then save it in the x-cmd cloud.
 ___x_cmd_gt_user_key(){
     param:scope     "gitee/$O"
-    param:dsl       '
-subcmd:
-    ls          "List all key"
-    add         "Add key"
-    get         "Get one key"
-    del         "Delete key"
-'
+    param:subcmd ___x_cmd_gt_user_key           \
+        ls          "List all key"              \
+        add         "Add key"                   \
+        get         "Get one key"               \
+        del         "Delete key"
+    param:subcmd:try
     param:run
 
     if [ -z "$PARAM_SUBCMD" ]; then
@@ -188,6 +195,7 @@ subcmd:
     "___x_cmd_gt_user_key_${PARAM_SUBCMD}" "$@"
 }
 
+# https://gitee.com/api/v5/swagger#/getV5UserKeys
 ___x_cmd_gt_user_key_ls(){
     param:scope     "gitee/$O"
     param:dsl       '
@@ -211,6 +219,7 @@ options:
 }
 
 # shellcheck disable=SC2154
+# https://gitee.com/api/v5/swagger#/getV5UserKeysId
 ___x_cmd_gt_user_key_get(){
     param:scope     "gitee/$O"
     param:dsl       '
@@ -231,6 +240,7 @@ options:
 }
 
 # shellcheck disable=SC2181
+# https://gitee.com/api/v5/swagger#/deleteV5UserKeysId
 ___x_cmd_gt_user_key_del(){
     param:scope     "gitee/$O"
     param:dsl       '
@@ -249,6 +259,7 @@ options:
 }
 
 # shellcheck disable=SC2154
+# https://gitee.com/api/v5/swagger#/postV5UserKeys
 ___x_cmd_gt_user_key_add(){
     param:scope     "gitee/$O"
     param:dsl       '
@@ -272,4 +283,4 @@ options:
         fi
     }
 }
-
+# EndSection

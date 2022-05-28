@@ -21,13 +21,13 @@ ___x_cmd_ui_select_draw(){
                 print $0
             }')"
             l=$((l+1))
-            if [ "$l" -eq "$select" ]; then
+            if [ -n "$select" ] && [ "$l" -eq "$select" ]; then
                 printf "  $l. \033[7m%s\033[0m\n" "$arg"
             else
-                printf "  $l. \033[32m%s\033[0m\n" "$arg"
+                printf "  $l. \033[${___X_CMD_THEME_COLOR_CODE}m%s\033[0m\n" "$arg"
             fi
         done
-        printf "Input number: %s\n" "$text"
+        printf "Input number: %s\033[${___X_CMD_THEME_COLOR_CODE};7;5m \033[0m\n" "$text"
         printf "\n\033[2m%s\033[0m" "Use arrow up/down to select. Press ENTER to confirm."
     } | ___x_cmd_ui_region_send
 }

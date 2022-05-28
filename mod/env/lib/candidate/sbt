@@ -1,0 +1,51 @@
+# shellcheck shell=sh disable=SC2039,SC1090,SC3043,SC2263,SC2120    # xrc
+
+# Section: sbt ls_remote
+___x_cmd_env_sbt_ls_remote(){
+    local pattern="${1:-""}"
+  	local cache_expiration="${2:-86400}"
+	local cache_path="$___X_CMD_ENV_PATH/sbt/cache/version_list"
+	___x_cmd_httpget "https://www.scala-sbt.org/download.html" "$cache_path" "$cache_expiration" && \
+	    awk -v pattern="$pattern" 'match($0,/sbt [0-9.]+/) {
+            version = substr($0,RSTART+4,RLENGTH-1)
+            if (pattern == "" || index(version, pattern) > 0) {
+                print version
+            }
+        }' < "$cache_path" \
+            | ___x_cmd_env_common_sort_version | ___x_cmd_env_common_simplify_version
+}
+# EndSection
+
+# Section: sbt download_archive
+___x_cmd_env_sbt_download_archive(){
+    local version="${1:?Provide a version}"
+    if ___x_cmd_env_util_is_archive_cached sbt "$version" 2>/dev/null; then
+		env:info  "Archive existed: $version"
+		return 0
+	fi
+    local archive_path="$___X_CMD_ENV_PATH/sbt/archive/sbt-${version}.tgz"
+    mkdir -p "$(dirname "${archive_path}")"
+    local download_url="https://github.com/sbt/sbt/releases/download/v${version}/sbt-${version}.tgz"
+    env:info "Downloading sbt ${download_url}"
+    if ! curl --progress-bar --location --retry-max-time 10 --retry 0 "${download_url}" --output "${archive_path}"; then
+		env:info "Download failure"
+		return 1
+	fi
+    env:info "Download completed $download_url"
+}
+# EndSection
+
+# Section: sbt unpack
+___x_cmd_env_sbt_unpack(){
+    local version="${1:?Provide a version}"
+    env:info "Unpacking: sbt ${version}"
+    local archive_path="$___X_CMD_ENV_PATH/sbt/archive/sbt-$version.tgz"
+	x uz "$archive_path" "$(dirname "$archive_path")" 2>/dev/null
+    local archive_unpack_files
+    archive_unpack_files="$___X_CMD_ENV_PATH/sbt/archive/sbt"
+    local versions_path="$___X_CMD_ENV_PATH/sbt/versions"
+	mkdir -p "$versions_path/${version}"
+	mv -f "${archive_unpack_files}/"* "$versions_path/${version}"
+	rm -rf "$archive_unpack_files"
+}
+# EndSection

@@ -1,0 +1,51 @@
+# shellcheck shell=sh disable=SC2039,SC2142,SC3043
+
+
+test_mul_arg(){
+    @assert stdout paramtest_marg  \
+        --card "test1" "https://www.dingtalk.com" "https://gw.alicdn.com" \
+        --card "test2" "https://www.dingtalk.com" "https://gw.alicdn.com" \
+        --card "test3" "https://www.dingtalk.com" "https://gw.alicdn.com" \
+        --card "test4" "https://www.dingtalk.com" "https://gw.alicdn.com" \
+        --card "test5" "https://www.dingtalk.com" "https://gw.alicdn.com" <<A
+title: test1
+message-url: https://www.dingtalk.com
+picture-url: https://gw.alicdn.com
+title: test2
+message-url: https://www.dingtalk.com
+picture-url: https://gw.alicdn.com
+title: test3
+message-url: https://www.dingtalk.com
+picture-url: https://gw.alicdn.com
+title: test4
+message-url: https://www.dingtalk.com
+picture-url: https://gw.alicdn.com
+title: test5
+message-url: https://www.dingtalk.com
+picture-url: https://gw.alicdn.com
+A
+}
+
+test_option(){
+    local mul_line_arg
+    mul_line_arg="aaa
+bbb
+ccc"
+
+    @assert stdout "O=xxxx; paramtest --candi_null abc option --repo abc -b abc cde -m \"$mul_line_arg\" dddd"<<A
+regex_arg1: 0
+regex_arg2: 20
+param repo: abc
+param repo2: 1  abc cde
+param priviledge: private
+param no_type_arg: default
+multiple line argument: aaa
+bbb
+ccc
+flag1: false
+flag1222: false
+rest argument: dddd
+A
+}
+
+@assert:file:func

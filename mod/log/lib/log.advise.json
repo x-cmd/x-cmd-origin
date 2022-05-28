@@ -5,5 +5,5 @@
         "off": "--- Default setting. shutdown the timestamp output in log",
         "#desc": "< on|off|<format> >, customized timestamp format like \"+%H:%M:%S\", \"+%m/%d-%H:%M:%S\""
     },
-    "#n": "xrc log/latest && ___x_cmd_log_completer"
+    "#n": ". $___X_CMD_ROOT_MOD/log/lib/advise && ___x_cmd_log_advise"
 }

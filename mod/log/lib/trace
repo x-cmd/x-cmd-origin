@@ -1,0 +1,5 @@
+# shellcheck shell=bash
+
+___x_cmd_log_trace(){
+    :
+}

@@ -2,27 +2,23 @@
 # shellcheck disable=SC2039,3043
 
 ___x_cmd_gt_current(){
-    param:dsl       '
-subcmd:
-    repo        "Save the config in memory into file"
-    owner       "Get current owner"
-    type        "Get current owner type"
-'
-    param:run
-    if [ -z "$PARAM_SUBCMD" ]; then
-        gt_log warn "Subcmd Not Found."
-        ___x_cmd_gt_current _param_help_doc
-        return 1
-    fi
+    param:subcmd ___x_cmd_gt_current                        \
+        repo        "Save the config in memory into file"   \
+        owner       "Get current owner"                     \
+    param:subcmd:try
 
-    case "${PARAM_SUBCMD}" in
-        type)       "___x_cmd_gt_current_owner_${PARAM_SUBCMD}"   "$@"     ;;
-        *)          "___x_cmd_gt_current_${PARAM_SUBCMD}"         "$@"     ;;
-    esac
+    param:subcmd ___x_cmd_gt_current_owner                  \
+        type        "Get current owner type"
+    param:subcmd:try
+    param:run
+
+    gt_log warn "Subcmd Not Found."
+    ___x_cmd_gt_current _param_help_doc
+    return 1
 }
 
 # shellcheck disable=SC2120
-___x_cmd_gt_current_repo() {
+___x_cmd_gt_current_repo(){
     param:void
     local O="${O:-GITEE_DEFAULT}"
 
@@ -35,7 +31,8 @@ ___x_cmd_gt_current_repo() {
 }
 
 # shellcheck disable=SC2120
-___x_cmd_gt_current_owner() {
+# https://gitee.com/api/v5/swagger#/getV5User
+___x_cmd_gt_current_owner(){
     param:void
     local O="${O:-GITEE_DEFAULT}"
     if [ -n "$1" ]; then
@@ -62,7 +59,7 @@ ___x_cmd_gt_current_owner() {
 }
 
 # shellcheck disable=SC2120
-___x_cmd_gt_current_owner_type() {
+___x_cmd_gt_current_owner_type(){
     param:void
     local O="${O:-GITEE_DEFAULT}"
     if [ -n "$1" ]; then
@@ -88,7 +85,7 @@ ___x_cmd_gt_current_owner_type() {
     printf "%s" "$data"
 }
 
-______x_cmd_gt_owner_type_query() {
+______x_cmd_gt_owner_type_query(){
     param:void
     local owner="${1:?Provide owner name}"
     for types in "org" "enterprise" "user"

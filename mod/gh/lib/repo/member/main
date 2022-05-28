@@ -8,20 +8,16 @@
 
 # gh repo member +el:admin -user-a +user-b
 ___x_cmd_gh_repo_member(){
-    param:dsl       '
-subcmd:
-    ls              "list member"
-    add             "add member"
-    rm              "Remove member"
-'
+    param:subcmd ___x_cmd_gh_repo_member    \
+        ls              "list member"       \
+        add             "add member"        \
+        rm              "Remove member"
+    param:subcmd:try
     param:run
 
-    if [ -z "$PARAM_SUBCMD" ]; then
-        gh_log error "subcommand not found. show help."
-        return 0
-    fi
-
-    "___x_cmd_gh_repo_member_$PARAM_SUBCMD" "$@"
+    gh_log warn "Command Not Found. Show help."
+    ___x_cmd_gh_repo_member _param_help_doc
+    return 1
 }
 # Section: List
 ___x_cmd_gh_repo_member_ls() {

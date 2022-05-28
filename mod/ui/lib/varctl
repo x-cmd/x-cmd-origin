@@ -14,14 +14,14 @@ ___x_cmd_ui_varctl_num(){
 
     case "$op" in
         dec)
-            if [ "$state" -eq "$min" ]; then
+            if [ "$state" -le "$min" ]; then
                 state=$max
             else
                 state="$((state-1))"
             fi
             ;;
         inc)
-            if [ $state -eq "$max" ]; then
+            if [ "$state" -ge "$max" ]; then
                 state=1
             else
                 state="$((state+1))"
@@ -49,14 +49,14 @@ ___x_cmd_ui_varctl_numtext(){
 
     case "$op" in
         dec)
-            if [ "$state" -eq "$min" ]; then
+            if [ "$state" -le "$min" ]; then
                 state=$max
             else
                 state="$((state-1))"
             fi
             ;;
         inc)
-            if [ $state -eq "$max" ]; then
+            if [ "$state" -ge "$max" ]; then
                 state=1
             else
                 state="$((state+1))"

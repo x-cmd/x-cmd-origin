@@ -1,27 +1,24 @@
 # shellcheck shell=sh
 # shellcheck disable=SC2039,3043
 ___x_cmd_gt_repo_branch(){
-    param:dsl       '
-subcommand:
-    ls              "List repo branch list"
-    info            "Show the branch info"
-    add             "Add repo branch"
-    default         "Setup repo default branch"
-    protection      "repo protection branch management"
-'
+    param:subcmd ___x_cmd_gt_repo_branch                        \
+        ls              "List repo branch list"                 \
+        info            "Show the branch info"                  \
+        add             "Add repo branch"                       \
+        default         "Setup repo default branch"             \
+        protection      "repo protection branch management"
+    param:subcmd:try
     param:run
 
-    if [ -z "$PARAM_SUBCMD" ]; then
-        gt_log error "subcommand not found. show help."
-        return 0
-    fi
-
-    "___x_cmd_gt_repo_branch_$PARAM_SUBCMD" "$@"
+    gt_log error "Subcmd Not Found."
+    ___x_cmd_gt_repo_branch _param_help_doc
+    return 1
 }
 
 # Section:list & info
 # shellcheck disable=SC2154
-___x_cmd_gt_repo_branch_ls() {
+# https://gitee.com/api/v5/swagger#/getV5ReposOwnerRepoBranches
+___x_cmd_gt_repo_branch_ls(){
     param:scope     "gitee/$O"
     param:dsl       '
 options:
@@ -46,7 +43,8 @@ options:
 }
 
 # shellcheck disable=SC2154
-___x_cmd_gt_repo_branch_info() {
+# https://gitee.com/api/v5/swagger#/getV5ReposOwnerRepoBranchesBranch
+___x_cmd_gt_repo_branch_info(){
     param:scope     "gitee/$O"
     param:dsl       '
 options:
@@ -71,7 +69,8 @@ options:
 
 # Section: add & default
 # shellcheck disable=SC2154
-___x_cmd_gt_repo_branch_add() {
+# https://gitee.com/api/v5/swagger#/postV5ReposOwnerRepoBranches
+___x_cmd_gt_repo_branch_add(){
     param:scope     "gitee/$O"
     param:dsl       '
 options:
@@ -92,7 +91,7 @@ options:
 }
 
 # shellcheck disable=SC2154
-___x_cmd_gt_repo_branch_default() {
+___x_cmd_gt_repo_branch_default(){
     param:dsl       '
 options:
     --repo                      "Provide owner name and repo name.(default:the current user repo)"   <>:RepoName
@@ -104,7 +103,7 @@ options:
 # EndSection
 
 # Section: protection
-___x_cmd_gt_repo_branch_protection() {
+___x_cmd_gt_repo_branch_protection(){
     param:dsl       '
 subcommand:
     set              "Set protection branch"
@@ -120,7 +119,8 @@ subcommand:
     "___x_cmd_gt_repo_branch_protection_$PARAM_SUBCMD" "$@"
 }
 
-___x_cmd_gt_repo_branch_protection_set() {
+# https://gitee.com/api/v5/swagger#/putV5ReposOwnerRepoBranchesBranchProtection
+___x_cmd_gt_repo_branch_protection_set(){
     param:scope     "gitee/$O"
     param:dsl       '
 options:
@@ -142,7 +142,8 @@ options:
     }
 }
 
-___x_cmd_gt_repo_branch_protection_unset() {
+# https://gitee.com/api/v5/swagger#/deleteV5ReposOwnerRepoBranchesBranchProtection
+___x_cmd_gt_repo_branch_protection_unset(){
     param:scope     "gitee/$O"
     param:dsl       '
 options:

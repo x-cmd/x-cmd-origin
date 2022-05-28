@@ -36,6 +36,7 @@ BEGIN {
 
     UI_SCREEN_SAVE      = "\033[?1049h"
     UI_SCREEN_RESTORE   = "\033[?1049l"
+    UI_SCREEN_CLEAR     = "\033[2J"
 
     UI_EL               = "\033[K"
     UI_EL1              = "\033[1K"

@@ -1,0 +1,72 @@
+# shellcheck shell=sh disable=SC2154
+
+###
+ # @Description: ___x_cmd_ps1env_alias Test
+###
+init_cmd
+
+test_cmd_alias_special(){
+    printf "%s\n" 'subcomand: ' | @assert stdout "+"
+}
+
+test_cmd_alias_help(){
+    @assert stdout ":h"<<A
+$(cmd help)
+A
+}
+
+test_cmd_alias_cmd(){
+    @assert stdout "sub1"<<A
+subcomand: sub1
+A
+    @assert stdout ",sub1"<<A
+subcomand: sub1
+A
+    @assert stdout "+sub1"<<A
+subcomand: sub1
+A
+    @assert stdout "@sub1"<<A
+subcomand: sub1
+A
+    @assert stdout "1sub"<<A
+subcomand: sub1
+A
+}
+
+test_cmd_alias_override_alias_list(){
+    if [ -n "$ZSH_VERSION" ]; then
+        @assert stdout "echo \$___X_CMD_PS1ENV_OVERRIDE_ALIAS"<<A
+
+alias -- +=xrc
+A
+    else
+        @assert stdout "echo \$___X_CMD_PS1ENV_OVERRIDE_ALIAS"<<A
+
+alias +='xrc'
+A
+    fi
+}
+
+test_cmd_alias_bind_alias_list(){
+    @assert stdout "echo \$___X_CMD_PS1ENV_BIND"<<A
+
+%q
+
++
+
+:h
+
+sub1
+
+,sub1
+
++sub1
+
+@sub1
+
+1sub
+A
+}
+
+
+@assert:file:func

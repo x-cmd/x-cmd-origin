@@ -3,20 +3,18 @@
 
 ___x_cmd_gh_user(){
     param:scope     "github/$O"
-    param:dsl       '
-subcmd:
-    info        "Show information"
-    repo        "List all repos"
-    email       "get user email"
-    issue       "List all issues"
-    key         "key management"
-'
+    param:subcmd ___x_cmd_gh_user       \
+        info        "Show information"  \
+        email       "get user email"    \
+        issue       "List all issues"   \
+        key         "key management"    \
+        repo        "List all repos"
+    param:subcmd:try
     param:run
-    if [ -z "$PARAM_SUBCMD" ]; then
-        echo "Command Not Found. Show help." >&2
-        return 0
-    fi
-    "___x_cmd_gh_user_${PARAM_SUBCMD}" "$@"
+
+    gh_log warn "Subcmd Not Found."
+    ___x_cmd_gh_user _param_help_doc
+    return 1
 }
 
 ___x_cmd_gh_user_info() {
@@ -37,14 +35,21 @@ options:
     print "$data"
 }
 
-___x_cmd_gh_user_repo() {
+___x_cmd_gh_user_repo(){
+    param:scope     "github/$O"
+    param:subcmd ___x_cmd_gh_user_repo       \
+        ls          "List all repos"
+    param:subcmd:try
+    param:run
+    ___x_cmd_gh_user_repo_ls "$@"
+}
+
+___x_cmd_gh_user_repo_ls() {
     param:scope     "github/$O"
     param:dsl       '
-subcmd:
-    ls          "list user repo"
 options:
     --visibility    "visibility"                                <>:Authority="all"
-    --affiliation   "affiliation"                               <>:UserGroup="organization_member"
+    --affiliation   "affiliation"                               <>:UserGroup="owner"
     --sort          "sort"                                      <>:UserSort="created"
     --direction     "direction"                                 <>:Direction="desc"
     --per_page      "Results per page"                          <>=30

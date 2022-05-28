@@ -31,7 +31,7 @@ BEGIN{
     UI_LINEWRAP_ENABLE="\033[?7h"
 }
 function output(text,
-    line_arr, line_arr_len, return_text, i, blank_line){
+    line, line_arr, line_arr_len, return_text, i, blank_line){
 
     return_text = "" UI_LINEWRAP_DISABLE
 

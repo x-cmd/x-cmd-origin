@@ -7,7 +7,7 @@ form1(){
     local ___X_CMD_UI_FORM_EXIT_STRATEGY="execute|exit"
 
     ___x_cmd_ui_form \
-    "Text atype" atype 1                       "=" private public -- \
+    "Text atype" atype 1                       "=" private public private publicprivate publicprivate publicprivate publicprivate aaa bbb ccc  publicprivate publicprivate publicprivate publicprivate aaa bbb ccc  publicprivate publicprivate publicprivate publicprivate aaa bbb ccc -- \
     "Text repo" repo "abc12"                              "=~" "abc1[0-9]+"   -- \
     "Text user" user ""                              "=~*" "12[0-9]+" -- \
     "Text mul_line_arg1" mul_line_arg1 "xxx"   "*" -- \

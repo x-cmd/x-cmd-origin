@@ -74,3 +74,14 @@ f5(){
 }'
 }
 time (f5)
+
+code="$(xrc cat awk/lib/default.awk awk/lib/json.awk awk/lib/jiter.awk )"
+
+f5(){
+    printf '
+[1,2,3,4,5,"ttt","aaaa","bbb"]
+'| awk "$code"'
+{
+    jiget_after_tokenize_unquote($0, ".")
+}'
+}

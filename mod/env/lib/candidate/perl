@@ -1,38 +1,92 @@
 # shellcheck shell=sh disable=SC2039,SC1090,SC3043,SC2263    # xrc
+
+# Section(util): get_system_platform
+
+___x_cmd_env_perl_get_system_platform(){
+    xrc os
+    local _platform
+    local _arch
+    local _compression
+    local ___X_CMD_ENV_PLATFORM
+    _platform="$(x os name)"
+    _arch="$(x os arch)"
+    case "$_platform" in
+        linux)      ___X_CMD_ENV_PLATFORM=linux    ;;
+        win)        ___X_CMD_ENV_PLATFORM=windows  ;;
+        darwin)     ___X_CMD_ENV_PLATFORM=darwin   ;;
+        *)          env:error "your arch:(" "$(___x_cmd_os name)" ") are not supported"
+                    return 1
+                    ;;
+    esac
+
+    case "$_arch" in
+        x32)        ___X_CMD_ENV_ARCH="64bit"   ;;
+        x64)        ___X_CMD_ENV_ARCH="64bit"   ;;
+        *)          env:error "your arch:(" "$_arch" ") are not supported"
+                    return 1
+                    ;;
+    esac
+
+    case "$_platform" in
+        linux | darwin)     _compression=tar.gz   ;;
+        win)                _compression=zip      ;;
+        *)                  env:error "your arch:(" "$(___x_cmd_os name)" ") are not supported"
+                            return 1
+                            ;;
+    esac
+}
+# EndSection
+
 # Section: ls remote
-
 ___x_cmd_env_perl_ls_remote(){
+    local pattern="${1:-""}"
     local cache_path="$___X_CMD_ENV_PATH/perl/cache/version_list"
-    local cache_expiration=${2:-1}
-
-    ___x_cmd_httpget "https://www.cpan.org/src/README.html" "$cache_path" "$cache_expiration" && \
-        awk 'match($0, /<td><a href="https:\/\/www.cpan.org\/src\/5.0\/perl-[0-9.]{1,}tar/){gsub(/^[ ]+/,"",$0);gsub(/<t[\/]?d>/,"",$0);
-        gsub(/<a href="https:\/\/www.cpan.org\/src\/5.0\/perl-[0-9.]{1,}[a-z.]{1,}[2]?">perl-/,"",$0);
-        gsub(/.tar.[a-z]{1,}[2]?<\/a><\/td>/,"",$0);
-        print $0}' < "$cache_path"
+    local cache_expiration="${2:-86400}"
+    ___x_cmd_env_perl_get_system_platform
+    if [ "$___X_CMD_ENV_PLATFORM" = "linux" ] || [ "$___X_CMD_ENV_PLATFORM" = "darwin" ] ; then
+        ___x_cmd_httpget "https://api.github.com/repos/skaji/relocatable-perl/releases" "$cache_path" "$cache_expiration" 2>/dev/null && \
+            ja 'k()=="tag_name" && (("'"$pattern"'" == "") || ( index( v(), "'"$pattern"'" ) > 0)){ print v(); }' < "$cache_path" | ___x_cmd_env_common_sort_version
+    fi
+    if [ "$___X_CMD_ENV_PLATFORM" = "windows" ] ; then
+        ___x_cmd_httpget "https://strawberryperl.com/releases.html" "$cache_path" "$cache_expiration" 2>/dev/null && \
+            awk -v pattern="$pattern" ' match($0, /<td><b>[0-9.]+<\/b><\/td>/) {
+                version substr($0,RSTART+7,RLENGTH-16)
+                if (pattern == "" || index(version, pattern) > 0) {
+                    print version
+                }
+            }' < "$cache_path" | ___x_cmd_env_common_sort_version | ___x_cmd_env_common_simplify_version
+    fi
 }
 # EndSection
 
 # Section: download
 ___x_cmd_env_perl_download_archive(){
-    local version=${1:?Provide a version}
-    local archive_path="$___X_CMD_ENV_PATH/perl/archive/perl-${version}.tar.gz"
-
-	if ___x_cmd_env_util_is_archive_cached perl "$version" 2>/dev/null; then
-		env_log info  "Archive existed: $version"
+    local version="${1:?Provide a version}"
+    local archive_path="$___X_CMD_ENV_PATH/perl/archive/perl-${version}.${_compression}"
+    ___x_cmd_env_perl_get_system_platform
+    env:info "Downloading perl-${version}"
+    if ___x_cmd_env_util_is_archive_cached perl "$version" 2>/dev/null; then
+		env:info  "Archive existed: $version"
 		return 0
 	fi
     mkdir -p "$(dirname "${archive_path}")"
-    local archive_path=$___X_CMD_ENV_PATH/perl/archive/perl-${version}.tar.gz
-    env_log info "Downloading perl-${version}"
+    local archive_path="$___X_CMD_ENV_PATH/perl/archive/perl-${version}.tar.gz"
 
-    download_url="https://www.cpan.org/src/5.0/perl-${version}.tar.gz"
-
+    local download_url
+    if ___x_cmd_env_perl_get_system_platform ; then
+        if [ "$___X_CMD_ENV_PLATFORM" = "linux" ] ; then
+             download_url="https://github.com/skaji/relocatable-perl/releases/download/${version}/perl-x86_64-linux.tar.gz"
+        elif [ "$___X_CMD_ENV_PLATFORM" = "darwin" ] ; then
+             download_url="https://github.com/skaji/relocatable-perl/releases/download/${version}/perl-darwin-2level.tar.gz"
+        else [ "$___X_CMD_ENV_PLATFORM" = "windows" ] ;
+             download_url="https://strawberryperl.com/download/${version}/strawberry-perl-${version}-${_arch}.zip"
+        fi
+    fi
     if ! curl --progress-bar --location --retry-max-time 10 --retry 0 "$download_url" --output "$archive_path" ; then
-        env_log error "Download failure from $download_url"
+        env:error "Download failure from $download_url"
         return 1
     fi
-        env_log info "Download Successfully"
+        env:info "Download Successfully"
 
 }
 # EndSection
@@ -40,17 +94,25 @@ ___x_cmd_env_perl_download_archive(){
 # Section: unpack
 
 ___x_cmd_env_perl_unpack(){
-   local version="${1:?Provide a version}"
-    env_log info "Unpacking: perl ${version}"
-
-    local archive_path="$___X_CMD_ENV_PATH/perl/archive/perl-$version.tar.gz"
-	x uz "$archive_path" "$(dirname "$archive_path")"  2>/dev/null || return 1
-
-    local archive_unpack_files
-    archive_unpack_files="$(dirname "$archive_path")/perl-$version"
-
+    local version="${1:?Provide a version}"
+    env:info "Unpacking: perl ${version}"
+    local archive_path="$___X_CMD_ENV_PATH/perl/archive/perl-${version}.tar.gz"
+    ___x_cmd_env_perl_get_system_platform
+    if [ "$___X_CMD_ENV_PLATFORM" = "linux" ] ; then
+        archive_unpack_files="$(dirname "$archive_path")/perl-x86_64-linux"
+        archive_path="$___X_CMD_ENV_PATH/perl/archive/perl-${version}.tar.gz"
+    fi
+    if [ "$___X_CMD_ENV_PLATFORM" = "darwin" ] ; then
+        archive_unpack_files="$(dirname "$archive_path")/perl-darwin-2level"
+        archive_path="$___X_CMD_ENV_PATH/perl/archive/perl-${version}.tar.gz"
+    fi
+    if [ "$___X_CMD_ENV_PLATFORM" = "windows" ] ; then
+        archive_unpack_files="$(dirname "$archive_path")/perl-darwin-2level"
+        archive_path="$___X_CMD_ENV_PATH/perl/archive/strawberry-perl-${version}-${_arch}.zip"
+    fi
+	x uz "$archive_path" "$(dirname "$archive_path")"  1>/dev/null || return 1
     local versions_path="$___X_CMD_ENV_PATH/perl/versions"
-	mkdir -p "$versions_path/${version}"
+	mkdir -p "${versions_path}/${version}"
 	mv -f "$archive_unpack_files/"* "$versions_path/${version}"
 	rm -rf "$archive_unpack_files"
 }

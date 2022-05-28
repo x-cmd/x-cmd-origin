@@ -2,7 +2,7 @@
 
 # author:       Li Junhao           l@x-cmd.com
 
-xrc python/lib/python3
+xrc:mod:lib python python3
 
 ___x_cmd_python(){
     ___x_cmd_python3 "$@"

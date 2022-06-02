@@ -42,6 +42,7 @@ yanfa
 
 # pdf ffmpeg
 +convert
++git
 pdf
 ff
 ffmpeg

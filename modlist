@@ -86,6 +86,9 @@ env
 zuz
 el
 
+# Eco
+pipx
+npx
 
 # Apps
 +tldr
@@ -99,3 +102,9 @@ qr
 ali
 gt
 gh
+
+
+aliyun
+ucloud
+tccli
+awscli

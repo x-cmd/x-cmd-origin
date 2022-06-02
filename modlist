@@ -38,11 +38,11 @@ yanfa
 +mv
 
 +sync
++git
 
 
 # pdf ffmpeg
 +convert
-+git
 pdf
 ff
 ffmpeg

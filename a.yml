@@ -1,0 +1,55 @@
+resource:
+  aws_instance:
+    example:
+      provisioner:
+        - local-exec:
+            command: echo 'Hello World' >example.txt
+        - file:
+            source: example.txt
+            destination: /tmp/example.txt
+        - remote-exec:
+            inline:
+              - sudo install-something -f /tmp/example.txt
+
+---
+
+resource > aws_instance > example:
+  provisioner > local-exec:
+    command: echo 'Hello World' >example.txt
+  provisioner > file:
+    source: example.txt
+    destination: /tmp/example.txt
+  provisioner > remote-exec > inline:
+    - sudo install-something -f /tmp/example.txt
+
+---
+resource > aws_instance > example:
+  provisioner:
+    - local-exec:
+        command: echo 'Hello World' >example.txt
+    - file:
+        source: example.txt
+        destination: /tmp/example.txt
+    - remote-exec:
+        inline:
+          - sudo install-something -f /tmp/example.txt
+
+---
+resource "aws_instance" "example" {
+  # (resource configuration omitted for brevity)
+
+  provisioner "local-exec" {
+    command = "echo 'Hello World' >example.txt"
+  }
+  provisioner "file" {
+    source      = "example.txt"
+    destination = "/tmp/example.txt"
+  }
+  provisioner "remote-exec" {
+    inline = [
+      "sudo install-something -f /tmp/example.txt",
+    ]
+  }
+}
+Copy
+

@@ -1,0 +1,26 @@
+# shellcheck shell=sh
+
+
+# mv :git/main :git/new
+# rm :git/main
+# rm :git/main
+# rm :git/github/main
+# mv :git/main :git/work
+___x_cmd_git_branch(){
+    case "$1" in
+        mv|-m|-M)                   shift; ___x_cmd_git_origin -m "$@" ;;
+        cp|-c|-C)                   shift; ___x_cmd_git_origin -c "$@" ;;
+        rm|-d|-D)                   shift; ___x_cmd_git_origin -d "$@" ;;
+        ls)                         shift; ___x_cmd_git_origin "$@" ;;
+        desc)                       shift; ___x_cmd_git_branch_desc "$@" ;;
+        *)                          ___x_cmd_git_origin "$@" ;;
+    esac
+}
+
+___x_cmd_git_branch_desc(){
+    case "$#" in
+        0)      git config --get-regexp "branch.[^.]+.description" ;;      # TODO: show all descriptions
+        1)      git config "branch.$1.description" ;;
+        *)      git config "branch.$1.description" "$2" ;;      # TODO: change the description of the branch
+    esac
+}

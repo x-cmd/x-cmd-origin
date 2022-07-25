@@ -1,0 +1,8 @@
+
+___x_cmd_git_meta(){
+    case "$1" in
+        id)         shift; git rev-parse HEAD ;;
+        branch)     shift; git branch --show-current ;;
+        tag)        shift; git describe --tags --exact-match 2>/dev/null ;;
+    esac
+}

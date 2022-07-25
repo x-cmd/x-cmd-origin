@@ -1,0 +1,5 @@
+
+___x_cmd_git_remote(){
+    ___x_cmd___git_origin remote "$@"
+}
+

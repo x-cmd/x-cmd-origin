@@ -1,0 +1,29 @@
+
+___x_cmd_git_pushall(){
+    local name="${1:?Provide name}"
+    local url="${2:?Provide url}"
+
+    command git branch -r | grep -v '\->' | grep -E "^ +origin" | \
+        while read -r remote; do
+            command git branch --track "${remote#origin/}" "$remote";
+        done
+
+    command git remote remove "$name" >&2;  command git remote add "$name" "$url"
+    if command git branch -r | grep -q ^; then      # to prevent sync the empty repository
+        command git fetch origin
+        command git pull origin
+        # command git push -u --all "$name"
+        # command git push --force --tags tgt
+
+        if ! command git push -u "$name" --all; then
+            x:warn "Push In Force: ·git push -u -f $name --all"
+            command git push -u -f "$name" --all
+        fi
+
+        if ! command git push -u "$name" --tags; then
+            x:warn "Push In Force: git push -u -f $name --tags"
+            command git push -u -f "$name" --tags
+        fi
+    fi
+
+}

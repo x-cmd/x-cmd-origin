@@ -1,0 +1,9 @@
+
+___x_cmd_shall_sh(){
+    printf "%s" "bash
+dash
+ksh
+ash
+zsh
+"
+}

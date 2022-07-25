@@ -16,16 +16,16 @@ _7zd_which(){
     mkdir -p "$target"
     xrc os
     local arch
-    arch="$(os arch)"
+    arch="$(___x_cmd_os arch)"
     local osname
-    osname="$(os name)"
+    osname="$(___x_cmd_os name)"
     local release
     release="$(uname -r)"
 
     local exe
     case "$osname-$release" in
         win* | *microsoft*)
-            exe=7zd.x64.exe        
+            exe=7zd.win.x64.exe        
         ;;
         linux*|darwin*)     
             exe=7zd.${osname}.${arch}  
@@ -36,7 +36,7 @@ _7zd_which(){
         ;;
     esac
     p7zd_log debug "Downloading: p7zip/main/bin/$exe"
-    if CACHE="$target/$exe" ___x_cmd_curl_gitx static-build "p7zip" main "bin/$exe" "$target/$exe"; then
+    if CACHE="$target/$exe" ___x_cmd_httpget_gitx static-build "p7zip" main "7zd/19.00/$exe" "$target/$exe"; then
         chmod +x "$target/$exe" && printf "%s" "$target/$exe"
     else
         p7zd_log error "Fail to download: p7zip/main/bin/$exe"

@@ -5,7 +5,7 @@
 # Section 6: Repo Path & Clone
 ############################
 ___x_cmd_gt_repo_url_http(){
-    param:scope  "gitee/$O"
+    param:scope  ___x_cmd_gt
     param:dsl    '
 options:
     #n  "Provide repo list"
@@ -24,7 +24,7 @@ ___x_cmd_gt_repo_url(){
 }
 
 ___x_cmd_gt_repo_url_ssh(){
-    param:scope     "gitee/$O"
+    param:scope     ___x_cmd_gt
     param:dsl       '
 options:
     #n "Provide repo list"
@@ -58,16 +58,16 @@ ___x_cmd_gt_repo_clone_https(){
 # https://gitee.com/api/v5/swagger#/postV5ReposOwnerRepoForks
 # TODO Not available Gitee return Not Found Project
 ___x_cmd_gt_repo_fork(){
-    param:scope    "gitee/$O"
+    param:scope     ___x_cmd_gt
     param:dsl       '
 options:
     --repo              "Provide owner name and repo name.(default:the current user repo)"   <>:RepoName
-    --organization=""   "Provide organization"                                               <>:org
+    --organization=""   "Provide organization"                                               <>:OrgSpaceName
 '
     param:run
 
     local owner_repo
     owner_repo="$(___x_cmd_gt_param_normalize_repo "$repo")"
 
-    ___x_cmd_gt_http post "https://gitee.com/api/v5/repos/${owner_repo}/forks" organization
+    ___x_cmd_gt_http post "https://gitee.com/api/v5/repos/${owner_repo}/forks" -- organization
 }

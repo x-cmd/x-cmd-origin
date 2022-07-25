@@ -3,7 +3,7 @@
 # TODO: need to update $O : https://gitee.com/api => https://api.gitee.com
 
 ___x_cmd_gt_enterprise_team(){
-    param:subcmd ___x_cmd_gt_enterprise_team                    \
+    param:subcmd ___x_cmd_gt_enterprise_team                        \
         ls              "List enterprise team"                      \
         create          "Create a team"                             \
         info            "Show team info"                            \
@@ -15,6 +15,7 @@ ___x_cmd_gt_enterprise_team(){
     param:run
 
     if [ -z "$PARAM_SUBCMD" ]; then
+        ___x_cmd_gt_enterprise_team _param_help_doc
         gt_log error "subcmd not found. show help."
         return 0
     fi
@@ -26,7 +27,7 @@ ___x_cmd_gt_enterprise_team(){
 # @see: https://gitee.com/api/v8/swagger#/getEnterpriseIdGroups
 # shellcheck disable=SC2154
 ___x_cmd_gt_enterprise_team_ls(){
-    param:scope     "gitee/$O"
+    param:scope     ___x_cmd_gt
     param:dsl       '
 type:
     QueryType = "" path
@@ -40,8 +41,8 @@ options:
     --direction           "sort direction"              <>:Direction="asc"
     --search              "search by keywords"          <>=""
     --scope               "query type"                  <>:Scope=""
-    --page                "page"                        <>:number=1
-    --per_page            "per_page"                    <>:number=20
+    --page                "page"                        <>=""
+    --per_page            "per_page"                    <>=""
 '
     param:run
     ___x_cmd_gt_get_multi "/enterprises/${enterprise_id}/groups"     qt sort direction search scope
@@ -50,7 +51,7 @@ options:
 # shellcheck disable=SC2154
 # https://gitee.com/api/v8/swagger#/getEnterpriseIdGroupsGroupId
 ___x_cmd_gt_enterprise_team_info(){
-    param:scope     "gitee/$O"
+    param:scope     ___x_cmd_gt
     param:dsl       '
 type:
     QueryType = "" path
@@ -63,12 +64,17 @@ options:
     param:run
     ___x_cmd_gt_http get "/enterprises/${enterprise_id}/groups/${group_id}" qt
 }
+
+___x_cmd_gt_enterprise_team_repo() {
+    param:void
+    :
+}
 # EndSection
 
 # Section: create & update & rm
 # https://gitee.com/api/v8/swagger#/postEnterpriseIdGroups
 ___x_cmd_gt_enterprise_team_create(){
-    param:scope     "gitee/$O"
+    param:scope     ___x_cmd_gt
     param:dsl       '
 options:
     #1|--enterprise_id    "provide enterprise id"       <>
@@ -87,7 +93,7 @@ options:
 # shellcheck disable=SC2034,SC2154
 # https://gitee.com/api/v8/swagger#/putEnterpriseIdGroupsGroupId
 ___x_cmd_gt_enterprise_team_update(){
-    param:scope     "gitee/$O"
+    param:scope     ___x_cmd_gt
     param:dsl       '
 type:
     Access  =   private public outsourcing
@@ -109,12 +115,12 @@ options:
         innerSource)    public=2 ;;
     esac
 
-    ___x_cmd_gt_http put json "/enterprises/${enterprise_id}/groups/${group_id}" public name description user_ids
+    ___x_cmd_gt_http put json "/enterprises/${enterprise_id}/groups/${group_id}" -- public name description user_ids
 }
 
 # TODO: strange parameters： https://gitee.com/api/v8/swagger#/deleteEnterpriseIdGroupsGroupId
 ___x_cmd_gt_enterprise_team_rm(){
-    param:scope     "gitee/$O"
+    param:scope     ___x_cmd_gt
     param:dsl       '
 options:
     #1|--enterprise_id    "provide enterprise id"       <>
@@ -137,17 +143,14 @@ ___x_cmd_gt_enterprise_team_member(){
     param:subcmd:try
     param:run
 
-    if [ -z "$PARAM_SUBCMD" ]; then
-        gt_log error "subcmd not found. show help."
-        return 0
-    fi
-
-    "___x_cmd_gt_enterprise_team_member_$PARAM_SUBCMD" "$@"
+    ___x_cmd_gt_enterprise_team_member _param_help_doc
+    gt_log warn "Subcmd Not Found."
+    return 1
 }
 
 # https://gitee.com/api/v8/swagger#/getEnterpriseIdGroupsGroupIdMembers
 ___x_cmd_gt_enterprise_team_member_ls(){
-    param:scope     "gitee/$O"
+    param:scope     ___x_cmd_gt
     param:dsl       '
 type:
     QueryType = "" path
@@ -162,8 +165,8 @@ options:
     --sort                "sort by time type"           <>:Sort="created_at"
     --direction           "sort direction"              <>:Direction="asc"
     --search              "search by keywords"          <>=""
-    --page                "page"                        <>:number=1
-    --per_page            "per_page"                    <>:number=20
+    --page                "page"                        <>=""
+    --per_page            "per_page"                    <>=""
 '
     param:run
     ___x_cmd_gt_get_multi "/enterprises/${enterprise_id}/groups/${group_id}/members"  qt sort direction search
@@ -171,7 +174,7 @@ options:
 
 # https://gitee.com/api/v8/swagger#/deleteEnterpriseIdGroupsGroupIdMembers
 ___x_cmd_gt_enterprise_team_member_rm(){
-    param:scope     "gitee/$O"
+    param:scope     ___x_cmd_gt
     param:dsl       '
 options:
     #1|--enterprise_id    "provide enterprise id"       <>

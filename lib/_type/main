@@ -1,10 +1,3 @@
-###
- # @Author: Qbenben
- # @Date: 2022-04-19 18:03:59
- # @LastEditors: Qbenben
- # @LastEditTime: 2022-04-19 18:03:59
- # @Description:
-###
 # shellcheck shell=sh
 # shellcheck disable=SC2039,3043
 
@@ -12,24 +5,28 @@
 # maintainer:   Li Junhao
 
 # Define in param
-param_type      gitee     Bool              =       true   false
-# param_type      gitee     URL               "=~"      "https?://.+|(\\s&&[^\\f\\n\\r\\t\\v])*"
-# param_type      gitee     ISOTime           "=~"      "/^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\.[0-9]+)?(Z|[+-](?:2[0-3]|[01][0-9]):[0-5][0-9])?$/|(\\s&&[^\\f\\n\\r\\t\\v])*"
-param_type      gitee     NatureNumber      "=~"      "[0-9]+"
-param_type      gitee     UserName            "=~"    "[-A-Za-z0-9_]+"
-param_type      gitee     RepoName            "=~"    "[-A-Za-z0-9_]+"
-param_type      gitee     RepoPath            "=~"    "[-A-Za-z0-9_/]+"      # TODO: make it fit it gitee definition
-param_type      gitee     RepoPerm            =       pull    push     admin
-param_type      gitee     RepoAccess          =       private public
-param_type      gitee     ExtraAccess         =       private public   innerSource
-param_type      gitee     UserRole            =       all member admin
-param_type      gitee     OrgSpaceName        "=~"    "[-A-Za-z0-9_]+"
-param_type      gitee     EnterpriseSpaceName "=~"    "[-A-Za-z0-9_]+"
-# param_type      gitee     Numbers           "=~"      "[0-9]+|(\\s&&[^\\f\\n\\r\\t\\v])*"
-param_type      gitee     Address             "=~"    "[-A-Za-z0-9_]+|https?://.+"
-param_type      github     Ignore               -   <<A
+param_type      ___x_cmd_gt     Bool                  =       true   false
+param_type      ___x_cmd_gt     RepoPerm              =       pull    push     admin
+param_type      ___x_cmd_gt     RepoAllAccess         =       all     private  public
+param_type      ___x_cmd_gt     RepoAccess            =       private public
+param_type      ___x_cmd_gt     RepoAccess            =       private public
+param_type      ___x_cmd_gt     ExtraAccess           =       private public   innerSource
+param_type      ___x_cmd_gt     UserRole              =       all member admin
+param_type      ___x_cmd_gt     NatureNumber          "=~"    "[0-9]+"
+param_type      ___x_cmd_gt     UserName              "=~"    "[-A-Za-z0-9_,]+"
+param_type      ___x_cmd_gt     RepoName              "=~"    "[-A-Za-z0-9_]+"
+param_type      ___x_cmd_gt     RepoPath              "=~"    "[-A-Za-z0-9_/]+"      # TODO: make it fit it gitee definition
+param_type      ___x_cmd_gt     OrgSpaceName          "=~"    "[-A-Za-z0-9_]+"
+param_type      ___x_cmd_gt     EnterpriseSpaceName   "=~"    "[-A-Za-z0-9_]+"
+param_type      ___x_cmd_gt     Address               "=~"    "[-A-Za-z0-9_]+|https?://.+"
+param_type      ___x_cmd_gt    Ignore                -   <<A
 $(xrc cat gt/lib/_type/ignore.txt)
 A
-param_type      github     License              -   <<A
+param_type      ___x_cmd_gt     License              -   <<A
 $(xrc cat gt/lib/_type/license.txt)
 A
+
+# TODO: wait param
+# param_type      ___x_cmd_gt     Numbers           "=~"      "[0-9]+|(\\s&&[^\\f\\n\\r\\t\\v])*"
+# param_type      ___x_cmd_gt     ISOTime           "=~"      "/^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\.[0-9]+)?(Z|[+-](?:2[0-3]|[01][0-9]):[0-5][0-9])?$/|(\\s&&[^\\f\\n\\r\\t\\v])*"
+# param_type      ___x_cmd_gt     URL               "=~"      "https?://.+|(\\s&&[^\\f\\n\\r\\t\\v])*"

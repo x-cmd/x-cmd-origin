@@ -1,0 +1,13 @@
+- |
+    aws_bash_completer
+    code
+- c
+-
+  abc: c
+  cde: d
+  aaa: e
+      a aaaa
+         aaa
+  json:
+    - de: f
+      c: d

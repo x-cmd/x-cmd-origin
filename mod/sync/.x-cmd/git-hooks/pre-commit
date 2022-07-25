@@ -1,0 +1,8 @@
+#! /usr/bin/env bash
+
+local MSG="$1"
+local FILELIST="$2"
+
+
+x dingtalk sendmsg "abc"
+

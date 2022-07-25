@@ -1,0 +1,20 @@
+ext:
+    push-gitee: |
+        git remote remove gitee 2>/dev/null
+        git remote add gitee git@gitee.com:x-bash/git.git
+        git push gitee
+    push-github: |
+        git remote remove github 2>/dev/null
+        git remote add gitee git@github.com:x-bash/git.git
+        git push github
+    pugg: |
+        git push-gitee
+        git push-github
+        git push origins
+hook:
+    pre-push: ""
+    pre-pull: ""
+    post-push: ""
+    post-pull: ""
+
+

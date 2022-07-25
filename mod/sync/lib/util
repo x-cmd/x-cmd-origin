@@ -1,0 +1,22 @@
+
+
+
+___x_cmd___git_origin(){
+    command git "$@"
+}
+
+___x_cmd___git_bin_install(){
+    x install git
+    # Or download static bin
+}
+
+
+___x_cmd___git_main(){
+    ___git_intercept "$@"
+    local ___code=$?
+    if [ $___code -eq 127 ]; then
+        $GIT_BIN "$@"
+    else
+        return $___code
+    fi
+}

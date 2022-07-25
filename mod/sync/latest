@@ -1,32 +1,20 @@
-# Author:       Li Junhao           l@x-cmd.com
-# shellcheck    shell=sh            disable=SC3043,SC2164     # xrc
+# Author:       Li Junhao           l@x-cmd.com     # xrc
+# shellcheck    shell=sh
 
-# license:      GPLv3
+xrc:mod:lib git     util meta assert rootout track main pushall
 
-# Better But Will Be Slower.
-# Move the files as safe as possible in a batch.
+___x_cmd_git(){
+    case "$1" in
+        assert)     shift; ___x_cmd_git_assert "$@" ;;
+        ignore)     shift; x gitignore "$@" ;;
+        rootout)    shift; ___x_cmd_git_rootout "$@" ;;
+        track)      shift; ___x_cmd_git_track "$@" ;;
+        pushall)    shift; ___x_cmd_git_pushall "$@" ;;
 
-# mv a/b/c.txt a/b/d.txt a/c/a.txt  dst/
-# mv -p b/c.txt b/d/.txt c/a.txt    dst/
+        meta)       shift; ___x_cmd_git_meta "$@" ;;
 
-xrc:mod:lib     mv      utils
-
-___x_cmd_mv(){
-    if [ "$#" -eq 0 ]; then
-        printf "%s\n" "TODO: Will Use Pipe"
-        return 1
-    fi
-
-    if [ "$#" -eq 1 ]; then
-        ___x_cmd_mv_from_pipe "$1"
-        return
-    fi
-
-    local lastarg
-    eval 'lastarg="$'$#'"'
-    x mkdirp "${lastarg%/*}"
-
-    ___x_cmd_inner_mv "$@"
+        *)          ___x_cmd___git_origin "$@" ;;
+    esac
 }
 
-xrc setmain ___x_cmd_mv
+xrc setmain ___x_cmd_git

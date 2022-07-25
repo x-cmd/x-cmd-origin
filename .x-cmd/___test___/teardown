@@ -1,1 +1,0 @@
-cd "$(x wsroot)" && rm -rf test.wx wx.wx

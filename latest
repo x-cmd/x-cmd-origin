@@ -1,24 +1,52 @@
-# shellcheck shell=sh disable=SC3043 # xrc
+# Author:       Li Junhao   l@x-cmd.com             # xrc
+# shellcheck    shell=sh    disable=SC3043,SC1091
 
-xrc:mod:lib wx      util
-
-# wx is a tar.gz file
-# x wx work
-# x wx --verbose work
-# x work.wx
-# x @l/work
-# xwx work
-
-___x_cmd_wx(){
+___x_cmd_tmp(){
     case "$1" in
-        pkg)            shift; ___x_cmd_wx_pkg "$@"     ;;
-        unpkg)          shift; ___x_cmd_wx_unpkg "$@"   ;;
-        run)            shift; ___x_cmd_wx_run "$@"     ;;
-        ls)             shift; ___x_cmd_wx_run "$@"     ;;
-        _x_cmd_advise_json) printf "{}"                 ;;
-        *)              ___x_cmd_wx_run "$@"            ;;
+        path_)          shift 1; ___x_cmd_tmp_path_ "$@" ;;
+
+        path)           shift 1; ___x_cmd_tmp_path "$@" ;;
+        root)           shift 1; ___x_cmd_tmp_root "$@" ;;
+
+        # create file
+        touch)          shift 1; ___x_cmd_tmp_touch "$@" ;;
+
+        # create dir
+        dir)            shift 1; ___x_cmd_tmp_dir "$@" ;;
+
+        *)              ___x_cmd_tmp_path "$@" ;;
     esac
 }
 
-xrc setmain ___x_cmd_wx
+___x_cmd_tmp_path(){
+    ___x_cmd_tmp_path_ "$@" || return
+    printf "%s\n" "$___X_CMD_TMP_PATH_"
+}
 
+___x_cmd_tmp_path_(){
+    ___X_CMD_TMP_PATH_="${___X_CMD_TMP_ROOT:-${TMPDIR%/*}}"
+    if [ "$#" -ne 0 ]; then
+        local IFS=" "; local i; for i in "$@"; do
+            i="${i#*/}"
+            ___X_CMD_TMP_PATH_="${___X_CMD_TMP_PATH_}/${i%/*}"
+        done
+    fi
+}
+
+___x_cmd_tmp_root(){
+    if [ -n "$1" ]; then
+        ___X_CMD_TMP_ROOT="$1"
+    else
+        printf "%s\n" "$___X_CMD_TMP_ROOT"
+    fi
+}
+
+___x_cmd_tmp_dir(){
+    ___x_cmd_tmp_path_ "$@" 
+    x mkdirp "$___X_CMD_TMP_PATH_"
+}
+
+___x_cmd_tmp_touch(){
+    ___x_cmd_tmp_path_ "$@" 
+    x touch "$___X_CMD_TMP_PATH_"
+}

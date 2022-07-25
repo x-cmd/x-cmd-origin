@@ -4,6 +4,9 @@
 # license:      GPLv3
 
 # LIB
+
+xrc:mod:lib awk     stresstest
+
 ___x_cmd_awk_lib(){
     local IFS="
 "
@@ -39,6 +42,7 @@ ___x_cmd_awk(){
 
     local op="$1";
     case "$op" in
+        stresstest)     shift; ___x_cmd_awk_stresstest "$@" ;;
         impl)
             ___x_cmd_awk_impl ;;
         file)   # This is core ...
@@ -87,7 +91,7 @@ END{
     $code
 }"
             ;;
-        _x_cmd_advise_json) printf "{}" ; return 126 ;;
+        _x_cmd_advise_json) printf "{}" ;;
         *)
             command awk "$@"
             ;;

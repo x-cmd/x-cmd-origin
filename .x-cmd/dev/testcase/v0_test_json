@@ -10,18 +10,18 @@ json_stringify(){
 
 END{
     json_parse(data, arr)
-    json_list_push(arr, S q(1) S q("b"), 555)
-    json_dict_push(arr, S q(1) S q(1), q("d"),99)
+    json_list_push(arr, S jqu(1) S jqu("b"), 555)
+    json_dict_push(arr, S jqu(1) S jqu(1), jqu("d"),99)
 
-    # json_list_has(arr, S q(1) S q("b"), 13) ? debug("json_list_has true") : debug("json_list_has false")
-    # print "json_list_rm: " json_list_rm(arr, S q(1) S q("b"), 6)
-    # print "json_list_len: " json_list_len(arr, S q(1) S q("b"))
+    # json_list_has(arr, S jqu(1) S jqu("b"), 13) ? debug("json_list_has true") : debug("json_list_has false")
+    # print "json_list_rm: " json_list_rm(arr, S jqu(1) S jqu("b"), 6)
+    # print "json_list_len: " json_list_len(arr, S jqu(1) S jqu("b"))
     print json_stringify_format(arr, ".", 4)
 
-    # json_dict_has(arr, S q(1), q("d")) ? debug("json_dict_has true") : debug("json_dict_has false")
-    # print "json_dict_get: " json_dict_get(arr, S q(1), q("d"))
-    # print "json_dict_len: " json_dict_len(arr, S q(1))
-    # print "json_dict_rm: " json_dict_rm(arr, S q(1), q("a"))
+    # json_dict_has(arr, S jqu(1), jqu("d")) ? debug("json_dict_has true") : debug("json_dict_has false")
+    # print "json_dict_get: " json_dict_get(arr, S jqu(1), jqu("d"))
+    # print "json_dict_len: " json_dict_len(arr, S jqu(1))
+    # print "json_dict_rm: " json_dict_rm(arr, S jqu(1), jqu("a"))
     print json_stringify_compact(arr, ".1.b")
     print json_stringify_machine(arr, ".1.b")
 

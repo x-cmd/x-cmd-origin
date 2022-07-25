@@ -32,7 +32,7 @@ BEGIN{
 function init_jiparse(){
     JITER_FA_KEYPATH = ""
     JITER_STATE = T_ROOT
-    JITER_LAST_KP = ""
+     = ""
     JITER_LEVEL = 1
     JITER_STACK[ 1 ] = ""
     JITER_CURLEN = 0

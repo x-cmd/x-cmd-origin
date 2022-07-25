@@ -19,7 +19,7 @@ function jiprint_table_title(arr,
 
 function _jiprint_table_item( sep, arrl, arr, _i ){
     for (_i=1; _i<=arrl; _i++){
-        printf(sep "%s", arr[ _i ] ) )
+        printf(sep "%s", arr[ _i ] ) 
     }
 }
 

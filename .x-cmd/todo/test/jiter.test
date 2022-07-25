@@ -1,18 +1,18 @@
 
-SSS="$(cat default.awk json.awk jiter.awk )"
+SSS="$(cat /home/mnnna/work/x-bash/awk/lib/default.awk /home/mnnna/work/x-bash/awk/lib/json.awk /home/mnnna/work/x-bash/awk/lib/jiter.awk )"
 
 f1(){
     awk "$SSS"'
 {
-    pat[1] = q("1")
-    pat[2] = q("1")
-    pat[3] = q("d")
+    pat[1] = jqu("1")
+    pat[2] = jqu("1")
+    pat[3] = jqu("d")
     patl = 3
 
 
-    par[1] = q("1")
+    par[1] = jqu("1")
     par[2] = ""
-    par[3] = q("d")
+    par[3] = jqu("d")
     parl = 3
 
     if ($0 != "") {

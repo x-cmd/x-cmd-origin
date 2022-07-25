@@ -266,7 +266,7 @@ function jiter_print0_eq_arr( item, jpathl_arrl, jpath_arr ){
 function ___jiter_print_target_levelcal( item ){
     if (item ~ /^[\[\{]$/) {
         JTAR_LEVEL += 1
-    } else if (item ~ /^[\]\}]$/) {
+    } else if (item ~ /^[]}]$/) {
         JTAR_LEVEL -= 1
     }
     return JTAR_LEVEL
@@ -289,7 +289,7 @@ function jiparse_( item ){
 # Section: jiparse
 function jileaf( obj, item, sep1, sep2, _kp ){
     _kp = jiter( item, obj )
-    if ( item !~ /^[\[\{}]]$/ ) {
+    if (( item !~ /^[\[\{]$/ ) && ( item !~ /^[}]]$/ )) {
         if (JITER_LAST_KP == "") {
             printf("%s%s%s%s", _kp, sep1, item, sep2)
         }
@@ -299,7 +299,7 @@ function jileaf( obj, item, sep1, sep2, _kp ){
 # TODO
 function jiflat( obj, item, sep1, sep2, _kp ){
     _kp = jiter( item, obj )
-    if ( item !~ /^[\[\{}]]$/ ) {
+    if (( item !~ /^[\[\{]$/ ) && ( item !~ /^[}]]$/ )) {
         if (JITER_LAST_KP == "") {
             printf("%s%s%s%s", _kp, sep1, item, sep2)
         }

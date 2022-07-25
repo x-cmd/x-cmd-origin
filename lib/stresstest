@@ -1,0 +1,21 @@
+# shellcheck shell=dash
+
+___x_cmd_awk_stresstest(){
+    local start; start="$(date +%s)"
+    time awk -v LOOP="${1:-10000000}" '
+    BEGIN{
+        for (j=1; j<=100; j++) a = a " " j
+        for (i=1; i<=100; i++) str=str " " a
+        print "start"
+    }
+    END{
+        for (i=1; i<=LOOP; ++i) {
+            length(str)
+        }
+    }' <<A
+
+A
+
+    local end; end="$(date +%s)"
+    printf "Time Elapsed(seconds): %s\n" "$((end - start))"
+}

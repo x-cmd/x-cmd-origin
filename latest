@@ -1,171 +1,63 @@
-# shellcheck shell=sh disable=SC3043,SC2034,SC2155,SC2120,SC2119,SC2016
+# Author:       Li Junhao       l@x-cmd.com             # xrc
+# shellcheck    shell=sh        disable=SC2039,SC3043
 
-# author:       Li Junhao           l@x-cmd.com    edwinjhlee.github.io
-# maintainer:   Li Junhao
+# jo q a=.bcd b=.cde c=.abc
 
-x log init ps1env
+# TODO: Add merge
+# TODO: Fix color and fmt definition
 
-___X_CMD_PS1ENV_OVERRIDE_ALIAS=""
+xrc:mod ja/lib/share/index
 
-___x_cmd_ps1env(){
-    local subcmd
-    subcmd="${1:?Please Provide Subcommand}";    shift
+___x_cmd_jo(){
+    case "${1}" in
+        data)                                       shift; ___x_cmd_ja_data             "$@" ;;
 
-    case "$subcmd" in
-        init)                   ___x_cmd_ps1env_init "$@" ;;
-        alias)                  ___x_cmd_ps1env_alias "$@" ;;
-        reset)                  ___x_cmd_ps1env_reset "$@" ;;
-        _x_cmd_advise_json)     
-            cat <<A
-{
-    "init": null,
-    "alias": null
-}
-A
-        return 126 ;;
+        n|normalize)                                shift; ___x_cmd_ja_normalize        "$@" ;;
+        t|tokenize)                                 shift; ___x_cmd_ja_tokenize         "$@" ;;
+        f|fmt)                                      shift; ___x_cmd_ja_fmt              "$@" ;;
+        color)                                      shift; ___x_cmd_ja_color            "$@" ;;
+        2y|toyml)                                   shift; ___x_cmd_ja_toyml            "$@" ;;
+
+        "")                                         ___x_cmd_ja___normalize_stream           ;;
+        \{*|\[*)                                    ___x_cmd_ja___normalize_argstring   "$@" ;;
+
+        v|valid)    ;;
+        u|uniq)     ;;
+        l|list)       shift;                        ___x_cmd_ja___warp_color_iftty ___x_cmd_jo_list   "$@" ;;
+        d|dict)       shift;                        ___x_cmd_ja___warp_color_iftty ___x_cmd_jo_dict   "$@" ;;
+
+        # q)          shift;                        ___x_cmd_ja___warp_color_iftty
+
+        qu)                                         ___x_cmd_jo_quote "$@" ;;
+        uq)                                         ___x_cmd_jo_unquote "$@" ;;
+
+        q0|q1|q)                                    local ___X_CMD_JO_QUERY_JSTR="$1"; shift 1; \
+                                                    ___x_cmd_jo_query "$@" ;;
+        env)                                        shift 1; ___x_cmd_jo_env "$@" ;;
+        _x_cmd_advise_json)                         cat "$___X_CMD_ROOT_MOD/jo/lib/jo.advise.json";;
+        *)                                          local ___X_CMD_JO_QUERY_JSTR="q1"; ___x_cmd_jo_query "$@" ;;
+
+        #   We will add some query functions and modified function here ...
+        # *)
+        #             if [ "$#" -eq 0 ]; then         ___x_cmd_ja___warp_color_iftty ___x_cmd_ja_normalize
+        #             else                    local IFS=" "; printf "%s" "$*" | \
+        #                                             ___x_cmd_ja___warp_color_iftty ___x_cmd_ja_normalize
+        #             fi
     esac
 }
 
-# Section: advise
+# Section: subcmd
 
-___x_cmd_ps1env_init() {
-    ___x_cmd_ps1env_reset
-
-    ___X_CMD_PS1ENV_PS1="$PS1"
-    ___x_cmd_theme_control_subenv_prompt "${1:?Please provide symbol}"
-
-    ___x_cmd_ps1env_alias %q "___x_cmd_ps1env_reset"
-}
-
-______x_cmd_ps1env_inner_alias() {
-    if [ -n "$ZSH_VERSION" ]; then
-        alias -- "$1"
-    else
-        alias "$1"
-    fi
-}
-
-___x_cmd_ps1env_alias(){
-    local s
-    if s=$(______x_cmd_ps1env_inner_alias "$1" 2>/dev/null); then
-        [ -n "$ZSH_VERSION" ] && s="alias -- ${s}"
-        eval "___X_CMD_PS1ENV_OVERRIDE_ALIAS=\"
-\$s
-\$___X_CMD_PS1ENV_OVERRIDE_ALIAS
-\"
-"
-    fi
-
-    ______x_cmd_ps1env_inner_alias "$1"="$2"
-
-    ___X_CMD_PS1ENV_BIND="$___X_CMD_PS1ENV_BIND
-$1
-"
-}
-
-___x_cmd_ps1env_reset(){
-    if [ -z "$___X_CMD_PS1ENV_PS1" ]; then
-        ps1env_log debug "Reset abort."
-        return 1
-    fi
-
-    ___x_cmd_theme_control_subenv_prompt_clear
-
-    local IFS="
-"
-    ___X_CMD_PS1ENV_PS1=
-
-    while read -r line; do
-        [ -z "$line" ] && continue
-        unalias "${line}"
-    done <<A
-$___X_CMD_PS1ENV_BIND
-A
-
-    ___X_CMD_PS1ENV_BIND=
-
-    eval "$___X_CMD_PS1ENV_OVERRIDE_ALIAS"
-    ___X_CMD_PS1ENV_OVERRIDE_ALIAS=
-}
-
-# EndSection
-
-# Section: test subenv prompt
-
-# using dict
-___x_cmd_theme_control_env(){
-    case "$#" in
-        #TODO: use ldict to dump.
-        0)      ___x_cmd_ldict_dump     ___X_CMD_PWD            ;;
-        1)      ___x_cmd_ldict_get      ___X_CMD_PWD "$1"       ;;
-        2)      ___x_cmd_ldict_unshift  ___X_CMD_PWD "$1" "$2"  ;;
-        *)      printf "%s\n" "___x_cmd_theme_control_env [key] [val]" >&2
-    esac
-}
-
-___x_cmd_theme_control_is_using_x_theme(){
-    [ -n "$(command -v ___x_cmd_theme_prompt_format)" ]
-}
-
-___x_cmd_theme_control_subenv_prompt_clear(){
-    ___X_CMD_THEME_CONTROL_SUBENV_PROMT=
-}
-
-___x_cmd_theme_control_subenv_prompt(){
-    local subenv_symbol="${1}"
-
-    if [ -z "$1" ]; then
-        printf "%s\n" "$___X_CMD_THEME_CONTROL_SUBENV_PROMT"
-        return
-    fi
-
-    # ___x_cmd_theme_control_subenv
-    ___X_CMD_THEME_CONTROL_SUBENV_PROMT="${subenv_symbol}"
-}
-
-###
- # @param: key color
- # @param: value color
- # @param: key value interval
- # @param: env sub interval
- # @explam: ___x_cmd_theme_control_env_prompt 'cyan' 'underline yellow' ':' ' '
-###
-___x_cmd_theme_control_env_prompt(){
-    { [ -z "$___X_CMD_THEME_CONTROL_SUBENV_PROMT" ] ; } && \
-        return
-    eval "$(___x_cmd_theme_control_env | awk -v RS="$___X_CMD_LDICT_SEP" -v FS="${___X_CMD_LDICT_KVSEP}" "
-NR!=1 && NR<=4 {
-    print \"eval '___x_cmd_theme_style ${1-dfg-yellow} \" \$1 \"${3-: }' &&\"
-    print \"eval '___x_cmd_theme_style ${2-hfg-black}  \" \$2 \"' &&\"
-    print \"printf ${4-' '} && \"
-}")"
-}
-
-________x_cmd_theme_env_load_format() {
-    [ -n "$___X_CMD_THEME_CONTROL_SUBENV_PROMT" ] && printf "%s " \
-        "$(___x_cmd_theme_style dfg-cyan "[$(___x_cmd_theme_control_subenv_prompt)]")$(___x_cmd_theme_control_env_prompt)"
-}
-
-________x_cmd_theme_env_load_format_wrapper() {
-    ___X_CMD_COLOR_PRE="$1"
-    ___X_CMD_COLOR_SUF="$2"
-
-    ________x_cmd_theme_env_load_format
-}
-
-# PS1 inject
-if ! ___x_cmd_theme_control_is_using_x_theme; then
-    xrc theme/lib/style
-    if [ -n "$ZSH_VERSION" ]; then
-        setopt PROMPT_SUBST
-        # PROMPT interprete %n... after evaluation.
-        PROMPT='$(________x_cmd_theme_env_load_format)'"${PROMPT}"
-    else
-        # PS1 interprete \u before evaluation.
-        PS1="\$(________x_cmd_theme_env_load_format_wrapper \"\[\" \"\]\")$PS1"
-    fi
+# time ___x_cmd_jo_list 1 2 \"true\" $( ___x_cmd_jo_list 1 2 3)
+if [ -n "${BASH_VERSION}${ZSH_VERSION}${KSH_VERSION}" ]; then
+    . "$___X_CMD_ROOT_MOD/jo/lib/list_dict"             # xrc jo/lib/list_dict
+else
+    . "$___X_CMD_ROOT_MOD/jo/lib/list_dict_posix"       # xrc jo/lib/list_dict_posix
 fi
 
+xrc:mod jo/lib/query jo/lib/env advise/latest
 # EndSection
 
-xrc setmain ___x_cmd_ps1env
+
+
+xrc setmain ___x_cmd_jo

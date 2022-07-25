@@ -25,39 +25,32 @@ ___x_cmd_gt_enterprise_member(){
 # shellcheck disable=SC2154
 # https://gitee.com/api/v5/swagger#/getV5EnterprisesEnterpriseMembers
 ___x_cmd_gt_enterprise_member_ls(){
-    param:scope     "gitee/$O"
+    param:scope     ___x_cmd_gt
     param:dsl       '
 options:
     --enterprise    "enterprise space address"          <>:Address
     --role          "role type"                         <>:UserRole="all"
-    --page          "page"                              <>:number=1
-    --per_page      "per_page"                          <>:number=20
+    --page          "page"                              <>=""
+    --per_page      "per_page"                          <>=""
 '
     param:run
 
-    if [ -t 1 ]; then
-        if ___ui_table_json NameSpace=.user.login Name=.user.name MarkName=.remark IsOutSourced=.outsourced Role=.role \
-            -- "___x_cmd_gt_get_multi" "/v5/enterprises/${enterprise##*/}/members" role page per_page; then
-            return 0
-        fi
-    else
-        ___x_cmd_gt_get_multi "/v5/enterprises/${enterprise##*/}/members" role page per_page && \
-            return 0
-    fi
-    gt_log error "Couldn't find any data by $enterprise"
-    return 1
+    local ___gt_error_msg="Couldn't find any data by: ${enterprise}"
+    ___gt_ui_mutual ___x_cmd_gt_get_multi "/v5/enterprises/${enterprise##*/}/members" role page per_page <<A
+        ___ui_table_json NameSpace=.user.login Name=.user.name MarkName=.remark IsOutSourced=.outsourced Role=.role -- \$@
+A
 }
 
 # shellcheck disable=SC2154
 # https://gitee.com/api/v5/swagger#/getV5EnterprisesEnterpriseMembersUsername
 ___x_cmd_gt_enterprise_member_user(){
-    param:scope     "gitee/$O"
+    param:scope     ___x_cmd_gt
     param:dsl       '
 options:
     #1|--enterprise     "enterprise: space address"     <>:Address
     #2|--username       "username: space address"       <>
-    --page              "page"                          <>:number=1
-    --per_page          "per_page"                      <>:number=20
+    --page              "page"                          <>=""
+    --per_page          "per_page"                      <>=""
 '
     param:run
 
@@ -77,7 +70,7 @@ options:
 # shellcheck disable=SC2181,SC2086,SC2154
 # https://gitee.com/api/v5/swagger#/postV5EnterprisesEnterpriseMembers
 ___x_cmd_gt_enterprise_member_add(){
-    param:scope     "gitee/$O"
+    param:scope     ___x_cmd_gt
     param:dsl       '
 type:
     Role =  member  outsourced admin
@@ -91,13 +84,15 @@ options:
     param:run
 
     [ $# -eq 0 ] && gt_log error "At least one user's spatial address or email is needed" && return 1
-    local username="%%username%%"
+    # local username="%%username%%"
+    local username="${___X_CMD_TX}"
     local gen_gt_json
     gen_gt_json="$(param:option2json +username)"
 
     # TODO: http handle，delete repo return data is null.Status: 204 No Content
     for username in "$@"; do
-        if printf "%s" "${gen_gt_json}" | sed s/%%username%%/"${username##%/}"/g | \
+        # if printf "%s" "${gen_gt_json}" | sed s/%%username%%/"${username##%/}"/g | \
+        if x tmpl "$gen_gt_json" "${username##%/}" | \
             ___x_cmd_gt_http post "/v5/enterprises/${enterprise}/members" - >/dev/null; then
             gt_log info  "Add $username successfully"
         else
@@ -110,7 +105,7 @@ options:
 # shellcheck disable=SC2181
 # https://gitee.com/api/v5/swagger#/deleteV5EnterprisesEnterpriseMembersUsername
 ___x_cmd_gt_enterprise_member_rm(){
-    param:scope     "gitee/$O"
+    param:scope     ___x_cmd_gt
     param:dsl       '
 options:
     --enterprise    "enterprise space address"      <>:address
@@ -134,11 +129,11 @@ options:
 # shellcheck disable=SC2181
 # https://gitee.com/api/v5/swagger#/putV5EnterprisesEnterpriseMembersUsername
 ___x_cmd_gt_enterprise_member_access(){
-    param:scope     "gitee/$O"
+    param:scope     ___x_cmd_gt
     param:dsl       '
 options:
     --enterprise        "enterprise path"                    <>:address
-    --username          "username space address"             <>:name
+    --username          "username space address"             <>:UserName
     --role              "role"                               <>="member"     = member outsourced admin
     --name              "real name"                          <>=""
     --active            "Access to corporate resources"

@@ -11,18 +11,15 @@ ___x_cmd_gt_repo_page(){
         build       "Build page"
     param:subcmd:try
     param:run
-    if [ -z "$PARAM_SUBCMD" ]; then
-        gt_log warn "Subcmd Not Found."
-        ___x_cmd_gt_repo_page _param_help_doc
-        return 1
-    fi
 
-    "___x_cmd_gt_repo_page_${PARAM_SUBCMD}" "$@"
+    ___x_cmd_gt_repo_page _param_help_doc
+    gt_log warn "Subcmd Not Found."
+    return 1
 }
 
 # https://gitee.com/api/v5/swagger#/getV5ReposOwnerRepoPages
 ___x_cmd_gt_repo_page_info(){
-    param:scope     "gitee/$O"
+    param:scope     ___x_cmd_gt
     param:dsl       '
 options:
     --repo              "Provide owner name and repo name.(default:the current user repo)"   <>:RepoName
@@ -38,7 +35,7 @@ options:
 # Even we could use it
 # {"message":"非付费pages，不允许部署 pages"}
 ___x_cmd_gt_repo_page_build(){
-    param:scope     "gitee/$O"
+    param:scope     ___x_cmd_gt
     param:dsl       '
 options:
     --repo              "Provide owner name and repo name.(default:the current user repo)"   <>:RepoName

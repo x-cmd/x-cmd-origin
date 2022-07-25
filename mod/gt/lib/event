@@ -1,0 +1,53 @@
+# shellcheck shell=sh disable=SC3043
+
+___x_cmd_gt_event(){
+    param:scope       ___x_cmd_gt
+    param:subcmd      ___x_cmd_gt_event            \
+        repo          "list repo event"            \
+        user          "list user event"            \
+        org           "list organization event"
+    param:subcmd:try
+    param:run
+
+    ___x_cmd_gt_event _param_help_doc
+    gt_log warn "Subcmd Not Found."
+    return 1
+}
+
+# Section: repo event TODO: add public
+# https://gitee.com/api/v5/swagger#/getV5ReposOwnerRepoEvents
+# https://gitee.com/api/v5/swagger#/getV5NetworksOwnerRepoEvents
+# shellcheck disable=SC2154,SC2034
+___x_cmd_gt_event_repo() {
+    param:scope     ___x_cmd_gt
+    param:dsl       '
+options:
+    #1|--repo    "Provide owner name and repo name.(default:the current user repo)"      <>:RepoName
+    --id         "The laster record id"                                                  <>=""
+    --limit      "Scrolling lists per page(max 100)"                                     <>:NatureNumber=20
+'
+    param:run
+    local prev_id="$id"
+
+    ___x_cmd_gt_param_init_owner_repo
+    ___gt_ui_mutual ___x_cmd_gt_http get "/v5/repos/${owner_repo}/events" prev_id limit <<A
+        ___ui_table_json Id=.id Type=.type Public=.public Time=.created_at -- \$@
+A
+}
+# EndSection
+
+# Section: user event TODO: add user
+# https://gitee.com/api/v5/swagger#/getV5UsersUsernameEvents
+# https://gitee.com/api/v5/swagger#/getV5UsersUsernameReceivedEventsPublic
+# https://gitee.com/api/v5/swagger#/getV5UsersUsernameEventsOrgsOrg
+___x_cmd_gt_event_user() {
+    :
+}
+# EndSection
+
+# Section: org event TODO: add org
+# https://gitee.com/api/v5/swagger#/getV5OrgsOrgEvents
+___x_cmd_gt_event_org() {
+    :
+}
+# EndSection

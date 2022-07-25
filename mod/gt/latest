@@ -5,11 +5,11 @@
 # maintainer:   Li Junhao
 
 # loading dependencies
-xrc http param str ui
+xrc http param ui
 xrc ui/lib/table gh/lib/resource
 
-xrc:inner:lib gt utils config token user current issue enterprise/main enterprise/member enterprise/team org/main org/member \
-    repo/utils repo/main repo/pr/main repo/release/main repo/member repo/tag repo/page repo/branch _type/main
+xrc:inner:lib gt utils config token user current issue event enterprise/main enterprise/member enterprise/team org/main org/member \
+    repo/utils repo/main repo/pr/main repo/pr/assign repo/pr/tester repo/release/main repo/release/attachment repo/member repo/tag repo/page repo/branch _type/main
 
 
 x log init gt
@@ -21,20 +21,21 @@ ___x_cmd_gt(){
         enterprise                       "manage enterprise"        \
         org                              "manage org"               \
         user                             "user"                     \
+        event                            "list event information"   \
         config                           "save, load, which"        \
         token                            "set token"
     param:subcmd:try
 
-    param:subcmd ___x_cmd_gt_repo                                        \
+    param:subcmd ___x_cmd_gt_repo                                   \
         pr                               "pull request"             \
         release                          "release management"       \
-        member                           "repo member"              \
-        tag                              "repo tag"
+        tag                              "repo tag"                 \
+        member                           "repo member"
     param:subcmd:try
     param:run
 
-    gt_log warn "Subcmd Not Found."
     ___x_cmd_gt _param_help_doc
+    gt_log warn "Subcmd Not Found."
     return 1
 }
 
@@ -45,27 +46,26 @@ ___x_cmd_gt(){
 ___x_cmd_gt_make(){
     param:void
 
-    local O_ORIGINAL="${1:?Provide client name by O environment}"
-    local O="___x_cmd_gt_$O_ORIGINAL"
+    local O="___x_cmd_gt_${1:?Provide client name by O environment}"
 
-    http make         'https://gitee.com/api'
-    http header type  "application/json;charset=utf-8"
+    ___x_cmd_http make  'https://gitee.com/api'
+    ___x_cmd_http header put type  "application/json;charset=utf-8"
 
     local token
-    token="$(O="$O_ORIGINAL" ___x_cmd_gt_config_get "oauth_token")"
+    token="$(___x_cmd_gt_config_get "oauth_token")"
 
     if [ -n "$token" ]; then
-        O="___x_cmd_gt_$O_ORIGINAL" http header put Authorization "token $token"
-        O="$O_ORIGINAL" ___x_cmd_gt_current_owner 1>/dev/null || return 1
+        ___x_cmd_http header put Authorization "token $token"
+        ___x_cmd_gt_current_owner 1>/dev/null || return 1
         gt_log info "Hi $___X_CMD_GITEE_DEFAULT_OWNER! You've successfully authenticated."
         return 0
     fi
 
     local info
     info=$(printf "\n%s %s \n%s" \
-         "$(ui yellow 'You need run command to add token:')" \
-         "$(ui bold cyan "\`gt token <token>\`")" \
-         "$(ui 'https://gitee.com/profile/personal_access_tokens')")
+         "$(___x_cmd_ui yellow 'You need run command to add token:')" \
+         "$(___x_cmd_ui bold cyan "\`gt token <token>\`")" \
+         "$(___x_cmd_ui 'https://gitee.com/profile/personal_access_tokens')")
     gt_log warn "Token is null.${info}"
 }
 

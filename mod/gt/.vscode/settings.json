@@ -48,6 +48,9 @@
             "italic": false
         },
     ],
+    "github-actions.workflows.pinned.workflows": [".github/workflows/test.yml"],
+    "github-actions.workflows.pinned.refresh.enabled": true,
+    "github-actions.workflows.pinned.refresh.interval": 40,
     // "editor.tokenColorCustomizations": {
     //     "comments": "#00ff95af"
     // }

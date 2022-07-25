@@ -12,85 +12,69 @@ ___x_cmd_gt_current(){
     param:subcmd:try
     param:run
 
-    gt_log warn "Subcmd Not Found."
     ___x_cmd_gt_current _param_help_doc
+    gt_log warn "Subcmd Not Found."
     return 1
-}
-
-# shellcheck disable=SC2120
-___x_cmd_gt_current_repo(){
-    param:void
-    local O="${O:-GITEE_DEFAULT}"
-
-    if [ -n "$1" ]; then
-        param_default set "gitee_$O" "repo" "$@"
-        return
-    fi
-
-    param_default get "gitee_$O" "repo"
 }
 
 # shellcheck disable=SC2120
 # https://gitee.com/api/v5/swagger#/getV5User
 ___x_cmd_gt_current_owner(){
     param:void
-    local O="${O:-GITEE_DEFAULT}"
+
+    local O="${O:-___x_cmd_gt_GITEE_DEFAULT}"
     if [ -n "$1" ]; then
         ___X_CMD_GITEE_DEFAULT_OWNER="$1"
-        ___x_cmd_gt_config_set  "user" "$___X_CMD_GITEE_DEFAULT_OWNER"
-        ___x_cmd_ui_tf "true" "Manually change the owner to $___X_CMD_GITEE_DEFAULT_OWNER"
-        return 0
-    fi
-
-    [ -n "$___X_CMD_GITEE_DEFAULT_OWNER" ] && printf "%s" "$___X_CMD_GITEE_DEFAULT_OWNER" && return 0
-
-    local owner
-    owner="$(___x_cmd_gt_default get "gitee_$O" owner)"
-    [ -n "$owner" ] && printf "%s" "$owner" && return
-
-    ___X_CMD_GITEE_DEFAULT_OWNER="$(___x_cmd_gt_http get "/v5/user" | ___x_cmd_git_json_query ".login")"
-    if [ -n "$___X_CMD_GITEE_DEFAULT_OWNER" ];then
+        if ___x_cmd_gt_config_set  "user" "$___X_CMD_GITEE_DEFAULT_OWNER" 1>/dev/null 2>&1; then
+            ___x_cmd_ui_tf true "Manually change the owner to $___X_CMD_GITEE_DEFAULT_OWNER"
+        fi
+        return
+    elif [ -z "$___X_CMD_GITEE_DEFAULT_OWNER" ]; then
+        ___x_cmd_gt_http get "/v5/user" | x jo env . ___X_CMD_GITEE_DEFAULT_OWNER=.login
+        if [ -z "$___X_CMD_GITEE_DEFAULT_OWNER" ]; then
+            gt_log error "get current owner fail"
+            return 1
+        fi
         ___x_cmd_gt_config_set  "user" "$___X_CMD_GITEE_DEFAULT_OWNER" 1>/dev/null 2>&1
-        printf "%s" "$___X_CMD_GITEE_DEFAULT_OWNER"
-    else
-        gt_log error "get current owner fail"
-        return 1
     fi
+    printf "%s" "$___X_CMD_GITEE_DEFAULT_OWNER"
 }
 
 # shellcheck disable=SC2120
 ___x_cmd_gt_current_owner_type(){
     param:void
-    local O="${O:-GITEE_DEFAULT}"
+    local O="${O:-___x_cmd_gt_GITEE_DEFAULT}"
+    if ! ___x_cmd_gt_current_owner 1>/dev/null 2>&1;then
+        gt_log error "get current owner name fail"
+        return 1
+    fi
     if [ -n "$1" ]; then
-        # Set owner type
-        ___x_cmd_gt_default put "gitee_$O" owner_type "$1"
+        if ___x_cmd_gt_config_set "$___X_CMD_GITEE_DEFAULT_OWNER"_owner_type "$1";then
+            ___x_cmd_ui_tf true "Manually change the owner type to $1"
+        fi
         return
     fi
 
     local data
-    data="$(___x_cmd_gt_default get "gitee_$O" owner_type "$1")"
+    data="$(___x_cmd_gt_default get "$___X_CMD_GITEE_DEFAULT_OWNER"_owner_type)"
     if [ -z "$data" ]; then
-        owner="$(___x_cmd_gt_current_owner)"
-        if [ -z "$owner" ]; then
-            gt_log error "Owner is empty. While owner not set."
+        if ! data="$(___x_cmd_gt_owner_type_query "$___X_CMD_GITEE_DEFAULT_OWNER")";then
             return 1
         fi
-
-        data=$(______x_cmd_gt_owner_type_query "$owner")
-        [ -z "$data" ] && return 1
-
-        ___x_cmd_gt_default put "gitee_$O" owner_type "$data"
+        ___x_cmd_gt_config_set "$___X_CMD_GITEE_DEFAULT_OWNER"_owner_type "$data" 1>/dev/null 2>&1
     fi
     printf "%s" "$data"
 }
 
-______x_cmd_gt_owner_type_query(){
+___x_cmd_gt_owner_type_query(){
     param:void
     local owner="${1:?Provide owner name}"
     for types in "org" "enterprise" "user"
     do
-        ___x_cmd_gt_${types}_info "$owner" 1>/dev/null 2>&1 && [ $? -eq 0 ] && printf "%s" "$types" && return 0
+        if ___x_cmd_gt_${types}_info "$owner" 1>/dev/null 2>&1; then
+            printf "%s" "$types"
+            return
+        fi
     done
     return 1
 }

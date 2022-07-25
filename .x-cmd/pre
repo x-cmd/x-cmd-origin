@@ -1,0 +1,8 @@
+# shellcheck shell=sh disable=SC1072 #source
+
+(cd "$(x wsroot)" && xws install)
+___X_CMD_XRC_MODULE_IMPORTED=
+x advise rm ___x_cmd_wx
+x log +x
+xrc wx
+x log +wx

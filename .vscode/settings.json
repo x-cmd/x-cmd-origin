@@ -7,6 +7,7 @@
         "**/*.yml": "yaml",
         "**/LICENSE": "TXT",
         "**/*": "shellscript",
+        "**/*.txt": "text"
     },
     "files.trimTrailingWhitespace": true,
     "editor.detectIndentation": true,

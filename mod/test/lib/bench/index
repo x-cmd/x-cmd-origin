@@ -21,11 +21,11 @@ ___x_cmd_test_bench(){
 
 # . ./bench.bash
 if [ -z "$USING_POSIX" ]; then
-    # xrc:mod test/lib/bench.bash
-    . ./lib/bench.bash
+    xrc:mod test/lib/bench/bash
+    # . ./lib/bench/bench.bash
 else
-    # xrc:mod test/lib/bench.other
-    . ./lib/bench.other
+    xrc:mod test/lib/bench/other
+    # . ./lib/bench.other
 fi
 
 

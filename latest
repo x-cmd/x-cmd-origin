@@ -1,77 +1,37 @@
-# shellcheck shell=sh                   # xrc
-# shellcheck disable=SC2039,3043
+# Author:       Li Junhao   l@x-cmd.com     # xrc
+# shellcheck    shell=sh    disable=SC3043
 
-# author:       Li Junhao           l@x-cmd.com
+___x_cmd_qr(){
+    local op="${1}";
 
-xrc http param str ui
-xrc ui/lib/table
-
-xrc:inner:lib gh utils resource config token repo/main repo/branch/main current user/main org/main \
-    repo/member/main repo/pr/main _type/main org/member org/repo repo/release/main
-
-x log init gh
-
-___x_cmd_gh(){
-    param:subcmd ___x_cmd_gh                    \
-        repo          "repo command"            \
-        current       "set current owner, repo" \
-        org           "manage org"              \
-        user          "user"                    \
-        config        "save, load, which"       \
-        token         "set token"               \
-        auth          "Authorize gh"
-    param:subcmd:try
-
-    param:subcmd ___x_cmd_gh_repo               \
-        release       "manage release"          \
-        member        "Authorize gh"
-    param:subcmd:try
-    param:run
-
-    gh_log warn "Subcmd Not Found."
-    ___x_cmd_gh _param_help_doc
-    return 1
-    # case "${PARAM_SUBCMD}" in
-    #     pr|release|member|tag)                                  "___x_cmd_gh_repo_${PARAM_SUBCMD}"   "$@"        ;;
-    #     *)                                                      "___x_cmd_gh_${PARAM_SUBCMD}"  "$@"              ;;
-    # esac
+    case "$op" in
+        enc)    shift 1; ___x_cmd_qr_enc               "$@"  ;;
+        dec)    shift 1; ___x_cmd_qr_dec               "$@"  ;;
+        *://*)           ___x_cmd_qr_enc_default       "$op" ;;
+        *)               ___x_cmd___qr_origin          "$@"  ;;
+    esac
 }
 
+___x_cmd___qr_origin(){
+    x pkg xbin init qrencode ""  "___x_cmd___qr_origin" || return
+    ___x_cmd___qr_origin "$@"
+}
 
-############################
-# Section 10: Instantiation
-############################
+___x_cmd_qr_enc(){
+   ___x_cmd___qr_origin "$@"
+}
 
-____x_cmd_gh_make() {
-    param:void
-    local O_ORIGINAL=${1:?Provide client name by O environment}
-    local O="___x_cmd_gh_$O_ORIGINAL"
+___x_cmd_qr_enc_default(){
+    : Provide param
+    ___x_cmd___qr_origin -t utf8i "${1:?Provide URL}"
+}
 
-    http make  'https://api.github.com'
-    http header Accept "application/vnd.github.v3+json"
-
-    local token
-    token="$(O="$O_ORIGINAL" ___x_cmd_gh_config_get "oauth_token")"
-
-    if [ -n "$token" ]; then
-        O="___x_cmd_gh_$O_ORIGINAL" http header put Authorization "token $token"
-        local user
-        user="$(O="$O_ORIGINAL" ___x_cmd_gh_current_owner)" || return 1
-        gh_log info "Hi $user! You've successfully authenticated."
-        return 0
+___x_cmd_qr_dec(){
+    if [ -t 0 ]; then
+        : qr decode from input stream
+    else
+        : qr decode file, output url
     fi
-
-    local info
-    info=$(printf "\n%s %s \n%s" \
-         "$(ui yellow 'You need run command to add token:')" \
-         "$(ui bold cyan "\`gh token <token>\`")" \
-         "$(ui 'https://github.com/settings/tokens')")
-    gh_log warn "Token is null.${info}"
 }
 
-if [ -z "$DO_NOT_INIT_GITHUB_DEFAULT" ]; then
-    ____x_cmd_gh_make "GITHUB_DEFAULT" && DO_NOT_INIT_GITHUB_DEFAULT="true"
-fi
-
-
-xrc setmain ___x_cmd_gh
+xrc setmain ___x_cmd_qr

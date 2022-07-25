@@ -8,7 +8,7 @@ ___x_cmd_jo_fmt(){
 ___x_cmd_jo_color(){
     command awk -v INDENT="${INDENT:-2}}" -f "./lib/color.awk"
 }
-___x_cmd_jo_awk(){  command awk -f  "$___X_CMD_ROOT/awk/lib/re.awk" -f "./lib/normalize.awk";    }
+# ___x_cmd_jo_awk(){  command awk -f  "$___X_CMD_ROOT/awk/lib/re.awk" -f "./lib/normalize.awk";    }
 
 
 

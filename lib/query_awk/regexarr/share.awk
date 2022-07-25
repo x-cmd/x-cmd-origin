@@ -12,10 +12,10 @@ function selector_normalize_generic( selector, arr,     e, l ){
         gsub("\003", ".", e)
 
         # SPECIAL_LINE_BEGIN
-        gsub("*", "[^" S "]*", e)
+        gsub("\\*", "[^" S "]*", e)
         # SPECIAL_LINE_END
 
-        arr[j] = q( e )    # quote
+        arr[j] = jqu( e )    # quote
     }
 
     return l

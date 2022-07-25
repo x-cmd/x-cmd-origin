@@ -31,11 +31,13 @@ ____x_cmd_jo_env_main(){
     done
 
     local ___X_CMD_QUERY_AWK_IMPL="env.impl.awk"
+    local ___X_CMD_JO_QUERY_JSTR="q1"
     if [ $# -eq 0 ]; then
         eval "$(____x_cmd_jo_query_main "$pat" "$argstr")"
     else
         local ____x_cmd_jo_env_main_line_tmpvar___19491001
-        ____x_cmd_jo_query_main "$pat" "$argstr" | ___x_cmd_writeml |\
+        local ___X_CMD_JO_ENV_MULTIPLELINE_SEP="\\n$___X_CMD_MULTIPLELINE_SEP\\n"
+        ____x_cmd_jo_query_main "$pat" "$argstr" |\
         while  ___x_cmd_readml ____x_cmd_jo_env_main_line_tmpvar___19491001; do
             eval "$____x_cmd_jo_env_main_line_tmpvar___19491001"
             ___x_cmd_evex "$@"

@@ -1,5 +1,6 @@
 
 test_query_regexarr_0(){
+    local ___X_CMD_JO_QUERY_JSTR="q1"
     @assert stdout "data | ___x_cmd_jo_query 1.f\*\\\\.a\*" << A
 "shellscript"{"*.json":"json","**/*.awk":"awk","index.html":"shellscript","**/*.md":"markdown","*":"shellscript","LICENSE":"text"}true
 A
@@ -8,7 +9,7 @@ A
 A
 }
 test_query_regexarr_n(){
-
+    local ___X_CMD_JO_QUERY_JSTR="q1"
     @assert stdout "data | ___x_cmd_jo_query 1.explicitFolding\\\\.rules.\* 1.1.beginRegex" << A
 "^\\\\s*#\\\\s*Section:?"
 A

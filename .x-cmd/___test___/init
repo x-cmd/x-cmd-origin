@@ -1,5 +1,5 @@
 cp -r "$(x wsroot)"/* "$___X_CMD_ROOT_MOD/jo/"
 
 data(){
-    x jo "$(cat "$(x wsroot)"/.vscode/settings.json )"
+    cat "$(x wsroot)"/.vscode/settings.json
 }

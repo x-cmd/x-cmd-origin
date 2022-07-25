@@ -6,6 +6,6 @@ function handle_argument(argstr,       e ){
     argvl = argvl - 1
 }
 
-function handle_output(idx, value){
+function handle_output( value, idx, max_idx ){
     print value
 }

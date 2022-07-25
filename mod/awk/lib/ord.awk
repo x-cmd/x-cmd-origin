@@ -1,23 +1,23 @@
 # TODO: Which repo and license do we refer here? Figure it out.
 
 BEGIN {
-    ord_init()
+    ord_init(0, 255)
 }
 
 function ord_init(    low, high, i, t) {
-    low = sprintf("%c", 7)      # BEL is ascii 7
-    if (low == "\a") {          # regular ascii
-        low = 0
-        high = 127
-    } else if (sprintf("%c", 128 + 7) == "\a") {
-        # ascii, mark parity
-        low = 128
-        # low = 0
-        high = 255
-    } else {        # ebcdic(!)
-        low = 0
-        high = 255
-    }
+    # low = sprintf("%c", 7)      # BEL is ascii 7
+    # if (low == "\a") {          # regular ascii
+    #     low = 0
+    #     high = 127
+    # } else if (sprintf("%c", 128 + 7) == "\a") {
+    #     # ascii, mark parity
+    #     low = 128
+    #     # low = 0
+    #     high = 255
+    # } else {        # ebcdic(!)
+    #     low = 0
+    #     high = 255
+    # }
 
     for (i = low; i <= high; i++) {
         t = sprintf("%c", i)
@@ -55,4 +55,15 @@ function ord_is_lowercase(o) {
         return true
     }
     return false
+}
+
+function ord_leading1( o ){
+    if (o < 128) return 0
+    if (o < 192) return 1
+    if (o < 224) return 2
+    if (o < 240) return 3
+    if (o < 248) return 4
+    if (o < 252) return 5
+    if (o < 254) return 6
+    if (o < 256) return 7
 }

@@ -1,0 +1,19 @@
+
+WSROOT="$(x wsroot)"
+
+assert_mod(){
+    local mod="${1:?Provide Module}"
+    @info "Test for [$mod]"
+    @assert command awk \
+        -f "$WSROOT/lib/default.awk" \
+        -f "$WSROOT/lib/testcase.awk" \
+        -f "$WSROOT/lib/${mod}.awk" \
+        -f "$PWD/lib/${mod}.awk" </dev/null
+}
+
+assert_mod re
+assert_mod math
+assert_mod seq
+assert_mod arr
+
+# @assert:file:func

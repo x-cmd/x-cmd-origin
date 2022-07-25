@@ -29,7 +29,7 @@ function math_round(num, _tmp) {
     if (num < 0) {
         return _tmp - ( (_tmp - num > 0.5) ? 1 : 0 )
     } else {
-        return _tmp + ( (num - tmp > 0.5) ? 1 : 0 )
+        return _tmp + ( (num - _tmp > 0.5) ? 1 : 0 )
     }
 }
 

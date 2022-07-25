@@ -22,7 +22,7 @@ f2(){
 {
     # pat[1] = ""
     # pat[2] = ""
-    # pat[3] = q("full_name")
+    # pat[3] = jqu("full_name")
     # patl = 3
     # jiter_regexarr_print( $0, patl, pat, "", "\n")
 

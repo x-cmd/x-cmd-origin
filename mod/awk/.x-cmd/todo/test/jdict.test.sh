@@ -21,8 +21,8 @@ END{
     # for (i=1; i<=arr[L]; ++i) {
     #     print i ": "arr[i]
     # }
-    jdict_push(_, jpath("1.2"), q("d"), "122")
-    jdict_rm(_, jpath("1.2"), q("a"))
+    jdict_push(_, jpath("1.2"), jqu("d"), "122")
+    jdict_rm(_, jpath("1.2"), jqu("a"))
 
     arrlen = jdict_grep_to_arr(_, "1.2.c", "{", arr)
     # arrlen = jgrep_to_arr(_, "1.2.c", "c", arr)

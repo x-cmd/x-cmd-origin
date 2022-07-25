@@ -1,20 +1,12 @@
 {
     "files.defaultLanguage": "shellscript",
     "files.associations": {
-        "*.json": "json",
-        "index.html": "shellscript",
-        "**/*.md": "markdown",
-        "**/std/**": "shellscript",
-        "**/tools/*": "shellscript",
-        "**/cloud/*": "shellscript",
-        "**/cmd/*": "shellscript",
-        "**/con/*": "shellscript",
-        "**/net/*": "shellscript",
-        "**/el/*": "shellscript",
         "**/*.awk": "awk",
-        "*": "shellscript",
-        "*install*": "shellscript",
-        "LICENSE": "text"
+        "**/*.json": "json",
+        "**/*.md": "markdown",
+        "**/*.yml": "yaml",
+        "**/LICENSE": "TXT",
+        "**/*": "shellscript",
     },
     "files.trimTrailingWhitespace": true,
     "editor.detectIndentation": true,
@@ -35,4 +27,28 @@
             }
         ]
     },
+    "better-comments.highlightPlainText": true,
+    "better-comments.tags": [
+        {
+            "tag": "!",
+            "color": "#FF2D00",
+            "strikethrough": false,
+            "underline": false,
+            "backgroundColor": "transparent",
+            "bold": false,
+            "italic": false,
+        },
+        {
+            "tag": "?",
+            "color": "#3498DB",
+            "strikethrough": false,
+            "underline": false,
+            "backgroundColor": "transparent",
+            "bold": false,
+            "italic": false
+        },
+    ],
+    // "editor.tokenColorCustomizations": {
+    //     "comments": "#00ff95af"
+    // }
 }

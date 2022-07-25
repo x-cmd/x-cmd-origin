@@ -1,1 +1,0 @@
-https://github.com/github/choosealicense.com

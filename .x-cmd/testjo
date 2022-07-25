@@ -1,0 +1,20 @@
+aaa(){
+    param:dsl <<A
+option:
+    -y|--fsdfsd|-o          "Test regex arg1"  <regex_arg1>=888  =~  "[0-9]+"
+    --qwerty                ""                  <>=""
+    -n                      "Test regex arg2"  <regex_arg1>=123  =~  "[0-9]+"
+    #1|--org                "org space address"    <>:address
+
+A
+    param:run
+
+    no_issue=true
+    new_option="xxx"
+    k="kkk"
+    p=""
+    m="aaa"
+    new_option=123123
+    param:option2json -new_option +new_option has_issues=^no_issue has_wiki=^no_wiki can_comment=^no_comment auto_init=^no_auto_init  repoitory l=^^k o=^^p y +m -n
+}
+aaa

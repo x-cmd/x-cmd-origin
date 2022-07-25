@@ -1,0 +1,341 @@
+# shellcheck shell=sh
+# shellcheck disable=SC2039,3043
+
+# Should be like this.
+# gt repo issue add el:admin
+# gt repo issue remove user-a
+# gt repo issue add user-b
+
+# gt repo issue +el:admin -user-a +user-b
+___x_cmd_gt_issue(){
+    param:scope         ___x_cmd_gt
+    param:subcmd ___x_cmd_gt_issue                  \
+        create          "create issue"              \
+        update          "update issue"              \
+        logs            "get issue logs"            \
+        comment         "comment management"
+    param:subcmd:try
+    param:run
+
+    ___x_cmd_gt_issue _param_help_doc
+    gt_log warn "Subcmd Not Found."
+    return 1
+}
+
+
+# shellcheck disable=SC2154,SC2034
+# https://gitee.com/api/v5/swagger#/postV5ReposOwnerIssues
+___x_cmd_gt_issue_create(){
+    param:scope         ___x_cmd_gt
+    param:dsl      '
+options:
+    --title         "title"                                                              <>
+    --repo          "Provide owner name and repo name.(default:the current user repo)"   <>:RepoName
+    --body          "issue describe"                                                     <>=""
+    --type          "issue type"                                                         <>=""
+    --assignee      "assignee space address"                                             <>=""
+    --collaborators "collaborators space address"                                        <>=""
+    --milestone     "milestone serial number"                                            <>=""
+    --labels        "labels"                                                             <>=""
+    --program       "project ID"                                                         <>=""
+    --security      "is it private"
+'
+    param:run
+
+    local security="${security:-false}"
+    local gen_gt_json
+    gen_gt_json="$(param:option2json security_hole=^^security issue_type=type -security -type)"
+
+    ___x_cmd_gt_http post "/v5/repos/${repo##*/}/issues" "$gen_gt_json" | \
+    {
+        ___x_cmd_git_json_query_rename id=.number title=.title html_url=.html_url
+        if [ -n "$id" ]; then
+            ___x_cmd_ui_tf true  "Success" "id: $id" "title: $title" "url: $html_url"
+            return 0
+        else
+            ___x_cmd_ui_tf false "Create issue failure"
+            return 1
+        fi
+    }
+}
+
+# shellcheck disable=SC2154,SC2034
+# https://gitee.com/api/v5/swagger#/patchV5ReposOwnerIssuesNumber
+___x_cmd_gt_issue_update(){
+    param:scope     ___x_cmd_gt
+    param:dsl       '
+type:
+    State = open progressing closed
+options:
+    --repo          "Provide owner name and repo name.(default:the current user repo)"   <>:RepoName
+    --number        "issue number"                                                       <>
+    --title         "title"                                                              <>=""
+    --state         "issue state "                                                       <>:State
+    --body          "issue describe"                                                     <>=""
+    --assignee      "assignee space address"                                             <>=""
+    --collaborators "collaborators space address"                                        <>=""
+    --milestone     "milestone serial number"                                            <>=""
+    --labels        "labels"                                                             <>=""
+    --program       "project ID"                                                         <>=""
+    --security      "is it private"
+'
+    param:run
+
+    local security="${security:-false}"
+    local gen_gt_json
+    gen_gt_json="$(param:option2json issue_type=type security_hole=^^security -security -type)"
+
+    ___x_cmd_gt_http patch "/v5/repos/${owner##*/}/issues/${number}" "$gen_gt_json" | \
+    {
+        ___x_cmd_git_json_query_rename id=.number state=.state html_url=.html_url
+        if [ -n "$id" ]; then
+            ___x_cmd_ui_tf true  "Success" "id: $id" "state: $state" "url: $html_url"
+            return 0
+        else
+            ___x_cmd_ui_tf false "Update issue failure"
+            return 1
+        fi
+    }
+}
+
+# shellcheck disable=SC2154
+# https://gitee.com/api/v5/swagger#/getV5ReposOwnerIssuesNumberOperateLogs
+___x_cmd_gt_issue_logs(){
+    param:scope     ___x_cmd_gt
+    param:dsl       '
+options:
+    --repo          "Provide owner name and repo name.(default:the current user repo)"   <>:RepoName
+    --number        "issue number"                                                       <>
+    --sort          "sort(asc、desc)"                                                    <>="desc"
+'
+    param:run
+    ___x_cmd_gt_param_init_owner_repo
+
+    local ___gt_error_msg="Couldn't find any data by: $repo $number"
+    ___gt_ui_mutual ___x_cmd_gt_http get "/v5/repos/${owner_repo##*/}/issues/${number}/operate_logs" repo sort <<A
+        ___ui_table_json Time=.created_at User=.user.login Type=.action_type Content=.content -- \$@
+A
+}
+
+# shellcheck shell=sh
+# shellcheck disable=SC2039,3043,SC2154
+# https://gitee.com/api/v5/swagger#/getV5ReposOwnerRepoIssuesComments
+___x_cmd_gt_repo_issue(){
+    param:scope     ___x_cmd_gt
+    param:dsl       '
+type:
+    State = open progressing closed rejected all
+options:
+    --repo          "Provide owner name and repo name.(default:the current user repo)"   <>:RepoName
+    --state         "issue state"                                                        <>:State=all
+    --labels        "labels"                                                             <>=""
+    --milestone     "milestone"                                                          <>=""
+    --assignee      "assignee"                                                           <>=""
+    --creator       "creator"                                                            <>=""
+    --program       "program"                                                            <>=""
+    --sort          "sort"                                                               <>="created"
+    --direction     "direction"                                                          <>="desc"
+    --number        "repo issue number"                                                  <>=""
+    --page          "page"                                                               <>=""
+    --per_page      "per_page"                                                           <>=""
+'
+    param:run
+    ___x_cmd_gt_param_init_owner_repo
+
+    local gen_gt_json
+    gen_gt_json="$(param:option2json -repo -page -per_page)"
+
+    if [ -z "$number" ]; then
+        ___gt_ui_mutual ___x_cmd_gt_get_multi "/v5/repos/${owner_repo}/issues" state labels milestone \
+            assignee creator program sort direction number <<A
+        IssueNumber=.number Title=.title State=.issue_state Assigner=.assignee.name Body=.body -- \$@
+A
+    else
+        ___x_cmd_gt_http get "/v5/repos/${owner_repo}/issues/${number}" | \
+        {
+            ___x_cmd_gt_json_query_rename "$data" id=.number title=.title state=.state assignee=.assignee.name
+            if [ -n "$id" ]; then
+                ___x_cmd_ui_tf true  "Success" "id: $id" "title: $title" "state: $state" "assignee: $assignee"
+                return 0
+            else
+                ___x_cmd_ui_tf false "Getting repo issue info failure by $owner_repo $number"
+                return 1
+            fi
+        }
+    fi
+    return
+}
+
+# shellcheck disable=SC2154
+# https://gitee.com/api/v5/swagger#/getV5OrgsOrgIssues
+___x_cmd_gt_org_issue(){
+    param:scope     ___x_cmd_gt
+    param:dsl       '
+options:
+    --org           "organization path"                            <>
+    --filter        "filter(assigned,created,all)"                 <>="assigned"
+    --state         "state(open,progerssing,closed,rejected)"      <>="open"
+    --labels        "labels"                                       <>=""
+    --sort          "sort(created,updated)"                        <>="created"
+    --direction     "direction(asc、desc)"                         <>="desc"
+    --page          "page"                                         <>=""
+    --per_page      "per_page"                                     <>=""
+'
+    param:run
+
+    local gen_gt_json
+    gen_gt_json="$(param:option2json -org -page -per_page)"
+
+    local ___gt_error_msg="Couldn't find any data by: ${org}"
+    ___gt_ui_mutual ___x_cmd_gt_get_multi "/v5/orgs/${org##*/}/issues" filter state labels \
+        sort direction since page per_page <<A
+        ___ui_table_json IssueNumber=.number State=.issue_state Assigner=.assignee.name \
+            Repository=.repository.full_name Type=.issue_type Title=.title Url=.html_url -- \$@
+A
+}
+
+# shellcheck disable=SC2154
+# https://gitee.com/api/v5/swagger#/getV5EnterprisesEnterpriseIssues
+___x_cmd_gt_enterprise_issue(){
+    param:scope     ___x_cmd_gt
+    param:dsl       '
+options:
+    --enterprise    "enterprise path"                              <>
+    --filter        "filter(assigned,created,all)"                 <>="assigned"
+    --state         "state(open,progerssing,closed,rejected)"      <>="open"
+    --labels        "labels"                                       <>=""
+    --sort          "sort(created,updated)"                        <>="created"
+    --direction     "direction(asc、desc)"                         <>="desc"
+    --milestone     "milestone"                                    <>=""
+    --assignee      "assignee"                                     <>=""
+    --creator       "creator"                                      <>=""
+    --program       "program"                                      <>=""
+    --page          "page"                                         <>=""
+    --per_page      "per_page"                                     <>=""
+'
+    param:run
+
+    local ___gt_error_msg="Couldn't find any data by: ${enterprise}"
+    ___gt_ui_mutual ___x_cmd_gt_get_multi "/v5/enterprises/${enterprise##*/}/issues" filter state labels sort direction \
+        milestone assignee creator program <<A
+        ___ui_table_json IssueNumber=.number State=.issue_state Assigner=.assignee.name AssignerMarkName=.assignee.remark \
+            Repository=.repository.full_name Type=.issue_type Title=.title Url=.html_url -- \$@
+A
+}
+
+# Section : comment
+
+___x_cmd_gt_issue_comment(){
+    param:scope         ___x_cmd_gt
+    param:subcmd ___x_cmd_gt_issue_comment          \
+        ls              "list all comment"          \
+        create          "create a comment"          \
+        update          "update a comment"          \
+        del             "delete a comment"
+    param:subcmd:try
+    param:run
+    if [ -z "$PARAM_SUBCMD" ]; then
+        ___x_cmd_gt_issue _param_help_doc
+        gt_log warn "subcmd not found. show help." >&2
+        return 1
+    fi
+    "___x_cmd_gt_issue_comment_$PARAM_SUBCMD" "$@"
+}
+
+# https://gitee.com/api/v5/swagger#/getV5ReposOwnerRepoIssuesNumberComments
+___x_cmd_gt_issue_comment_ls(){
+    param:scope     ___x_cmd_gt
+    param:dsl       '
+options:
+    --number        "issue number"                                                       <>
+    --repo          "Provide owner name and repo name.(default:the current user repo)"   <>:RepoName
+    --since         "since"                                                              <>=""
+    --page          "page"                                                               <>=""
+    --per_page      "per_page"                                                           <>=""
+    --order         "order(asc、desc)"                                                   <>="asc"
+'
+    param:run
+    ___x_cmd_gt_param_init_owner_repo
+
+    local ___gt_error_msg="Couldn't find any data by: ${owner_repo}"
+    ___gt_ui_mutual ___x_cmd_gt_get_multi "/v5/repos/${owner_repo}/issues/$number/comments" since order <<A
+        ___ui_table_json CommitId=.id IssueNumber=.target.issue.number Title=.target.issue.title User=.user.login Body=.body -- \$@
+A
+}
+
+# shellcheck disable=SC2086,SC2154
+# https://gitee.com/api/v5/swagger#/postV5ReposOwnerRepoIssuesNumberComments
+___x_cmd_gt_issue_comment_create(){
+    param:scope     ___x_cmd_gt
+    param:dsl       '
+options:
+    --repo          "Provide owner name and repo name.(default:the current user repo)"   <>:RepoName
+    --number        "issue number"                                                       <>
+    --body          "The contents of the comment"                                        <>
+'
+    param:run
+
+    local gen_gt_json
+    gen_gt_json="$(param:option2json -repo -number)"
+
+    ___x_cmd_gt_http post "/v5/repos/${owner##*/}/${repo##*/}/issues/$number/comments" "$gen_gt_json" | \
+    {
+        ___x_cmd_git_json_query_rename "$data" id=.target.issue.number title=.target.issue.title body=.body
+        if [ -n "$id" ]; then
+            ___x_cmd_ui_tf true  "Success" "Success" "id: $id" "title: $title" "comment_body: $body"
+            return 0
+        else
+            ___x_cmd_ui_tf false "Create Comment failure"
+            return 1
+        fi
+    }
+}
+
+# https://gitee.com/api/v5/swagger#/patchV5ReposOwnerRepoIssuesCommentsId
+___x_cmd_gt_issue_comment_update(){
+    param:scope     ___x_cmd_gt
+    param:dsl       '
+options:
+    --repo          "Provide owner name and repo name.(default:the current user repo)"   <>:RepoName
+    --id            "comments id"                                                        <>
+    --body          "The contents of the comment"                                        <>
+'
+    param:run
+    local gen_gt_json
+    gen_gt_json="$(param:option2json -repo -id)"
+
+    ___x_cmd_gt_http patch "/v5/repos/${owner##*/}/${repo##*/}/issues/comments/${id}" -- "$(param:option2json)" | \
+    {
+        ___x_cmd_git_json_query_rename "$data" id=.target.issue.number title=.target.issue.title body=.body
+        if [ -n "$id" ]; then
+            ___x_cmd_ui_tf true  "Success" "id: $id" "title: $title" "comment_body: $body"
+            return 0
+        else
+            ___x_cmd_ui_tf false "Update Comment failure"
+            return 1
+        fi
+    }
+}
+
+# shellcheck disable=SC2181
+# https://gitee.com/api/v5/swagger#/deleteV5ReposOwnerRepoIssuesCommentsId
+___x_cmd_gt_issue_comment_del(){
+    param:scope     ___x_cmd_gt
+    param:dsl       '
+options:
+    --repo          "Provide owner name and repo name.(default:the current user repo)"   <>:RepoName
+    --id            "comments id"                                                        <>
+'
+    param:run
+    ___x_cmd_gt_param_init_owner_repo
+    # TODO:http handle，delete repo return data is null.Status: 204 No Content
+    if ___x_cmd_gt_http delete "/v5/repos/${owner_repo}/issues/comments/${id}" >/dev/null; then
+        ___x_cmd_ui_tf true  "Deleted comment successfully"
+    else
+        ___x_cmd_ui_tf false "Deleting comment failure by ${owner_repo} $id."
+        return 1
+    fi
+}
+
+# EndSection
+

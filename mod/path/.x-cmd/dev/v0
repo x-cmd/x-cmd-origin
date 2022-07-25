@@ -1,195 +1,103 @@
-# shellcheck shell=sh disable=SC2039
+# shellcheck shell=bash
 
-# author:       Li Junhao           l@x-cmd.com    edwinjhlee.github.io
-# maintainer:   Li Junhao
+# author:       Li Junhao           edwin.jh.lee@gmail.com    edwinjhlee.github.io
+# maintainer:   Li Junhao  
 
-path_ext(){
-    local i 
-    local ret
-    local filepath
-    for i in "$@"; do
-        filepath=$(basename "${i}")
-        ret=${filepath##*.}
-        # ret=$(cut -d '.')
-        # to handle the situation: `path_extensions abc`, ret="abc", should return ""
-        [ "$ret" = "$filepath" ] || printf "%s" "$ret"
-    done
+# @src std/@
+# shellcheck disable=SC2154
+
+# TODOC: Why NOT alias tmp="tmp.auto; tmp.get_path". Because it will encourage problematic usage.
+# a="$(tmp)" # tmp will clear the folder after subshell ends. Not our intention.
+
+# : <<A
+# Usage 0:
+# a="$(tmp /var/tcd)"
+# A
+
+# : <<A
+# Usage 1:
+# tmp_init
+# @defer tmp_finalize
+
+# a="$(tmp "/var/tcd")"
+# A
+
+# : <<A
+# Usage 2:
+# tmp.auto
+
+# a="$(tmp "/var/tcd")"
+# A
+
+alias tmp.auto="tmp_init; xrc std/@; @defer tmp_finalize"
+
+# _X_CMD_X_BASH_FILE_TMP_GLOBAL=
+tmp_init(){
+    # _X_CMD_X_BASH_FILE_TMP_GLOBAL="$(mktemp)"
+    _X_CMD_X_BASH_FILE_TMP_GLOBAL="${TMPDIR}$(date +%Y%m%d%H%M%S)_${RANDOM}/"
+    mkdir -p "$_X_CMD_X_BASH_FILE_TMP_GLOBAL"
 }
 
-path_parts(){
-    # dirname filename extname
-    local filepath=$1
-
-    if [ $# -eq 1 ]; then
-        dirname "$filepath"
-        basename "$filepath"
-        path_ext "$filepath"
-        return 0
+_tmp_folder(){
+    local res
+    if [ -z "$_X_CMD_X_BASH_FILE_TMP_GLOBAL" ]; then
+        res="${TMPDIR}_X_BASH_DEFAULT_TMP/"
+        [ -d "$res" ] || mkdir -p "$res"
+        echo "$res"
     fi
 
-    local dirname=${2:-"-"} 
-    local filename=${3:-"-"} 
-    local extname=${4:-"-"}
-    
-    [ ! "$dirname" = - ] && eval "$dirname=$(dirname "$filepath")"
-    [ ! "$filename" = - ] && eval "$filename=$(basename "$filepath")"
-    [ ! "$extname" = - ] && eval "$extname=$(path_ext "$filepath")"
+    echo "${_X_CMD_X_BASH_FILE_TMP_GLOBAL}"
 }
 
-path_filename(){
-    local filepath 
-    local i
-    for i in "$@"; do
-        filepath=$(basename "$i")
-        printf "%s" "${filepath%.*}"
-    done
-}
+tmp(){
+    local FOLDER_PATH
+    FOLDER_PATH="$(_tmp_folder)"
 
-path_dirname(){
-    local i
-    for i in "$@"; do
-        dirname "$i"
-    done
-}
-
-path_basename(){
-    local i
-    for i in "$@"; do
-        basename "$i"
-    done
-}
-
-path_abs(){
-    local p=${1:-.}
-    if [ -f "$p" ]; then
-        echo "$(cd "$(dirname "$p")" && pwd)/$(basename "$p")"
+    local key="$1"
+    if [ -z "$key" ]; then
+        printf "%s" "${FOLDER_PATH}_UNNAMED_$(date +%Y%m%d%H%M%S)_${RANDOM}"
     else
-        (cd "$p" && pwd)
+        local vkey
+        vkey=$(printf "%s" "$key" | base64 | tr "=" _)
+        printf "%s" "${FOLDER_PATH}_NAMED_${vkey}"
     fi
 }
 
-path_script_path(){
-    path_abs "${BASH_SOURCE[0]}"
-}
+tmp_list()(         # Notice, using subshell
+    local FOLDER_PATH
+    FOLDER_PATH="$(_tmp_folder)"
 
-# TODO
-path_common2(){
-    # local a=$1
-    # local b=$2   
-    :
-}
-
-path_common(){
-    for i in "$@"; do
-        :
-    done
-}
-
-# PATH environment variable operations
-# code from el-logic
-
-path_display(){
-    local IFS=":"
-    for i in $PATH; do 
-        echo "$i";
-    done
-}
-
-path_append(){
-    PATH="$PATH:${1:?"Provide new path"}"
-}
-
-path_prepend(){
-    PATH="${1:?"Provide new path"}:$PATH"
-}
-
-path_remove(){
-    :
-}
-
-# fp
-
-# In linux, `readlink -f <filepath>`. Not works in BSD system
-# https://superuser.com/questions/330199/how-get-full-path-to-target-of-link
-# TODO: using subprocess to optimize
-path_readlink(){
-    local TGT=${1:?"Provide name"}
-    local ORI 
-    local A
-    local RES
-    ORI=$(pwd)
-    A=$(readlink "$TGT")
-    cd "$(dirname "$TGT")" && cd "$(dirname "$A")" || return 1
-    RES=$(pwd)
-    cd "$ORI" && echo "$RES/$(basename "$A")"
-}
-
-# Protected folders
-path_rmrf(){
-    xrc std/str
-    for i in "$@"; do
-        local tgt
-        tgt="$(str_trim "$i")"
-        [ "$tgt" = "" ] && continue
-
-        # TODO: add other patterns
-        if [ "$tgt" = "/" ]; then
-            yesno "WARNING: Sure of removing '$tgt': " || continue
-        fi
-
-        rm -rf "$i"
-    done
-}
-
-# TODO: check this function
-path_rmrf_safe(){
+    shopt -s nullglob
+    cd "$FOLDER_PATH" || return 1
     local i
-    local sw=0
-    local filepath
-    local pattern
-    local pattern_list=""
-    local path_list=""
-    local hyphen2=0
-    local IFS=
-
-    for i in "$@"; do
-        if [ "$i" = -- ]; then
-            hyphen2=1
-        fi
-        if [ $hyphen2 -eq 0 ]; then
-            pattern_list="$pattern_list
-$i"
-        else
-            path_list="$path_list
-$i"
-        fi
+    for i in *; do
+        echo "$FOLDER_PATH$i"
     done
+)
 
-    if [ $hyphen2 -eq 0 ]; then
-        path_list="$pattern_list"
-        pattern_list=""
-    fi
+tmp_list_named()(   # Notice, using subshell
+    FOLDER_PATH="$(_tmp_folder)"
+    shopt -s nullglob
+    cd "$FOLDER_PATH" || return 1
+    for i in _NAMED_*; do
+        echo "$FOLDER_PATH$i"
+    done
+)
 
-    while read -r filepath; do
-        case "$filepath" in
-            /)      sw=1; printf "Detect rm -rf /" >&2      ;;
-            /bin*)  sw=1; printf "Detect rm -rf /bin" >&2   ;;
-            /home)  sw=1; printf "Detect rm -rf /home" >&2  ;;
-            *)      for pattern in $pattern_list; do
-                        # [[ "$filepath" =~ $pattern ]]
-                        str_regex "$filepath" "$pattern" || continue
-                        sw=1
-                        printf "Detect violation of RULES: %s" "$pattern" >&2
-                    done;;
-        esac
-    done <<A
-$path_list
-A
+tmp_list_unnamed()( # Notice, using subshell
+    FOLDER_PATH="$(_tmp_folder)"
+    shopt -s nullglob
+    cd "$FOLDER_PATH" || return 1
+    local i
+    for i in _UNNAMED_*; do
+        echo "$FOLDER_PATH$i"
+    done
+)
 
-    if [ "$sw" -eq 1 ]; then
-        printf "file.rm.safe cannot remove the critical files. If you insists, please directly using rm command." >&2
-        return 1
-    fi
-
-    rm -rf "$@"
+# better name? deinit? clear?
+# Please refer the following site before discussion:
+# https://softwareengineering.stackexchange.com/questions/163004/what-is-the-opposite-of-initialize-or-init
+tmp_finalize(){
+    FOLDER_PATH="$(_tmp_folder)"
+    rm -rf "$FOLDER_PATH"
 }

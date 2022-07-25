@@ -1,0 +1,29 @@
+# shellcheck shell=sh disable=SC2039,SC2142,SC3043
+
+hyphen_arg(){
+    param:dsl      <<A
+option:
+    -k              "Test desc option"            <m>
+A
+    param:run
+    printf "%s\n" "k: $k"
+    printf "%s\n" "rest argument1: $1"
+    printf "%s\n" "rest argument2: $2"
+    printf "%s\n" "rest argument3: $3"
+}
+
+test_hyphen_arg(){
+    @assert stdout hyphen_arg -k 123 -asd --d fff<<A
+k: 123
+rest argument1: -asd
+rest argument2: --d
+rest argument3: fff
+A
+    @assert stdout hyphen_arg -k 456 --jkl -dfg kkk<<A
+k: 456
+rest argument1: --jkl
+rest argument2: -dfg
+rest argument3: kkk
+A
+}
+@assert:file:func

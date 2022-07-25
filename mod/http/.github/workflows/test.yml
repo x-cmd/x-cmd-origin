@@ -1,0 +1,48 @@
+name: Test
+on:
+  workflow_dispatch:
+  # push:
+  #   branches:
+  #     - main
+  # pull_request:
+  #   branches:
+  #     - main
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  CONCURRENCY: 10
+  ___X_CMD_CODESORUCE_REPO: nightly
+
+jobs:
+  test-diff-os:
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: main
+        uses: x-cmd/action@main
+        with:
+          code: x test errexit && x test || true
+
+  test-diff-image:
+    strategy:
+      matrix:
+        image:
+          - xcmd/base-ubuntu-2-dev
+          - xcmd/base-debian-2-dev
+          - xcmd/base-alpine-2-dev
+          - xcmd/base-bash3-2-dev
+          - xcmd/base-bash4-2-dev
+          - xcmd/base-bash5-2-dev
+          - xcmd/base-centos-2-dev
+          - xcmd/base-archlinux-2-dev
+          - xcmd/base-fedora-2-dev
+    container:
+      image: ${{ matrix.image }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: main
+        uses: x-cmd/action@main
+        with:
+          code: x test errexit && x test || true

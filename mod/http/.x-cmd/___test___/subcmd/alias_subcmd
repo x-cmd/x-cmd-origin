@@ -1,0 +1,29 @@
+# shellcheck shell=sh disable=SC2039,SC2142,SC3043
+
+alias_subcmd(){
+    param:scope     "paramtest/$O"
+    param:dsl  <<A
+subcommand:
+    option|op-test  "Test option"
+A
+    param:run
+    alias_subcmd_"${PARAM_SUBCMD}" "$@"
+}
+
+alias_subcmd_option(){
+    param:scope     "paramtest/$O"
+    param:dsl      <<A
+option:
+    --repo|-r       "Provide repo name"     <repo>   =~  "abc"   "cde"   "def"
+A
+    param:run
+    printf "%s\n" "param repo: $repo"
+}
+
+test_alias_subcmd(){
+    @assert stdout "O=xxxx; alias_subcmd op-test --repo abc"<<A
+param repo: abc
+A
+}
+
+@assert:file:func

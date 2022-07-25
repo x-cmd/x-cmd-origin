@@ -1,0 +1,169 @@
+#shellcheck shell=bash
+
+param.__trap_localize_argenv_parameter(){
+
+    # shellcheck disable=SC2016
+    local final_code='eval "$(param.__localize_argenv_parameter $BASH_COMMAND)" 2>/dev/null'
+
+    local latest_debug_code
+    latest_debug_code=$(trap DEBUG)
+    local latest_debug_set
+    latest_debug_set="trap ${latest_debug_code:-"\"\""} DEBUG"
+
+    # NOTICE Replace the first no to yes, which is RUN=no
+    # shellcheck disable=SC2016
+    local command_code='eval "${BASH_COMMAND/no/yes}" || return 1 2>/dev/null'
+
+    final_code="
+    $final_code
+    $command_code
+    $latest_debug_set"
+
+    trap "$final_code" DEBUG
+}
+
+# @param '
+#     argenv [org] "Provide organization"
+#     arg [repo] "repo name" =~ [:alpha:][[:alnum:]-_]+
+#     arg [access] = public private inner-source
+# '
+
+param.__set_trap_debug(){
+    local latest_debug_code
+    latest_debug_code=$(trap DEBUG)
+    local latest_debug_set
+    latest_debug_set="trap ${latest_debug_code:-"\"\""} DEBUG"
+
+    local before_code='echo "$(eval param.parse.names_localize "${BASH_COMMAND#*param.__parse}")" 2>/dev/null'
+    # local before_code='eval param.parse.names_localize "${BASH_COMMAND#param.__parse}" 2>/dev/null'
+
+    local final_code="
+    $before_code
+    ${BASH_COMMAND}
+    $latest_debug_set"
+
+    # echo "$final_code"
+    trap "$final_code" DEBUG
+    # trap "echo debug" DEBUG
+}
+
+param.__localize(){
+    # echo "What"
+    echo "echo +++hi"
+}
+
+
+alias @param="param.__set_trap_debug; ARGV=(\"\$@\") param.__parse"
+
+work(){
+    @param '
+    argenv[org] "Provide organization"
+    arg[repo] "repo name" =~ [:alpha:][[:alnum:]-_]+
+    arg[access] = public private inner-source
+'
+}
+
+
+# 1. Define the local variables
+# 2. Define the local variables
+
+# @param \
+#     'argenv [org]   "Provide organization"' \
+#     'arg    [repo]  "repo name" =~ [:alpha:][[:alnum:]-_]+' \
+#     'arg    [access=private]    = public private inner-source'
+
+
+
+param.parse.names_localize(){
+    local line
+    while read line; do
+        # line="$(str.trim "$line")"
+
+        if [ "$line" == "" ]; then
+            continue
+        fi
+
+        local declaration other
+        read -r declaration other <<<"$line"
+        local type varname
+
+
+        if ! [[ "$declaration" =~ ((argenv)|(arg)|(env))\[([[:alnum:]]+)\] ]]; then
+            echo "Parsd Failed: $declaration" >&2
+            return 1;
+            # continue
+        fi
+
+
+        type="${BASH_REMATCH[1]}"
+        varname="${BASH_REMATCH[5]}"
+
+        case "$type" in
+            argenv) echo "local $varname=\${$varname}";;
+            arg) echo "local $varname";;
+            env) echo "local $varname=\${$varname}";;
+        esac
+    done <<< "$@"
+}
+
+# @param '
+#     argenv[org] "Provide organization"
+#     arg[repo] "repo name" =~ [:alpha:][[:alnum:]-_]+
+#     arg[access] = public private inner-source
+# '
+
+
+# param.__parse '
+#     argenv[org] "Provide organization"
+#     arg[repo] "repo name" =~ [:alpha:][[:alnum:]-_]+
+#     arg[access] = public private inner-source
+# '
+
+param.__parse(){
+
+    echo "${ARGV[@]}"
+
+    return 0
+
+    local line
+    while read line; do
+        # line="$(str.trim "$line")"
+
+        if [ "$line" == "" ]; then
+            continue
+        fi
+
+        local declaration other
+        read -r declaration other <<<"$line"
+        local type varname
+
+
+        if ! [[ "$declaration" =~ ((argenv)|(arg)|(env))\[([[:alnum:]]+)\] ]]; then
+            echo "Parsd Failed: $declaration" >&2
+            return 1;
+            # continue
+        fi
+
+
+        type="${BASH_REMATCH[1]}"
+        varname="${BASH_REMATCH[5]}"
+
+        default="${varname#*=}"
+        varname="${varname%%=*}"
+
+        # echo "$type  $varname ?? $other"
+
+        # case "$type" in
+        #     argenv) echo "local $varname=\${$varname}";;
+        #     arg) echo "local $varname";;
+        #     env) echo "local $varname=\${$varname}";;
+        # esac
+
+
+
+    done <<< "$@"
+}
+
+param.show_help(){
+    :
+}

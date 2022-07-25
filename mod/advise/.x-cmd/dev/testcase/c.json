@@ -1,6 +1,0 @@
-{
-    "#desc": "list all installed environments",
-    "--cache|-c": "--- Use cache ",
-    "--remote|-r": "--- List version including remote ",
-    "#1|--candidate": ["python", "java", "node"]
-}

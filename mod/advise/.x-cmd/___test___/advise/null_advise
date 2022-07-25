@@ -1,0 +1,15 @@
+# shellcheck shell=sh disable=SC2039,SC2142,SC3043
+
+null_advise_json(){
+    param:void
+}
+
+test_null_advise_json(){
+  local INDENT=4
+  @assert stdout "null_advise_json _x_cmd_advise_json | x jo fmt"<<A
+{
+    "#desc": ""
+}
+A
+}
+@assert:file:func

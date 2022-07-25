@@ -1,0 +1,31 @@
+# shellcheck shell=sh disable=SC2039,SC2142,SC3043
+
+test_param_default_put_and_dump_raw(){
+    param_default clear gitee/c
+    param_default put gitee/c "arg1 ee" 1
+    param_default put gitee/c arg2 11
+    param_default put gitee/c arg3 111
+
+    @assert stdout '
+        param_default get "gitee/c" "arg1 ee"
+        param_default get "gitee/c" arg2
+        param_default get "gitee/c" arg3
+    ' <<A
+1
+11
+111
+A
+
+    local a="c${arg_sep}arg1 ee${dict_sep}1"
+    local b="c${arg_sep}arg2${dict_sep}11"
+    local c="c${arg_sep}arg3${dict_sep}111"
+
+    case "${BASH_VERSION}" in
+        4*|5*) res="$c${dict_sep}$b${dict_sep}$a${dict_sep}3" ;;
+        *)     res="$a${dict_sep}$b${dict_sep}$c${dict_sep}3" ;;
+    esac
+
+    @assert "$(param_default dump_raw "gitee/c")" = "$res"
+}
+
+@assert:file:func

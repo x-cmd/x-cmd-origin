@@ -1,0 +1,43 @@
+# shellcheck shell=sh disable=SC2039,SC2142,SC3043
+
+# Section: test prepare
+paramtest(){
+    param:scope     "paramtest/$O"
+    param:dsl  <<A
+subcommand:
+    subcmd          "Test subcommand"
+A
+    param:run
+    paramtest_"${PARAM_SUBCMD}" "$@"
+}
+
+paramtest_subcmd(){
+    param:scope     "paramtest/$O"
+    param:dsl       '
+subcommand:
+    sscmd1|s1|s-s1|longlongsubcommand   "Test sub sub command1"
+'
+    param:run
+    paramtest_subcmd_"${PARAM_SUBCMD}" "$@"
+}
+
+paramtest_subcmd_sscmd1(){
+    param:scope     "paramtest/$O"
+    param:dsl       '
+options:
+    --ss1_opt1|-s      "Test sub sub command1 option1"
+'
+    param:run
+    printf "%s\n" "sscmd1:${PARAM_SUBCMD}"
+    printf "%s\n" "param sscmd1_opt1: $ss1_opt1"
+}
+# EndSection
+
+test_subcmd(){
+    @assert stdout "O=xxxx; paramtest subcmd sscmd1 -s"<<A
+sscmd1:
+param sscmd1_opt1: true
+A
+}
+
+@assert:file:func

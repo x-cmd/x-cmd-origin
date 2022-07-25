@@ -1,44 +1,25 @@
-# Author:       Li Junhao       l@x-cmd.com                 # xrc
-# shellcheck    shell=sh        disable=SC2039,3043
+# shellcheck shell=sh
+# shellcheck disable=SC2039,3043
 
-xrc param static-build/lib/staticbin os
+# author:       Li Junhao           l@x-cmd.com
 
-___x_cmd_ffmpeg_download(){
-    local arch
-    arch="$(os arch)"
-    local osname
-    osname="$(os name)"
-    local exe
-    case "$osname" in
-        win)    exe=ffmpeg.x64.exe        ;;
-        *)      exe=ffmpeg.${osname}.${arch}  ;;
-    esac
-    ___x_cmd_staticbin_init \
-        ___x_cmd_ffmpeg_download \
-            "$___X_CMD_ROOT/.bin/ffmpeg" "$exe" "$(___x_cmd_ffmpeg_bin_download_url "$exe")" \
-        && (
-            cd "$___X_CMD_ROOT/.bin/ffmpeg" && chmod +x "$exe"
-        )&& ___x_cmd_ffmpeg_download "$@"
-}
+xrc param
 
-___x_cmd_ffmpeg_bin_download_url(){
-    local exe="${1:?Provide app name}"
-    if [ -z "$___X_CMD_WHICHNET" ]; then
-        printf "%s/%s" "https://raw.githubusercontent.com/static-build/ffmpeg/main/bin" "$exe.7z"
-    else
-        printf "%s/%s" "https://gitcode.net/x-bash/ffmpeg/-/raw/master/bin" "$exe.7z"
-    fi
-}
 
-___x_cmd_ffmpeg(){
-    local op="$1"
-
+___x_cmd_ff(){
+    local op
+    op="$1"
+    # file to file
     case "$op" in
-        show)       shift; ___x_cmd_ffmpeg_show "$@" ;;
-        convert)    shift; ___x_cmd_ffmpeg_convert "$@" ;;
-        play)       shift; ___x_cmd_ffmpeg_play "$@" ;;
-        -*)         shift; ___x_cmd_ffmpeg_origin "$@" ;;
-        *)          ___x_cmd_ffmpeg_download "$@" ;;
+        show)       ___x_cmd_ff_show "$@" ;;
+        convert)    ___x_cmd_ff_convert "$@" ;;
+        play)       ___x_cmd_ff_play "$@" ;;
+        probe)      ___x_cmd_ff_probe "$@" ;;
+        -*)         ___x_cmd_ffmpeg_origin "$@" ;;
+        *)
+            : detect input and output
+            : then convert the input to output
+            ;;
     esac
 
 }
@@ -58,6 +39,3 @@ ___x_cmd_ffmpeg_show(){
 
 }
 
-# EndSection
-
-xrc setmain ___x_cmd_ffmpeg

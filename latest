@@ -1,31 +1,40 @@
-# Author:       Li Junhao   l@x-cmd.com     # xrc
-# shellcheck    shell=sh    disable=SC2039,SC1090,SC3043,SC2263,SC1091
+# Author:       Li Junhao                   l@x-cmd.com
+# shellcheck    shell=sh disable=SC3043     # xrc
 
-x log init hub
+# Section : install
 xrc param/latest
 
-___X_CMD_HUB_ENV="$___X_CMD_ROOT/.hub"
-[ -d "$___X_CMD_HUB_ENV" ] && mkdir -p "$___X_CMD_HUB_ENV"
-
-___X_CMD_HUB_SERVICE_URL="https://hub.x-cmd.com"
-___X_CMD_HUB_WECHAT_AUTHORIZE_URL_PREFIX="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx9564dec6fe13a20a&redirect_uri=https%3A%2F%2Fhub.x-cmd.com%2F"
-# ___X_CMD_HUB_SERVICE_URL="http://127.0.0.1:3000"
-
-___x_cmd_source_inner_lib hub file account
-
-___x_cmd_hub(){
+___x_cmd_install(){
     param:dsl <<A
 subcommands:
-    file           "File management"
-    login          "Login to hub service"
-    register       "Register to hub service"
-    token          "User token management"
-    user           "get user info"
-    logout         "Logout from hub service"
+    ls          "list all software"
+    get         "get software installation command"
+    run         "run software installation command"
+    update      "update"
 A
     param:run
-    [ -z "${PARAM_SUBCMD}" ] && ___x_cmd_hub help && return
-    "___x_cmd_hub_$PARAM_SUBCMD" "$@"
+
+    if [ -z "$PARAM_SUBCMD" ]; then
+        case "$1" in
+            "")     printf "%s\n" "
+SYMPOSIS:
+    x install <software>
+    x install ls
+    x install run <software>
+    x install name"
+                    ___x_cmd_install _param_help_doc ;;
+            *)      ___x_cmd_install run "$@" ;;
+        esac
+        return 0
+    fi
+
+    "___x_cmd_install_$PARAM_SUBCMD" "$@"
 }
 
-xrc setmain ___x_cmd_hub
+
+if ___x_cmd_is_suitable_advise_env; then
+    xrc advise/latest
+    advise ___x_cmd_install "" install
+fi
+
+xrc setmain ___x_cmd_install

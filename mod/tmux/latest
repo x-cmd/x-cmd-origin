@@ -1,0 +1,49 @@
+# Author:       Li Junhao       l@x-cmd.com                             # xrc
+# shellcheck    shell=sh        disable=SC2039,SC1090,SC3043,SC2263
+
+# license:      GPLv3
+
+x log init tmux
+
+xrc:mod:lib tmux load util abbr
+
+___x_cmd_tmux___init(){
+    [ -z "$___X_CMD_TMUX____INIT" ] || return 0
+    grep -q 'source-file "$HOME/.x-cmd/tmux/lib/config/' "$HOME/.tmux.conf" 2>/dev/null || \
+        printf "%s" 'source-file "$HOME/.x-cmd/tmux/lib/config/x-cmd.tmux.conf"' >>"$HOME/.tmux.conf"
+    ___X_CMD_TMUX____INIT=1
+}
+
+___x_cmd_tmux(){
+    ___x_cmd_tmux___init
+
+    case "$1" in
+        "")         ___x_cmd_tmux_load ;;
+        load)       shift; ___x_cmd_tmux_load "$@" ;;
+        :*)         ___x_cmd_tmux_quickenter "${1#:}" ;;
+        *)
+                    ___x_cmd_tmux___abbr_ "$@"
+                    [ "$___X_CMD_TMUX___ABBR_" -ne 0 ] || return
+                    if [ -f "$1" ]; then
+                        ___x_cmd_tmux_load "$@"
+                        return
+                    fi
+                    ___x_cmd___tmux_origin "$@" ;;
+    esac
+}
+___x_cmd___tmux_origin(){
+    export ___X_CMD_TMUX_BIN
+    export ___X_CMD_ROOT_MOD
+    if ! command -v tmux 1>/dev/null; then
+        x:warn "Tmux Command Not Found. Using tmux with pkg xbin."
+
+        x pkg xbin init tmux "" ___x_cmd___tmux_origin ___X_CMD_TMUX_BIN
+        ___x_cmd___tmux_origin "$@"
+    else
+        command tmux "$@"
+    fi
+}
+
+xrc setmain ___x_cmd_tmux
+
+alias t=___x_cmd_tmux

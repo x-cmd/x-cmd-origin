@@ -1,17 +1,52 @@
-# Author:       Li Junhao           l@x-cmd.com         # xrc
-# shellcheck    shell=sh            disable=SC3043
+# Author:       Li Junhao   l@x-cmd.com             # xrc
+# shellcheck    shell=sh    disable=SC3043,SC1091
 
-___x_cmd_path(){
+___x_cmd_tmp(){
     case "$1" in
-        add|shift|unshift|push|pop|ls|uniq|rm|rm_by_prefix|rm_by_suffix|up_or_unshift|down_or_push|add_existed_folder|_x_cmd_advise_json)
-            local op="$1"; shift; "___x_cmd_path_$op" "$@" ;;
-        "") ___x_cmd_path_ls "$@" ;;
-        --help|-h|help)
-            ___x_cmd_path_help ;;
-        *)  printf "%s" "Can't support arg: $1" >&2 ;;
+        path_)          shift 1; ___x_cmd_tmp_path_ "$@" ;;
+
+        path)           shift 1; ___x_cmd_tmp_path "$@" ;;
+        root)           shift 1; ___x_cmd_tmp_root "$@" ;;
+
+        # create file
+        touch)          shift 1; ___x_cmd_tmp_touch "$@" ;;
+
+        # create dir
+        dir)            shift 1; ___x_cmd_tmp_dir "$@" ;;
+
+        *)              ___x_cmd_tmp_path "$@" ;;
     esac
 }
 
-xrc:mod:lib path    util ls
+___x_cmd_tmp_path(){
+    ___x_cmd_tmp_path_ "$@" || return
+    printf "%s\n" "$___X_CMD_TMP_PATH_"
+}
 
-xrc setmain ___x_cmd_path
+___x_cmd_tmp_path_(){
+    ___X_CMD_TMP_PATH_="${___X_CMD_TMP_ROOT:-${TMPDIR%/*}}"
+    if [ "$#" -ne 0 ]; then
+        local IFS=" "; local i; for i in "$@"; do
+            i="${i#*/}"
+            ___X_CMD_TMP_PATH_="${___X_CMD_TMP_PATH_}/${i%/*}"
+        done
+    fi
+}
+
+___x_cmd_tmp_root(){
+    if [ -n "$1" ]; then
+        ___X_CMD_TMP_ROOT="$1"
+    else
+        printf "%s\n" "$___X_CMD_TMP_ROOT"
+    fi
+}
+
+___x_cmd_tmp_dir(){
+    ___x_cmd_tmp_path_ "$@" 
+    x mkdirp "$___X_CMD_TMP_PATH_"
+}
+
+___x_cmd_tmp_touch(){
+    ___x_cmd_tmp_path_ "$@" 
+    x touch "$___X_CMD_TMP_PATH_"
+}

@@ -1,6 +1,10 @@
-# shellcheck shell=sh disable=SC1072 #source
+# shellcheck    shell=sh            disable=SC3043      # xrc
 
-xws install
-___X_CMD_XRC_MODULE_IMPORTED=
-___x_cmd_advise rm ___x_cmd_path
-xrc path
+t_test(){
+    x tmp root "$(x wsroot)"
+    x tmp dir tmp aaa
+    x tmp touch tmp ccc
+    ls -la  tmp
+    x rmrf tmp
+}
+t_test

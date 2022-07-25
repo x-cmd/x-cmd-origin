@@ -1,0 +1,38 @@
+# shellcheck shell=sh disable=SC3043
+
+___x_cmd_tmux_load(){
+    local file="${1}"
+    [ -n "$file" ] || ___x_cmd_tmux_load___default
+    [ -f "$file" ] || { x:info "File Not Found. ___x_cmd_tmux_load() Exit 1"; return 1; }
+
+    local code
+    if ! code="$(
+        if [ "$file" != "${file%.json}" ]; then
+            cat "$file"
+        else
+            <"$file" x y2j
+        fi | awk \
+                -f "$___X_CMD_ROOT_MOD/awk/lib/default.awk"     \
+                -f "$___X_CMD_ROOT_MOD/awk/lib/json.awk"        \
+                -f "$___X_CMD_ROOT_MOD/awk/lib/jiter.awk"       \
+                -f "$___X_CMD_ROOT_MOD/tmux/lib/plan/conf.awk"
+    )"; then
+        x:error "Loading failure."
+    fi
+
+    eval "$code"
+}
+
+___x_cmd_tmux_load___default(){
+    local IFS=" "; local f; for f in ws.yml ws.json tmux.yml tmux.json; do
+        [ ! -f "$f" ] || { file="$f"; return 0; }
+    done
+
+    local wsroot
+    wsroot="$(x wsroot)/.x-cmd"
+    for f in ws.yml ws.json tmux.yml tmux.json; do
+        [ ! -f "$wsroot/$f" ] || { file="$wsroot/$f"; return 0; }
+    done
+
+    return 1
+}

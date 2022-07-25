@@ -1,45 +1,49 @@
-# shellcheck shell=sh disable=SC3043,SC2164,SC1091     # xrc
+# Author:       Li Junhao       l@x-cmd.com                             # xrc
+# shellcheck    shell=sh        disable=SC2039,SC1090,SC3043,SC2263
 
-# author:       Li Junhao           l@x-cmd.com
 # license:      GPLv3
 
-# 1. ls local device
-# 2. change to different arguments, like ls :ali/ip, means ali ip ls
+x log init tmux
 
+xrc:mod:lib tmux load util abbr
 
-# TODO: it is odd. ZSH does support command notation.
-if [ -z "$ZSH_VERSION" ]; then
-    ___x_cmd_ls_bin(){ command ls "$@"; }
-else
-    ___x_cmd_ls_bin(){ builtin ls "$@"; }
-fi
+___x_cmd_tmux___init(){
+    [ -z "$___X_CMD_TMUX____INIT" ] || return 0
+    grep -q 'source-file "$HOME/.x-cmd/tmux/lib/config/' "$HOME/.tmux.conf" 2>/dev/null || \
+        printf "%s" 'source-file "$HOME/.x-cmd/tmux/lib/config/x-cmd.tmux.conf"' >>"$HOME/.tmux.conf"
+    ___X_CMD_TMUX____INIT=1
+}
 
-. "$___X_CMD_ROOT/ls/lib/catsel"
+___x_cmd_tmux(){
+    ___x_cmd_tmux___init
 
-___x_cmd_ls(){
-    if [ "$#" -eq 1 ]; then
-        case "$1" in
-            :*.zip|:*.7z|:*.tar|:*.tar.Z|:*.tar.gz)     ___x_cmd_zuz_ls "${1#:}" ;;
-            :cpu)                                       x os cpu ;;
-            :mem)                                       x os mem ;;
-            :proc|:ps)                                  x os ps ;;
-            :path)                                      ;;
-            *)
+    case "$1" in
+        "")         ___x_cmd_tmux_load ;;
+        load)       shift; ___x_cmd_tmux_load "$@" ;;
+        :*)         ___x_cmd_tmux_quickenter "${1#:}" ;;
+        *)
+                    ___x_cmd_tmux___abbr_ "$@"
+                    [ "$___X_CMD_TMUX___ABBR_" -ne 0 ] || return
+                    if [ -f "$1" ]; then
+                        ___x_cmd_tmux_load "$@"
+                        return
+                    fi
+                    ___x_cmd___tmux_origin "$@" ;;
+    esac
+}
+___x_cmd___tmux_origin(){
+    export ___X_CMD_TMUX_BIN
+    export ___X_CMD_ROOT_MOD
+    if ! command -v tmux 1>/dev/null; then
+        x:warn "Tmux Command Not Found. Using tmux with pkg xbin."
 
-            if [ ! -t 1 ]; then
-                ___x_cmd_ls_bin "$@"
-                return
-            fi
-
-            if ! ___x_cmd_is_interative_tty; then
-                ___x_cmd_ls_bin -G "$@"
-                return
-            fi
-
-            ___x_cmd_ui_catsel "$@"
-            ;;
-        esac
+        x pkg xbin init tmux "" ___x_cmd___tmux_origin ___X_CMD_TMUX_BIN
+        ___x_cmd___tmux_origin "$@"
+    else
+        command tmux "$@"
     fi
 }
 
-xrc setmain ___x_cmd_ls
+xrc setmain ___x_cmd_tmux
+
+alias t=___x_cmd_tmux

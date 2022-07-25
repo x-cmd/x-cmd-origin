@@ -28,11 +28,21 @@ ___x_cmd_str_md5(){
 ___x_cmd_ccmd_x_cmd_advise_json(){
     cat <<A
 {
-    "help": null,
-    "clear": null,
-    "setup": null,
-    "teardown": null,
-    "invalidate": null
+    "help": {
+        "#desc":"Show help for command"
+    },
+    "clear": {
+        "#desc":"Clear cache"
+    },
+    "setup": {
+        "#desc":"Set cache storage location"
+    },
+    "teardown": {
+        "#desc":"Teardown storage location"
+    } ,
+    "invalidate": {
+        "#desc":"invalidate the current cache"
+    }
 }
 A
     return 126

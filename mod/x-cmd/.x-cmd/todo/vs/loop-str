@@ -1,0 +1,45 @@
+
+loop_awk(){
+    awk -v loops="${1:?Provide}" '
+        BEGIN{
+            a[1] = 1
+            for (i=1; i<=loops; ++i) {
+                a[ i + 100 ] = 1
+                # t = i + 100
+            }
+            print a[ 100 + 100 ]
+        }
+        '
+}
+
+
+loop_awk_str(){
+    awk -v loops="${1:?Provide}" '
+        BEGIN{
+            a[1] = 1
+            for (i=1; i<=loops; ++i) {
+                a[ i SUBSEP 100 ] = 1
+                # t = i SUBSEP 100
+            }
+            print a[ 100 , 100 ]
+        }
+        '
+}
+
+loop_awk_str_comma(){
+    awk -v loops="${1:?Provide}" '
+        BEGIN{
+            a[1] = 1
+            for (i=1; i<=loops; ++i) {
+                a[ i , 100 ] = 1
+                # t = i SUBSEP 100
+            }
+            print a[ 100 , 100 ]
+        }
+        '
+}
+
+time (loop_awk              10000000)
+time (loop_awk_str_comma    10000000)
+time (loop_awk_str          10000000)
+

@@ -1,97 +1,109 @@
-# Author:       Li Junhao   l@x-cmd.com             # xrc
-# shellcheck    shell=sh    disable=SC3043,SC1091
+# shellcheck shell=sh disable=SC2039,SC1090,SC3043,SC2263 # xrc
 
-___x_cmd_log init x
+# author:       Li Junhao           l@x-cmd.com
+# license:      GPLv3
 
-xrc:mod:lib x-cmd trace glob con alias args rmrf util lang ws exe tomod
+# LIB
 
-# Section : x main function
+xrc:mod:lib awk     stresstest
 
-___x_cmd_main_otherwise(){
-    local subcmd="$1";  shift
+___x_cmd_awk_lib(){
+    local IFS="
+"
 
-    local code
-    ___x_cmd_alias_exec ___x_cmd "$subcmd" "$@"
-    code=$?
-    if [ -n "$___X_CMD_ALIAS_EXEC_EXIST" ]; then
-        return $?
-    fi
-
-    # static build: update the static-build files
-    local ___X_CMD_WHICH_ONE_RESULT
-    local ___X_CMD_WHICH_ONE_RESOURCE_TYPE
-    if ___x_cmd_which_one "$subcmd"; then
-        local p="$___X_CMD_WHICH_ONE_RESULT";       x:debug "Executing Resource: [type=$___X_CMD_WHICH_ONE_RESOURCE_TYPE] [file=$p]"
-        case "$___X_CMD_WHICH_ONE_RESOURCE_TYPE" in
-            workspace)      ___x_cmd_exe_workspace  "$p" "$@" ;;
-            local)          ___x_cmd_run_by_file    "$p" "$@" ;;
-            hub)            ___x_cmd_run_by_file    "$p" "$@" ;;
-            official)       ___x_cmd_run_by_file    "$p" "$@" ;;
-        esac
-        code=$?;                                    x:debug "Resource Executed: [type=$___X_CMD_WHICH_ONE_RESOURCE_TYPE] [file=$p]"
-        return "$code"
-    else
-        printf "%s" "Error" >&2
-        return 1
-    fi
+    printf "%s\n" "default,$USE" | tr "," "\n" | while read -r lib; do
+        [ -z "$lib" ] && continue
+        xrc which "awk/lib/${lib}.awk"
+        printf " "
+        # printf "%s\n" "./${lib}.awk"
+    done | tr "\n" " "
 }
 
-___x_cmd_alias_init ___x_cmd
+___X_CMD_AWK_ALL_LIB="bit,math,ord,char,str,wcwidth,arr,ui,json,jiparse,jiparse_flat"
+___X_CMD_AWK_IMPLEMENTATION=
 
-___x_cmd_main(){
-    local subcmd="$1"
-    case "$subcmd" in
-        log)                                    shift;  ___x_cmd_log "$@" ;;
+___x_cmd_awk_detect_implemetation(){
+    if awk -Wv 2>&1 | grep -q "mawk"; then
+        ___X_CMD_AWK_IMPLEMENTATION=mawk
+        return
+    fi
+    ___X_CMD_AWK_IMPLEMENTATION=awk
+}
+___x_cmd_awk_impl(){
+    if [ -z "$___X_CMD_AWK_IMPLEMENTATION" ]; then
+        ___x_cmd_awk_detect_implemetation
+    fi
+    printf "%s\n" "$___X_CMD_AWK_IMPLEMENTATION"
+}
 
-        *:=)                                    shift;  ___x_cmd_varset "${subcmd%:=}" "$@" ;;
-        *=)                                     shift;  ___x_cmd_varset_without_end "${subcmd%=}" "$@" ;;
+___x_cmd_awk(){
+    local IFS="
+"
 
-        arg1)                                   shift;  ___x_cmd_args 1 "$@"    ;;
-        marg1)                                  shift;  ___x_cmd_margs 1 "$@"   ;;
+    local op="$1";
+    case "$op" in
+        stresstest)     shift; ___x_cmd_awk_stresstest "$@" ;;
+        impl)
+            ___x_cmd_awk_impl ;;
+        file)   # This is core ...
+            local fp="$2"; [ "$#" -gt 1 ] && shift 2
+            local code
+            if ! code="$(eval cat "$(___x_cmd_awk_lib)" "$fp")"; then
+                printf "%s\n" "Cannot find out code."
+                return 1
+            fi
+            command awk "$@" "$code"
+            ;;
+        arg)
+            printf "%s %s" "-f" "awk/lib/default.awk"
+            for i in "$@"; do
+                printf " -f %s " "awk/lib/${i}.awk"
+                # case "$i" in
+                #     arr|bit|char|default|jiprint|jiter|jparse|json|math|ord|re|str|ui|var|wcwdith)
 
-        readl|rl)                               shift;  ___x_cmd_readl "$@"   ;;
-        readeval|reval)                         shift;  ___x_cmd_reval "$@"   ;;
-        readml)                                 shift;  ___x_cmd_readml "$@"   ;;
-        writeml)                                shift;  ___x_cmd_writeml "$@"   ;;
-
-        js|node)                                shift;  ___x_cmd_node "$@" ;;
-        python|py)                              shift;  ___x_cmd_python "$@" ;;
-        pip|pip3)                               shift;  ___x_cmd_pip3 "$@" ;;
-
-        alias|unalias)                          shift;  "___x_cmd_$subcmd"  ___x_cmd "$@"   ;;
-        jar|java|npm|npx|ts|    _ws|wsroot|ws|      args|margs|conjoin|con|rmrf|repeat|     which|search_path|_x_cmd_advise_json|       ls|ll   |ssl    | abspath \
-            | ps|du|sqlite|cat|bw | 7z|7zd )
-                                                shift;  "___x_cmd_$subcmd" "$@" ;;
-
-        curl|jq|yq|tmux|git|tesseract|magick)   shift;  ___x_cmd_static_build_file     "$subcmd" "$subcmd"      "$@"    ;;
-        nmap|ncat|nping|traceroute)             shift;  ___x_cmd_static_build_file      nmap "$subcmd"          "$@"    ;;
-
-        sh|bash|zsh|fish|ksh|dash|ash)          shift;  ___x_cmd_shell_exec "$subcmd" "$@" ;;
-        run)                                    shift;  ___x_cmd_run_by_file "$@"       ;;
-
-        test)                                   shift;  { command -v ___x_cmd_test >/dev/null 2>&1 || xrc:mod test/latest; } && ___x_cmd_test "$@" ;;
-        login)                                  shift;  xrc hub/latest && ___x_cmd_hub login "$@" ;;
-
-        update|upgrade|clear|reinstall)         shift;  xrc update "$@" ;;
-
-        z|uz)                                           ( xrc zuz && ___x_cmd_zuz "$@" ) ;;   # zl)  ( xrc zuz && ___x_cmd_zuz_ls "$@"        ) ;;       # Using ls to replace
-        ""|help)                                        ___x_cmd_x_cmd_help ;;
-
-        *)                                              ___x_cmd_main_otherwise "$@" ;;
+                # esac
+            done
+            ;;
+        code)   # This will be in file
+            local code="$2"; [ "$#" -gt 1 ] && shift 2
+            command awk "$@" "$(eval cat "$(___x_cmd_awk_lib)")
+${code}"
+            ;;
+        src)
+            [ "$#" -gt 0 ] && shift
+            local IFS=" "
+            eval cat "$(___x_cmd_awk_lib) $*"
+            ;;
+        try)
+            local code="$2"; [ "$#" -gt 1 ] && shift 2
+            local USE="$___X_CMD_AWK_ALL_LIB"
+            command awk "$@" "$(eval cat "$(___x_cmd_awk_lib)")
+$code"
+            ;;
+        end)
+            local code="$2"; [ "$#" -gt 1 ] && shift 2
+            if [ "$code" = - ]; then
+                code="$(cat)"
+            fi
+            local USE="$___X_CMD_AWK_ALL_LIB"
+            printf "" | command awk "$@" "$(eval cat "$(___x_cmd_awk_lib)")
+END{
+    $code
+}"
+            ;;
+        _x_cmd_advise_json) printf "{}" ;;
+        *)
+            command awk "$@"
+            ;;
     esac
 }
 
-# EndSection
+# x awk file=a.txt
 
+# x awk code='{
+#
+# }' $@
 
-x(){
-    ___x_cmd_main "$@"
-}
+alias xawk=___x_cmd_awk
 
-if ___x_cmd_is_suitable_advise_env; then
-    command -v ___x_cmd_advise >/dev/null || xrc advise/latest
-    ___x_cmd_advise init x
-fi
-
-# TODO: We should have a better solution for this.
-X_DISABLE_WORKSPACE_EXECUTION_CONFIRMATION=1
+xrc setmain ___x_cmd_awk

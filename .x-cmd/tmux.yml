@@ -1,0 +1,27 @@
+name: "x-tmux"  # If None, using current directory name.
+root: ~/              # If None, using current directory
+
+windows:
+  - name: editor
+    root: ~/
+    # layout: vertical
+    before: >
+      x use node=v18
+    panes:
+      - name: monitor
+        # layout: horizontal
+        # size: 70%
+        panes:
+          - panes:
+              - top
+              - x dust && read r
+          - name: netstat
+            exec: netstat -v
+      - name: man
+        x: x man tmux
+        size: 30%
+
+  # - name: logs
+  #   # root: "%{PWD}"
+  #   exec: tail -f log/app.log
+

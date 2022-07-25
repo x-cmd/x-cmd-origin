@@ -1,0 +1,10 @@
+# shellcheck    shell=sh            disable=SC3043      # xrc
+
+t_test(){
+    x tmp root "$(x wsroot)"
+    x tmp dir tmp aaa
+    x tmp touch tmp ccc
+    ls -la  tmp
+    x rmrf tmp
+}
+t_test

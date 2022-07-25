@@ -1,4 +1,0 @@
-
-data="$(cat)"
-[ -n "$data" ] || exit 0
-printf "%s" "$data" | xclip -i -selection clipboard

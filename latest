@@ -1,11 +1,32 @@
-# shellcheck shell=sh disable=SC3043,SC2164     # xrc
+# Author:       Li Junhao           l@x-cmd.com
+# shellcheck    shell=sh            disable=SC3043,SC2164     # xrc
 
-# author:       Li Junhao           l@x-cmd.com
 # license:      GPLv3
 
+# Better But Will Be Slower.
+# Move the files as safe as possible in a batch.
 
-___x_cmd_cp(){
-    cp "$@"
+# mv a/b/c.txt a/b/d.txt a/c/a.txt  dst/
+# mv -p b/c.txt b/d/.txt c/a.txt    dst/
+
+xrc:mod:lib     mv      utils
+
+___x_cmd_mv(){
+    if [ "$#" -eq 0 ]; then
+        printf "%s\n" "TODO: Will Use Pipe"
+        return 1
+    fi
+
+    if [ "$#" -eq 1 ]; then
+        ___x_cmd_mv_from_pipe "$1"
+        return
+    fi
+
+    local lastarg
+    eval 'lastarg="$'$#'"'
+    x mkdirp "${lastarg%/*}"
+
+    ___x_cmd_inner_mv "$@"
 }
 
-xrc setmain ___x_cmd_cp
+xrc setmain ___x_cmd_mv

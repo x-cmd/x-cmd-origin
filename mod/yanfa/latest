@@ -1,33 +1,24 @@
-# Author:       Li Junhao           l@x-cmd.com     # xrc
-# shellcheck    shell=sh
+# shellcheck shell=sh disable=SC3043 # xrc
 
-xrc param/latest
+xrc:mod:lib wx      util
 
-x log init yanfa
+# wx is a tar.gz file
+# x wx work
+# x wx --verbose work
+# x work.wx
+# x @l/work
+# xwx work
 
-xrc:mod:lib yanfa   all ws mod pkg init try git release
-
-# git config --worktree --get-regexp "remote[a-z\.]+.url"
-
-___x_cmd_yanfa(){
-    param:dsl <<A
-subcommand:
-    init        "init"
-    mod         "modules"
-    pkg         "package"
-    release     "release"
-    ws          "workspace"
-    all         "all modules"
-    try         "do some experiment on all poxis shell"
-A
-    param:run
-
-    if [ -z "${PARAM_SUBCMD}" ]; then
-        ___x_cmd_yanfa help
-        return 0
-    fi
-
-    "___x_cmd_yanfa_${PARAM_SUBCMD}" "$@"
+___x_cmd_wx(){
+    case "$1" in
+        pkg)            shift; ___x_cmd_wx_pkg "$@"     ;;
+        unpkg)          shift; ___x_cmd_wx_unpkg "$@"   ;;
+        run)            shift; ___x_cmd_wx_run "$@"     ;;
+        ls)             shift; ___x_cmd_wx_run "$@"     ;;
+        _x_cmd_advise_json) printf "{}"                 ;;
+        *)              ___x_cmd_wx_run "$@"            ;;
+    esac
 }
 
-xrc setmain ___x_cmd_yanfa
+xrc setmain ___x_cmd_wx
+

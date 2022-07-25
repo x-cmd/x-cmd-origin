@@ -1,0 +1,7 @@
+# shellcheck shell=sh disable=SC3043 #source
+
+xws install
+___X_CMD_XRC_MODULE_IMPORTED= # reload all modules
+xrc shall
+
+shall 'echo hello'

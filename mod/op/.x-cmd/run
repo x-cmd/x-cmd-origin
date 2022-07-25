@@ -1,0 +1,2 @@
+# shellcheck shell=sh
+echo Hello WX !!!

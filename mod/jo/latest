@@ -3,71 +3,50 @@
 
 # jo q a=.bcd b=.cde c=.abc
 
+# TODO: Add merge
+# TODO: Fix color and fmt definition
+
+xrc:mod ja/lib/share/index
+
 ___x_cmd_jo(){
-    case "${1:?Provide op}" in
-        data)                                       ___x_cmd_jo_data "$@" ;;
-        fmt)        if [ -t 1 ]; then       COLOR=1 ___x_cmd_jo_fmt "$@"
-                    else                            ___x_cmd_jo_fmt "$@"
-                    fi ;;
+    case "${1}" in
+        data)                                       shift; ___x_cmd_ja_data             "$@" ;;
+
+        n|normalize)                                shift; ___x_cmd_ja_normalize        "$@" ;;
+        t|tokenize)                                 shift; ___x_cmd_ja_tokenize         "$@" ;;
+        f|fmt)                                      shift; ___x_cmd_ja_fmt              "$@" ;;
+        color)                                      shift; ___x_cmd_ja_color            "$@" ;;
+        2y|toyml)                                   shift; ___x_cmd_ja_toyml            "$@" ;;
+
+        "")                                         ___x_cmd_ja___normalize_stream           ;;
+        \{*|\[*)                                    ___x_cmd_ja___normalize_argstring   "$@" ;;
+
         v|valid)    ;;
         u|uniq)     ;;
-        color)                              COLOR=1 ___x_cmd_jo_fmt "$@" ;;
-        l|list)       shift;                          ___x_cmd_jo_wrap ___x_cmd_jo_list "$@" ;;
-        d|dict)       shift;                          ___x_cmd_jo_wrap ___x_cmd_jo_dict "$@" ;;
+        l|list)       shift;                        ___x_cmd_ja___warp_color_iftty ___x_cmd_jo_list   "$@" ;;
+        d|dict)       shift;                        ___x_cmd_ja___warp_color_iftty ___x_cmd_jo_dict   "$@" ;;
 
-        # q)          shift;                          ___x_cmd_jo_wrap
-
-        -)                                          ___x_cmd_jo_wrap ___x_cmd_jo_awk ;;
-
-        \{*|\[*)                             local IFS=" "; printf "%s" "$*" | \
-                                                    ___x_cmd_jo_wrap ___x_cmd_jo_awk;;
+        # q)          shift;                        ___x_cmd_ja___warp_color_iftty
 
         qu)                                         ___x_cmd_jo_quote "$@" ;;
         uq)                                         ___x_cmd_jo_unquote "$@" ;;
 
-        q)                                          shift 1; ___x_cmd_jo_query "$@" ;;
+        q0|q1|q)                                    local ___X_CMD_JO_QUERY_JSTR="$1"; shift 1; \
+                                                    ___x_cmd_jo_query "$@" ;;
         env)                                        shift 1; ___x_cmd_jo_env "$@" ;;
-        _x_cmd_advise_json)                         printf "{}" ; return 126      ;;
-        *)                                          ___x_cmd_jo_query "$@" ;;
+        _x_cmd_advise_json)                         cat "$___X_CMD_ROOT_MOD/jo/lib/jo.advise.json";;
+        *)                                          local ___X_CMD_JO_QUERY_JSTR="q1"; ___x_cmd_jo_query "$@" ;;
 
         #   We will add some query functions and modified function here ...
         # *)
-        #             if [ "$#" -eq 0 ]; then         ___x_cmd_jo_wrap ___x_cmd_jo_awk
+        #             if [ "$#" -eq 0 ]; then         ___x_cmd_ja___warp_color_iftty ___x_cmd_ja_normalize
         #             else                    local IFS=" "; printf "%s" "$*" | \
-        #                                             ___x_cmd_jo_wrap ___x_cmd_jo_awk
+        #                                             ___x_cmd_ja___warp_color_iftty ___x_cmd_ja_normalize
         #             fi
     esac
 }
 
-___x_cmd_jo_awk(){
-    command awk \
-        -f "$___X_CMD_ROOT/awk/lib/re.awk"  \
-        -f "$___X_CMD_ROOT/jo/lib/normalize.awk"
-}
-
-___x_cmd_jo_wrap(){
-    if [ ! -t 1 ]; then
-        "$@"
-    else
-        "$@" | ___x_cmd_jo_color
-    fi
-}
-
 # Section: subcmd
-
-# arg: indent
-___x_cmd_jo_fmt(){
-    command awk -v INDENT="${INDENT:-2}}" -f "$___X_CMD_ROOT_MOD/jo/lib/fmt.awk"
-}
-
-___x_cmd_jo_color(){
-    command awk -v INDENT="${INDENT:-2}}" -f "$___X_CMD_ROOT_MOD/jo/lib/color.awk"
-}
-
-___x_cmd_json_data(){
-    ___x_cmd_curl_gitx x-cmd json-test-data main data/one.mb.json "${TMPDIR}/mb1.json"
-    seq "${1:-1}" | x args 1 - cat "${TMPDIR}/mb1.json"
-}
 
 # time ___x_cmd_jo_list 1 2 \"true\" $( ___x_cmd_jo_list 1 2 3)
 if [ -n "${BASH_VERSION}${ZSH_VERSION}${KSH_VERSION}" ]; then
@@ -76,7 +55,7 @@ else
     . "$___X_CMD_ROOT_MOD/jo/lib/list_dict_posix"       # xrc jo/lib/list_dict_posix
 fi
 
-xrc:mod jo/lib/query jo/lib/env
+xrc:mod jo/lib/query jo/lib/env advise/latest
 # EndSection
 
 

@@ -28,7 +28,7 @@ function pattern_split( selector, arr,     e, l ){
 
 function pattern_quote( arrl, arr,     i, e ){
     for (i=1; i<=arrl; ++i) {
-        arr[i] = q( arr[i] )
+        arr[i] = jqu( arr[i] )
     }
     return arrl
 }

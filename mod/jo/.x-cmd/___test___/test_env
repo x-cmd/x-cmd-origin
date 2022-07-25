@@ -1,16 +1,16 @@
 test_env_one(){
-    @assert stdout 'data | ___x_cmd_jo_env aaa=.files\\.defaultLanguage;echo "$aaa"' << A
+    @assert stdout 'data | { ___x_cmd_jo_env aaa=.files\\.defaultLanguage;echo "$aaa"; }' << A
 shellscript
 A
-    @assert stdout ' data | ___x_cmd_jo_env . .files\\.associations.index\\.html; echo "$html"' << A
+    @assert stdout ' data | { ___x_cmd_jo_env . .files\\.associations.index\\.html; echo "$html"; }' << A
 shellscript
 A
-    @assert stdout 'data | ___x_cmd_jo_env . .files\\.associations.\*\\.json; echo "$json"' << A
+    @assert stdout 'data | { ___x_cmd_jo_env . .files\\.associations.\*\\.json; echo "$json"; }' << A
 json
 A
 }
 test_env_multi(){
-    @assert stdout ' data | ___x_cmd_jo_env . aaa=.files\\.defaultLanguage bbb=.files\\.defaultLanguage; echo "$aaa $bbb"' << A
+    @assert stdout ' data | { ___x_cmd_jo_env . aaa=.files\\.defaultLanguage bbb=.files\\.defaultLanguage; echo "$aaa $bbb"; }' << A
 shellscript shellscript
 A
 }
@@ -31,6 +31,30 @@ shellscript
 true
 A
 
+}
+
+test_env_read(){
+    local data='{
+    "classA": [
+        {
+            "name": "l",
+            "score": 100
+        },
+        {
+            "name": "agent-zero-b",
+            "score": 0
+        },
+        {
+            "name": "agent-ten-b",
+            "score": 10
+        }
+    ]
+}'
+    @assert stdout 'echo "$data" | x jo env .classA.\* .name .score -- "echo "\$name" "\$score"" ' << A
+l 100
+agent-zero-b 0
+agent-ten-b 10
+A
 }
 
 @assert:file:func

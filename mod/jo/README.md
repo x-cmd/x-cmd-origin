@@ -37,17 +37,17 @@
 
 
 ```bash
-<.data.json x jo .classA .name .score | while x rl name score; do
+<.data.json x jo .classA.* .name .score | while x rl name score; do
     eval echo "$name" "$score"
     echo post webservice "https://x-cmd.com/$name/$score"
 done
 
-<.data.json x jo .classA .name .score | x rl name score -- '
+<.data.json x jo .classA.* .name .score | x rl name score -- '
     echo "$name" "$score"
     echo post webservice "https://x-cmd.com/$name/$score"
 '
 
-<.data.json x jo .classA .name .score | x args -n 2 '
+<.data.json x jo .classA.* .name .score | x args -n 2 '
     eval echo "$1" "$2"
     echo post webservice "https://x-cmd.com/$1/$2"
 '
@@ -55,7 +55,7 @@ done
 
 ```bash
 global_str=
-while x jo env .name .score; do
+while x jo env .class*.* .name .score; do
     printf "%s" "${name}${score}"
 done <<A
 $(x jo .class* <data.json)
@@ -65,25 +65,25 @@ global_str=
 while x rl name score; do
     printf "%s" "${name}${score}"
 done <<A
-$(x jo env .class* .name .score <data.json)
+$(x jo env .class*.* .name .score <data.json)
 A
 
 # I am wondering how must cost it is ...
-global_str="$(<data.json x jo .class* .name .score -- 'printf "%s" "${name}${score}"')"
+global_str="$(<data.json .class*.* .name .score -- 'printf "%s" "${name}${score}"')"
 
 global_str="$(
-x jo .class* .name .score <data.json | while x rl name score; do
+x jo .class*.* .name .score <data.json | while x rl name score; do
     printf "%s" "${name}${score}"
 done
 )"
 
 global_str="$(
-x jo env .class* .name .score <data.json | while x reval; do
+x jo env .class*.* .name .score <data.json | while x reval; do
     printf "%s" "${name}${score}"
 done
 )"
 
-global_str="$(x jo env .class* .name .score <data.json | x reval 'printf "%s" "${name}${score}"')"
+global_str="$(x jo env .class*.* .name .score <data.json | x reval 'printf "%s" "${name}${score}"')"
 
 # bash only
 
@@ -103,23 +103,23 @@ done < <(x jo .class* <data.json)
 我们可以让jo env 做得复杂一点，通过一个复杂的分隔符来处理。
 
 ```bash
-<.data.json x jo env . n=.name s=.score -- '
-    echo "$name" "$score"
+<.data.json x jo env .class*.* n=.name s=.score -- '
+    echo "$n" "$s"
     echo post webservice "https://x-cmd.com/$name/$score"
 '
 
 # Readline might be a big problem...
-<.data.json x jo env . .name .name .score -- '
+<.data.json x jo env .class*.* .name .score -- '
     echo "$name" "$score"
     echo post webservice "https://x-cmd.com/$name/$score"
 '
 
-<.data.json x jo env .classA .name .score | while x readml name score; do
+<.data.json x jo env .classA.* .name .score | while x readml name score; do
     echo "$name" "$score"
     echo post webservice "https://x-cmd.com/$name/$score"
 done
 
-<.data.json x jo .classA .name .score | x jo uq | while x readml name score; do
+<.data.json x jo .classA.* .name .score | x jo uq | while x readml name score; do
     echo "$name" "$score"
     echo post webservice "https://x-cmd.com/$name/$score"
 done

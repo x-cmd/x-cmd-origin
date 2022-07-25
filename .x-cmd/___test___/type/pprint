@@ -1,0 +1,15 @@
+# shellcheck shell=sh
+param_pprint_type(){
+    param_type      gitee     test_1        =    aaa bbb
+    param_type      gitee     test_2        =    ccc ddd
+    ___x_cmd_param_type pprint gitee test_1
+}
+
+test_param_pprint_type(){
+    @assert stdout param_pprint_type <<A
+
+test_1 = aaa bbb
+test_2 = ccc ddd
+A
+}
+@assert:file:func

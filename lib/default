@@ -1,3 +1,4 @@
+# shellcheck    shell=sh disable=SC3043
 
 # Section 4: param default management
 # param_default put <scope> <key> <value>

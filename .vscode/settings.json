@@ -1,4 +1,7 @@
 {
+    "github-actions.workflows.pinned.workflows": [".github/workflows/test.yml"],
+    "github-actions.workflows.pinned.refresh.enabled": true,
+    "github-actions.workflows.pinned.refresh.interval": 65,
     "files.defaultLanguage": "shellscript",
     "files.associations": {
         "**/*.awk": "awk",

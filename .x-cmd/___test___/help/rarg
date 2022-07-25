@@ -1,0 +1,29 @@
+# shellcheck shell=sh disable=SC2039,SC2142,SC3043
+
+rarg_help() {
+    param:dsl       '
+options:
+    #1              "Test rest argument #1 request"  <rarg>:atlist_type  =   "private"         "public"          "inner-public"
+    #2              "Test rest argument #2 request"  <arg2>              =~  "[-0-9,]+"
+    #3              "Test rest argument #3 request"  <arg3>
+    #4              "Test rest argument #4 request"  <arg4>="iii"
+    #5              "Test rest argument #5 request"
+    #n              "Test rest argument #n request"
+'
+    param:run
+}
+
+test_rarg_help(){
+    @assert stdout rarg_help _x_cmd_help <<A
+
+ARGS:
+    #1   Test rest argument #1 request [candidate: "private", "public", "inner-public"]
+    #2   Test rest argument #2 request [regex: "[-0-9,]+"]
+    #3   Test rest argument #3 request
+    #4   Test rest argument #4 request [default: iii]
+    #5   Test rest argument #5 request
+    #n   Test rest argument #n request
+
+A
+}
+@assert:file:func

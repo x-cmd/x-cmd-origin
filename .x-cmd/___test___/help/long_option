@@ -1,0 +1,36 @@
+# shellcheck shell=sh
+
+longoption(){
+    param:dsl      <<A
+option:
+    --mul_line_arg|-m       "Test multiple line argument Test multiple line argument Test multiple line argument Test multiple line argument Test multiple line argument Test multiple line argument Test multiple line argument Test multiple line argument Test multiple line argument Test multiple line argument Test multiple line argument Test multiple line argument"            <mline_arg>:mline_arg_type
+    --flag1|-f              "Flag1 that you can use \\\$\{flag1:-false} to get the bool value Flag1 that you can use \\\$\{flag1:-false} to get the bool value Flag1 that you can use \\\$\{flag1:-false} to get the bool value Flag1 that you can use \\\$\{flag1:-false} to get the bool value"
+    #1                      "Test rest argument #1 when exist option and flag Test rest argument #1 when exist option and flag Test rest argument #1 when exist option and flag Test rest argument #1 when exist option and flag Test rest argument #1 when exist option and flag"
+A
+    param:run
+}
+
+test_longoption_help(){
+        @assert stdout longoption _x_cmd_help <<A
+
+FLAGS:
+    --flag1,-f   Flag1 that you can use \\$\\{flag1:-false} to get the bool value Flag1 that you can use${space}
+                 \\$\\{flag1:-false} to get the bool value Flag1 that you can use \\$\\{flag1:-false} to get the bool${space}
+                 value Flag1 that you can use \\$\\{flag1:-false} to get the bool value
+
+OPTIONS:
+    --mul_line_arg,-m <mline_arg>   Test multiple line argument Test multiple line argument Test multiple line${space}
+                                    argument Test multiple line argument Test multiple line argument Test${space}
+                                    multiple line argument Test multiple line argument Test multiple line${space}
+                                    argument Test multiple line argument Test multiple line argument Test${space}
+                                    multiple line argument Test multiple line argument
+
+ARGS:
+    #1   Test rest argument #1 when exist option and flag Test rest argument #1 when exist option and flag Test${space}
+         rest argument #1 when exist option and flag Test rest argument #1 when exist option and flag Test rest${space}
+         argument #1 when exist option and flag
+
+A
+}
+
+@assert:file:func

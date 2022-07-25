@@ -1,0 +1,18 @@
+# shellcheck shell=sh disable=SC2039,SC2142,SC3043
+
+tmp_func(){
+    param:scope  "tmp/$O"
+    param:dsl    '
+option:
+    --pd|-d    "Test param default setting"   <pd>=private
+'
+    param:run
+    printf "%s" "$pd"
+}
+
+test_param_default(){
+    param_default put tmp/ccc pd public
+    @assert "$(O=ccc tmp_func)" = public
+}
+
+@assert:file:func

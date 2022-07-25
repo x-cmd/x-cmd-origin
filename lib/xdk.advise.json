@@ -1,0 +1,15 @@
+{
+    "alias": {},
+    "run":  {
+        "centos": {},
+        "ubuntu": {},
+        "alpine": {},
+        "busybox": {}
+    },
+    "exec": {},
+    "empower": {},
+    "centos": {},
+    "ubuntu": {},
+    "alpine": {},
+    "busybox": {}
+}

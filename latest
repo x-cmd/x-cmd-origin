@@ -1,69 +1,19 @@
-# Author:       Li Junhao   l@x-cmd.com     # xrc
-# shellcheck    shell=sh    disable=SC2039,SC3043
+# Author:       Li Junhao           l@x-cmd.com                         # xrc
+# shellcheck    shell=sh            disable=SC2039,SC2142,SC3043
 
-xrc param
-xrc dict
+xrc:mod:lib     param       default marg type plugin postproc preload
 
-___x_cmd_http() {
-    local O="${O:-_HTTP_DEFAULT}"
-    if [ "${1#@}" != "$1" ]; then
-        O="${1#@}"
-        shift
-    fi
-    O="___X_BASH_HTTP_${O}"
-
-    param:dsl      '
-subcommands:
-    make            "make a new client"
-    browse          "open browser"
-    cd              "enter into the subpath relative to current path"
-    qs              "set the default query string parameter"
-    dict            ""
-    header          "set the default header"
-    body            "set the default attribute in body"
-    head            "launch a head request"
-    get             "launch a head request"
-    post            "launch a post request"
-    put             "launch a put request"
-    patch           "launch a patch request"
-    delete          "launch a delete request"
-    graphql|gq      "launch a graphql request"
-    response        "get the response information of latest request"
-'
-    param:run
-    if [ -z "$PARAM_SUBCMD" ]; then
-        ___x_cmd_http_cli "$@"
-        return
-    fi
-    "___x_cmd_http_${PARAM_SUBCMD}" "$@"
+___x_cmd_param(){
+    case "$1" in
+        marg)           param_marg "$@" ;;
+        flag2bool)      ___x_cmd_param_flag_to_bool "$@" ;;
+        jo)             ___x_cmd_param_option_to_json "$@" ;;
+        default)        param_default "$@" ;;
+        plugin)         param_plugin "$@" ;;
+        type)           param_type "$@" ;;
+        ""|help)        cat "$___X_CMD_ROOT_MOD/param/lib/help.txt" >&2; return 1 ;;
+        _x_cmd_advise_json) printf "{}";;
+    esac
 }
 
-___x_cmd_http_cli(){
-    xrc ps1env
-    ps1env init "http"
-    ps1env alias + "http"
-    ps1env alias :h "http help"
-    local IFS
-    local subcmd
-    while read -r subcmd; do
-        ps1env alias "+$subcmd" "http $subcmd"
-    done <<A
-$(http _param_list_subcmd)
-A
-}
-
-x log init http
-
-# shellcheck disable=SC1091
-{
-    . "$___X_CMD_ROOT/http/lib/utils"
-    . "$___X_CMD_ROOT/http/lib/header"
-    . "$___X_CMD_ROOT/http/lib/qs"
-    . "$___X_CMD_ROOT/http/lib/body"
-    . "$___X_CMD_ROOT/http/lib/request"
-    . "$___X_CMD_ROOT/http/lib/resp"
-    . "$___X_CMD_ROOT/http/lib/crud"
-    . "$___X_CMD_ROOT/http/lib/graphql"
-}
-
-xrc setmain ___x_cmd_http
+xrc setmain ___x_cmd_param

@@ -1,0 +1,3 @@
+# shellcheck shell=sh disable=SC2039,SC2142,SC3043
+local space="$(printf " ")"
+local COLUMNS=115 # This is screen width

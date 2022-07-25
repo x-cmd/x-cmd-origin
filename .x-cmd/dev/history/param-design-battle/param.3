@@ -1,0 +1,136 @@
+# shellcheck shell=bash
+
+param.__localize_env_parameter(){
+    local prev=$1
+    for cur in "${@:2}"; do
+        if [ "$prev" == ":" ]; then
+            if [[ "$cur" == *=* ]]; then
+                local name=${cur%%=*}
+                local value=${cur#=*}
+                echo "local $name=\${$name:-$value};";
+            else
+                echo "local $cur=\${$cur};";
+            fi
+            return 0
+        fi
+        prev="$cur"
+    done
+    return 1
+}
+
+param.__localize_arg_parameter(){
+    local cur prev="" 2>/dev/null
+    for cur in "$@"; do
+        if [[ "$prev" == --* ]]; then
+            local name=${prev#*--};
+            local value=$cur
+            echo "local $name=\${$name:-$value};";
+        fi
+        prev=$cur
+    done
+    return 1
+}
+
+param.__handle(){
+    shift 1
+    local name="$1"
+    local description="" operator="$2"
+    shift 2
+    case "$operator" in
+    =~);;
+    =);;
+    int);;
+    float);;
+    *)
+        description="$operator"
+        operator="$1"
+        shift
+    esac
+
+    case "$operator" in
+    =~)
+        for i in "$@"; do
+            # shellcheck disable=SC2076
+            [[ "${!name}" =~ "$i" ]] && return 0
+            echo "Argument [$name]: None of them matched" >&2
+        done ;;
+    =)
+        for i in "$@"; do
+            # shellcheck disable=SC2076
+            [[ "${!name}" =~ "$i" ]] && return 0
+        done
+        echo "Argument [$name]: None of them matched" >&2 ;;
+    int)
+        [[ "${!name}" =~ ^[\ \t]+[0-9]+[\ \t]+$ ]] && return 0
+        echo "Argument [$name]: Expected an integer" >&2 ;;
+    float)
+        [[ "${!name}" =~ ^[\ \t]+[0-9]+(.[0-9]+)?[\ \t]+$ ]] && return 0
+        echo "Argument [$name]: Expected a float" >&2 ;;
+    *)
+        echo "Invalid operator: $operator" >&2
+    esac
+
+    echo "Argument [$name]: $description" >&2
+    return 1
+}
+
+
+param.__trap_localize_argenv_parameter(){
+    # shellcheck disable=SC2016
+    local local_var_code='eval "$(param.__localize_env_parameter $BASH_COMMAND)"'
+
+    # shellcheck disable=SC2016
+    local handle_code='param.__handle $BASH_COMMAND'
+
+    # local local_var_code='eval "$(param.__localize_env_parameter $BASH_COMMAND)" 2>/dev/null'
+    local latest_debug_code
+    latest_debug_code=$(trap DEBUG)
+    local restore_debug_code="trap ${latest_debug_code:-"\"\""} DEBUG"
+
+    # NOTICE Replace the first no to yes, which is RUN=no
+    # shellcheck disable=SC2016
+    # local command_code='eval "${BASH_COMMAND/no/yes}" || return 1 2>/dev/null'
+
+    local final_code="
+    $local_var_code
+    $handle_code
+    $restore_debug_code"
+
+    # echo -e "---\n$final_code"
+    trap "$final_code" DEBUG
+
+}
+
+# shellcheck disable=SC2142
+alias @check_arg='local __X_BASH_FUNCTION_ARGUMENT_GET=1; [ -z "$__X_BASH_FUNCTION_ARGUMENT_GET" ] && eval "$(param.__localize_arg_parameter "$@")"; '
+
+alias @arg+env='@check_arg; __X_BASH_PARAM_USING_ARG=yes param.__trap_localize_argenv_parameter; :'
+alias @arg='@check_arg; __X_BASH_PARAM_USING_ARG=yes param.__trap_localize_argenv_parameter; :'
+alias @env="param.__trap_localize_argenv_parameter; :"
+
+<<A
+
+A
+
+work(){
+    # we could use parse
+    # we could use other ways
+    param '
+        +org=hi     "Provide argument" =~ work a b
+        -member=3   "Provide argument" int
+        repo=hi     "Provide work" =~ work a b
+    '
+    @env hi =~ work a b
+    @env hi1=work "description" = ab work cde
+}
+
+# hi=work3 work
+
+
+# shellcheck disable=SC2142
+alias printArg="echo \$@"
+
+www(){
+    printArg
+}
+

@@ -1,0 +1,4 @@
+# shellcheck shell=sh disable=SC2039,SC2142,SC3043
+
+local arg_sep="$(printf "\005")"
+local dict_sep="$(printf "\003")"

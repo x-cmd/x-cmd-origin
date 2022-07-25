@@ -1,35 +1,33 @@
 {
     "files.defaultLanguage": "shellscript",
     "files.associations": {
-        "**/*.awk": "awk",
-        "**/*.json": "json",
+        "*.json": "json",
+        "index.html": "shellscript",
         "**/*.md": "markdown",
-        "**/*.yml": "yaml",
-        "**/*.py": "python",
-        "**/*.js": "javascript",
-        "**/*.ts": "typescript",
-        "**/LICENSE": "TXT",
-        "**/*": "shellscript"
+        "**/std/**": "shellscript",
+        "**/tools/*": "shellscript",
+        "**/cloud/*": "shellscript",
+        "**/cmd/*": "shellscript",
+        "**/con/*": "shellscript",
+        "**/net/*": "shellscript",
+        "**/el/*": "shellscript",
+        "**/*.awk": "awk",
+        "*": "shellscript",
+        "*install*": "shellscript",
+        "LICENSE": "text"
     },
     "files.trimTrailingWhitespace": true,
     "editor.detectIndentation": true,
     "editor.tabSize": 4,
     "explicitFolding.rules": {
-        "typescript": [
+        "awk": [
             {
-                "beginRegex": "^\\s*\\/\\/\\s*Section:?",
-                "endRegex": "^\\s*\\/\\/\\s*EndSection",
+                "beginRegex": "^\\s*#\\s*Section:?",
+                "endRegex": "^\\s*#\\s*EndSection",
                 "autoFold": true
             }
         ],
-        "javascript": [
-            {
-                "beginRegex": "^\\s*\\/\\/\\s*Section:?",
-                "endRegex": "^\\s*\\/\\/\\s*EndSection",
-                "autoFold": true
-            }
-        ],
-        "*": [
+        "shellscript": [
             {
                 "beginRegex": "^\\s*#\\s*Section:?",
                 "endRegex": "^\\s*#\\s*EndSection",
@@ -37,28 +35,4 @@
             }
         ]
     },
-    "better-comments.highlightPlainText": true,
-    "better-comments.tags": [
-        {
-            "tag": "!",
-            "color": "#FF2D00",
-            "strikethrough": false,
-            "underline": false,
-            "backgroundColor": "transparent",
-            "bold": false,
-            "italic": false
-        },
-        {
-            "tag": "?",
-            "color": "#3498DB",
-            "strikethrough": false,
-            "underline": false,
-            "backgroundColor": "transparent",
-            "bold": false,
-            "italic": false
-        }
-    ],
-    // "editor.tokenColorCustomizations": {
-    //     "comments": "#00ff95af"
-    // }
 }

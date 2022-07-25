@@ -1,0 +1,63 @@
+# shellcheck shell=sh disable=SC2039,3043
+
+# *sh-*awk
+___x_cmd_shall_name(){
+    if [ "$#" -eq 0 ]; then
+        local USE="${___X_CMD_SHALL_USE:-"$USE"}"
+        if [ -z "$USE" ]; then
+            ___x_cmd_shall_name_basic
+            return
+        fi
+        local patstr="$USE"
+    else
+        local IFS=,
+        local patstr="$*"
+    fi
+
+    ___x_cmd_shall_name_all | awk -v patstr="$patstr" '
+BEGIN {
+    gsub(/\*/, "[A-Za-z0-9\-]+", patstr)
+    patl = split(patstr, pat, ",")
+}
+{
+    for (i=1; i<=patl; ++i) {
+        match($0, "^" pat[i] "$")
+        if (RLENGTH > 0) {
+            print $0
+            break
+        }
+    }
+}
+
+'
+}
+
+___x_cmd_shall_name_basic(){
+    cat <<A
+bash3
+bash4
+bash5
+zsh
+ash
+dash
+ksh
+A
+}
+
+___x_cmd_shall_name_all(){
+    local i
+    local line
+    for i in alpine debian centos gentoo arch; do
+        ___x_cmd_shall_name_basic | while read -r line; do
+            printf "%s-%s\n" "$i" "$line"
+        done
+    done
+
+    for i in busyawk bsdawk gawk nawk mawk; do
+        ___x_cmd_shall_name_basic | while read -r line; do
+            printf "%s-%s\n" "$line" "$i"
+        done
+    done
+}
+
+

@@ -5,21 +5,31 @@
         "**/*.json": "json",
         "**/*.md": "markdown",
         "**/*.yml": "yaml",
+        "**/*.py": "python",
+        "**/*.js": "javascript",
+        "**/*.ts": "typescript",
         "**/LICENSE": "TXT",
-        "**/*": "shellscript",
+        "**/*": "shellscript"
     },
     "files.trimTrailingWhitespace": true,
     "editor.detectIndentation": true,
     "editor.tabSize": 4,
     "explicitFolding.rules": {
-        "awk": [
+        "typescript": [
             {
-                "beginRegex": "^\\s*#\\s*Section:?",
-                "endRegex": "^\\s*#\\s*EndSection",
+                "beginRegex": "^\\s*\\/\\/\\s*Section:?",
+                "endRegex": "^\\s*\\/\\/\\s*EndSection",
                 "autoFold": true
             }
         ],
-        "shellscript": [
+        "javascript": [
+            {
+                "beginRegex": "^\\s*\\/\\/\\s*Section:?",
+                "endRegex": "^\\s*\\/\\/\\s*EndSection",
+                "autoFold": true
+            }
+        ],
+        "*": [
             {
                 "beginRegex": "^\\s*#\\s*Section:?",
                 "endRegex": "^\\s*#\\s*EndSection",
@@ -36,7 +46,7 @@
             "underline": false,
             "backgroundColor": "transparent",
             "bold": false,
-            "italic": false,
+            "italic": false
         },
         {
             "tag": "?",
@@ -46,7 +56,7 @@
             "backgroundColor": "transparent",
             "bold": false,
             "italic": false
-        },
+        }
     ],
     // "editor.tokenColorCustomizations": {
     //     "comments": "#00ff95af"

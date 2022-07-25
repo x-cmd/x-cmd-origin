@@ -1,0 +1,40 @@
+
+___x_cmd_xdk_alias(){
+    # code="alias \"${1:-xdk}=x dk\""
+    # printf "%s" "$code";    eval "$code"    ;;
+    alias xdku="xdk ubuntu:latest"
+    alias xdkc="xdk centos:latest"
+}
+
+___x_cmd_xdk_run(){
+    $___X_CMD_DOCKER_BIN run \
+        -v "/root/.x-cmd/x:/bin/x" \
+        -v "/root/.x-cmd/bin/x-cmd:/var/x-cmd/bin/x" \
+        "$@"
+}
+
+___x_cmd_xdk_exec(){
+    local name
+    name=$(
+        for arg in "$@"; do
+            [ ! "${arg#-}" = "$arg" ] && continue
+            if docker container list -q -f id="$arg" 1>/dev/null || \
+                docker container list -q -f name="$arg" 1>/dev/null ; then
+                printf "%s" "$arg"
+                break
+            fi
+        done
+    )
+    [ -z "$name" ] &&  return 1
+    xdk empower "$name"
+    $___X_CMD_DOCKER_BIN exec ${1:+"$@"}
+}
+
+___x_cmd_xdk_empower(){
+    local container
+    for container in "$@"; do
+        $___X_CMD_DOCKER_BIN cp    /root/.x-cmd/x             "$container:/bin/x"
+        $___X_CMD_DOCKER_BIN cp    /root/.x-cmd/bin/x-cmd     "$container:/var/x-cmd/bin/x-cmd"
+    done
+}
+

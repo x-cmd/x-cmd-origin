@@ -5,11 +5,12 @@
 
 # Section: main
 
-___x_cmd_du(){
-    : refer ncdu
+___x_cmd_ed(){
+    : config change -- using config syntax sense
+    : x ed config-sshd=/etc/ssh/sshd_config User=YES NoPassword=NO
 
-    command du "$@"
+    command ed "$@"
 }
 # EndSection
 
-xrc setmain ___x_cmd_du
+xrc setmain ___x_cmd_ed

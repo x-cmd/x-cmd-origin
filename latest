@@ -1,7 +1,17 @@
-# shellcheck shell=sh
+# Author:       Li Junhao       l@x-cmd.com         #xrc
+# shellcheck    shell=sh        disable=SC3043
 
-# author:       Li Junhao           l@x-cmd.com
-# maintainer:   Li Junhao
-# license:      GPLv3
+xrc:mod list/lib/main
 
-xrc list/v0
+if [ -n "$BASH_VERSION" ]; then
+    xrc:mod list/lib/bash
+
+elif [ -n "$ZSH_VERSION" ]; then
+    xrc:mod list/lib/zsh
+else
+    xrc:mod list/lib/str
+    ___x_cmd_list(){
+        ___x_cmd_list_str "$@"
+    }
+fi
+

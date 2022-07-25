@@ -1,0 +1,1 @@
+man vm_stat | cat | tail -n80 | awk '$0~/^[ ]+[A-Z]/ && NF<5{ gsub("^[ ]+", "", $0); printf("%s\n", "put(\"" cur "\", \"" t  "\")"); cur=$0; t=""; s=1; next; }  {  gsub("^[ ]+", "", $0); t=t $0;   }  '

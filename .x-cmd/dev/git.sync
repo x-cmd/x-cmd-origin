@@ -1,0 +1,47 @@
+git.sync(){
+    local src_repo
+    src_repo=$(echo ${1##*/} | cut -d '.' -f 1)
+    # local tgt_repo=$(echo ${1##*/} | cut -d '.' -f 1)
+
+    if [ -d "$src_repo" ]; then
+        echo "git-pull: $src_repo" >&2
+        ( cd "$src_repo" && git pull --all )
+    else
+        echo "git-clone: $src_repo" >&2
+        git clone "$1"
+    fi | grep -q "Already up to date"
+
+    # if [ $? -eq 0 ]; then
+    #     echo "=> !!!!!!!! No update"
+    # else
+    echo "ATTENTION!!! SYNC NOW" >&2
+    pwd
+
+    (
+        if cd "$src_repo"; then
+            # for remote in $(git branch -r | grep -v '\->' | grep -E "^ +origin"); do git branch --track "$remote"; done
+            git branch -r | grep -v '\->' | grep -E "^ +origin" | while read remote; do git branch --track "${remote#origin/}" "$remote"; done
+            git remote remove tgt >&2 # Just in case
+            git remote add tgt "$2"
+            # to prevent sync the empty repository
+            ( git branch -r | grep -q ^ ) && (
+                git fetch origin
+                git pull origin
+                git push -u --all tgt
+                git push --force --tags tgt
+            )
+        else
+            "BUG ATTENTION: cd fail!!!!" >&2
+        fi
+    )
+
+}
+
+# TODO: find out the repo name conflict in github and gitee
+# TODO: Ask for instruction, then do the work with explicit instruction.
+
+git.sync.github.to.gitee.from_list(){
+    for i in "$@"; do
+        git.sync "git@github.com:x-bash/$i.git" "git@gitee.com:x-bash/$i.git"
+    done
+}

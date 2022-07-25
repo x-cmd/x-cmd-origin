@@ -1,0 +1,24 @@
+___x_cmd_git_assert(){
+    case "$1" in
+        headless|shallow|gitdir|empty)
+            shift; "___x_cmd_git_assert_${1}" "$@"
+            ;;
+
+    esac
+}
+
+___x_cmd_git_assert_headless(){
+    ! ___x_cmd___git_origin rev-parse --quiet --verify HEAD >/dev/null 2>&1
+}
+
+___x_cmd_git_assert_shallow(){
+    [ "$(___x_cmd___git_origin rev-parse --is-shallow-repository 2>/dev/null)" = true ]
+}
+
+___x_cmd_git_assert_gitdir(){
+    [ "$(___x_cmd___git_origin rev-parse --is-inside-git-dir 2>/dev/null)" = true ]
+}
+
+___x_cmd_git_assert_empty(){
+    ___x_cmd___git_origin branch -r | grep -q ^
+}

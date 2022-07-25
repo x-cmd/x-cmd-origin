@@ -1,3 +1,0 @@
-xrc cat         Show the script in text form
-    Uasge:  xrc  cat <lib> [<lib>...]
-    Example: eval "$(xrc cat str)"

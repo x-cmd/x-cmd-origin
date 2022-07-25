@@ -1,0 +1,114 @@
+
+SSS="$(cat /home/mnnna/work/x-bash/awk/lib/default.awk /home/mnnna/work/x-bash/awk/lib/json.awk /home/mnnna/work/x-bash/awk/lib/jiter.awk )"
+
+f1(){
+    awk "$SSS"'
+{
+    pat[1] = jqu("1")
+    pat[2] = jqu("1")
+    pat[3] = jqu("d")
+    patl = 3
+
+
+    par[1] = jqu("1")
+    par[2] = ""
+    par[3] = jqu("d")
+    parl = 3
+
+    if ($0 != "") {
+        # jiter_eqarr_print( $0, patl, pat, "", "\n")
+        # jiter_eqarr_parse( _, $0, patl, pat)
+
+        jiter_regexarr_print( $0, parl, par, "", "\n")
+        # if (jiter_regexarr_parse(_, $0,  parl, par) == true ){
+        #     print jstr(_)
+        #     delete _
+        # }
+    }
+}
+END{
+    # print jstr(_)
+}
+'
+}
+
+f(){
+{
+    awk "$SSS
+    {
+        printf(\"%s\", json_to_machine_friendly(\$0) )
+    }" | f1
+} <<A
+[
+    {
+        "d": {
+            "a1": {
+                "1": 3
+            },
+            "a2": [1,2],
+            "a": {
+                "a11": "aaa"
+            }
+        },
+        "c": {
+            "c1": "12",
+            "aa": [1,2,3],
+            "c2": {
+                "c21": 12,
+                "c22": [
+                    3,
+                    4
+                ]
+            }
+        }
+    },
+    {
+        "d": {
+            "a1": {
+                "1": 3
+            },
+            "a2": [1,2],
+            "a": {
+                "a11": "aaa"
+            }
+        },
+        "c": {
+            "c1": "12",
+            "aa": [1,2,3],
+            "c2": {
+                "c21": 12,
+                "c22": [
+                    3,
+                    4
+                ]
+            }
+        }
+    },
+    {
+        "d": {
+            "a1": {
+                "1": 3
+            },
+            "a2": [1,2],
+            "a": {
+                "a11": "aaa"
+            }
+        },
+        "c": {
+            "c1": "12",
+            "aa": [1,2,3],
+            "c2": {
+                "c21": 12,
+                "c22": [
+                    3,
+                    4
+                ]
+            }
+        }
+    }
+]
+A
+
+}
+
+time f

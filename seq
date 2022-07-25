@@ -1,0 +1,28 @@
+
+___x_cmd_seq(){
+    command awk -v range="${1:?Provide range}" "function iter(i) ${2:?Provide code}" '
+
+function seq_parse(  seqstr,       l, a, b, e, d ){
+    l = split(seqstr, a, ":")
+    if (l == 1)      {          begin =   1 ;   delta =   1 ;   end = a[1];     }
+    else if (l == 2) {          begin = a[1];   delta =   1 ;   end = a[2];     }
+    else             {          begin = a[1];   delta = a[2];   end = a[3];     }
+}
+
+
+BEGIN{
+    seq_parse( str )
+    for (i=begin; i<=end; i+=delta) {
+        iter( i )
+    }
+}
+'
+
+}
+
+
+x seq 1:2:3 '{}'
+
+x seq 1:100 '{
+    print i
+}'

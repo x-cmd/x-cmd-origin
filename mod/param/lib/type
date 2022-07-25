@@ -1,3 +1,4 @@
+# shellcheck    shell=sh disable=SC3043
 # Section 3: param type definition
 
 ___x_cmd_param_type(){

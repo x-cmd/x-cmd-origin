@@ -7,12 +7,6 @@ BEGIN{
 
 # Section: utils
 
-function str_padr( str, len,    l ){
-    l = len - length(str)
-    if ( l < 0 )    return 0
-    return str str_rep(" ", l)
-}
-
 function cut_line( _line, _space_len,               _max_len_line, _option_after_arrl, _part_len){
     if( COLUMNS == "" )     return _line
 
@@ -72,7 +66,7 @@ function generate_help_for_flag(         l, i, opt_text_arr, _res, _option_after
     l = flag_len()
     for ( i=1; i<=l; ++i )
         _res = _res HELP_INDENT_STR sprintf("%s" DESC_INDENT_STR "%s\n",
-            FG_BLUE         str_padr(opt_text_arr[ i ], _max_len),
+            FG_BLUE         str_pad_right(opt_text_arr[ i ], _max_len),
             FG_LIGHT_RED    cut_line( option_desc_get( flag_get( i ) ), _max_len ) UI_END)
     return _res
 }
@@ -92,7 +86,7 @@ function generate_help_for_option(         l, i, opt_text_arr, _res, _option_aft
         _option_after = _option_after ( option_multarg_is_enable( option_id ) ? " [multiple]" : "" )
 
         _res = _res HELP_INDENT_STR sprintf( "%s" DESC_INDENT_STR "%s\n",
-            FG_BLUE         str_padr(opt_text_arr[ i ], _max_len),
+            FG_BLUE         str_pad_right(opt_text_arr[ i ], _max_len),
             FG_LIGHT_RED    cut_line( _option_after, _max_len ) )
     }
     return _res
@@ -126,10 +120,10 @@ function generate_rest_argument_help(        _res, _option_after, l) {
     for (i=1; i <= restopt_len(); ++i) {
         option_id       = restopt_get( i )
 
-        _option_after = option_desc_get( option_id ) UI_END generate_optarg_rule_string( option_id SUBSEP 1 )
+        _option_after = option_desc_get( option_id ) UI_END generate_optarg_rule_string( option_id )
 
         _res = _res HELP_INDENT_STR sprintf( "%s" DESC_INDENT_STR "%s\n",
-            FG_BLUE         str_padr(option_id, _max_len),
+            FG_BLUE         str_pad_right(option_id, _max_len),
             FG_LIGHT_RED    cut_line(_option_after, _max_len) )
     }
     return _res
@@ -151,7 +145,7 @@ function generate_subcommand_help(        _res, _cmd_name) {
         gsub("\\|", ",", _cmd_name)
 
         _res = _res HELP_INDENT_STR sprintf("%s"  DESC_INDENT_STR "%s\n",
-            FG_BLUE         str_padr(_cmd_name, _max_len),
+            FG_BLUE         str_pad_right(_cmd_name, _max_len),
             FG_LIGHT_RED    subcmd_desc(i) UI_END )
     }
 
@@ -160,9 +154,9 @@ function generate_subcommand_help(        _res, _cmd_name) {
 # EndSection
 
 function print_helpdoc(){
-    if (0 != namedopt_len())                printf("%s", generate_option_help())
-    if (0 != restopt_len())                 printf("%s", generate_rest_argument_help())
-    if (0 != subcmd_len())                  printf("%s", generate_subcommand_help())
+    if (0 != namedopt_len() || 0 != flag_len() )                printf("%s", generate_option_help())
+    if (0 != restopt_len())                                     printf("%s", generate_rest_argument_help())
+    if (0 != subcmd_len())                                      printf("%s", generate_subcommand_help())
     printf("\n")
 }
 

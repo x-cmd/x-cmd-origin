@@ -10,23 +10,22 @@ function code_append(code){
 
 # TODO: check whether all of the invocator correctly quote the value
 function code_append_assignment(varname, value) {
-    if( varname == "path" ){
-        HAS_PATH = true
-        varname  = "___x_cmd_param_path"
-    }
     code_append( "local " varname " >/dev/null 2>&1" )
-    code_append( varname "=" single_quote_string( value ) )
+    code_append( varname "=" qu1( value ) )
+}
+
+function code_append_default_assignment(varname, value) {
+    code_append( "local " varname " >/dev/null 2>&1" )
+    if (value != "") code_append( varname "=" qu1( value ) )
 }
 
 function code_query_append(varname, description, typestr){
-    if( varname == "path" ){
-        HAS_PATH = true
-        varname = "___x_cmd_param_path"
-    }
     code_append( "local " varname " >/dev/null 2>&1" )
-    # code_append( "ui prompt main " quote_string(description) " " varname " " typestr )
-    # code_query_append( quote_string(description) " " varname " " "\"\"" " " typestr )
-    QUERY_CODE=QUERY_CODE " \"--\" \\" "\n" quote_string(description) " " varname " " "\"\"" " " typestr
+    QUERY_CODE=QUERY_CODE " \"--\" \\" "\n" qu(description) " " varname " " "\"\"" " " typestr
+}
+
+function code_query_append_by_optionid_optargid( varname, option_id, optarg_id ){
+    code_query_append( varname, option_desc_get( option_id ), oparr_join_quoted(optarg_id) )
 }
 
 # EndSection
@@ -54,9 +53,10 @@ function type_rule_by_name( name ){
 BEGIN{
     subcmd_arr[ L ] = 0
     HAS_SUBCMD = false
+    SUBCMD_FUNCNAME = "funcname"
 }
 
-function subcmd_add_line( line_trimed,                 _id, _name_arr, _name_arr_len, i, idx){
+function subcmd_add_line( line_trimed, subcmd_funcname,                 _id, _name_arr, _name_arr_len, i, idx){
     if (! match(line_trimed, /^[A-Za-z0-9_\|-]+/)) {
         panic_param_define_error( "Expect subcommand in the first token, but get:\n" line_trimed )
     }
@@ -69,6 +69,7 @@ function subcmd_add_line( line_trimed,                 _id, _name_arr, _name_arr
     _id = substr( line_trimed, 1, RLENGTH )
     subcmd_arr[ idx ] = _id
     subcmd_map[ _id ] = str_unquote( str_trim( substr( line_trimed, RLENGTH+1 ) ) )
+    subcmd_map[ _id, SUBCMD_FUNCNAME ] = subcmd_funcname
 
     _name_arr_len = split(_id, _name_arr, "|")
     for (i=1; i<=_name_arr_len; i++) {
@@ -104,26 +105,9 @@ function subcmd_exist_by_id( id ){
 # EndSection
 
 # Section: advise
-
-BEGIN{
-    advise_arr[ L ]=0
-}
-
-function advise_add( line,       _tmp ){
-    _tmp = advise_arr[ L ] + 1
-    advise_arr[ L ] = _tmp
-    advise_arr[ _tmp ] = line
-}
-
-function advise_get( idx ){
-    return advise_arr[ idx ]
-}
-
-
-function advise_len( ){
-    return advise_arr[ L ]
-}
-
+function advise_add( line ){    return arr_push( advise_arr, line );    }
+function advise_get( idx ){     return arr_get(  advise_arr, idx );  }
+function advise_len( ){         return arr_len(  advise_arr ); }
 
 # EndSection
 
@@ -167,6 +151,27 @@ function option_name_get_without_hyphen( id,    _name ){
 function option_desc_set( id, desc ){ option_arr[ id, OPTION_DESC ] = desc; }
 function option_desc_get( id ){ return option_arr[ id, OPTION_DESC ]; }
 
+function option_get_id_by_alias( alias ){
+    return option_alias_2_option_id[ alias ]
+}
+
+function option_set_alias( id, alias ){
+    return option_alias_2_option_id[ alias ] = id
+}
+
+function option_exist_by_alias( alias ){
+    return ( option_alias_2_option_id[ alias ] != "" )
+}
+
+function option_assign_count_inc( option_id ){
+    return option_assignment_count[ option_id ] = option_assignment_count[ option_id ] + 1      # option_assignment_count[ _option_id ] can be ""
+}
+
+function option_assign_count_get( option_id     ){
+    return option_assignment_count[ option_id ]
+}
+
+
 # EndSection
 
 # Section: optarg
@@ -187,7 +192,19 @@ function optarg_name_get( id ){ return option_arr[ id, OPTARG_NAME ]; }
 
 function optarg_default_get( id ){ return option_arr[ id, OPTARG_DEFAULT ]; }
 function optarg_default_set( id, value ){ option_arr[ id, OPTARG_DEFAULT ] = value; }
-function optarg_default_set_required( id ){ option_arr[ id, OPTARG_DEFAULT ] = OPTARG_DEFAULT_REQUIRED_VALUE; }
+
+BEGIN {
+    EXISTS_REQUIRED_OPTION = false
+}
+
+function optarg_default_set_required( id ){
+    EXISTS_REQUIRED_OPTION = true
+    option_arr[ id, OPTARG_DEFAULT ] = OPTARG_DEFAULT_REQUIRED_VALUE;
+}
+
+function option_exist_required(){       # Seemed Not Used
+    return EXISTS_REQUIRED_OPTION
+}
 
 function optarg_default_value_eq_require( value ){ return value == OPTARG_DEFAULT_REQUIRED_VALUE; }
 

@@ -4,7 +4,7 @@
 ___x_cmd_param_marg(){
     case "$1" in
         get)        shift; param_marg_get "$@" ;;
-        len)        shift; param_marg_get "$@" ;;
+        len)        shift; param_marg_len "$@" ;;
         seq)        shift; param_marg_seq "$@" ;;
         *)          param_marg "$@" ;;
     esac

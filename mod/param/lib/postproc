@@ -73,8 +73,7 @@ ___x_cmd_param_option_to_json()(
             *=*)        ___key="${___name%%=*}"
                         ___value="${___name#*=}"
                         ___to_remove="$___to_remove ${___value} "
-                        eval "$___key=\"\$${___value}\""
-                        ___code="$___code ${___key}"
+                        ___code="$___code ${___key}=\"\$${___value}\""
                         ;;
             -*)         ___to_remove="$___to_remove ${___name#-} " ;;
             +*)         ___code="$___code ${___name#+}" ;;

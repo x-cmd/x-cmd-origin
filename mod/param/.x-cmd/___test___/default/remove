@@ -1,0 +1,18 @@
+# shellcheck shell=sh disable=SC2039,SC2142,SC3043
+
+test_param_default_remove(){
+    param_default clear gitee_a
+    param_default put gitee_a arg1 1
+    @assert stdout param_default dump gitee_a<<A
+{
+  "arg1": "1"
+}
+A
+    param_default remove gitee_a arg1
+    @assert stdout param_default dump gitee_a<<A
+{
+}
+A
+}
+
+@assert:file:func

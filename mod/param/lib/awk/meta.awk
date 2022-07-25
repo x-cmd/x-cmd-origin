@@ -39,7 +39,7 @@ function ls_option(         i, j, _tmp_len, _option_id, _tmp, _option_argc){
     for (i=1; i <= restopt_len(); ++i) {
         _option_id = restopt_get( i )
         printf("%s\n%s\n", _option_id, option_desc_get( _option_id ))
-        print_optarg( _option_id SUBSEP 1 )
+        print_optarg( _option_id )
         printf("%s\n", (advise_map[ _option_id ] != "") ? advise_map[_option_id] : "")
     }
 }

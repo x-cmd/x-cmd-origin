@@ -1,0 +1,36 @@
+# shellcheck shell=sh disable=SC2039,SC2142,SC3043
+
+error_help(){
+    param:dsl      <<A
+type:
+    repo_t  =~  "cde"   "def"
+option:
+    --mul_line_arg|-m       "Test multiple line argument"            <mline_arg>:mline_arg_type
+    --repo|-r               "Provide repo name"                      <>:repo_type   =~  "abc"   "cde"   "def"
+    --repo2|-b|m            "Provide two repo name"
+        <arg1>:repo_type=""               =   "abc"   "cde"   "def"
+        <arg2>:repo_t=
+A
+    param:run
+}
+
+test_error_help(){
+    @assert stderr error_help --mul_line_arg <<A
+error: Option require value, but none was supplied: '--mul_line_arg,-m <mline_arg>'
+For more information try --help
+A
+
+    @assert stderr error_help --mul_line_arg dd -r abcdd <<A
+error: Fail to match any regex pattern, option '--repo,-r <>' the part of value is 'abcdd'
+ =~ abc cde def
+For more information try --help
+A
+
+    @assert stderr error_help --mul_line_arg dd -r abc --repo2 abcdd <<A
+error: Fail to match any candidate, option '--repo2,-b <arg1> <arg2>' the part of value is 'abcdd'
+ = abc cde def
+For more information try --help
+A
+}
+
+@assert:file:func

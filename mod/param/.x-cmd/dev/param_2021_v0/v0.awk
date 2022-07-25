@@ -37,7 +37,7 @@ function parse_item_to_generate_help(line,      token_arr, token_arr_len, ret, n
     if (!(name ~ "^#") && !(name ~ /^\.\.\./)) {
         name_idx --
     }
-    
+
 
     name = token_arr[2]
     gsub("=.+$", "", name)
@@ -64,8 +64,8 @@ function parse_item_to_generate_help(line,      token_arr, token_arr_len, ret, n
     }
 
     # TODO: make it better
-    ret = name "\t" "\033[35m" op "\t" "\033[32m" default "\t" "\033[91m" desc "\033[0m"        
-    
+    ret = name "\t" "\033[35m" op "\t" "\033[32m" default "\t" "\033[91m" desc "\033[0m"
+
     if (name_idx > 2) {
         for (i=3; i<=name_idx; ++i){
             ret =  token_arr[i] "," ret
@@ -111,7 +111,7 @@ function assert_arr_regex(value, sep, token_arr_len, token_arr,    j, value_arr_
     }
 }
 
-function quote_string(str){
+function qu(str){
     gsub(/\"/, "\\\"", str)
     return "\"" str "\""
 }
@@ -188,10 +188,10 @@ function assert(line, name, value, op, token_arr_len, token_arr, op_arg_idx,    
     return true
 }
 
-function parse_item(line,   
-    token_arr_len, token_arr, 
+function parse_item(line,
+    token_arr_len, token_arr,
     value, name, default, idx, i, j, sw, value_arr, value_arr_len, sep){
-   
+
     token_arr_len = split(line, token_arr, TOKEN_SEP)
     value = null
 
@@ -226,7 +226,7 @@ function parse_item(line,
         gsub("^[^=]+=", "", default)
     }
     gsub("^--?", "", name)
-    
+
     value = null
     for (i=2; i<=name_idx; ++i){
         idx = token_arr[i]   # idx is temp variable, here meaning _name
@@ -239,7 +239,7 @@ function parse_item(line,
 
     desc = token_arr[name_idx + 1]
     op = token_arr[name_idx + 2]
-    
+
     if (op == "=FLAG") {
         if (value == null) {
             append_code( "local " name "= " " 2>/dev/null" )
@@ -248,7 +248,7 @@ function parse_item(line,
         }
         return true
     }
-    
+
     if (value == null) {
         # TODO: get value from default scope
         if (name in default_scope) {
@@ -265,7 +265,7 @@ function parse_item(line,
     }
 
     if (assert(line, name, value, op, token_arr_len, token_arr, name_idx + 3)) {
-        append_code( "local " name "=" quote_string(value) " 2>/dev/null" )
+        append_code( "local " name "=" qu(value) " 2>/dev/null" )
     }
 }
 
@@ -319,7 +319,7 @@ function prepare_arg_map(argstr,        arg_arr_len, arg_arr, i, e, key, tmp, tm
             }
             continue
         }
-   
+
         break
     }
 
@@ -378,7 +378,7 @@ NR>=3{
 END{
     parse(text)
     print CODE
-    print "local HELP_DOC=" quote_string(HELP_DOC) " 2>/dev/null"
+    print "local HELP_DOC=" qu(HELP_DOC) " 2>/dev/null"
     exit return_code
 }
 

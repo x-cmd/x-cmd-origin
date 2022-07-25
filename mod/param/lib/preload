@@ -17,12 +17,13 @@ ___x_cmd_param_dsl_set(){               ___X_CMD_PARAM_DSL="${1:-"$(cat)"}";    
 # TODO: there is a better design.
 alias param:run='local IFS; ___x_cmd_param_int "$@" ; local _x_cmd_param_code="$?" ;
     if [ "$_x_cmd_param_code" = 125 ]; then
-        PARAM_SUBCMD_DEF=""
         eval "$(___x_cmd_param_exec_dsl "$@" )"
+        PARAM_SUBCMD_DEF=""
     else
         return $_x_cmd_param_code
     fi'
-alias param:void="local ___X_CMD_PARAM_SCOPE;  local ___X_CMD_PARAM_DSL; param:run"
+
+# alias param:void="local ___X_CMD_PARAM_SCOPE;  local ___X_CMD_PARAM_DSL; param:run"
 alias param:debug='local IFS; ___x_cmd_param_eval_echo "$(___x_cmd_param_exec_dsl "$@"  )"'
 
 ___x_cmd_param_eval_echo(){
@@ -30,16 +31,22 @@ ___x_cmd_param_eval_echo(){
     printf "%s\n" "$*" >&2
     eval "$*"
 }
+
+___x_cmd_param___void_json(){
+    printf "{\n%s\n:\n%s\n}\n" "\"#desc\"" "\"$1\""
+}
+
+alias param:void='[ "$1" != _x_cmd_advise_json ] || { ___x_cmd_param___void_json "$2" ; return 0; }'
 # EndSection
 
 # Section 3: param:subcmd param:subcmd:try
 
-alias param:subcmd='local PARAM_EXEC=""; local ___X_CMD_PARAM_DSL 1>&/dev/null; FIRST_ARG="$1" ___x_cmd_param_define_subcmd'
+alias param:subcmd='local PARAM_EXEC=""; [ -n "$PARAM_SUBCMD_DEF" ] || local PARAM_SUBCMD_DEF; local ___X_CMD_PARAM_DSL 1>&/dev/null; FIRST_ARG="$1" ___x_cmd_param_define_subcmd'
 ___x_cmd_param_define_subcmd(){
     PARAM_FUNCNAME="${1:?Provide prefix}"; shift
-    if [ -z "$PARAM_SUBCMD_DEF" ]; then
-        PARAM_SUBCMD_DEF="subcommand:"
-    fi
+    PARAM_SUBCMD_DEF="$PARAM_SUBCMD_DEF
+subcommand: $PARAM_FUNCNAME"
+
     local subcmddef
     while [ $# -ge 2 ]; do
         subcmddef="|$1|"
@@ -83,6 +90,27 @@ ___x_cmd_param_int(){
             eval "$(___X_CMD_PARAM_AWK_PATH="$___X_CMD_ROOT_MOD/param/lib/awk/advise.awk" ___x_cmd_param_exec_dsl "$@")"
             ;;
         _param_list_subcmd | _param_has_subcmd | _ls_subcmd | _ls_option | _ls_option_name | _ls_option_subcmd )
+            ___X_CMD_PARAM_AWK_PATH="$___X_CMD_ROOT_MOD/param/lib/awk/meta.awk"     ___x_cmd_param_exec_dsl "$@"
+            ;;
+        ___x_cmd_param_meta )   # TODO: place all of the subcmd above.
+            # subcmd, subcmd <name>, option, option_name, option_subcmd
+            shift 1; ___X_CMD_PARAM_AWK_PATH="$___X_CMD_ROOT_MOD/param/lib/awk/meta.awk"     ___x_cmd_param_exec_dsl "$@"
+            ;;
+        *)  return 125
+    esac
+}
+
+alias param:meta='___X_CMD_PARAM_REFLECT=1'
+___x_cmd_param_int_reflect(){
+    [ -n "${___X_CMD_PARAM_REFLECT}" ] || return 125
+    case "$1" in
+        help)
+            ___X_CMD_PARAM_AWK_PATH="$___X_CMD_ROOT_MOD/param/lib/awk/help.awk"     ___x_cmd_param_exec_dsl
+            ;;
+        advise)
+            eval "$(___X_CMD_PARAM_AWK_PATH="$___X_CMD_ROOT_MOD/param/lib/awk/advise.awk" ___x_cmd_param_exec_dsl "$@")"
+            ;;
+        subcmd | option | subcmd_option )
             ___X_CMD_PARAM_AWK_PATH="$___X_CMD_ROOT_MOD/param/lib/awk/meta.awk"     ___x_cmd_param_exec_dsl "$@"
             ;;
         *)  return 125
@@ -132,6 +160,9 @@ ___x_cmd_param_exec_dsl() {
             -v IS_INTERACTIVE="$___X_CMD_PARAM_IS_INTERACTIVE" \
             -v IS_TTY="$___X_CMD_PARAM_STDERR_IS_TTY" \
             -f "$___X_CMD_ROOT_MOD/awk/lib/re.awk" \
+            -f "$___X_CMD_ROOT_MOD/awk/lib/str.awk" \
+            -f "$___X_CMD_ROOT_MOD/awk/lib/arr.awk" \
+            -f "$___X_CMD_ROOT_MOD/param/lib/awk/assert.awk" \
             -f "$___X_CMD_ROOT_MOD/param/lib/awk/util.awk" \
             -f "$___X_CMD_ROOT_MOD/param/lib/awk/oo.awk" \
             -f "$___X_CMD_ROOT_MOD/param/lib/awk/dsl.awk" \
@@ -140,6 +171,7 @@ ___x_cmd_param_exec_dsl() {
     local code="$?"
     # Notice: Must clear this variable.
     ___X_CMD_PARAM_SCOPE=
+    PARAM_SUBCMD_DEF=
     return $code
 }
 

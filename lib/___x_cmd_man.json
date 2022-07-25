@@ -1,0 +1,164 @@
+{
+    "-C|--config-file=FILE": {
+        "#desc": "use this user configuration file"
+    },
+    "-d|--debug": {
+        "#desc": "emit debugging messages"
+    },
+    "-D|--default": {
+        "#desc": "reset all options to their default values"
+    },
+    "--warnings": {
+        "#desc": "enable warnings from groff",
+        "#1": {
+            "#desc:": "WARNINGS"
+        }
+    },
+    "-f|--whatis": {
+        "#desc": "equivalent to whatis"
+    },
+    "-k|--apropos": {
+        "#desc": "equivalent to apropos"
+    },
+    "-K|--global-apropos": {
+        "#desc": "search for text in all pages"
+    },
+    "-l|--local-file": {
+        "#desc": "interpret PAGE argument(s) as local filename(s)"
+    },
+    "-w|--where|--path|--location": {
+        "#desc": "print physical location of man page(s)"
+    },
+    "-W|--where-cat|--location-cat": {
+        "#desc": "print physical location of cat file(s)"
+    },
+    "-c|--catman": {
+        "#desc": "used by catman to reformat out of date cat pages"
+    },
+    "-R|--recode": {
+        "#desc": "output source page encoded in ENCODING",
+        "#1": {
+            "#desc:": "ENCODING"
+        }
+    },
+    "-L|--locale": {
+        "#desc": "define the locale for this particular man search",
+        "#1": {
+            "#desc:": "LOCALE"
+        }
+    },
+    "-m|--systems": {
+        "#desc": "use manual pages from other systems",
+        "#1": {
+            "#desc:": "SYSTEM"
+        }
+    },
+    "-M|--manpath": {
+        "#desc": "set search path for manual pages to PATH",
+        "#1": {
+            "#desc:": "PATH"
+        }
+    },
+    "-S|-s|--sections": {
+        "#desc": "use colon separated section list",
+        "#1": {
+            "#desc:": "LIST"
+        }
+    },
+    "-e|--extension": {
+        "#desc": "limit search to extension type EXTENSION",
+        "#1": {
+            "#desc:": "EXTENSION"
+        }
+    },
+    "-i|--ignore-case": {
+        "#desc": "look for pages case-insensitively (default)"
+    },
+    "-I|--match-case": {
+        "#desc": "look for pages case-sensitively"
+    },
+    "--regex": {
+        "#desc": "show all pages matching regex"
+    },
+    "--wildcard": {
+        "#desc": "show all pages matching wildcard"
+    },
+    "--names-only": {
+        "#desc": "make --regex and --wildcard match page names only,not descriptions"
+    },
+    "-a|--all": {
+        "#desc": "find all matching manual pages"
+    },
+    "-u|--update": {
+        "#desc": "force a cache consistency check"
+    },
+    "--no-subpages": {
+        "#desc": "don't try subpages|e.g. 'man foo bar' => 'manfoo-bar'"
+    },
+    "-P|--pager": {
+        "#desc": "use program PAGER to display output",
+        "#1": {
+            "#desc:": "PAGER"
+        }
+    },
+    "-r|--prompt": {
+        "#desc": "provide the \\'less\\' pager with a prompt",
+        "#1": {
+            "#desc:": "STRING"
+        }
+    },
+    "-7|--ascii": {
+        "#desc": "display ASCII translation of certain latin1 chars"
+    },
+    "-E|--encoding": {
+        "#desc": "use selected output encoding",
+        "#1": {
+            "#desc:": "ENCODING"
+        }
+    },
+    "--no-hyphenation|--nh": {
+        "#desc": "turn off hyphenation"
+    },
+    "--no-justification|--nj": {
+        "#desc": "turn off justification"
+    },
+    "-p|--preprocessor": {
+        "#desc": "STRING indicates which preprocessors to run:e - [n]eqn, p - pic, t - tbl,g - grap|r - refer|v - vgrind",
+        "#1": {
+            "#desc:": "STRING"
+        }
+    },
+    "-t|--troff": {
+        "#desc": "use groff to format pages"
+    },
+    "-T|--troff-device": {
+        "#desc": "use groff with selected device",
+        "#1": {
+            "#desc:": "DEVICE"
+        }
+    },
+    "-H|--html": {
+        "#desc": "use www-browser or BROWSER to display HTML output",
+        "#1": {
+            "#desc:": "BROWSER"
+        }
+    },
+    "-X|--gxditview": {
+        "#desc": "use groff and display through gxditview(X11):-X = -TX75, -X100 = -TX100, -X100-12 = -TX100-12",
+        "#1": {
+            "#desc:": "RESOLUTION"
+        }
+    },
+    "-Z|--ditroff": {
+        "#desc": "use groff and force it to produce ditroff"
+    },
+    "-?|--help": {
+        "#desc": "give this help list"
+    },
+    "--usage": {
+        "#desc": "give a short usage message"
+    },
+    "-V|--version": {
+        "#desc": "print program version"
+    }
+}

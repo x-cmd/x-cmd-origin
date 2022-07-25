@@ -1,0 +1,54 @@
+# shellcheck shell=sh
+# shellcheck disable=SC2039,3043
+# Section : attachment
+
+___x_cmd_gt_repo_release_attachment(){
+    param:subcmd ___x_cmd_gt_repo_release_attachment            \
+        ls              "List release's attachment"             \
+        add             "Upload attachment"                     \
+        rm              "Remove attachment"
+    param:subcmd:try
+    param:run
+
+    ___x_cmd_gt_repo_release_attachment _param_help_doc
+    gt_log warn "Subcmd Not Found."
+    return 1
+}
+
+# Section: main
+___x_cmd_gt_repo_release_attachment_ls(){
+    param:scope     ___x_cmd_gt
+    param:dsl    '
+options:
+    #1|--release        "Release ID"                <>:NatureNumber
+'
+    param:run
+
+    ______x_cmd_gt_repo_release_init_owner_repo_and_release
+}
+
+# Provide multiple files
+___x_cmd_gt_repo_release_attachment_add(){
+    param:scope     ___x_cmd_gt
+    param:dsl    '
+options:
+    #1|--release        "Release ID"                <>:NatureNumber
+'
+    param:run
+
+    ______x_cmd_gt_repo_release_init_owner_repo_and_release
+}
+
+# Delete the file in attachment list
+___x_cmd_gt_repo_release_attachment_rm(){
+    param:scope     ___x_cmd_gt
+    param:dsl    '
+options:
+    #1|--release        "Release ID"                <>:NatureNumber
+'
+    param:run
+
+    ______x_cmd_gt_repo_release_init_owner_repo_and_release
+}
+
+# EndSection

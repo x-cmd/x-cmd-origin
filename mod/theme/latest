@@ -1,199 +1,77 @@
-# shellcheck shell=sh disable=SC3043 # xrc
+# shellcheck shell=sh
+# shellcheck disable=SC2039,3043
 
-xrc param/latest
+# author:       Li Junhao           edwin.jh.lee@gmail.com    edwinjhlee.github.io
+# maintainer:   Li Junhao
 
-# Section: main
-___x_cmd_theme_control(){
-    local zinit
-    local font
-    [ -n "$ZSH_VERSION" ] && zinit="zinit    \"init the zsh environment\""
-    [ -z "$SSH_CONNECTION" ] && [ ! -f "/.dockerenv" ] && font="font    \"install powerline font\""
-    param:dsl <<A
-subcommands:
-    ls          "list all theme"
-    app         "open theme preview client to choose theme"
-    use         "use theme when starting the shell"
-    try         "try theme"
-    ${zinit}
-    ${font}
-    unset       "unset the theme"
-A
+# loading dependencies
+xrc http param ui
+xrc ui/lib/table gh/lib/resource
+
+xrc:inner:lib gt utils config token user current issue event enterprise/main enterprise/member enterprise/team org/main org/member \
+    repo/utils repo/main repo/pr/main repo/pr/assign repo/pr/tester repo/release/main repo/release/attachment repo/member repo/tag repo/page repo/branch _type/main
+
+
+x log init gt
+___x_cmd_gt(){
+    param:subcmd ___x_cmd_gt                                        \
+        repo                             "repo command"             \
+        issue                            "issue"                    \
+        current                          "set current owner, repo"  \
+        enterprise                       "manage enterprise"        \
+        org                              "manage org"               \
+        user                             "user"                     \
+        event                            "list event information"   \
+        config                           "save, load, which"        \
+        token                            "set token"
+    param:subcmd:try
+
+    param:subcmd ___x_cmd_gt_repo                                   \
+        pr                               "pull request"             \
+        release                          "release management"       \
+        tag                              "repo tag"                 \
+        member                           "repo member"
+    param:subcmd:try
     param:run
 
-    if [ -z "$PARAM_SUBCMD" ]; then
-        ___x_cmd_theme_control _param_help_doc
+    ___x_cmd_gt _param_help_doc
+    gt_log warn "Subcmd Not Found."
+    return 1
+}
+
+
+############################
+# Section 10: Instantiation
+############################
+___x_cmd_gt_make(){
+    param:void
+
+    local O="___x_cmd_gt_${1:?Provide client name by O environment}"
+
+    ___x_cmd_http make  'https://gitee.com/api'
+    ___x_cmd_http header put type  "application/json;charset=utf-8"
+
+    local token
+    token="$(___x_cmd_gt_config_get "oauth_token")"
+
+    if [ -n "$token" ]; then
+        ___x_cmd_http header put Authorization "token $token"
+        ___x_cmd_gt_current_owner 1>/dev/null || return 1
+        gt_log info "Hi $___X_CMD_GITEE_DEFAULT_OWNER! You've successfully authenticated."
         return 0
     fi
 
-    "___x_cmd_theme_control_${PARAM_SUBCMD}" "$@"
+    local info
+    info=$(printf "\n%s %s \n%s" \
+         "$(___x_cmd_ui yellow 'You need run command to add token:')" \
+         "$(___x_cmd_ui bold cyan "\`gt token <token>\`")" \
+         "$(___x_cmd_ui 'https://gitee.com/profile/personal_access_tokens')")
+    gt_log warn "Token is null.${info}"
 }
 
-# Section: ls which
-___x_cmd_theme_control_ls() {
-    param:void
+if [ -z "$DO_NOT_INIT_GITEE_DEFAULT" ]; then
+    ___x_cmd_gt_make "GITEE_DEFAULT" && DO_NOT_INIT_GITEE_DEFAULT="true"
+fi
 
-    local filepath
-    ___x_cmd_theme___which___filepath index.yml && awk 'op==1{ if ($0 ~ /^-/) exit(0); print $2; };  op==0{  if ($2 == "all") op=1; }' <"$filepath"
-
-    # tar xf "$__tgz" -O index.yml 2>/dev/null | awk 'op==1{ if ($0 ~ /^-/) exit(0); print $2; };  op==0{  if ($2 == "all") op=1; }'
-}
-
-___x_cmd_theme___which___filepath(){
-    local filename="${1:?Provide name}"
-
-    local tmp_style_dir="$___X_CMD_ROOT_TMP/theme/tgz"
-    if [ ! -f "$tmp_style_dir/$filename" ]; then
-        local tgzfilepath
-        ___x_cmd_theme___which_tgz___tgzfilepath || return 1
-
-        [ ! -d "$tmp_style_dir" ] && mkdir -p "$tmp_style_dir"
-
-        local _src_code
-        if ! tar xf "$tgzfilepath" -C "$tmp_style_dir" "$filename" 2>/dev/null; then
-            printf "\033[31m%s\033[33m%s\n%s \033[1;36m%s\033[0m\n" \
-                "[x-cmd]: Not found theme in cache." " Check the theme name is exist." \
-                "Or you can try run command to update cache." "\`x theme ls\`"
-            return 1
-        fi
-    fi
-    filepath="$tmp_style_dir/$filename"
-}
-
-___x_cmd_theme___which_tgz___tgzfilepath(){
-    tgzfilepath="$___X_CMD_ROOT/.tmp/theme/theme.tgz"
-    if ! ___x_cmd_httpget_gitx x-cmd theme main "dist/theme.tgz" "$tgzfilepath" 3600; then # 1-day
-        if [ ! -f "$cache" ]; then
-            x:error "Unaviable theme.tgz. Unable to fetch theme.tgz."
-            return 1
-        fi
-    fi
-    if [ -n "$___X_CMD_HTTPGET_UPDATED" ]; then
-        x rmrf "$___X_CMD_ROOT_TMP/theme/tgz"
-    fi
-}
-
-# EndSection
-
-# Section: use
-xrc:mod:lib theme   lib   style
-
-___x_cmd_theme_control_use(){
-    param:dsl <<A
-advise:
-    #1          awk '{ print \\\$2; }' <\\\$___X_CMD_ROOT/.tmp/theme/index.yml
-options:
-    #1          "return theme list name"
-A
-    param:run
-
-    local name="${1:-ys}"
-    # TODO: replace xrc load control to ___X_CMD_ROOT
-    ___x_cmd_theme_control_try_inner "$name" && \
-        x boot rc add "x-theme" "xrc theme && ___x_cmd_theme_control_try_inner $name"
-}
-
-___x_cmd_theme_control_unset(){
-    param:void
-    local ___X_CMD_ROOT_RC="$___X_CMD_ROOT/.boot/rc"
-    if [ ! -f "$___X_CMD_ROOT_RC" ]; then
-        printf "\033[1;31m%s\033[0m\n" "[x-cmd] theme: Not found the configuration file, unset failed"
-        return 0
-    fi
-    x boot rc del x-theme
-    printf "\033[32m%s \033[1;33m%s\033[0m \n" "Unset the theme successfully!" "Now you can restart your terminal."
-}
-# EndSection
-
-# Section: try
-___x_cmd_theme_control_try(){
-    param:dsl <<A
-advise:
-    #1          awk '{ print \\\$2; }' <\\\$___X_CMD_ROOT/.tmp/theme/index.yml
-options:
-    #1          "return theme list name"
-A
-    param:run
-
-    ___x_cmd_theme_control_try_inner "$1"
-}
-
-___x_cmd_theme_control_try_inner(){
-    local name="${1}"
-    case "$name" in
-        ys|"")          ___x_cmd_theme_load_format "$___X_CMD_ROOT_MOD/theme/lib/ys" ;;
-        */*)            ___x_cmd_theme_load_format "$(xrc which "$name")" ;;
-        *)      local filepath; ___x_cmd_theme___which___filepath "style/$name" && \
-                        ___x_cmd_theme_load_format "$filepath"
-    esac
-}
-# EndSection
-
-# Section: zsh
-___x_cmd_theme_control_zinit(){
-    param:void
-    local _have_loaded_theme
-    _have_loaded_theme=$([ -f "$___X_CMD_ROOT/.boot/rc" ] && x boot rc ls | grep 'x-theme')
-    # load theme
-    [ -z "$_have_loaded_theme" ] && ___x_cmd_theme_control_use ""
-    # load zsh plugins
-    [ -z "$ZSH_AUTOSUGGEST_COMPLETIONS_PTY_NAME" ] && ___x_cmd_theme_control_use_plugin "zsh-autosuggestions"
-    [ -z "$ZSH_HIGHLIGHT_REVISION" ] && ___x_cmd_theme_control_use_plugin "zsh-syntax-highlighting"
-    # load font
-    [ -z "$SSH_CONNECTION" ] && [ ! -f "/.dockerenv" ] && ___x_cmd_theme_control_font
-    printf "%s\n" "[x-cmd]: Successfully initialized."
-}
-
-___x_cmd_theme_control_use_plugin() {
-    { [ -z "$1" ] || [ -z "$ZSH_VERSION" ]; } && return 1
-    xrc:mod theme/lib/third-party/"$1"/"$1".plugin.zsh
-    x boot rc add "x-plugin-$1" "[ -n \"\$ZSH_VERSION\" ] && xrc:mod theme/lib/third-party/$1/$1.plugin.zsh"
-}
-# EndSection
-
-# Section: font app
-___x_cmd_theme_control_font() {
-    param:void
-    local _font_dir
-    local _font_name
-    if [ "$(uname)" = "Darwin" ]; then
-        # MacOS
-        _font_dir="$HOME/Library/Fonts"
-        _font_name='MonacoPL.ttf'
-    else
-        # Linux
-        _font_dir="$HOME/.local/share/fonts"
-        mkdir -p "$_font_dir"
-        _font_name='CascadiaCodePL.ttf'
-    fi
-    if [ -f "$_font_dir/$_font_name" ];then
-        printf "%s\n" "[x-cmd]: font already installed: $_font_dir"
-        return 0
-    fi
-    local cache="$_font_dir/$_font_name"
-    local expiration=""
-    ___x_cmd_httpget_gitx x-cmd theme main "font/$_font_name" "$cache" "$expiration"
-    if command -v fc-cache ; then
-        printf "%s\n" "[x-cmd]: Resetting font cache, this may take a moment..."
-        command fc-cache -f "$_font_dir"
-    fi
-}
-
-
-___x_cmd_theme_control_app(){
-    param:void
-    if ___x_cmd_theme___which___filepath index.yml; then
-        xrc theme/lib/app
-        local ___X_CMD_THEME_FINAL_COMMAND
-        local ___X_CMD_THEME_APP_FINAL_NAME
-        ___x_cmd_theme_app
-        if [ "$___X_CMD_THEME_FINAL_COMMAND" = "ENTER" ]; then
-            ___x_cmd_theme_control_use "$___X_CMD_THEME_APP_FINAL_NAME"
-        fi
-    fi
-}
-
-# EndSection
-
-xrc setmain ___x_cmd_theme_control
-
+xrc setmain ___x_cmd_gt
 

@@ -1,0 +1,64 @@
+# shellcheck shell=dash
+
+___x_cmd_xdk___quick(){
+    local name="${1:?Provide name}";    shift
+
+    local ___X_CMD_XDK_EASY_ENV_NAME="${name#*=}"
+    [ "$___X_CMD_XDK_EASY_ENV_NAME" != "$name" ] || ___X_CMD_XDK_EASY_ENV_NAME="$name-DEFAULT"
+
+    local ___X_CMD_XDK_ACCEPT_
+    ! ___x_cmd_xdk_accept_ "${name%%=*}" || name="$___X_CMD_XDK_ACCEPT_"
+
+    ___x_cmd_xdk_easy_env "$name" "$@"
+}
+
+___X_CMD_XDK_AUTOREMOVE=1
+___x_cmd_xdk_easy_env(){
+    # Thanks to: https://scripter.co/nim-check-if-stdin-stdout-are-associated-with-terminal-or-pipe/
+
+    local _T=""
+    [ ! -t 0 ] ||  _T="--tty"
+    $___X_CMD_DOCKER_BIN run \
+        ${___X_CMD_XDK_AUTOREMOVE+"--rm"} \
+        --name "$(printf "%s" "$___X_CMD_XDK_EASY_ENV_NAME" | tr ':' '-')" \
+        -i ${_T} "$@";    # xdk run -it "$@"
+
+    # What if already running? Use exec command.
+}
+
+___x_cmd_xdk_accept_(){
+    local name="${1:?Provide name}"
+    local sys="${name%%:*}"
+    local ver=latest
+    [ "$sys" = "$name" ] || ver="${name#*:}"
+
+    ___x_cmd_xdk_accept_os_ "$sys" || return 1
+    ___X_CMD_XDK_ACCEPT_="${___X_CMD_XDK_ACCEPT_OS_}:${ver}"
+}
+
+___x_cmd_xdk_accept_os_(){
+    local os="${1:?Provide image name}"
+    case "$os" in
+        python|py)          ___X_CMD_XDK_ACCEPT_OS_=xcmd/python     ;;
+        java|ja)            ___X_CMD_XDK_ACCEPT_OS_=xcmd/java       ;;
+        node|js)            ___X_CMD_XDK_ACCEPT_OS_=xcmd/node       ;;
+        perl|pl)            ___X_CMD_XDK_ACCEPT_OS_=xcmd/perl       ;;
+        ruby|rb)            ___X_CMD_XDK_ACCEPT_OS_=xcmd/ruby       ;;
+        lua)                ___X_CMD_XDK_ACCEPT_OS_=xcmd/lua        ;;
+
+        rust)               ___X_CMD_XDK_ACCEPT_OS_=xcmd/rust       ;;
+        gcc)                ___X_CMD_XDK_ACCEPT_OS_=xcmd/gcc        ;;
+        clang)              ___X_CMD_XDK_ACCEPT_OS_=xcmd/clang      ;;
+
+        ubuntu|ubu)         ___X_CMD_XDK_ACCEPT_OS_=xcmd/ubuntu     ;;
+        debian|deb)         ___X_CMD_XDK_ACCEPT_OS_=xcmd/debian     ;;
+        centos|cen)         ___X_CMD_XDK_ACCEPT_OS_=xcmd/centos     ;;
+        busybox|bus)        ___X_CMD_XDK_ACCEPT_OS_=xcmd/busybox    ;;
+        alpine|alp)         ___X_CMD_XDK_ACCEPT_OS_=xcmd/alpine     ;;
+        *)                  return 1                    ;;
+    esac
+}
+
+
+
+

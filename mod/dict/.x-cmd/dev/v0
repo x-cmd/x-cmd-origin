@@ -1,0 +1,64 @@
+# shellcheck shell=sh
+
+# author:       Li Junhao           l@x-cmd.com
+# maintainer:   Li Junhao
+# license:      GPLv3
+
+
+___list_x_cmd_advise_json(){
+    cat <<A
+{
+    "new"               : null,
+    "del"               : null,
+    "make"              : null,
+    "free"              : null,
+    "get"               : null,
+    "get_by_regex"      : null,
+    "put"               : null,
+    "scope"             : null,
+    "remove"            : null,
+    "drop"              : null,
+    "dropr"             : null,
+    "grep"              : null,
+    "grepr"             : null,
+    "iter"              : null,
+    "load"              : null,
+    "dump"              : null,
+    "json"              : null,
+    "size"              : null,
+    "is_empty"          : null,
+    "@"                 : "___dict_instance_list"
+}
+A
+    return 126
+}
+
+___x_cmd_list_is_empty(){
+    [ "$(list_str size)" -eq 0 ]
+}
+
+___x_cmd_list_has(){
+    list_str get_by_value "$@" >/dev/null
+}
+
+
+if [ -n "$BASH_VERSION" ]; then
+    # xrc list/v0_bash
+    xrc list/v0_str
+    list(){
+        list_str "$@"
+    }
+elif [ -n "$ZSH_VERSION" ]; then
+    xrc list/v0_str
+    # xrc std/list_zsh
+    list(){
+        list_str "$@"
+    }
+else
+    xrc list/v0_str
+    list(){
+        list_str "$@"
+    }
+fi
+
+

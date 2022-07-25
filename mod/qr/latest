@@ -5,20 +5,25 @@ ___x_cmd_qr(){
     local op="${1}";
 
     case "$op" in
-        enc)    shift 1; ___x_cmd_qr_enc "$@" ;;
-        dec)    shift 1; ___x_cmd_qr_dec "$@" ;;
-        *://*)  ___x_cmd_qr_enc_default "$op" ;;
-        "")     # decode from file, like
+        enc)    shift 1; ___x_cmd_qr_enc               "$@"  ;;
+        dec)    shift 1; ___x_cmd_qr_dec               "$@"  ;;
+        *://*)           ___x_cmd_qr_enc_default       "$op" ;;
+        *)               ___x_cmd___qr_origin          "$@"  ;;
     esac
 }
 
+___x_cmd___qr_origin(){
+    x pkg xbin init qrencode ""  "___x_cmd___qr_origin" || return
+    ___x_cmd___qr_origin "$@"
+}
+
 ___x_cmd_qr_enc(){
-    ___x_cmd_static_build_file qrencode qrencode "$@"
+   ___x_cmd___qr_origin "$@"
 }
 
 ___x_cmd_qr_enc_default(){
     : Provide param
-    ___x_cmd_static_build_file qrencode qrencode -t utf8i "${1:?Provide URL}"
+    ___x_cmd___qr_origin -t utf8i "${1:?Provide URL}"
 }
 
 ___x_cmd_qr_dec(){

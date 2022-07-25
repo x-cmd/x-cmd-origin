@@ -2,7 +2,8 @@
 
 # author:       Li Junhao           l@x-cmd.com
 
-___x_cmd_terraform(){
+___x_cmd_java(){
     :
 }
 
+xrc setmain ___x_cmd_java

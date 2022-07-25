@@ -1,0 +1,5 @@
+cp -r "$(x wsroot)"/* "$___X_CMD_ROOT_MOD/path/"
+
+function data(){
+     local PATH="/home/linux/work/x-bash/env/tab/bin:/home/linux/.vscode-server/bin/dfd34e8260c270da74b5c2d86d61aee4b6d56977/bin/remote-cli:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/lib/wsl/lib:/mnt/c/Program Files/WindowsApps/CanonicalGroupLimited.UbuntuonWindows_2004.2022.1.0_x64__79rhkp1fndgsc:/mnt/d/centos/vm/bin/:/mnt/c/WINDOWS/system32:/mnt/c/WINDOWS:/mnt/c/WINDOWS/System32/Wbem:/mnt/c/WINDOWS/System32/WindowsPowerShell/v1.0/:/mnt/c/WINDOWS/System32/OpenSSH/:/mnt/c/Program Files/Java/jdk1.8.0_291/bin:/mnt/c/Program Files (x86)/Common Files/Oracle/Java/javapath:/mnt/c/Program Files/Java/jdk1.8.0_291/bin:/mnt/c/Program Files/Java/jdk1.8.0_291/jre/bin:/mnt/d/333/mysql-8.0.23-winx64/mysql-8.0.23-winx64/bin:/mnt/d/nvm:/mnt/c/Program Files/nodejs:/mnt/d/nvm/node_global:/mnt/d/BaiduNetdiskDownload/maven_3.5/maven/apache-maven-3.5.4-bin/apache-maven-3.5.4/bin:/mnt/d/BaiduNetdiskDownload/ll/Git/bin:/mnt/c/ProgramData/DockerDesktop/version-bin:/mnt/e/Git/cmd:/mnt/c/Users/85040/scoop/shims"
+}

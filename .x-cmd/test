@@ -1,0 +1,6 @@
+# shellcheck shell=sh disable=SC1072 #source
+
+xws install
+___X_CMD_XRC_MODULE_IMPORTED=
+___x_cmd_advise rm ___x_cmd_path
+xrc path

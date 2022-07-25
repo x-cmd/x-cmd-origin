@@ -1,0 +1,195 @@
+# shellcheck shell=sh disable=SC2039
+
+# author:       Li Junhao           l@x-cmd.com    edwinjhlee.github.io
+# maintainer:   Li Junhao
+
+path_ext(){
+    local i 
+    local ret
+    local filepath
+    for i in "$@"; do
+        filepath=$(basename "${i}")
+        ret=${filepath##*.}
+        # ret=$(cut -d '.')
+        # to handle the situation: `path_extensions abc`, ret="abc", should return ""
+        [ "$ret" = "$filepath" ] || printf "%s" "$ret"
+    done
+}
+
+path_parts(){
+    # dirname filename extname
+    local filepath=$1
+
+    if [ $# -eq 1 ]; then
+        dirname "$filepath"
+        basename "$filepath"
+        path_ext "$filepath"
+        return 0
+    fi
+
+    local dirname=${2:-"-"} 
+    local filename=${3:-"-"} 
+    local extname=${4:-"-"}
+    
+    [ ! "$dirname" = - ] && eval "$dirname=$(dirname "$filepath")"
+    [ ! "$filename" = - ] && eval "$filename=$(basename "$filepath")"
+    [ ! "$extname" = - ] && eval "$extname=$(path_ext "$filepath")"
+}
+
+path_filename(){
+    local filepath 
+    local i
+    for i in "$@"; do
+        filepath=$(basename "$i")
+        printf "%s" "${filepath%.*}"
+    done
+}
+
+path_dirname(){
+    local i
+    for i in "$@"; do
+        dirname "$i"
+    done
+}
+
+path_basename(){
+    local i
+    for i in "$@"; do
+        basename "$i"
+    done
+}
+
+path_abs(){
+    local p=${1:-.}
+    if [ -f "$p" ]; then
+        echo "$(cd "$(dirname "$p")" && pwd)/$(basename "$p")"
+    else
+        (cd "$p" && pwd)
+    fi
+}
+
+path_script_path(){
+    path_abs "${BASH_SOURCE[0]}"
+}
+
+# TODO
+path_common2(){
+    # local a=$1
+    # local b=$2   
+    :
+}
+
+path_common(){
+    for i in "$@"; do
+        :
+    done
+}
+
+# PATH environment variable operations
+# code from el-logic
+
+path_display(){
+    local IFS=":"
+    for i in $PATH; do 
+        echo "$i";
+    done
+}
+
+path_append(){
+    PATH="$PATH:${1:?"Provide new path"}"
+}
+
+path_prepend(){
+    PATH="${1:?"Provide new path"}:$PATH"
+}
+
+path_remove(){
+    :
+}
+
+# fp
+
+# In linux, `readlink -f <filepath>`. Not works in BSD system
+# https://superuser.com/questions/330199/how-get-full-path-to-target-of-link
+# TODO: using subprocess to optimize
+path_readlink(){
+    local TGT=${1:?"Provide name"}
+    local ORI 
+    local A
+    local RES
+    ORI=$(pwd)
+    A=$(readlink "$TGT")
+    cd "$(dirname "$TGT")" && cd "$(dirname "$A")" || return 1
+    RES=$(pwd)
+    cd "$ORI" && echo "$RES/$(basename "$A")"
+}
+
+# Protected folders
+path_rmrf(){
+    xrc std/str
+    for i in "$@"; do
+        local tgt
+        tgt="$(str_trim "$i")"
+        [ "$tgt" = "" ] && continue
+
+        # TODO: add other patterns
+        if [ "$tgt" = "/" ]; then
+            yesno "WARNING: Sure of removing '$tgt': " || continue
+        fi
+
+        rm -rf "$i"
+    done
+}
+
+# TODO: check this function
+path_rmrf_safe(){
+    local i
+    local sw=0
+    local filepath
+    local pattern
+    local pattern_list=""
+    local path_list=""
+    local hyphen2=0
+    local IFS=
+
+    for i in "$@"; do
+        if [ "$i" = -- ]; then
+            hyphen2=1
+        fi
+        if [ $hyphen2 -eq 0 ]; then
+            pattern_list="$pattern_list
+$i"
+        else
+            path_list="$path_list
+$i"
+        fi
+    done
+
+    if [ $hyphen2 -eq 0 ]; then
+        path_list="$pattern_list"
+        pattern_list=""
+    fi
+
+    while read -r filepath; do
+        case "$filepath" in
+            /)      sw=1; printf "Detect rm -rf /" >&2      ;;
+            /bin*)  sw=1; printf "Detect rm -rf /bin" >&2   ;;
+            /home)  sw=1; printf "Detect rm -rf /home" >&2  ;;
+            *)      for pattern in $pattern_list; do
+                        # [[ "$filepath" =~ $pattern ]]
+                        str_regex "$filepath" "$pattern" || continue
+                        sw=1
+                        printf "Detect violation of RULES: %s" "$pattern" >&2
+                    done;;
+        esac
+    done <<A
+$path_list
+A
+
+    if [ "$sw" -eq 1 ]; then
+        printf "file.rm.safe cannot remove the critical files. If you insists, please directly using rm command." >&2
+        return 1
+    fi
+
+    rm -rf "$@"
+}

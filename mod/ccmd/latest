@@ -7,9 +7,7 @@ xrc:mod ccmd/lib/help
 
 # Check it again.
 TMPDIR=${TMPDIR:-$(dirname "$(mktemp -u)")}
-
-___X_CMD_CCMD_TMP_FOLDER="${TMPDIR%/}/x-cmd-path}"
-mkdir -p "$___X_CMD_CCMD_TMP_FOLDER"
+___X_CMD_CCMD_TMP_FOLDER="${TMPDIR%/}/x-cmd-path"
 
 ___x_cmd_ccmd(){
     local op="${1}"
@@ -83,6 +81,7 @@ ___x_cmd_ccmd_exec(){
             mv "$TEMP_PATH" "$filepath"
             return 0
         else
+            ccmd:error "cache failed: $*"
             local code=$?
             rm "$TEMP_PATH"
             return "$code"
@@ -91,11 +90,16 @@ ___x_cmd_ccmd_exec(){
 }
 
 ___x_cmd___ccmd_validate_time_format(){
-    # if [[ ! "$expiration" =~ ^[0-9]+[dmwsh]?$ ]]; then
+    local tmp
     case "${1:?Provide time}" in
-        *d|*m|*w|*s|*h)     [ "${1%.}" -gt 0 ] 2>/dev/null; return $? ;;
+        *d) tmp=d   ;;
+        *m) tmp=m   ;;
+        *w) tmp=w   ;;
+        *s) tmp=s   ;;
+        *h) tmp=h   ;;
     esac
-    return 1
+    [ "${1%"$tmp"*}" -gt 0 ] 2>/dev/null
+    return $?
 }
 
 ___x_cmd_ccmd_invalidate(){
@@ -114,7 +118,9 @@ ___x_cmd_ccmd_invalidate(){
 
 ___x_cmd_ccmd_clear(){
     local FILEPATH="${X_CMD_CACHE_STORAGE_FOLDER_PATH:-$___X_CMD_CCMD_TMP_FOLDER}"
-    rm -f "$FILEPATH/*"
+    # zsh rm -f requires confirmation
+    touch "$FILEPATH"/___x_cmd_ccmd_clear_tmp
+    eval "$(command -v rm) -f $FILEPATH/*"
 }
 
 # EndSection

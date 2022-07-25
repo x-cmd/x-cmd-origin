@@ -1,0 +1,17 @@
+___x_cmd_tmux___abbr_(){
+    ___X_CMD_TMUX___ABBR_=0
+
+    local op="$1"; shift
+
+    case "$op" in
+        msg)                    ___x_cmd___tmux_origin display-message "$@"         ;;
+        pop)                    ___x_cmd___tmux_origin display-popup "$@"           ;;
+        src)                    ___x_cmd___tmux_origin source-file "$@"             ;;
+        # menu)                   ___x_cmd___tmux_origin display-menu "$@"          ;;
+        prompt)                 ___x_cmd___tmux_origin command-prompt "$@"          ;;
+        # confirm)                ___x_cmd___tmux_origin confirm-before "$@"        ;;
+    esac
+
+    ___X_CMD_TMUX___ABBR_=1
+}
+

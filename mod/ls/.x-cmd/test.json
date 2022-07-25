@@ -1,0 +1,36 @@
+{
+  "name": "%{workspace}",
+  "root": "~/",
+  "windows": [
+    {
+      "name": "editor",
+      "root": "~/",
+      "layout": "main-vertical",
+      "before": "x use node=v18\n",
+      "panes": [
+        {
+          "name": "vim",
+          "exec": "vim",
+          "size": "30%"
+        },
+        {
+          "name": "monitor",
+          "layout": "main-horizontal",
+          "size": "40%",
+          "panes": [
+            "top",
+            {
+              "name": "netstat",
+              "exec": "netstat -v"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "logs",
+      "root": "%{PWD}",
+      "exec": "tail -f log/app.log"
+    }
+  ]
+}

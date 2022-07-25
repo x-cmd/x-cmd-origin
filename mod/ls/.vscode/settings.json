@@ -6,6 +6,7 @@
         "**/*.md": "markdown",
         "**/*.yml": "yaml",
         "**/LICENSE": "TXT",
+        "**/*.tmux": "shellscript",
         "**/*": "shellscript",
     },
     "files.trimTrailingWhitespace": true,

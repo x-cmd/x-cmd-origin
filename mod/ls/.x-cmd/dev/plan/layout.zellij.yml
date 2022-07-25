@@ -1,0 +1,32 @@
+---
+template:
+  direction: Horizontal
+  parts:
+    - direction: Vertical # part 2
+      body: true
+    - direction: Vertical  # part 1
+      borderless: true
+      split_size:
+        Fixed: 1
+      run:
+        plugin:
+          location: "zellij:tab-bar"
+tabs:
+  - name: "tab 2" # tab 2
+    direction: Vertical
+    borderless: true
+    parts:
+      - direction: Horizontal
+        borderless: true
+      - direction: Horizontal
+        borderless: true
+  - name: "tab 3" # tab 3
+    direction: Vertical
+    parts:
+      - direction: Horizontal
+        borderless: true
+      - direction: Horizontal
+        borderless: true
+        parts:
+          - direction: Horizontal
+          - direction: Vertical

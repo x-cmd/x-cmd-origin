@@ -1,0 +1,6 @@
+name: x-tmux-2
+windows:
+  - name: editor
+    panes:
+      - [ "top",        "x dust && read r" ]
+      - [ "x man tmux"  ]

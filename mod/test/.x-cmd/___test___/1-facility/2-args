@@ -1,8 +1,0 @@
-test_1(){
-    x assert "$(echo hi)" = h
-}
-test_2(){
-    x assert "$(echo hhi)" = hhi
-}
-
-@assert:file:func "" "test"

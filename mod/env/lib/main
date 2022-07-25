@@ -1,0 +1,118 @@
+# shellcheck    shell=sh            disable=SC3043      # xrc
+
+___x_cmd_env_get_version(){
+    local pkg_name="${1%=*}"
+    local version="${1#*=}"
+    if [ "$version" != "$pkg_name" ]; then
+        printf "%s\n" "$version"
+    else
+        ___x_cmd_pkg default_version "$pkg_name"
+    fi
+}
+
+___x_cmd___env_pasre__pkg__version(){
+    case "${1:?Please provide package and its version in form of <pkg>=<-|<version>>}" in
+        *=-)
+            ___X_CMD___ENV_PARSE_PKG="${1%=-}"
+            ___x_cmd_env_prev_ "${1%=-}"
+            ___X_CMD___ENV_PARSE_VERSION="$___X_CMD_ENV_PREV"
+            ;;
+        *=*)
+            ___X_CMD___ENV_PARSE_PKG="${1%=*}"
+            ___X_CMD___ENV_PARSE_VERSION="${1#*=}"
+            ;;
+        *)
+            ___X_CMD___ENV_PARSE_PKG="${1}"
+            ___X_CMD___ENV_PARSE_VERSION="$(___x_cmd_pkg default_version "$1" 2>/dev/null)"
+    esac
+}
+
+# use = try + save-config
+___x_cmd_env_use(){
+    # x:trace env/use
+    ___x_cmd_env_try "$@" || return
+
+    local code="___x_cmd_env___configstr_set_ \"\$(cat \"\$___X_CMD_ENV_VERSION_CONFIG_PATH\")\$___X_CMD_UNSEENCHAR_NEWLINE\""
+    local i; for i in "$@"; do
+        ___x_cmd___env_pasre__pkg__version "$i"
+        if [ -z "$___X_CMD___ENV_PARSE_VERSION" ]; then
+            env:warn "Not found $___X_CMD___ENV_PARSE_PKG version."
+            continue
+        fi
+
+        local script_path
+        script_path="$(___x_cmd_pkg___get_script_path "$___X_CMD___ENV_PARSE_PKG" "$___X_CMD___ENV_PARSE_VERSION" "" activate)"
+        env:debug "script_path: ""$script_path" "___X_CMD___ENV_PARSE_PKG: " "$___X_CMD___ENV_PARSE_PKG" "___X_CMD___ENV_PARSE_VERSION: " "$___X_CMD___ENV_PARSE_VERSION"
+        code="$code $___X_CMD___ENV_PARSE_PKG=$___X_CMD___ENV_PARSE_VERSION=$script_path"
+    done
+
+    local ___X_CMD_ENV___CONFIGSTR_SET_;    eval "$code"
+    ___x_cmd_env_config___write "$___X_CMD_ENV___CONFIGSTR_SET_"
+}
+
+
+___x_cmd_env_unuse(){
+    x:trace env/unuse
+    ___x_cmd_env_untry "$@" || return
+
+    local unuse_tmp; unuse_tmp="$(cat "$___X_CMD_ENV_VERSION_CONFIG_PATH")$___X_CMD_UNSEENCHAR_NEWLINE"
+    local i; for i in "$@"; do
+        ___x_cmd_env___sdict rm unuse_tmp "${i%%=*}"
+    done
+
+    ___x_cmd_env_config___write "$unuse_tmp" "$___X_CMD_ENV_VERSION_CONFIG_PATH"
+}
+
+# try = install + activate
+___x_cmd_env_try(){
+    # x:trace env/try
+    local ___X_CMD___ENV_PARSE_PKG
+    local ___X_CMD___ENV_PARSE_VERSION
+
+    local code="___x_cmd_env___configstr_set_ \"\$___X_CMD_ENV_VERSION_CONFIG\""
+    local i; for i in "$@"; do
+        ___x_cmd___env_pasre__pkg__version "$i"
+        if [ -z "$___X_CMD___ENV_PARSE_VERSION" ]; then
+            env:warn "Not found $___X_CMD___ENV_PARSE_PKG version."
+            continue
+        fi
+
+        env:debug "Prepare $___X_CMD___ENV_PARSE_PKG $___X_CMD___ENV_PARSE_VERSION"
+        if ! ___x_cmd_pkg install "$___X_CMD___ENV_PARSE_PKG" "$___X_CMD___ENV_PARSE_VERSION"; then
+            env:error "Cannot install package: $___X_CMD___ENV_PARSE_PKG $___X_CMD___ENV_PARSE_VERSION"
+            return 1
+        fi
+
+        ___x_cmd___env_store_prev "$___X_CMD___ENV_PARSE_PKG"
+        env:debug "Try $___X_CMD___ENV_PARSE_PKG $___X_CMD___ENV_PARSE_VERSION"
+        ___x_cmd_pkg deactivate "$___X_CMD___ENV_PARSE_PKG" 2>/dev/null
+
+        ___x_cmd_pkg activate "$___X_CMD___ENV_PARSE_PKG" "$___X_CMD___ENV_PARSE_VERSION"
+        ___x_cmd___env_store_current "$___X_CMD___ENV_PARSE_PKG" "$___X_CMD___ENV_PARSE_VERSION"
+
+        code="$code $___X_CMD___ENV_PARSE_PKG=$___X_CMD___ENV_PARSE_VERSION"
+    done
+
+    local ___X_CMD_ENV___CONFIGSTR_SET_;    eval "$code"
+    ___X_CMD_ENV_VERSION_CONFIG="$___X_CMD_ENV___CONFIGSTR_SET_"
+}
+
+
+# TODO
+___x_cmd_env_untry(){
+    x:trace env/untry
+    local pkg_name
+    local version
+    local ___X_CMD_ENV_PREV
+
+    local code="___x_cmd_env___configstr_set_ \"\$___X_CMD_ENV_VERSION_CONFIG\""
+
+    local i; for i in "$@"; do
+        pkg_name="${i%=*}"
+        ___x_cmd_pkg deactivate "$pkg_name"
+        code="$code $pkg_name="
+    done
+
+    local ___X_CMD_ENV___CONFIGSTR_SET_;    eval "$code"
+    ___X_CMD_ENV_VERSION_CONFIG="$___X_CMD_ENV___CONFIGSTR_SET_"
+}

@@ -1,0 +1,21 @@
+# shellcheck shell=sh disable=SC3043
+
+___x_cmd_hub_msg_telegram(){
+    local msg="${1}"
+    local res
+    if ! res="$(___x_cmd_hub_client_send_telegram_msg "$msg")" ; then
+        hub:error "Failed to send msg, res:$res, msg:$msg"
+        return 1
+    fi
+    printf "%s\n" "${res}"
+}
+
+___x_cmd_hub_msg_wechat(){
+    local msg="${1}"
+    local res
+    if ! res="$(___x_cmd_hub_client_send_wechat_msg "$msg")" ; then
+        hub:error "Failed to send msg, res:$res, msg:$msg"
+        return 1
+    fi
+    printf "%s\n" "${res}"
+}

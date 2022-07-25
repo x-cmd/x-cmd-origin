@@ -1,0 +1,36 @@
+# shellcheck shell=sh disable=SC3043,SC2164
+
+# author:       Li Junhao           l@x-cmd.com
+# license:      GPLv3
+
+# TODO: showing progress when you upload a file.
+
+# copy root@abc:~/work a.txt                => scp root@abc:/root/work a.txt
+
+# copy root@abc:~/work :oss/bucket/a.txt    
+    # => 1. to local 
+    # => 2. in that machine, using x directly copy the file to oss client.
+    # => 3. file to middle ware like kafka, database
+    # => 4. migrating data from databases
+    # => 5. export the data from db
+
+# copy facility
+___x_cmd_cp(){
+    param:dsl <<A
+options:
+    -r          recursivly
+    #n          multiple
+A
+
+    command cp "$@"
+    local arg
+    for arg in "$@"; do
+        case "$arg" in
+            *@:*)   scp "$@" ;;
+            *:*)    scp "$@" ;;
+        esac
+    done
+
+}
+
+

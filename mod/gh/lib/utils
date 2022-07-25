@@ -1,0 +1,110 @@
+# shellcheck shell=sh
+# shellcheck disable=SC2039,3043
+
+############################
+# Section 2: Wrapping std/http module with object naming changing
+############################
+___x_cmd_gh_resp_header() {
+   O="${O:-___x_cmd_gh_GITHUB_DEFAULT}" ___x_cmd_http resp header "$@"
+}
+
+___x_cmd_gh_get_multi() {
+    if [ -n "$page" ] || [ -n "$per_page" ]; then
+        ___x_cmd_gh_http get "$@" page per_page
+        return
+    fi
+    local tmp
+    tmp=$(mktemp)
+    ___x_cmd_gh_http get "$@" page=1 per_page=100 >> "$tmp"
+    local next_url
+    _____x_cmd_gh_next_url
+    if [ -z "$next_url" ];then
+        cat "$tmp"
+        rm "$tmp"
+        return
+    fi
+    while [ -n "$next_url" ]; do
+        ___x_cmd_gh_http get "$next_url" >> "$tmp"
+        _____x_cmd_gh_next_url
+    done
+    x ja 'BEGIN{print "["} END{print "]"}O[1]{
+    if ((V == "}") || (V == "]") || (K ~ "^[0-9]+$")) print V
+    else print K ": "V;
+    }' < "$tmp" | x jo fmt
+    rm "$tmp"
+}
+
+_____x_cmd_gh_next_url(){
+    next_url="$(___x_cmd_gh_resp_header "link")"
+    next_url="${next_url#*'rel="prev", <'}"
+    local tmp_url="${next_url%%'>; rel="next"'*}"
+    if [ "$next_url" != "$tmp_url" ];then
+         next_url="${tmp_url#*'.com'*}"
+    else
+        next_url=""
+    fi
+}
+___x_cmd_gh_http(){
+    if ! O="${O:-___x_cmd_gh_GITHUB_DEFAULT}" ___x_cmd_http header get Accept 1>/dev/null 2>&1; then
+         O="${O:-___x_cmd_gh_GITHUB_DEFAULT}" ___x_cmd_http header put Accept application/vnd.github.v3+json
+    fi
+    O="${O:-___x_cmd_gh_GITHUB_DEFAULT}" ___x_cmd_http "$@"
+}
+
+############################
+# Section 3: Parameter Utilities
+############################
+
+alias ___x_cmd_gh_param_init_owner_repo='
+    local owner_repo
+    ___x_cmd_gh_param_normalize_repo  || return
+'
+
+___x_cmd_gh_param_normalize_repo() {
+    local op="$repo"
+    [ -z "$op" ] && op="$1"
+    case "$op" in
+    */*)
+        owner_repo="$(printf "%s" "$op")"
+        ;;
+    "")
+        owner_repo="$(_____x_cmd_git_repo)"
+        ;;
+    *)
+        ___x_cmd_gh_current_owner 1>/dev/null
+        if [ -z "$___X_CMD_GITHUB_DEFAULT_OWNER" ]; then
+            printf "No owner provided. Default owner not set.\n" >&2
+            return 1
+        fi
+        owner_repo="$(printf "%s" "$___X_CMD_GITHUB_DEFAULT_OWNER/$op")"
+        ;;
+    esac
+}
+
+___x_cmd_gh_default(){
+    param_default "$@" 2>/dev/null || return 1
+}
+
+_____x_cmd_git_repo(){
+    local repo
+    repo="$(git config --get remote.origin.url 2>/dev/null)"
+    repo="${repo##*".com:"}"
+    repo="${repo##*".com/"}"
+    repo="${repo%.*}"
+    printf "%s" "$repo"
+}
+_____x_cmd_git_branch(){
+    git symbolic-ref -q --short HEAD 2>/dev/null
+}
+
+___gh_ui_mutual(){
+    if [ -t 1 ]; then
+       if ! eval "$(cat)" && [ -n "$___gh_error_msg" ];then
+            ___x_cmd_ui_tf false "$___gh_error_msg"
+            return 1
+       fi
+    else
+        "$@"
+    fi
+    return
+}

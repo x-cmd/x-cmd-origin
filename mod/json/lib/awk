@@ -1,0 +1,164 @@
+# Section: TODO: json facility using awk
+
+___X_CMD_JSON_AWK_SRC=
+
+______x_cmd_json_awk_code(){
+    if [ -z "$___X_CMD_JSON_AWK_SRC" ]; then
+        ___X_CMD_JSON_AWK_SRC="$(xrc cat awk/lib/default.awk awk/lib/json.awk awk/lib/jiter.awk)"
+    fi
+    printf "%s" "$___X_CMD_JSON_AWK_SRC"
+}
+
+______x_cmd_json_awk_end(){
+    local func=jiparse_after_tokenize
+    if [ -n "$ALREADY_TOKENIZED" ]; then
+        func=jiparse
+    fi
+
+        awk "$(______x_cmd_json_awk_code)" '
+{ $func(_, $0) }'"
+$1"
+
+}
+
+______x_cmd_json_awk_tokenize(){
+    awk "$(______x_cmd_json_awk_code)"'
+{
+    printf(jtokenize($0))
+}
+'
+}
+
+______x_cmd_json_awk_parse_flat_stream(){
+    awk "$(______x_cmd_json_awk_code)"'
+{ jiparse(_, $0) }'"
+$1
+"
+}
+
+______x_cmd_json_awk_parse_stream(){
+    awk "$(______x_cmd_json_awk_code)"'
+{ jiparse_after_tokenize(_, $0) }'"
+$1
+"
+}
+
+______x_cmd_json_awk_parse(){
+    awk -v RS="$(printf "\001")" "$(______x_cmd_json_awk_code)"'
+{ r = $0 }
+END{ ___x_cmd_json_parse(r, jobj) }'"
+$1
+"
+}
+
+______x_cmd_json_awk_parse_flat(){
+    awk -v RS="$(printf "\001")" "$(______x_cmd_json_awk_code)"'
+{ r = $0 }
+END{ ______x_cmd_json_parse(r, jobj) print jget(jobj, "3.1.id") }'"
+$1
+"
+}
+
+______x_cmd_json_awk_get(){
+    local func=jiparse_after_tokenize
+    if [ -n "$ALREADY_TOKENIZED" ]; then
+        func=jiparse
+    fi
+
+    local IFS
+    IFS="$(printf "\002")"
+
+    local code
+    if code="$(awk -v data="$*" "$(______x_cmd_json_awk_code)
+{ $func(_, \$0); }"'
+END {
+    arrl = split(data, arr, "\002")
+    for (i=1; i<=arrl; ++i) {
+        e = arr[i]
+        idx = index(e, "=")
+        if (idx <= 0) {
+            exit(1)
+            break
+        }
+
+        varname = substr(e, 1, idx-1)
+        expr    = substr(e, idx+1)
+        print varname "=" jget(_, expr)
+    }
+}
+')"; then
+
+        eval "$code"
+        # echo "$code"
+    fi
+
+}
+
+______x_cmd_json_var(){
+    local IFS="
+"
+    local varname
+    local data
+    while read -r data; do
+        [ "$#" -le 0 ] && break
+        eval "$1"="$data"
+        shift
+    done
+}
+
+______x_cmd_json_awk_table_flat_stream(){
+
+    local key="$1"
+    local keylist="$2"
+
+    local SEP1="${SEP1:-"\002"}"
+    local SEP2="${SEP2:-"\003"}"
+
+    ______x_cmd_json_awk_parse_flat_stream '
+END{
+    print jjoin(_, "'"$key"'", "'"$SEP1"'", "'"$keylist"'", "'"$SEP2"'")
+}
+'
+}
+
+______x_cmd_json_awk_table_stream(){
+
+    local key="$1"
+    local keylist="$2"
+
+    local SEP1="${SEP1:-"\002"}"
+    local SEP2="${SEP2:-"\003"}"
+
+
+    ______x_cmd_json_awk_parse_stream '
+END{
+    # print ___x_cmd_json_handle_jpath(".table.abc.1.name")
+    print jget(_, ".table.abc.1.name")
+    # print jjoin_to_table(_, "'"$key"'", "", "'"$SEP1"'", "'"$keylist"'", "'"$SEP2"'")
+    # print jlist_join(_, "'"$key"'", "", "\n", "'"$keylist"'", ", ")
+}
+'
+}
+
+______x_cmd_json_awk_str_compact(){
+    awk "$(______x_cmd_json_awk_code)"'
+{ jiparse(_, $0) }'"
+END {
+    ___x_cmd_json_stringify_machine(_, \""$1"\")
+}
+"
+}
+
+______x_cmd_json_awk_print_exact(){
+    awk -v key="$1" "$(______x_cmd_json_awk_code)"'
+
+BEGIN{
+    key = ___x_cmd_json_handle_jpath( key )
+}
+{
+    jiter_print_exact_after_tokenize(_, $0, key)
+}
+'
+}
+
+# EndSection

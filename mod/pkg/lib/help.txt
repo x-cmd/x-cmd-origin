@@ -1,0 +1,28 @@
+subcommands:
+    ls:
+        i|installed                               "List all installed languages and apps "
+        a|activated                               "Llist all activated languages"
+        A|all <candidate>                         "List all version of candicate "
+
+    update:                                       "Update all.7z"
+
+    default_version <candidate>:                  "Display candidate default version"
+
+    ll:                                           "Display all candidates and classification"
+
+    download <candidate>:                         "download candidate"
+
+    install <candidate>:                          "download and unpack candidate"
+
+    uninstall <candidate>:                        "uninstall candidate"
+
+    reinstall <candidate>:                        "uninstall previous candidate and install"
+
+    activate <candidate> <version>:               "add candidate bin path into PATH"
+
+    deactivate <candidate> <version>:             "remove bin path from PATH"
+
+    xbin:
+        init <candidate> <version> <subcmd>:      "generate a function and use candidate through this function"
+
+        path <candicate> <version>:               "generate candidate bin path"

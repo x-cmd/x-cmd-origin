@@ -1,0 +1,114 @@
+# shellcheck shell=bash
+___x_cmd_advise_man(){
+    local op="${1:?Provide subcommand}"; shift
+    case "$op" in
+        ls)         ___x_cmd_advise_man_ls "$@"         ;;
+        update)     ___x_cmd_advise_man_update
+                    ___x_cmd_advise_completion_update   ;;
+        which)      ___x_cmd_advise_man_which "$@"      ;;
+        load)       ___x_cmd_advise_man_load "$@"       ;;
+        rm)         ___x_cmd_advise_man_rm "$@"         ;;
+        *)          ___x_cmd_advise_man_load "$@"       ;;
+    esac
+}
+
+___X_CMD_ADVISE_MAN_SRC_FOLDER="$___X_CMD_ROOT/.tmp/advise/src"
+___X_CMD_ADVISE_MAN_COMPLETIONS_FOLDER="$___X_CMD_ROOT/.tmp/advise/completions"
+___x_cmd_advise_man_exists(){
+    [ -d "$___X_CMD_ADVISE_MAN_SRC_FOLDER" ]
+}
+___x_cmd_advise_completions_exists(){
+    [ -d "$___X_CMD_ADVISE_MAN_COMPLETIONS_FOLDER/$___X_CMD_CUR_SHELL-completions" ]
+}
+
+___x_cmd_advise_completion_update(){
+    local CACHE_COMPLETIONS="$___X_CMD_ROOT/.tmp/advise/$___X_CMD_CUR_SHELL-completions.7z"
+    local folder="$___X_CMD_ADVISE_MAN_COMPLETIONS_FOLDER/$___X_CMD_CUR_SHELL-completions"
+    ___x_cmd_httpget_gitx static-build "$___X_CMD_CUR_SHELL"-completions main "$___X_CMD_CUR_SHELL-completions.7z" "$CACHE_COMPLETIONS" || {
+        x:log "Fail to update $___X_CMD_CUR_SHELL-completion.7z from x-cmd/advise."
+        return 1
+    }
+
+    { x rmrf "$folder";   x mkdirp "$folder"; } 1>/dev/null 2>&1
+    x uz "$CACHE_COMPLETIONS" "$folder"
+    x rmrf "$CACHE_COMPLETIONS"
+}
+
+___x_cmd_advise_man_update(){
+    local CACHE="$___X_CMD_ROOT/.tmp/advise/all.tgz"
+    ___x_cmd_httpget_gitx x-cmd advise main "dist/all.tgz" "$CACHE" - || {
+        x:log "Fail to update from x-cmd/advise."
+        return 1
+    }
+
+    { x rmrf "$___X_CMD_ADVISE_MAN_SRC_FOLDER";   x mkdirp "$___X_CMD_ADVISE_MAN_SRC_FOLDER"; }1>/dev/null 2>&1
+    x uz "$CACHE" "$___X_CMD_ADVISE_MAN_SRC_FOLDER"
+    x rmrf "$CACHE"
+}
+
+___x_cmd_advise_man_ls(){
+    ___x_cmd_advise_man_exists || ___x_cmd_advise_man_update || return
+    local line
+    ls "$___X_CMD_ADVISE_MAN_SRC_FOLDER/$*" | while read -r line; do
+        [ "$line" = "LICENSE" ] || printf "%s\n" "$line"
+    done
+}
+
+___x_cmd_advise_man_which(){
+    local name="${1:?Provide name}"
+
+    ___x_cmd_advise_man_exists || ___x_cmd_advise_man_update || return
+
+    local IFS=" ";
+    local file; for file in "$name/advise.t.json" "npx/_/$name/advise.t.json" "pipx/_/$name/advise.t.json"; do
+        file="$___X_CMD_ADVISE_MAN_SRC_FOLDER/$file"
+        [ -f "$file" ] || continue
+        printf "%s\n" "$file"
+    done
+}
+
+___x_cmd_advise_man_load_one(){
+    if [ -n "$ZSH_VERSION" ];then                                   compdef "___x_cmd_advise_man_completer" "$@"
+    elif [[ "$BASH_VERSION" =~ (^3.*|^4.[0-3]) ]]; then             complete -F "___x_cmd_advise_man_completer" "$@"
+    else                                                            complete -o nosort -F "___x_cmd_advise_man_completer" "$@"
+    fi
+}
+
+___x_cmd_advise_man_load_all(){
+    eval "$(___x_cmd_advise_man_ls | command awk '
+        {                           code = code " " $1;                                         }
+        (NR % 50 == 0){             print "___x_cmd_advise_man_load_one" code;      code = ""   }
+        END {   if (code != "")     print "___x_cmd_advise_man_load_one" code;                  }
+    ')"
+}
+
+___x_cmd_advise_man_load(){
+    if ___x_cmd_advise_completions_exists || ___x_cmd_advise_completion_update; then
+        local filename="$___X_CMD_ADVISE_MAN_COMPLETIONS_FOLDER/$___X_CMD_CUR_SHELL-completions/completions.sh"
+        if [ -f "$filename" ]; then
+            x:debug "source $___X_CMD_CUR_SHELL completions from $filename"
+            .  "$filename"
+        fi
+    fi
+
+    if [ "$#" -ge 1 ]; then     ___x_cmd_advise_man_load_one "$@"
+    else                        ___x_cmd_advise_man_load_all
+    fi
+}
+
+___x_cmd_advise_man_rm(){
+    local name="${1:-}"
+    local srcfolder="$___X_CMD_ADVISE_MAN_SRC_FOLDER/$name"
+    if ___x_cmd_advise_man_exists; then
+        rm -rf "$srcfolder"
+    fi
+}
+
+___x_cmd_advise_man_completer() {
+    # Interesting ... Passing
+    ___ADVISE_RUN_CMD_FOLDER="$___X_CMD_ADVISE_MAN_SRC_FOLDER" ___advise_run ""
+}
+
+## Section man advise
+___x_cmd_advise_man__list(){            candidate_exec_arr=( $(___x_cmd_advise_man_ls ${1:+"$1"/_} ) );      }
+## EndSection

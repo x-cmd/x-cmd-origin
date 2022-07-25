@@ -1,0 +1,322 @@
+# shellcheck shell=sh disable=SC3043
+
+xrc param
+
+___x_cmd_hub_main(){
+    param:subcmd ___x_cmd_hub_main                              \
+        file           "File management"                        \
+        share          "Share management"                       \
+        account        "Account management"                     \
+        msg            "Send message"                           \
+        token          "User token management"                  \
+        login          "Login to hub service"                   \
+        logout         "Logout from hub service"                \
+        register       "Register to hub service"
+
+    param:subcmd:try
+    param:run
+    hub:error "Subcommand required"
+    ___x_cmd_hub_main help
+}
+
+# Section(account): login, register, logout, token
+
+___x_cmd_hub_main_account(){
+    param:subcmd ___x_cmd_hub_main_account                              \
+        info          "Get account info '<username> <userid>'"          \
+        connect       "Connect to other platform such as wechat telegram github gitee etc."
+    param:subcmd:try
+    param:run
+    hub:error "Subcommand required"
+    ___x_cmd_hub_main_account help
+}
+
+___x_cmd_hub_main_account_info(){
+    param:void
+    ___x_cmd_hub_user
+    # TODO: to show what platform is connected
+}
+
+___x_cmd_hub_main_account_connect(){
+    param:dsl<<A
+option:
+    #1    "the platform name"   <platform_name> = wechat telegram github gitee
+A
+    param:run
+
+    ___x_cmd_hub_account_connect_"$1" "$@"
+}
+
+___x_cmd_hub_main_login(){
+    param:void
+    local op="$1"
+    local _SELECT
+    case "$op" in
+        *@*)                    ___x_cmd_hub_login_email_witharg "$@" ;;
+        wx|weixin)              ___x_cmd_hub_login_weixin_qr ;;
+        tg|telegram)            ___x_cmd_hub_login_telegram_qr ;;
+        "")
+                ___x_cmd_ui_select "_SELECT" \
+                    "Login Methods:" \
+                        "Open Browser to x-cmd.com" \
+                        "Login With Weixin QR" \
+                        "Login With Telegram QR" \
+                        "Login With Email Verification"
+                        # "Login With OneTime Password"    # SMS, Telegram, Email, Weixin
+
+                case "$_SELECT" in
+                    1)          ___x_cmd_hub_login_official_site "$@" ;;
+                    2)          ___x_cmd_hub_login_weixin_qr     "$@" ;;
+                    3)          ___x_cmd_hub_login_telegram_qr   "$@" ;;
+                    4)          ___x_cmd_hub_login_email         "$@" ;;
+                    *)          ;;
+                esac
+                ;;
+        *)
+                ___x_cmd_hub_login_official_site "$@" ;;
+    esac
+}
+
+___x_cmd_hub_main_register(){
+    param:void
+    local op="$1"
+    local _SELECT
+    case "$op" in
+        wx|weixin)              ___x_cmd_hub_register_weixin ;;
+        tg|telegram)            ___x_cmd_hub_register_telegram ;;
+        "")
+                ___x_cmd_ui_select "_SELECT" \
+                    "Register Methods:" \
+                        "Open Browser to x-cmd.com" \
+                        "Weixin QR" \
+                        "Telegram Bot" \
+                        "Email Verification"
+
+                case "$_SELECT" in
+                    1)          ___x_cmd_hub_register_official_site "$@"  ;;
+                    2)          ___x_cmd_hub_register_weixin        "$@"  ;;
+                    3)          ___x_cmd_hub_register_telegram      "$@"  ;;
+                    4)          ___x_cmd_hub_register_email         "$@"  ;;
+                    *)          hub:error "Unknown _SELECT: $_SELECT" ;;
+                esac
+                ;;
+        *)
+                ___x_cmd_hub_register_official_site "$@" ;;
+    esac
+}
+
+___x_cmd_hub_main_logout(){
+    param:void
+    ___x_cmd_hub_token "" && \
+        hub:info "Logout Successfully"
+}
+
+___x_cmd_hub_main_token(){
+    param:void
+    ___x_cmd_hub_token "$@"
+}
+
+# EndSection
+
+# Section(file): ls, which, rm,  upload
+
+___x_cmd_hub_main_file(){
+    param:subcmd ___x_cmd_hub_main_file         \
+        ls          "List files in hub"         \
+        ll          "List files in hub with detail" \
+        la          "List all files use ui table in hub"     \
+        rm          "Remove file from hub"      \
+        which       "Find file in hub"          \
+        upload      "Upload file to hub"        \
+        upload_dist "Upload dist file to hub"
+    param:subcmd:try
+    param:run
+    hub:error "subcommand required"
+    ___x_cmd_hub_main_file help
+}
+
+___x_cmd_hub_main_file_ls(){
+    param:dsl<<A
+advise:
+    #1    xrc hub/latest && ___x_cmd_hub_advise_ls_remote
+option:
+    #1    "Resourse path"
+A
+    param:run
+    ___x_cmd_hub_file_list "$@"
+}
+
+___x_cmd_hub_main_file_ll(){
+    param:dsl<<A
+advise:
+    #1    xrc hub/latest && ___x_cmd_hub_advise_ls_remote
+option:
+    #1    "Resourse path"
+A
+    param:run
+    ___x_cmd_hub_file_list "$1" detail
+}
+
+___x_cmd_hub_main_file_la(){
+    param:dsl<<A
+advise:
+    #1    xrc hub/latest && ___x_cmd_hub_advise_ls_remote
+option:
+    #1    "Resourse path"
+A
+    param:run
+    ___x_cmd_hub_file_list "$1" detail true
+}
+
+___x_cmd_hub_main_file_rm(){
+    param:dsl<<A
+advise:
+    #1    xrc hub/latest && ___x_cmd_hub_advise_ls_remote
+option:
+    #1                "Resourse path"
+    --recursive|-r    "Recursive"
+A
+    param:run
+    ___x_cmd_hub_file_rm "$1" "$recursive"
+}
+
+___x_cmd_hub_main_file_which(){
+    param:dsl<<A
+advise:
+    #1    xrc hub/latest && ___x_cmd_hub_advise_ls_remote
+option:
+    #1    "Resourse path"
+A
+    param:run
+    ___x_cmd_hub_file_which "$@"
+}
+
+___x_cmd_hub_main_file_upload(){
+    param:dsl<<A
+advise:
+    #1    ___advise_ls
+option:
+    #1    "local  path"
+    #2    "remote path"
+A
+    param:run
+    ___x_cmd_hub_file_upload "$@"
+}
+
+___x_cmd_hub_main_file_upload_dist(){
+    param:dsl<<A
+advise:
+    #1    ___advise_ls
+option:
+    #1    "local  path"
+    #2    "remote path"
+A
+    param:run
+    ___x_cmd_hub_file_upload_dist "$@"
+}
+
+# EndSection
+
+# Section(share): add, rm, ls
+
+___x_cmd_hub_main_share(){
+    param:subcmd ___x_cmd_hub_main_share     \
+        add          "Add share"             \
+        update       "Update share"          \
+        rm           "Remove share"          \
+        ls           "List shares"
+    param:subcmd:try
+    param:run
+    hub:error "subcommand required"
+    ___x_cmd_hub_main_share help
+}
+
+___x_cmd_hub_main_share_add(){
+    param:dsl<<A
+advise:
+    #1    xrc hub/latest && ___x_cmd_hub_advise_ls_remote
+option:
+    #1               "Resourse path"
+    --link|-l        "Auto generate share link"
+    --time|-t        "Time"                         <time>=""
+    --ip             "IP"                           <ip>=""
+    --user|-u|m      "User can access"              <user>=""
+    --password|-p    "Password"                     <password>=""
+A
+    param:run
+    ___x_cmd_hub_share_add "$@"
+}
+
+___x_cmd_hub_main_share_update(){
+    param:dsl<<A
+advise:
+    #1    xrc hub/latest && ___x_cmd_hub_advise_ls_remote
+option:
+    #1               "Resourse path"
+    --link|-l        "Auto generate share link"
+    --time|-t        "Time"                         <time>=""
+    --ip             "IP"                           <ip>=""
+    --user|-u|m      "User can access"              <user>=""
+    --password|-p    "Password"                     <password>=""
+A
+    param:run
+    ___x_cmd_hub_share_update "$@"
+}
+
+___x_cmd_hub_main_share_rm(){
+    param:dsl<<A
+advise:
+    #1    xrc hub/latest && ___x_cmd_hub_advise_ls_remote_share
+option:
+    #1    "Resourse path"
+A
+    param:run
+    ___x_cmd_hub_share_rm "$@"
+}
+
+___x_cmd_hub_main_share_ls(){
+    param:dsl<<A
+advise:
+    #1    xrc hub/latest && ___x_cmd_hub_advise_ls_remote_share
+option:
+    #1    "Resourse path"
+A
+    param:run
+    ___x_cmd_hub_share_ls "$@"
+}
+
+# EndSection
+
+# Section(msg): telegram、 wechat 、discord
+
+___x_cmd_hub_main_msg(){
+    param:subcmd ___x_cmd_hub_main_msg         \
+        telegram "Send message to your telegram account" \
+        wechat   "Send message to your wechat account"
+    param:subcmd:try
+    param:run
+    hub:error "subcommand required"
+    ___x_cmd_hub_main_msg help
+}
+
+___x_cmd_hub_main_msg_telegram(){
+    param:dsl<<A
+option:
+    #1    "Text for your message to send"
+A
+    param:run
+
+    ___x_cmd_hub_msg_telegram "$@"
+}
+
+___x_cmd_hub_main_msg_wechat(){
+    param:dsl<<A
+option:
+    #1    "Text for your message to send"
+A
+    param:run
+
+    ___x_cmd_hub_msg_wechat "$@"
+}
+
+# EndSection

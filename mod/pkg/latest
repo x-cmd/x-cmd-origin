@@ -1,40 +1,72 @@
-# Author:       Li Junhao                   l@x-cmd.com
-# shellcheck    shell=sh disable=SC3043     # xrc
+# Author:       Li Junhao           l@x-cmd.com
+# shellcheck    shell=sh            disable=SC3043      # xrc
 
-# Section : install
-xrc param/latest
+x log init pkg
+xrc os
+___x_cmd_pkg(){
+    # ___x_cmd_pkg___which_p7zip || return
+    local op="$1"
+    case "$op" in
+        ls)                     shift; ___x_cmd_pkg_ls                    "$@" ;;      # add filter, remote, installed, ...
+        update)                 shift; ___x_cmd_pkg_update                "$@" ;;
 
-___x_cmd_install(){
-    param:dsl <<A
-subcommands:
-    ls          "list all software"
-    get         "get software installation command"
-    run         "run software installation command"
-    update      "update"
-A
-    param:run
+        version)                shift; ___x_cmd_pkg_version               "$@" ;;
+        default_version)        shift; ___x_cmd_pkg_default_version       "$@" ;;
+        ll)                     shift; ___x_cmd_pkg_ll                    "$@" ;;
 
-    if [ -z "$PARAM_SUBCMD" ]; then
-        case "$1" in
-            "")     printf "%s\n" "
-SYMPOSIS:
-    x install <software>
-    x install ls
-    x install run <software>
-    x install name"
-                    ___x_cmd_install _param_help_doc ;;
-            *)      ___x_cmd_install run "$@" ;;
-        esac
-        return 0
+        # x pkg which node=v12
+        which)                  shift; ___x_cmd_pkg_which                 "$@" ;;
+
+        # x pkg download         node=v12
+        download)               shift; ___x_cmd_pkg_download              "$@" ;;
+        install)                shift; ___x_cmd_pkg_install               "$@" ;;
+        uninstall)              shift; ___x_cmd_pkg_uninstall             "$@" ;;
+        reinstall)              shift; ___x_cmd_pkg_reinstall             "$@" ;;
+
+        # x pkg activate/deactivate  node=v12
+        activate)               shift; ___x_cmd_pkg_activate              "$@" ;;
+        deactivate)             shift; ___x_cmd_pkg_deactivate            "$@" ;;
+
+        xbin)                   shift; ___x_cmd_pkg_xbin                  "$@"          ;;
+        _smoke)                 shift; ___x_cmd_pkg__smoke                "$@"          ;;
+        ""|--help|-h)           cat "$___X_CMD_ROOT_MOD/pkg/lib/help.txt" >&2; return 0 ;;
+        _x_cmd_advise_json)     cat "$___X_CMD_ROOT_MOD/pkg/lib/pkg.advise.json"        ;;
+
+
+        *)                      pkg:error "Not found command: x pkg $1"; return 1
+    esac
+}
+
+xrc:mod:lib     pkg \
+    util                xbin                main \
+    info/ls             info/ll             info/ls_installed  \
+    mutate/download     mutate/install      mutate/activate     mutate/deactivate
+
+if ___x_cmd_is_suitable_advise_env; then
+    xrc:mod:lib pkg     advise
+fi
+
+___X_CMD_PKG_RAWPATH="$___X_CMD_ROOT_TMP/pkg/raw"
+___X_CMD_PKG_DOWNLOAD_PATH="$___X_CMD_ROOT_TMP/pkg/download"
+___X_CMD_PKG_INSTALL_PATH="$___X_CMD_ROOT_TMP/pkg/installed"
+
+x mkdirp "$___X_CMD_PKG_RAWPATH" "$___X_CMD_PKG_DOWNLOAD_PATH" "$___X_CMD_PKG_INSTALL_PATH"
+# x defineddir \
+#     ___X_CMD_PKG_RAWPATH        "$___X_CMD_ROOT_TMP/pkg/raw" \
+#     ___X_CMD_PKG_DOWNLOAD_PATH  "$___X_CMD_ROOT_TMP/pkg/download" \
+#     ___X_CMD_PKG_INSTALL_PATH   "$___X_CMD_ROOT_TMP/pkg/installed"
+
+___x_cmd_pkg__smoke(){
+    local name="${1:?Provide a candidate name}"
+
+    smokepath=$(ls "$___X_CMD_PKG_RAWPATH"/*"/$name/.x-cmd/smoke.sh") 2>/dev/null
+    if [ -f "$smokepath" ]; then
+        . "$smokepath"
+    else
+        pkg:error "Smoke file of "$name" doesn't exist"
     fi
 
-    "___x_cmd_install_$PARAM_SUBCMD" "$@"
 }
 
 
-if ___x_cmd_is_suitable_advise_env; then
-    xrc advise/latest
-    advise ___x_cmd_install "" install
-fi
-
-xrc setmain ___x_cmd_install
+xrc setmain ___x_cmd_pkg

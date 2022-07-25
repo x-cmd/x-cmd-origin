@@ -1,0 +1,116 @@
+# shellcheck shell=sh disable=SC3043,SC2034
+
+# Section: util
+
+# TODO: Wait 'x exec npm=[version-not-install]' to remove this function
+___x_cmd_node_exec_default(){
+    local cmd="$1" ; shift
+
+    if command -v "$cmd" > /dev/null ; then
+        "$cmd" "$@"
+        return
+    fi
+
+    ___x_cmd_env_main download node
+
+    eval "
+___x_cmd_node_exec_default(){
+    local cmd=\"\$1\" ; shift
+    ___x_cmd_env_main exec \$cmd \"\$@\"
+}"
+
+    ___x_cmd_env_main exec "$cmd" "$@"
+}
+
+___x_cmd_node_arg(){
+    local IFS
+    IFS="$(printf "\034")"
+    local all="$*"
+
+    local p
+    p="$(xrc which node/lib/node_argparse.awk)"
+
+    awk \
+        -v ARG_SEP="$IFS" \
+        -f "$p" <<A
+$all
+A
+}
+
+# EndSection
+
+# Section: bin node、npm、ts、npx
+
+___x_cmd_node_bin(){
+    ___x_cmd_node_exec_default node "$@"
+}
+
+___x_cmd_npm(){
+    ___x_cmd_node_exec_default npm "$@"
+}
+
+___x_cmd_npx(){
+    ___x_cmd_node_exec_default npx "$@"
+}
+
+# TODO: To be removed
+___x_cmd_ts_deprecated(){
+
+    {
+    local tspath
+    if ! tspath=$(___x_cmd_env_main which ts-node); then
+        x npm install -g ts-node typescript @types/node || return
+        if ! tspath="$(___x_cmd_node_exec_default which ts-node)"; then
+            x:log warn "ts installation failure."
+            return 0
+        fi
+    fi
+
+    eval "
+___x_cmd_ts(){
+    ___x_cmd_node_exec_default ts-node \"\$@\"
+}
+    "
+
+    }
+    ___x_cmd_ts "$@"
+}
+
+# TODO: to fix
+___x_cmd_ts(){
+    local arg
+    local argstr
+    while [ $# -ge 0 ]; do
+        case "$arg" in
+            -*)     argstr="$argstr $arg"   ;;
+            *)      break
+        esac
+    done
+    local script
+    script="$1"
+    shift
+    x npx @typeshell/exec "$argstr" "$script" "$@"
+}
+
+___x_cmd_node_inner(){
+    local code
+    code="$(___x_cmd_node_arg "$@")"
+    case $? in
+        0)
+            eval "$code"
+            if [ -n "$FP" ]; then
+                if ! ___x_cmd_which_one "$FP"; then
+                    return
+                fi
+                xfp="$___X_CMD_WHICH_ONE_RESULT"
+                eval ___x_cmd_node_bin "$S1" "\"\$xfp\"" "$S2"
+            else
+                ___x_cmd_node_bin "$@"
+            fi
+            ;;
+        126)
+            ___x_cmd_node_bin "$@"
+            ;;
+    esac
+
+}

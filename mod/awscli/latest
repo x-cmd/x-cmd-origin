@@ -1,13 +1,21 @@
 # Author:       Li Junhao       l@x-cmd.com
 # shellcheck    shell=sh        disable=SC3043,SC2164,SC1091     # xrc
 
-___x_cmd_ucloud(){
-    ___x_cmd___ucloud_origin "$@"
+___x_cmd_awscli(){
+    ___x_cmd___awscli_origin "$@"
 }
 
-___x_cmd___ucloud_origin(){
-    x pkg xbin init ucloud "" ___x_cmd___ucloud_origin || return
-    ___x_cmd___ucloud_origin "$@"
+___x_cmd___awscli_origin(){
+    if ! x pipx install awscli; then
+        x:error "Pip Installation failure."
+        return 1
+    fi
+
+    ___x_cmd___awscli_origin(){
+        command aws "$@"
+    }
+
+    ___x_cmd___awscli_origin "$@"
 }
 
-xrc setmain ___x_cmd_ucloud
+xrc setmain ___x_cmd_awscli

@@ -1,0 +1,21 @@
+# Author:       Li Junhao       l@x-cmd.com
+# shellcheck    shell=sh        disable=SC3043,SC2164,SC1091     # xrc
+
+___x_cmd_tccli(){
+    ___x_cmd___tccli_origin "$@"
+}
+
+___x_cmd___tccli_origin(){
+    if ! x pipx install tccli; then
+        x:error "Pip Installation failure."
+        return 1
+    fi
+
+    ___x_cmd___tccli_origin(){
+        command tccli "$@"
+    }
+
+    ___x_cmd___tccli_origin "$@"
+}
+
+xrc setmain ___x_cmd_tccli

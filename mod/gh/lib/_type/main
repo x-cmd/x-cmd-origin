@@ -1,0 +1,32 @@
+# shellcheck shell=sh                   # xrc
+# shellcheck disable=SC2039,3043
+# Define in param
+param_type      ___x_cmd_github     Bool                 =       true   false
+param_type      ___x_cmd_github     UserGroup            =       owner collaborator organization_member "" admin
+param_type      ___x_cmd_github     UserSort             =       created updated pushed full_name
+param_type      ___x_cmd_github     Direction            =       desc asc
+param_type      ___x_cmd_github     Authority            =       all public private
+param_type      ___x_cmd_github     OrgMemberRole        =       admin member all
+param_type      ___x_cmd_github     OrgMemberFilter      =       2fa_disabled all
+param_type      ___x_cmd_github     PrState              =       open merged closed all
+param_type      ___x_cmd_github     PrSort               =       created updated popularity long-running
+param_type      ___x_cmd_github     Status               =       enable  disable "\"\""
+param_type      ___x_cmd_github     RepoVisibility       =       private public
+param_type      ___x_cmd_github     RepoPerm             =       pull    push     admin
+param_type      ___x_cmd_github     RepoPath             "=~"    "[-A-Za-z0-9_/]+"      # TODO: make it fit it ___x_cmd_github definition
+param_type      ___x_cmd_github     RepoName             "=~"    "[-A-Za-z0-9_/]+"
+param_type      ___x_cmd_github     NatureNumber         "=~"    "[0-9]+"
+param_type      ___x_cmd_github     NumberNull           "=~"    "" "[0-9]+"
+param_type      ___x_cmd_github     Address              "=~"    "[-A-Za-z0-9_]+|https?://.+"
+param_type      ___x_cmd_github     Ignore               -   <<A
+$(xrc cat gh/lib/_type/ignore.txt)
+A
+param_type      ___x_cmd_github     License              -   <<A
+$(xrc cat gh/lib/_type/license.txt)
+A
+
+
+# Define in param
+# param_type      ___x_cmd_github     numbers           "=~"      "[0-9]+|(\\s&&[^\\f\\n\\r\\t\\v])*"
+# param_type      ___x_cmd_github     ISOTime           "=~"      "/^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\.[0-9]+)?(Z|[+-](?:2[0-3]|[01][0-9]):[0-5][0-9])?$/|(\\s&&[^\\f\\n\\r\\t\\v])*"
+# param_type      ___x_cmd_github     URL               "=~"      "https?://.+|(\\s&&[^\\f\\n\\r\\t\\v])*"

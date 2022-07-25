@@ -1,6 +1,0 @@
-# shellcheck shell=sh disable=SC2039,SC2142,SC3043
-
-local mul_line_arg
-mul_line_arg="aaa
-bbb
-ccc"

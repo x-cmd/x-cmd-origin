@@ -1,0 +1,230 @@
+# shellcheck shell=sh
+# shellcheck disable=SC2039,3043
+
+___x_cmd_gh_repo_release(){
+    param:subcmd ___x_cmd_gh_repo_release           \
+        ls          "list repo release"             \
+        create      "create repo release"           \
+        rm          "Remove repo release"           \
+        latest      "get latest release"            \
+        attachment  "Attachment management"         \
+        update      "update release information"    \
+        info        "Show detailed information of repo"
+    param:subcmd:try
+    param:run
+
+    gh_log warn "Command Not Found. Show help."
+    ___x_cmd_gh_repo_release _param_help_doc
+    return 1
+}
+
+############################
+# Section 10: Release
+############################
+___x_cmd_gh_repo_release_ls() {
+    param:scope     ___x_cmd_github
+    param:dsl    '
+type:
+    direction = asc  desc
+options:
+    --repo          "Provide owner name and repo name.(default:the current user repo)"  <>:RepoName
+    --direction     "direction(asc,desc)"                                               <>:direction="asc"
+'
+    param:run
+
+    ___x_cmd_gh_param_init_owner_repo
+
+    ___gh_ui_mutual ___x_cmd_gh_http get "/repos/${owner_repo}/releases" page per_page direction <<A
+        ___ui_table_json Id=.id Name=.name TagName=.tag_name Branch=.target_commitish Prerelease=.prerelease Url=.html_url -- \$@
+A
+
+}
+
+___x_cmd_gh_repo_get_release_by_tag() {
+    param:scope     ___x_cmd_github
+    param:dsl    '
+options:
+    #1|--repo   "Provide owner name and repo name.(default:the current user repo)"  <>:RepoName
+    #2|--tag    "tag name"                                                          <>
+'
+    param:run
+    ___x_cmd_gh_param_init_owner_repo
+
+    ___x_cmd_gh_http get "/repos/${owner_repo}/releases/tags/${tag}"
+}
+
+___x_cmd_gh_repo_release_create() {
+
+    param:scope  ___x_cmd_github
+    param:dsl    '
+options:
+    --tag               "Please provide tag name"                                           <>
+    --name              "Release name"                                                      <>
+    --body              "Release Description"                                               <>
+    --target_commitish  "Default is main"                                                   <>:name="main"
+    --draft             "create a draft release"                                            <>:Bool="false"
+    --prerelease        "Is release version"
+    #1|--repo           "Provide owner name and repo name.(default:the current user repo)"  <>:RepoName
+
+'
+    param:run
+
+    ___x_cmd_gh_param_init_owner_repo
+    local gen_gh_json
+    gen_gh_json="$(param:option2json tag_name=tag)"
+    ___x_cmd_gh_http post "/repos/${owner_repo}/releases" "$gen_gh_json" | ___x_cmd_gh_repo_release_create_status_handle
+}
+
+# shellcheck disable=SC2154
+___x_cmd_gh_repo_release_create_status_handle(){
+    if [ ! -t 1 ] || [ -n "$ENFORCE_JSON" ]; then
+        cat
+        return
+    fi
+
+    ___x_cmd_git_json_query_rename id=.id name=.name tag_name=.tag_name branch=.target_commitish html_url=.html_url
+    if [ -n "$id" ]; then
+        ___x_cmd_ui_tf true     "Realse $name info:" "Id: $id" "TagName: $tag_name" "TargetCommitish: $branch" "Url: $html_url"
+    else
+        ___x_cmd_ui_tf false    "Fail. Couldn't create repo release: ${owner_repo}"
+        return 1
+    fi
+}
+
+
+# Assume pr and owner_repo are environments
+___x_cmd_gh_repo_release_init_owner_repo_and_release_main(){
+    local release_id=${release##*/}
+    owner_repo=${release%$release_id}
+
+    owner_repo="$(___x_cmd_gh_param_normalize_repo "$owner_repo")"
+    release="${release_id}"
+}
+
+alias ___x_cmd_gh_repo_release_init_owner_repo_and_release="
+    local owner_repo
+    ___x_cmd_gh_repo_release_init_owner_repo_and_release_main || return
+"
+
+
+___x_cmd_gh_repo_release_update() {
+    param:scope  ___x_cmd_github
+    param:dsl    '
+options:
+    #1|--release  "Release ID"                <>:number
+    --repo        "Provide owner name and repo name.(default:the current user repo)"      <>:RepoName
+    --tag         "Please provide tag name"   <>
+    --name        "Release name"              <>
+    --body        "Release Description"       <>
+    --prerelease  "Is release version"        <>:bool="false"
+'
+    param:run
+
+    ___x_cmd_gh_repo_release_init_owner_repo_and_release
+    local gen_gh_json
+    gen_gh_json="$(param:option2json tag_name=tag -repo)"
+
+    ___x_cmd_gh_http patch "/repos/${owner_repo}/releases/${release}" "$gen_gh_json"
+}
+
+___x_cmd_gh_repo_release_rm() {
+    param:scope  ___x_cmd_github
+    param:dsl    '
+options:
+    #1|--release     "Release ID"                                                            <>:number
+    --repo        "Provide owner name and repo name.(default:the current user repo)"      <>:RepoName
+'
+    param:run
+
+    ___x_cmd_gh_param_init_owner_repo
+
+    if ___x_cmd_gh_http delete "/repos/${owner_repo}/releases/$release";then
+        ___x_cmd_ui_tf true  "successfully remove repo release"
+    else
+        ___x_cmd_ui_tf false "delete repo release failure: $release."
+        return 1
+    fi
+}
+
+___x_cmd_gh_repo_release_latest() {
+    param:scope     ___x_cmd_github
+    param:dsl    '
+options:
+    #1|--repo   "Provide owner name and repo name.(default:the current user repo)"  <>:RepoName
+'
+    param:run
+
+    ___x_cmd_gh_param_init_owner_repo
+    ___x_cmd_gh_http get "/repos/${owner_repo}/releases/latest"
+}
+
+___x_cmd_gh_repo_release_info() {
+    param:scope     ___x_cmd_github
+    param:dsl    '
+options:
+    #1|--release        "Release ID"                <>:number
+'
+    param:run
+
+    ___x_cmd_gh_repo_release_init_owner_repo_and_release
+    ___x_cmd_gh_http get "/repos/${owner_repo}/releases/${release}"
+}
+
+
+# Section : attachment
+
+___x_cmd_gh_repo_release_attachment(){
+    param:subcmd ___x_cmd_gh_repo_release_attachment    \
+        add         "upload attachment"                 \
+        rm          "delete attachment"                 \
+        ls          "list release's attachment"
+    param:subcmd:try
+    param:run
+
+    gh_log warn "Command Not Found. Show help."
+    ___x_cmd_gh_repo_release_attachment _param_help_doc
+    return 1
+}
+
+___x_cmd_gh_repo_release_attachment_ls() {
+
+
+    param:scope     ___x_cmd_github
+    param:dsl    '
+options:
+    #1|--release        "Release ID"                <>:number
+'
+    param:run
+
+    ___x_cmd_gh_repo_release_init_owner_repo_and_release
+}
+
+# Provide multiple files
+___x_cmd_gh_repo_release_attachment_add() {
+
+    param:scope     ___x_cmd_github
+    param:dsl    '
+options:
+    #1|--release        "Release ID"                <>:number
+'
+    param:run
+
+    ___x_cmd_gh_repo_release_init_owner_repo_and_release
+}
+
+# Delete the file in attachment list
+___x_cmd_gh_repo_release_attachment_rm() {
+
+
+    param:scope     ___x_cmd_github
+    param:dsl    '
+options:
+    #1|--release        "Release ID"                <>:number
+'
+    param:run
+
+    ___x_cmd_gh_repo_release_init_owner_repo_and_release
+}
+
+# EndSection
+

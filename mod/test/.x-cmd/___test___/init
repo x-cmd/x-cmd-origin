@@ -1,4 +1,0 @@
-@info "exec ___test___ folder init"
-# test:debug "copy all files from ./* to ~/.x-cmd/test/"
-# cp -r "$(x wsroot)"/* "$___X_CMD_ROOT_MOD/test/"
-# . ~/.x-cmd/xrc/latest

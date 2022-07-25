@@ -1,0 +1,37 @@
+# shellcheck shell=sh disable=SC3043
+
+___x_cmd_hub_account_connect_wechat(){
+    local token
+    token="$(___x_cmd_hub_token)"
+
+    ___x_cmd_hub_qrcode "$(___x_cmd_hub_wechat_connect_url "${token}")"
+    printf "Please scan the QR code above, then press [Enter] to continue: "
+    read -r _
+
+    # TODO: A way to confirm connect is successful.
+    local userinfo
+    if userinfo="$(___x_cmd_hub_get_userinfo_by_token "${token}")" ; then
+        ___x_cmd_hub_token "${token}"
+        hub:info "Connect Successfully, ${userinfo}, save token to ${___X_CMD_HUB_ENV}/.token"
+    else
+        hub:error "Connect Failed"
+    fi
+}
+
+___x_cmd_hub_account_connect_telegram(){
+    local token
+    token="$(___x_cmd_hub_token)"
+
+    ___x_cmd_hub_qrcode "https://hub.x-cmd.com/tc/${token}"
+    printf "Please scan the QR code above, then press [Enter] to continue: "
+    read -r _
+
+    # TODO: A way to confirm connect is successful.
+    local userinfo
+    if userinfo="$(___x_cmd_hub_get_userinfo_by_token "${token}")" ; then
+        ___x_cmd_hub_token "${token}"
+        hub:info "Connect Successfully, ${userinfo}, save token to ${___X_CMD_HUB_ENV}/.token"
+    else
+        hub:error "Connect Failed"
+    fi
+}

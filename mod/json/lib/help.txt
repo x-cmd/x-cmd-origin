@@ -1,0 +1,23 @@
+json    json utilities
+        Uasge:  json subcommand [...arguments]
+        Please visit following hosting repository for more information:
+            https://gitee.com/x-bash/json
+            https://github.com/x-bash/json
+            https://gitlab.com/x-bash/json
+            https://bitbucket.com/x-bash/json
+
+Subcommand:
+        var                 json var <variable-name> <data>. $(tput init)
+                            Regulate the data to standard json, then putting into variable
+        color|col|c         json color <variable-name>. $(tput init)
+                            Colorize the formated json stored in variable
+        push|append         json push <variable-name.<pattern>> <element>. $(tput init)
+                            Putting the element at the end of the specified list in variable
+        unshift|prepend     json unshift <variable-name.<pattern>> <element>.
+                            Putting the element at the begin of the specified list in variable
+        shift|sh            json shift <variable-name.<pattern>>.
+                            Shift the values of the specified list in variable
+        pop|po              json pop <variable-name.<pattern>>.
+                            Pop the values of the specified list in variable
+        del|d               json del <variable-name.<pattern>>.
+                            delete the values of the specified list in variable

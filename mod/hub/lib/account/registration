@@ -1,0 +1,121 @@
+# shellcheck shell=sh disable=SC3043
+
+___x_cmd_hub_register_telegram(){
+
+    local username="${1}"
+    if [ -z "$username" ]; then
+        printf "%s" "Username: "
+        read -r username
+    fi
+
+    local token_to_activate
+    token_to_activate="$(___x_cmd_hub_token_generate)"
+
+    ___x_cmd_hub_qrcode "https://hub.x-cmd.com/t/$token_to_activate/$username"
+    printf "Please scan the QR code above, then press [Enter] to continue: "
+    read -r _
+
+    local userinfo
+    if userinfo="$(___x_cmd_hub_get_userinfo_by_token "${token_to_activate}")" ; then
+        ___x_cmd_hub_token "${token_to_activate}"
+        hub:info "Register Successfully, ${userinfo}, save token to ${___X_CMD_HUB_ENV}/.token"
+    else
+        hub:error "Register Failed"
+    fi
+}
+
+___x_cmd_hub_register_weixin(){
+    local username="${1}"
+    if [ -z "$username" ]; then
+        printf "%s" "Username: "
+        read -r username
+    fi
+
+    local token_to_activate
+    token_to_activate="$(___x_cmd_hub_token_generate)"
+    ___x_cmd_hub_qrcode "$(___x_cmd_hub_wechat_register_url "${token_to_activate}" "$username")"
+    printf "%s" "Please scan the QR code above, then press [Enter] to continue: "
+    read -r _
+
+    local userinfo
+    if userinfo="$(___x_cmd_hub_get_userinfo_by_token "${token_to_activate}")" ; then
+        ___x_cmd_hub_token "${token_to_activate}"
+        hub:info "Register Successfully, ${userinfo}, save token to ${___X_CMD_HUB_ENV}/.token"
+    else
+        hub:error "Register Failed"
+    fi
+}
+
+___x_cmd_hub_register_official_site(){
+
+    local username="${1}"
+    if [ -z "$username" ]; then
+        printf "%s" "Username: "
+        read -r username
+    fi
+
+    # if [ -n "$(___x_cmd_hub_token)" ]; then
+    #     # TODO: ask
+    #     printf "Detect token in this folder. Erase the token in the disk?" >&2
+    #     ___x_cmd_hub_token ""
+    # fi
+
+    local token_to_activate
+    token_to_activate="$(___x_cmd_hub_token_generate)"
+
+    ___x_cmd_http_browse "$___X_CMD_HUB_SERVICE_URL/xlogin?token_to_activate=${token_to_activate}&username=${username}"
+    printf "Please register to hub.x-cmd.com, then press [Enter] to continue: "
+    read -r _
+
+    local userinfo
+    if userinfo="$(___x_cmd_hub_get_userinfo_by_token "${token_to_activate}")" ; then
+        ___x_cmd_hub_token "${token_to_activate}"
+        hub:info "Register Successfully, ${userinfo}, save token to ${___X_CMD_HUB_ENV}/.token"
+    else
+        hub:error "Register Failed"
+    fi
+}
+
+# Section: email(frozen)
+___x_cmd_hub_register_email_witharg(){
+    local email="${1:?Provide email}"
+    local username="${2:?Provide username}"
+    local token_to_activate
+    token_to_activate="$(___x_cmd_hub_token_generate)"
+
+    local res
+    if ! res="$(___x_cmd_hub_client_register_by_email "$email" "$token_to_activate" "$username")" ; then
+        hub:error "Failed to login with email: $email, res: $res"
+        return 1
+    fi
+    hub:debug "Register with email: $email, res: $res"
+    printf "%s" "Please check your email $email to approve, then press [Enter] to continue: " >&2
+    read -r _
+
+    local userinfo
+    if userinfo="$(___x_cmd_hub_get_userinfo_by_token "${token_to_activate}")" ; then
+        ___x_cmd_hub_token "${token_to_activate}"
+        hub:info "Register Successfully, ${userinfo}, save token to ${___X_CMD_HUB_ENV}/.token"
+    else
+        hub:error "Register Failed"
+    fi
+}
+
+___x_cmd_hub_register_email(){
+    local email="${1}"
+    local username="${2}"
+
+    if [ -z "$email" ]; then
+        printf "%s" "Email: "
+        read -r email
+    fi
+
+    if [ -z "$username" ]; then
+        printf "%s" "Username: "
+        read -r username
+    fi
+
+    ___x_cmd_hub_register_email_witharg "$email" "$username"
+}
+
+# EndSection

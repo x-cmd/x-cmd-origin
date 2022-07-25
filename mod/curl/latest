@@ -1,40 +1,31 @@
-# Author:       Li Junhao                   l@x-cmd.com
-# shellcheck    shell=sh disable=SC3043     # xrc
+# Author:       Li Junhao           l@x-cmd.com
+# shellcheck    shell=sh            disable=SC2039,SC1090,SC3043,SC2263
 
-# Section : install
-xrc param/latest
 
-___x_cmd_install(){
-    param:dsl <<A
-subcommands:
-    ls          "list all software"
-    get         "get software installation command"
-    run         "run software installation command"
-    update      "update"
-A
-    param:run
-
-    if [ -z "$PARAM_SUBCMD" ]; then
-        case "$1" in
-            "")     printf "%s\n" "
-SYMPOSIS:
-    x install <software>
-    x install ls
-    x install run <software>
-    x install name"
-                    ___x_cmd_install _param_help_doc ;;
-            *)      ___x_cmd_install run "$@" ;;
-        esac
-        return 0
-    fi
-
-    "___x_cmd_install_$PARAM_SUBCMD" "$@"
+___x_cmd_curl(){
+    case "$1" in
+        download)       ;;
+        get)            ;;
+        *)              ___x_cmd___curl_origin "$@" ;;
+    esac
 }
 
-
-if ___x_cmd_is_suitable_advise_env; then
-    xrc advise/latest
-    advise ___x_cmd_install "" install
-fi
-
-xrc setmain ___x_cmd_install
+___x_cmd___curl_origin(){
+    if PATH="$___X_CMD_INNER_PATH" command -v curl 2>/dev/null; then
+        eval '
+        ___x_cmd___curl_origin(){
+            PATH="$___X_CMD_INNER_PATH" command curl "$@"
+        }
+        '
+    elif ( . "$___X_CMD_ROOT_MOD/curl/lib/init"; ___x_cmd___curl___download_curl; ); then
+        eval '
+        ___x_cmd___curl_origin(){
+            '"$HOME/.x-cmd/.bin/curl"' "$@"
+        }
+        '
+    else
+        x:error "Fail to download curl."
+        return 1
+    fi
+    ___x_cmd___curl_origin "$@"
+}

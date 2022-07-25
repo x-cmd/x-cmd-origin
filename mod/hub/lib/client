@@ -1,0 +1,115 @@
+# shellcheck shell=sh disable=SC3043
+
+___X_CMD_HUB_SERVICE_URL="https://hub.x-cmd.com"
+# ___X_CMD_HUB_SERVICE_URL="http://127.0.0.1:3000"
+
+# Section: account
+
+___x_cmd_hub_client_register_by_email(){
+    local email="${1:?Provide email}"
+    local token_to_activate="${2:?Provide token_to_activate}"
+    local username="${3:?Provide username}"
+    ___x_cmd_httpget "$___X_CMD_HUB_SERVICE_URL/api/v0/account/register/$email?token_to_activate=${token_to_activate}&username=${username}"
+}
+
+___x_cmd_hub_client_login_by_email(){
+    local email="${1}"
+    local token_to_activate="${2}"
+    ___x_cmd_httpget "$___X_CMD_HUB_SERVICE_URL/api/v0/account/login/$email?token_to_activate=${token_to_activate}"
+}
+
+___x_cmd_hub_client_userinfo(){
+    local token="${1:?Provide token}"
+    ___x_cmd_httpget "$___X_CMD_HUB_SERVICE_URL/api/v0/account/user?token=${token}"
+}
+
+# EndSection
+
+# Section: file
+
+___x_cmd_hub_client_file_upload(){
+    local localfp="${1:?Provide local file}"
+    local respath="${2:?Provide respath}"
+    # TODO: Wait ___x_cmd_httpget support -F "file=@$localfp"
+    curl -X PUT -F "file=@$localfp" "$___X_CMD_HUB_SERVICE_URL/api/v0/file/upload?token=$(___x_cmd_hub_token)&res=${respath}" 2>/dev/null
+    printf "\n"
+}
+
+___x_cmd_hub_client_file_cat(){
+    local respath="${1:?Provide respath}"
+    local cache_path="${___X_CMD_HUB_ENV}/.cache/${respath#/}"
+    local cache_expiration=3600
+    mkdir -p "${cache_path%/*}"
+    local error_msg
+    if ! ___x_cmd_httpget "$___X_CMD_HUB_SERVICE_URL/api/v0/file/cat?token=$(___x_cmd_hub_token)&res=${respath}" "$cache_path" "$cache_expiration" error_msg ; then
+        printf "%s\n" "$error_msg"
+        return 1
+    fi
+
+    chmod +x "$cache_path"
+    hub:debug "Downloaded ${respath} to ${cache_path}"
+    printf "%s\n" "$cache_path"
+}
+
+___x_cmd_hub_client_file_ls(){
+    local respath="${1:?Provide respath}"
+    local type="${2:-""}"
+    local recursive="${3:-""}"
+    ___x_cmd_httpget "$___X_CMD_HUB_SERVICE_URL/api/v0/file?token=$(___x_cmd_hub_token)&res=${respath}&type=${type}&recursive=${recursive}"
+}
+
+___x_cmd_hub_client_file_rm(){
+    local respath="${1:?Provide respath}"
+    local recursive="${2:?Provide recursive}"
+    curl -X DELETE --silent "$___X_CMD_HUB_SERVICE_URL/api/v0/file?token=$(___x_cmd_hub_token)&res=${respath}&recursive=${recursive}"
+}
+
+# EndSection
+
+# Section: share
+
+___x_cmd_hub_client_share_ls(){
+    ___x_cmd_http get "$___X_CMD_HUB_SERVICE_URL/api/v0/share?token=$(___x_cmd_hub_token)"
+}
+
+___x_cmd_hub_client_share_add(){
+    local respath="${1:?Provide respath}"
+    # TODO: x http should do more better
+    ___x_cmd_http post "https://hub.x-cmd.com/api/v0/share?token=$(___x_cmd_hub_token)" "res=${respath}"
+    code="$?"
+    printf "%s\n" "$(___x_cmd_http resp body)"
+    return $code
+}
+
+___x_cmd_hub_client_share_rm(){
+    local respath="${1:?Provide respath}"
+    curl -X DELETE --silent "$___X_CMD_HUB_SERVICE_URL/api/v0/share?token=$(___x_cmd_hub_token)&res=${respath}"
+}
+
+___x_cmd_hub_client_share_update(){
+    local respath="${1:?Provide respath}"
+    local linkLimit="${2:?Provide linkLimit}"
+    curl -X PUT --silent "$___X_CMD_HUB_SERVICE_URL/api/v0/share?token=$(___x_cmd_hub_token)" \
+        -H 'Content-Type: application/json' \
+        -d '{ "res": "'"${respath}"'", "linkLimit": "'"${linkLimit}"'" }'
+}
+
+# EndSection
+
+# Section: msg
+
+___x_cmd_hub_client_send_telegram_msg(){
+    local msg="${1}"
+    curl -X POST --silent "$___X_CMD_HUB_SERVICE_URL/api/v0/msg/telegram?token=$(___x_cmd_hub_token)" \
+        -H 'Content-Type: application/json' \
+        -d '{ "msg": "'"$msg"'" }'
+}
+
+___x_cmd_hub_client_send_wechat_msg(){
+    local msg="${1}"
+    curl -X POST --silent "$___X_CMD_HUB_SERVICE_URL/api/v0/msg/wechat?token=$(___x_cmd_hub_token)" \
+        -H 'Content-Type: application/json' \
+        -d '{ "msg": "'"$msg"'" }'
+}
+
+# EndSection

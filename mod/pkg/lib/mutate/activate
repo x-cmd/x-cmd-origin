@@ -1,0 +1,60 @@
+# shellcheck    shell=sh            disable=SC3043,SC1090      # xrc
+
+___x_cmd_pkg_activate(){
+    ___x_cmd_pkg_activate___min "$@"
+}
+
+___x_cmd_pkg_activate___min(){
+    local name="${1:?Provide pkg name}"
+    local version="${2:-$(___x_cmd_pkg_default_version "$name")}"
+    local tmp="${___X_CMD_PKG_ACTIVATE___LIST#*"$name=$version"}"
+
+    if ! [ "$tmp" = "$___X_CMD_PKG_ACTIVATE___LIST" ]; then
+         pkg:error "$name had been activated"
+         return 1
+    fi
+
+    local script_path="$3"
+
+    if [ -z "$script_path" ] && \
+        ! script_path="$(___x_cmd_pkg___get_script_path "$name" "$version" "${___X_CMD_PKG_OSARCH:-$(___x_cmd_pkg_osarch)}" activate)"; then
+            ___x_cmd_pkg_activate___min_default "$name" "$version"
+    else
+        pkg:debug "Activate running $script_path for $name $version"
+        . "${script_path}"
+    fi
+
+    ___X_CMD_PKG_ACTIVATE___LIST="$___X_CMD_PKG_ACTIVATE___LIST
+$name=$version
+"
+}
+
+# ___x_cmd_pkg_activate___min(){
+#     local name="${1:?Provide pkg name}"
+#     local version="${2:-$(___x_cmd_pkg_default_version "$name")}"
+#     local tmp="${___X_CMD_PKG_ACTIVATE___LIST#*"$name=$version"}"
+#     [ "$tmp" = "$___X_CMD_PKG_ACTIVATE___LIST" ] || return
+#     local osarch="${3:-${___X_CMD_PKG_OSARCH:-$(___x_cmd_pkg_osarch)}}"
+
+#     local script_path
+#     if script_path="$(___x_cmd_pkg___get_script_path "$name" "$version" "$osarch" activate)"; then
+#         pkg:debug "Activate running $script_path for $name $version"
+#         . "${script_path}"
+#     else
+#         ___x_cmd_pkg_activate___min_default "$name" "$version"
+#     fi
+
+#     ___X_CMD_PKG_ACTIVATE___LIST="$___X_CMD_PKG_ACTIVATE___LIST
+# $name=$version
+# "
+# }
+
+___x_cmd_pkg_activate___min_default(){
+    local name="${1:?Provide pkg name}"
+    local version="${2:?Provide version}"
+    local bin_path
+    bin_path="$(___x_cmd_pkg_xbin_path "$name" "$version")"
+    bin_path="${bin_path%/*}"
+    pkg:debug "path add_existed_folder $bin_path"
+    ___x_cmd_path_unshift "$bin_path" || return 1
+}

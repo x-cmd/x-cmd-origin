@@ -1,0 +1,118 @@
+# shellcheck shell=sh
+# shellcheck disable=SC2039,3043
+___x_cmd_gh_run_ls() {
+    param:scope ___x_cmd_github
+    param:dsl <<A
+options:
+    --repo      "Provide owner name and repo name.(default:the current user repo)"      <>:RepoName="$(_____x_cmd_git_repo)"
+    --actor     "returns someone workflow runs."                                        <>=""
+    --branch    "Returns workflow runs associated with a branch."                       <>="$(_____x_cmd_git_branch)"
+    --event     "Returns workflow run triggered by the event you specify."              <>=""
+    --sta|--status    "Returns workflow runs with the check run status."                <>=""
+    --per_page  "Results per page (max 100)"                                            <>=""
+    --page      "Page number of the results to fetch."                                  <>=""
+    --created   "Returns workflow runs created within the given date-time range."       <>=""
+    --check_suite_id  "Returns workflow runs with the check_suite_id that you specify." <>=""
+    --exclude_pull_requests
+A
+    param:run
+    ___x_cmd_gh_param_init_owner_repo
+    ___gh_ui_mutual ___x_cmd_gh_http get "repos/$owner_repo/actions/runs" actor branch event sta per_page page \
+        created check_suite_id exclude_pull_requests <<A
+        ___ui_table_json Id=.id Conclusion=.conclusion Created=.created_at Event=.event Branch=.head_branch -- \$@ | x jo q0 .workflow_runs"
+A
+}
+
+___x_cmd_gh_run_view() {
+    param:scope ___x_cmd_github
+    param_type github runID - <<A
+$(_____x_cmd_run_options)
+A
+    param:dsl <<A
+type:
+    Filters = latest all
+options:
+    --repo      "Provide owner name and repo name.(default:the current user repo)"      <>:RepoName="$(_____x_cmd_git_repo)"
+    --run_id    "Provide run_id"                                                        <>:runID=
+    --filter    "Filters jobs by their completed_at timestamp"                          <>:Filters="latest"
+    --per_page  "Results per page (max 100)"                                            <>=""
+    --page      "Page number of the results to fetch."                                  <>=""
+A
+    param:run
+    ___x_cmd_gh_param_init_owner_repo
+    run_id=${run_id%%,*}
+    ___gh_ui_mutual ___x_cmd_gh_http get "/repos/${owner_repo}/actions/runs/${run_id}/jobs" filter per_page page <<A
+        \$@ | (
+            printf "%s\n" "JOBS"
+            x jo env .jobs.\* .id .name .conclusion -- 'x ui tf "\$conclusion" "\$name (ID \$id)"'
+        )
+A
+}
+
+___x_cmd_gh_run_log() {
+    param:scope ___x_cmd_github
+    param:dsl <<A
+type:
+    Filters = latest all
+options:
+    --repo      "Provide owner name and repo name.(default:the current user repo)"      <>:RepoName="$(_____x_cmd_git_repo)"
+    --run_id    "Provide run_id"                                                        <>=""
+    --logall    ""
+A
+    param:run
+    ___x_cmd_gh_param_init_owner_repo
+
+    if [ -z "$run_id" ]; then
+        ___x_cmd_ui_gridselect _____x_cmd_run_options
+        run_id=${___X_CMD_UI_GRIDSELECT_CURRENT_ITEM%%,*}
+    fi
+
+    if ___x_cmd_gh_http download "/repos/${owner_repo}/actions/runs/${run_id}/logs" "$___X_CMD_ROOT/.actions/$run_id/log.zip"; then
+        x uz "$___X_CMD_ROOT/.actions/$run_id/log.zip" "$___X_CMD_ROOT/.actions/$run_id"
+        cat "$___X_CMD_ROOT"/.actions/*/* | awk '{
+          date=substr($0, 3, 8)
+          time=substr($0, 12, 8)
+          idx=index($0, " ")
+          gsub("-", "/", date)
+          print "\033[90m" date "/" time "\033[0m" substr($0, idx)
+      }' | less -r
+        rm -rf "$___X_CMD_ROOT/.actions/$run_id"
+    fi
+}
+
+___x_cmd_gh_run_download() {
+    param:scope ___x_cmd_github
+    param:dsl <<A
+options:
+    --repo      "Provide owner name and repo name.(default:the current user repo)"  <>:RepoName="$(_____x_cmd_git_repo)"
+    --per_page  "Results per page (max 100)"                                        <>=""
+    --page      "Page number of the results to fetch."                              <>=""
+A
+    param:run
+
+    ___x_cmd_gh_param_init_owner_repo
+    ___gh_ui_mutual ___x_cmd_gh_http get "/repos/$owner_repo/actions/artifacts" per_page page <<A
+        "___ui_table_json Id=.id Name=.name Bytes=.size_in_bytes -- \$@ | x jo q0 .artifacts"
+        if [ "$___X_CMD_UI_TABLE_FINAL_COMMAND" = "ENTER" ];then
+            x ui form nohelp "Make sure you need to download $___X_CMD_UI_TABLE_CUR_LINE ?" if_download 1 = "yes" "no"
+            if [ "\$if_download" = "yes" ]; then
+                ___x_cmd_gh_http download "/repos/${owner_repo}/actions/artifacts/${___X_CMD_UI_TABLE_CUR_LINE%%*}/zip" "./${___X_CMD_UI_TABLE_CUR_LINE%%*}.zip"
+            fi
+        elif [ "$___X_CMD_UI_TABLE_FINAL_COMMAND" = "d" ];then
+            x ui form nohelp "sure you need to delete $___X_CMD_UI_TABLE_CUR_LINE?" if_download 1 = "yes" "no"
+            if [ "\$if_download" = "yes" ]; then
+                ___x_cmd_gh_http delete "/repos/${owner_repo}/actions/artifacts/${___X_CMD_UI_TABLE_CUR_LINE%%*}"
+            fi
+        fi
+A
+}
+
+_____x_cmd_run_options() {
+    printf "%s\n" "Select a workflow run:
+$(___x_cmd_gh_run_ls | (
+        x jo env .workflow_runs.\* .id .name .conclusion .created_at -- 'printf "%s\n" "$id,$name,$created_at"'
+    ))
+---
+---
+    "
+}

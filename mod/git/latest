@@ -1,10 +1,20 @@
-# shellcheck shell=sh disable=SC3043,SC2164     # xrc
+# Author:       Li Junhao           l@x-cmd.com     # xrc
+# shellcheck    shell=sh
 
-# author:       Li Junhao           l@x-cmd.com
-# license:      GPLv3
+xrc:mod:lib git     util meta assert rootout track main pushall
 
-___x_cmd_convert(){
-    ___x_cmd_fs_ls_1 "$@" || command ls "$@"
+___x_cmd_git(){
+    case "$1" in
+        assert)     shift; ___x_cmd_git_assert "$@" ;;
+        ignore)     shift; x gitignore "$@" ;;
+        rootout)    shift; ___x_cmd_git_rootout "$@" ;;
+        track)      shift; ___x_cmd_git_track "$@" ;;
+        pushall)    shift; ___x_cmd_git_pushall "$@" ;;
+
+        meta)       shift; ___x_cmd_git_meta "$@" ;;
+
+        *)          ___x_cmd___git_origin "$@" ;;
+    esac
 }
 
-xrc setmain ___x_cmd_ls
+xrc setmain ___x_cmd_git

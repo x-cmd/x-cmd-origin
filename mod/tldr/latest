@@ -1,5 +1,5 @@
 # Author:       Li Junhao       @x-cmd.com              # xrc
-# shellcheck    shell=sh        disable=SC2039,3043
+# shellcheck    shell=sh        disable=SC2039,3043,2120
 
 # Section: main
 
@@ -65,7 +65,7 @@ ___x_cmd___tldr_current(){
 
 ___x_cmd_tldr_update()(
     param:void
-    if ! ___X_CMD_CURL_UPDATE=1 ___x_cmd___tldr_download index.yml; then
+    if ! ___x_cmd___tldr_download index.yml index.yml -; then
         tldr:warn "Fail to update index.yml."
         return 1
     fi
@@ -96,7 +96,7 @@ ___x_cmd___tldr_download(){
     local src="${1:?Provide source file}"
     local dst="${2:-$1}"
     local expiration="${3:-"1"}"
-    ___x_cmd_curl_gitx x-cmd tldr main "dist/$src" "$___X_CMD_TLDR_TMP/$dst" "$expiration" 2>/dev/null
+    ___x_cmd_httpget_gitx x-cmd tldr main "dist/$src" "$___X_CMD_TLDR_TMP/$dst" "$expiration" 2>/dev/null
 }
 
 # EndSection
@@ -106,7 +106,7 @@ ______X_CMD_TLDR_LANG_PREFERED="${______X_CMD_TLDR_LANG_PREFERED:-en}"
 ___x_cmd_tldr_lang(){
     param:dsl <<A
 advise:
-    #1          ___x_cmd_tldr_lang
+    #1          candidate_exec_arr=( \\\$(___x_cmd_tldr_lang) )
 options:
     #1          "use the selected file to rollback"
 A
@@ -220,7 +220,7 @@ ___x_cmd_tldr_exact()(
 ___x_cmd_tldr_cat(){
     param:dsl <<A
 advise:
-    #1          ___x_cmd_tldr_lsname
+    #1          candidate_exec_arr=( \\\$(___x_cmd_tldr_lsname) )
 options:
     #1          "use the selected file to rollback"
 A

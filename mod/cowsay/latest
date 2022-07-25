@@ -26,12 +26,12 @@ A
         return 126
         ;;
 
-        cow|tux)  [ "$#" -ge 1 ] && shift;  ;;
+        cow|tux)  shift;  ;;
     esac
         
     cat <<-A
  ______________________
-< $* >
+< ${*:-$text} >
  ----------------------
 A
 
@@ -59,14 +59,5 @@ A
     ;;
     esac
 }
-
-if [ -n "${BASH_VERSION}${ZSH_VERSION}" ] && [ "${-#*i}" != "$-" ]; then
-    xrc advise
-    advise cowsay
-fi
-
-if [ -n "$___X_CMD_ENABLE_AUTO_RUN" ]; then
-    cowsay "$@"
-fi
 
 xrc setmain cowsay

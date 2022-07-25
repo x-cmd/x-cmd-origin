@@ -1,0 +1,39 @@
+# shellcheck    shell=sh            disable=SC3043,SC3054      # xrc
+
+# Section: advise ls_version
+
+# TODO:Here, the previous argument should be obtained through the interface provided by advise
+
+___x_cmd_env___adivse_ls_installed_version(){
+    local candidate_idx="${1:-2}"; [ -z "$ZSH_VERSION" ] || candidate_idx=$((candidate_idx+1))
+    candidate_exec_arr=( $(___x_cmd_pkg___advise_local_version "${COMP_WORDS[candidate_idx]}"))
+}
+
+
+___x_cmd_env___advise_ls_all_candidate(){
+    candidate_exec_arr=( $(ls "$___X_CMD_PKG_RAWPATH"/*/ | awk '{if(($0 != "") && (! match($0, /^\/[..]*/))){print $0}}'))
+}
+
+___x_cmd_env___advise_ls_installed_name(){
+    if ! [ -d "$___X_CMD_PKG_INSTALL_PATH" ]; then return 0; fi
+    candidate_exec_arr=($(ls "$___X_CMD_PKG_INSTALL_PATH" | awk '{split($0,a," "); for(i in a)print a[i]}'))
+}
+
+___x_cmd_env___advise_ls_all_version(){
+    local candidate_idx="${1-2}"; [ -z "$ZSH_VERSION" ] || candidate_idx=$((candidate_idx+1))
+    candidate_exec_arr=( $(___x_cmd_pkg_ls_all "${COMP_WORDS[candidate_idx]}"))
+}
+
+## EndSection
+___x_cmd_env___advise_local_version(){
+    local "candidate=${1:-""}"
+    candidate_exec_arr=( $(ls "$___X_CMD_PKG_INSTALL_PATH"/"$candidate"))
+}
+
+___x_cmd_env___advive_local_use_candidate(){
+    candidate_exec_arr=($(cat "$___X_CMD_ENV_VERSION_CONFIG_PATH" | awk '{split($0,a,"="); print a[1]}'))
+}
+
+___x_cmd_env___advive_local_use_version(){
+    candidate_exec_arr=($(cat "$___X_CMD_ENV_VERSION_CONFIG_PATH" | awk '{split($0,a,"="); print a[2]}'))
+}

@@ -1,40 +1,17 @@
-# Author:       Li Junhao                   l@x-cmd.com
-# shellcheck    shell=sh disable=SC3043     # xrc
+# Author:       Li Junhao   l@x-cmd.com     # xrc
+# shellcheck    shell=sh    disable=SC2039,SC1090,SC3043,SC2263,SC1091
 
-# Section : install
-xrc param/latest
+x log init hub
+xrc ui/lib/select http
+xrc:mod:lib hub  advise client file share account/wechat \
+    account/login account/registration account/user account/token account/connect msg
 
-___x_cmd_install(){
-    param:dsl <<A
-subcommands:
-    ls          "list all software"
-    get         "get software installation command"
-    run         "run software installation command"
-    update      "update"
-A
-    param:run
+___X_CMD_HUB_ENV="$___X_CMD_ROOT/.hub"
+! [ -d "$___X_CMD_HUB_ENV" ] || mkdir -p "$___X_CMD_HUB_ENV"
 
-    if [ -z "$PARAM_SUBCMD" ]; then
-        case "$1" in
-            "")     printf "%s\n" "
-SYMPOSIS:
-    x install <software>
-    x install ls
-    x install run <software>
-    x install name"
-                    ___x_cmd_install _param_help_doc ;;
-            *)      ___x_cmd_install run "$@" ;;
-        esac
-        return 0
-    fi
-
-    "___x_cmd_install_$PARAM_SUBCMD" "$@"
+___x_cmd_hub_main(){
+    xrc:mod:lib hub main && \
+        ___x_cmd_hub_main "$@"
 }
 
-
-if ___x_cmd_is_suitable_advise_env; then
-    xrc advise/latest
-    advise ___x_cmd_install "" install
-fi
-
-xrc setmain ___x_cmd_install
+xrc setmain ___x_cmd_hub_main

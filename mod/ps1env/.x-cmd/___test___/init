@@ -1,5 +1,0 @@
-cp -r "$(x wsroot)"/* "$___X_CMD_ROOT_MOD/jo/"
-
-data(){
-    cat "$(x wsroot)"/.vscode/settings.json
-}

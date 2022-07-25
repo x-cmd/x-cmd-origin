@@ -1,99 +1,10 @@
-# Author:       Li Junhao           l@x-cmd.com     # xrc
-# shellcheck    shell=sh
+# shellcheck    shell=sh    disable=SC3043  # xrc
+# Author:       Li Junhao   l@x-cmd.com
 
-xrc:mod:lib man ls
-
-xrc ui/lib/gridselect
-
-# Section: main
-___x_cmd_man() {
-    case "$1" in
-        "")
-            ___x_cmd_man_help
-            return 1
-            ;;
-        :*)
-            local op="${1#:}"
-            shift
-            x tldr "$op" "$@"
-            return
-            ;;
-        ls)
-            shift
-            ___x_cmd_man_ls "$@"
-            return
-            ;;
-        _x_cmd_advise_json)
-            xrc cat man/lib/___x_cmd_man.json
-            return 126
-            ;;
-    esac
-
-    # TODO: search function
-    exec 3>&1
-    local err
-    if ! err="$(___x_cmd_man_run "$@" 2>/dev/stdout 1>&3)"; then
-        if [ "${err#No manual entry}" != "$err" ]; then
-            while [ "$#" -gt 0 ]; do
-                case "$1" in
-                    -*|1|2|3|4|5|6|7|8)     shift   ;;
-                    *)                      break   ;;
-                esac
-            done
-            # TODO: combine the result of man -k and tldr cat
-            ___x_cmd_man_ls "$1"
-        fi
-    fi
-    exec 3<&-
-}
-# EndSection
-
-# Section: main
-
-___x_cmd_man_help(){
-    cat <<A
-x man
-Usage:
-    x man [man document]
-    x man :[tldr document]
-    x man [-k|ls] [ module ]
-
-Example:
-    Show man document for ssh. Show search if it doesn't exists:
-        x man ssh
-    Show tldr document for ssh:
-        x man :ssh
-    List document with 'ssh' in title in man and tldr:
-        x man ls ssh
-A
+___x_cmd_proxy(){
+    x log init proxy
+    xrc:mod:lib proxy main
+    ___x_cmd_proxy "$@"
 }
 
-# EndSection
-
-# Section: man_run
-# Reference: https://github.com/Valloric/dotfiles/blob/master/less/LESS_TERMCAP
-
-# termcap terminfo
-# ks      smkx      make the keypad send commands
-# ke      rmkx      make the keypad send digits
-# vb      flash     emit visual bell
-# mb      blink     start blink
-# md      bold      start bold
-# me      sgr0      turn off bold, blink and underline
-# so      smso      start standout (reverse video)
-# se      rmso      stop standout
-# us      smul      start underline
-# ue      rmul      stop underline
-___x_cmd_man_run() {
-    LESS_TERMCAP_md="${___X_CMD_THEME_MD:-"$(printf '\e[01;31m')"}" \
-    LESS_TERMCAP_me="${___X_CMD_THEME_ME:-"$(printf '\e[0m')"}" \
-    LESS_TERMCAP_us="${___X_CMD_THEME_US:-"$(printf '\e[01;04;32m')"}" \
-    LESS_TERMCAP_ue="${___X_CMD_THEME_UE:-"$(printf '\e[0m')"}" \
-    LESS_TERMCAP_so="${___X_CMD_THEME_SO:-"$(printf '\e[45;93m')"}" \
-    LESS_TERMCAP_se="${___X_CMD_THEME_SE:-"$(printf '\e[0m')"}" \
-    GROFF_NO_SGR=1 \
-    command man "$@"
-}
-# EndSection
-
-xrc setmain ___x_cmd_man
+xrc setmain ___x_cmd_proxy

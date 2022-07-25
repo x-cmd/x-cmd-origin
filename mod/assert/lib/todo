@@ -1,0 +1,81 @@
+
+# Section: todo
+
+# It cannot pass the test in sh. So. Don't
+: <<'DOCTEST-NO-SH'
+> a=3; b=(1 2 3); c=8; d=(3 8)
+> ___x_cmd_assert_var_is_array a b c 2>/dev/null && echo yes
+> ___x_cmd_assert_var_is_array b d && echo yes
+yes
+DOCTEST-NO-SH
+
+if [ "$X_BASH_SRC_SHELL" != "sh" ]; then
+    ___x_cmd_assert_var_is_array(){
+        while [ $# -gt 0 ]; do
+            if ! declare -p "${1:?Please provide variable name}" 2> /dev/null | grep -q '^declare \-a'; then
+                echo "${MSG:-"Expect var to be of array type: $*"}" >&2
+                return 1
+            fi
+            shift
+        done
+        return 0
+    }
+fi
+
+: <<'DOCTEST'
+> a=3; c=
+> ___x_cmd_assert_var_not_empty a c && echo yes
+> ___x_cmd_assert_var_not_empty a && echo yes
+yes
+DOCTEST
+
+: <<'DOCTEST-NO-SH'
+> a=3; b=(1 2 3); c=
+> ___x_cmd_assert_var_not_empty a b c && echo yes
+> ___x_cmd_assert_var_not_empty a b && echo yes
+yes
+DOCTEST-NO-SH
+___x_cmd_assert_var_not_empty(){
+    for i in "$@"; do
+        eval "[ -n \"\$$i\" ] || return 1"
+    done
+}
+
+# ___x_cmd_assert_strlen(){
+#     local varname=${1:?Please provide variable name}
+#     local val=${!$varname}
+#     local len=${#val}
+#     local expected_len=${2:?Expected length}
+#     if [ "$len" -eq "$expected_len" ]; then
+#         return 0
+#     else
+#         return 1
+#     fi
+# }
+
+# The following code is ridiculously wrong ...
+# ___x_cmd_assert_str_eq(){
+#     local val=${!1:?Please provide variable name}
+#     shift
+#     for i in "$@"; do
+#         if [ "$val" = "$i" ]; then
+#             return 0
+#         else
+#             return 1
+#         fi
+#     done
+# }
+
+# ___x_cmd_assert_str_match_regex(){
+#     local val=${!1:?Please provide variable name}
+#     shift
+#     for i in "$@"; do
+#         if [[ "$val" =~ ^$i$ ]]; then
+#             return 0
+#         else
+#             return 1
+#         fi
+#     done
+# }
+
+# EndSection

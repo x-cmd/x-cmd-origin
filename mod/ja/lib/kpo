@@ -1,0 +1,56 @@
+
+___x_cmd_ja_kpo(){
+    local OPT
+    local filemode=0
+    local code
+    while getopts ':f:v:' OPT; do
+        case "$OPT" in
+            f)
+                filemode=1;
+                code="$code -f \"\$$((OPTIND-1))\""  ;;
+            v)
+                code="$( eval echo $code -v  \"\$$((OPTIND-1))\")"
+                ;;
+            ?)
+                ja:error "Fail to parse in $OPTIND: $*"
+                cat "$___X_CMD_ROOT_MOD/ja/lib/ja.help.txt" >&2
+                return 1
+                ;;
+        esac
+    done
+
+    local IFS=' '
+    ___x_cmd_ja_tokenize | if [ "$filemode" = 1 ]; then
+        eval  command awk \
+            -f "$___X_CMD_ROOT_MOD/ja/lib/awk/op.awk" \
+            -f "$___X_CMD_ROOT_MOD/ja/lib/awk/kpo.awk" \
+            "$code"
+    else
+        shift $((OPTIND-1))
+        eval command awk "$code" "'" "$(cat "$___X_CMD_ROOT_MOD/ja/lib/awk/op.awk" "$___X_CMD_ROOT_MOD/ja/lib/awk/kpo.awk")" "$*" "'"
+    fi
+
+}
+
+# ___x_cmd_ja_kpof(){
+#     local IFS=' '
+#     ___x_cmd_ja_tokenize | \
+#     command awk \
+#         -f "$___X_CMD_ROOT_MOD/ja/lib/awk/op.awk" \
+#         -f "$___X_CMD_ROOT_MOD/ja/lib/awk/kpo.awk" \
+#         -f "$1"
+# }
+
+
+# ___x_cmd_ja_kpo(){
+#     local IFS=' '
+#     ___x_cmd_ja_tokenize | \
+#     command awk "$(cat "$___X_CMD_ROOT_MOD/ja/lib/awk/op.awk" "$___X_CMD_ROOT_MOD/ja/lib/awk/kpo.awk")"'
+
+# '"
+# $*
+# "
+
+# }
+
+

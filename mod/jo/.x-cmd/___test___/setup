@@ -1,3 +1,0 @@
-. "$(x wsroot)"/lib/query
-. "$(x wsroot)"/lib/env
-. "$(x wsroot)"/latest

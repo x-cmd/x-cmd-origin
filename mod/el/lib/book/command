@@ -1,0 +1,16 @@
+a="1
+2"
+
+while read -r line; do
+    echo "$line"
+done <<A
+$a
+A
+
+echo ""
+
+printf "%s" "$a" | while read -r line; do
+    echo "$line"
+done
+
+# New line for <<A

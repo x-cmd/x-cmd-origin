@@ -1,37 +1,21 @@
-# Author:       Li Junhao           l@x-cmd.com     # xrc
-# shellcheck    shell=sh            disable=SC3043
+# Author:       Li Junhao                       l@x-cmd.com     # xrc
+# shellcheck    shell=sh disable=SC2039,3043
 
-# : <<'DOCTEST'
-# > x job put 3 sleep 3s; x job put 3 sleep 3s; x job put 3 sleep 3s; x job active
-# 3
-# > x job put 2 sleep 3s; x job put 2 sleep 3s; x job put 2 sleep 3s; [ "$(x job active)" -le 2 ] && echo yes
-# yes
-# DOCTEST
+xrc:mod:lib shall       all image name try
 
-x log init job
+___x_cmd_shall(){
+    case "$1" in
+        ""|help)        printf "TODO: help" >&2  ;;
 
-___x_cmd_job(){
-    if [ "$#" -eq 0 ]; then
-        ___x_cmd_job help
-        return 1
-    fi
+        image)          shift; ___x_cmd_shall_image "$@" ;;
+        ximage)         shift; ___x_cmd_shall_get_ximage "$@" ;;
 
-    local op="${1}"; shift
-    case "$op" in
-        active)                 ___x_cmd_job_active "$@" ;;
-        offer)                  ___x_cmd_job_offer "$@" ;;
-        put)                    ___x_cmd_job_put "$@" ;;
-        report)                 ___x_cmd_job_report "$@" ;;
-        wait)                   ___x_cmd_job_wait_until_finished "$@" ;;
-        pool)                   ___x_cmd_job_pool "$@" ;;
-        help)                   ___x_cmd_job_help "$@" ;;
-        _x_cmd_advise_json)     ___x_cmd_job_x_cmd_advise_json "$@" ;;
+        try)            shift; ___x_cmd_shall_try "$@" ;;
+        *)              ___x_cmd_shall_try "$@"
     esac
+
+
 }
 
-
-xrc:mod     job/lib/main    job/lib/pool    job/lib/help
-
-
-xrc setmain ___x_cmd_job
+xrc setmain ___x_cmd_shall
 

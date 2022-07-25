@@ -1,17 +1,46 @@
 # Author:       Li Junhao       l@x-cmd.com         #xrc
 # shellcheck    shell=sh        disable=SC3043
 
-xrc:mod list/lib/main
+# Section: main
 
-if [ -n "$BASH_VERSION" ]; then
-    xrc:mod list/lib/bash
+___x_cmd_dict(){
+    local O="${O:-DEFAULT}"
 
-elif [ -n "$ZSH_VERSION" ]; then
-    xrc:mod list/lib/zsh
+    if [ "${1#@}" != "$1" ]; then
+        O="___X_BASH_DICT_${1#@}"
+        shift
+    fi
+
+    case "$1" in
+        new | del | make | free | get | put | scope | \
+        remove | clear | drop | dropr | grep | grepr | iter | \
+        load | load_json | dump | json | \
+        size | has | is_empty | _x_cmd_advise_json )
+            local op="$1"; shift;
+            "___x_cmd_dict_$op" "$@" ;;
+        ""|help)                : help ;;
+        *)                      : help ;;
+    esac
+}
+
+xrc:mod dict/lib/pipe dict/lib/share
+
+if [ -n "${BASH_VERSION}" ]; then
+    case "${BASH_VERSION}" in
+        3*|4.0*|4.1*)
+            xrc:mod dict/lib/str
+            # . ./lib/str
+            ;;
+        *)
+            xrc:mod dict/lib/bash4
+            ;;
+    esac
+elif [ -n "${ZSH_VERSION}" ]; then
+    xrc:mod dict/lib/zsh
 else
-    xrc:mod list/lib/str
-    ___x_cmd_list(){
-        ___x_cmd_list_str "$@"
-    }
+    xrc:mod dict/lib/str
 fi
 
+xrc setmain ___x_cmd_dict
+
+## EndSection

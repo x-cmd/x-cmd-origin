@@ -1,147 +1,35 @@
-# Author:           Li Junhao           l@x-cmd.com
-# shellcheck        shell=bash          disable=SC2016          # xrc
+# Author:       Li Junhao           l@x-cmd.com                             # xrc
+# shellcheck    shell=sh            disable=SC2039,SC1090,SC3043,SC2263
 
-x log init ccmd
+# license:      GPLv3
 
-xrc:mod ccmd/lib/help
+x log init ja
+xrc:mod:lib ja      kp kpo share/index
 
-# Check it again.
-TMPDIR=${TMPDIR:-$(dirname "$(mktemp -u)")}
-___X_CMD_CCMD_TMP_FOLDER="${TMPDIR%/}/x-cmd-path"
+___x_cmd_ja(){
+    case "$1" in
+        data)                                       shift; ___x_cmd_ja_data             "$@" ;;
 
-___x_cmd_ccmd(){
-    local op="${1}"
-    shift
-    case "$op" in
-        exec)                   ___x_cmd_ccmd_exec              "$@" ;;
-        clear)                  ___x_cmd_ccmd_clear             "$@" ;;
-        invalidate|-)           ___x_cmd_ccmd_invalidate        "$@" ;;
+        n|normalize)                                shift; ___x_cmd_ja_normalize        "$@" ;;
+        t|tokenize)                                 shift; ___x_cmd_ja_tokenize         "$@" ;;
+        f|fmt)                                      shift; ___x_cmd_ja_fmt              "$@" ;;
+        color)                                      shift; ___x_cmd_ja_color            "$@" ;;
+        2y|toyml)                                   shift; ___x_cmd_ja_toyml            "$@" ;;
 
-        setup)                  ___x_cmd_ccmd_setup             "$@" ;;
-        teardown)               ___x_cmd_ccmd_teardown          "$@" ;;
+        "")                                         ___x_cmd_ja___normalize_stream           ;;
+        # \{*|\[*)                                  ___x_cmd_ja___normalize_argstring   "$@" ;;
 
-        _x_cmd_advise_json)     ___x_cmd_ccmd_x_cmd_advise_json "$@" ;;
-        ""|help)                ___x_cmd_ccmd_help              "$@" ;;
 
-        *)                      ___x_cmd_ccmd_exec      "$op"   "$@" ;;
+        kp)                                         shift; ___x_cmd_ja_kp "$@" ;;           # just extract keypath, provide jstr
+        kpo)                                        shift; ___x_cmd_ja_kpo "$@" ;;          # extract keypath, but also provide utils, provide jstr
+
+        -h|-H|--help)                               cat "$___X_CMD_ROOT_MOD/ja/lib/ja.help.txt" >&2
+                                                    return 0 ;;
+
+        _x_cmd_advise_json)                         cat "$___X_CMD_ROOT_MOD/ja/lib/ja.advise.json" ;;
+
+        *)                                          ___x_cmd_ja_kpo "$@" ;;
     esac
 }
 
-# Section: exection
-___x_cmd_ccmd_exec(){
-    if [ "$#" -eq 0 ]; then
-        ___x_cmd_ccmd_help
-        return 0
-    fi
-
-    local IFS
-    local expiration
-    local filepath
-
-    while [ ! "$1" = -- ]; do
-        if [ "$#" -eq 0 ]; then
-            ___x_cmd_ccmd_help "PANIC: Expect -- and its following command\n" >&2
-            return 64
-        fi
-        if [ -z "$expiration" ]; then
-            expiration="$1"
-        elif [ -z "$filepath" ]; then
-            filepath="$1"
-        else
-            ___x_cmd_ccmd_help "More than 3 arguments before --."
-            return 64 # EX_USAGE=64         # The command was used incorrectly, e.g., with the wrong number of arguments, a bad flag, a bad syntax in a parameter, or whatever.
-        fi
-        shift
-    done
-
-    shift
-
-    expiration=${expiration:-1d}
-
-    if ! ___x_cmd___ccmd_validate_time_format "$expiration"; then
-        ___x_cmd_ccmd_help "PANIC: Expiration should match pattern n[dmwsh]." >&2
-        return 65 # EX_DATAERR=65       # The input data was incorrect in some way. This should only be used for user's data and not system files.
-    fi
-
-    if [ -z "$filepath" ]; then
-        filepath="${X_CMD_CACHE_STORAGE_FOLDER_PATH:-$___X_CMD_CCMD_TMP_FOLDER}"
-        mkdir -p "$filepath"
-        filepath="$filepath/$(___x_cmd_str_md5 "$*")"
-    fi
-
-    if find "$filepath" -mtime "-${expiration}" 2>/dev/null | grep -q ^; then
-        ccmd:debug "Using cache in Cache Path: $filepath"
-        cat "$filepath"
-    else
-        ccmd:debug "FILEPATH does't exists or older than ${expiration} second. Update"
-        ccmd:debug "Caching command: $*"
-
-        local TEMP_PATH="$filepath.x-bash.origin.ed15841d4fba5c1dba9045bcbfa0819a"
-        if eval "$@" | tee "$TEMP_PATH"; then
-            mv "$TEMP_PATH" "$filepath"
-            return 0
-        else
-            ccmd:error "cache failed: $*"
-            local code=$?
-            rm "$TEMP_PATH"
-            return "$code"
-        fi
-    fi
-}
-
-___x_cmd___ccmd_validate_time_format(){
-    local tmp
-    case "${1:?Provide time}" in
-        *d) tmp=d   ;;
-        *m) tmp=m   ;;
-        *w) tmp=w   ;;
-        *s) tmp=s   ;;
-        *h) tmp=h   ;;
-    esac
-    [ "${1%"$tmp"*}" -gt 0 ] 2>/dev/null
-    return $?
-}
-
-___x_cmd_ccmd_invalidate(){
-    local IFS
-
-    local filepath="${X_CMD_CACHE_STORAGE_FOLDER_PATH:-$___X_CMD_CCMD_TMP_FOLDER}"
-    filepath="$filepath/$(___x_cmd_str_md5 "$*")"
-
-    ccmd:debug "$*"
-    printf "%s\n" "$filepath"
-
-    if [ -f "$filepath" ]; then
-        rm "$filepath"
-    fi
-}
-
-___x_cmd_ccmd_clear(){
-    local FILEPATH="${X_CMD_CACHE_STORAGE_FOLDER_PATH:-$___X_CMD_CCMD_TMP_FOLDER}"
-    # zsh rm -f requires confirmation
-    touch "$FILEPATH"/___x_cmd_ccmd_clear_tmp
-    eval "$(command -v rm) -f $FILEPATH/*"
-}
-
-# EndSection
-
-# Section: object
-
-# If you want a new environment for script
-___x_cmd_ccmd_setup(){
-    X_CMD_CACHE_STORAGE_FOLDER_PATH="${1:-"$(mktemp)"}"
-    export X_CMD_CACHE_STORAGE_FOLDER_PATH
-    mkdir -p "$X_CMD_CACHE_STORAGE_FOLDER_PATH"
-}
-
-# Remember teardown if you have setup
-___x_cmd_ccmd_teardown(){
-    xrc path
-    path_rmrf_safe "$X_CMD_CACHE_STORAGE_FOLDER_PATH"
-    unset X_CMD_CACHE_STORAGE_FOLDER_PATH
-}
-
-# EndSection
-
-
-xrc setmain ___x_cmd_ccmd
+xrc setmain ___x_cmd_ja

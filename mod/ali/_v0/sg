@@ -1,0 +1,174 @@
+# shellcheck shell=sh disable=SC3043,SC2154
+
+
+# https://help.aliyun.com/document_detail/25553.html?spm=a2c4g.11186623.6.1551.67ff7b6fhY3woe
+
+xrc ali/_v0/sg_rule
+
+ali_sg(){
+    param:dsl <<A
+subcommand:
+    create          "create security group"
+    del             "delete security group"
+    ls              "list security group"
+    info            "info"
+    include         "join an ec instance"
+    exclude         "exclude an ec instance"
+    refer           "list reference"
+    rule            "sg rule managment"
+A
+    param:run
+
+    if [ -z "$PARAM_SUBCMD" ]; then
+        ali_sg_quick "$@"
+        return
+    fi
+
+    "ali_sg_$PARAM_SUBCMD" "$@"
+}
+
+
+ali_sg_create(){
+    param:dsl <<A
+options:
+    --vpc                       "Provide vpc information"                   <vpc>
+    --name                      "Default is a auto generated name"          <name>=""
+    --type                      "Default is normal"                         <type>=normal               =   normal     enterprise
+    --desc|--description        "Provide description"                       <description-string>=""
+A
+    param:run
+
+    local id
+    if ! id="$(ali_vpc_exactid "$vpc")"; then
+        return
+    fi
+
+    [ -n "$1" ] && name="$1"
+    [ -n "$2" ] && desc="$2"
+
+    eval aliyun ecs CreateSecurityGroup \
+        --VpcId "$id" \
+        ${name+--SecurityGroupName "$name"} \
+        --SecurityGroupType "${type}" \
+        ${name+--Description "$desc"}
+
+}
+
+ali_sg_ls_format(){
+    ali_table_json .CreationTime .SecurityGroupId .SecurityGroupName .VpcId .SecurityGroupType
+}
+
+ali_sg_info(){
+    param:void
+    local data
+    if ! data="$(ali_sg_exact "$@")"; then
+        return
+    fi
+
+    data="$(printf "%s" "$data" | x jq .[0])"
+
+    echo "$data"
+}
+
+# shellcheck disable=SC2120
+ali_sg_ls(){
+    param:void
+    if [ ! -t 1 ]; then
+        _ali_sg_ls "$@"
+    else
+        _ali_sg_ls "$@" | ali_sg_ls_format
+    fi
+}
+
+_ali_sg_ls(){
+    case $# in
+        0)  ccmd 10m -- aliyun ecs DescribeSecurityGroups | x jq .SecurityGroups.SecurityGroup
+            ;;
+        *)  local regex="${1:-Provide regex pattern}"
+            ali_sg_ls | x jq "
+                .[] | 
+                if .SecurityGroupName | test(\"$regex\")      then .
+                elif .SecurityGroupId | test(\"$regex\")      then .
+                else empty end
+            " | x jq -s .
+            ;;
+    esac
+}
+
+
+ali_exactor_declare ali_sg \
+    "No such security group found." \
+    "Multiple security group found." \
+    SecurityGroupId
+
+
+ali_sg_del(){
+    param:void
+    local id
+    if id="$(ali_sg_exactid "$@")"; then
+        ali_log info "SecurityGroup ID: $id"
+        aliyun ecs DeleteSecurityGroup  --SecurityGroupId "$id"
+    fi
+}
+
+
+ali_sg_refer(){
+    param:void
+    if [ ! -t 1 ]; then
+        _ali_sg_refer "$@"
+    else
+        local s
+        if s="$(_ali_sg_refer "$@")"; then
+            ali_table_json .a .b <<A
+$s
+A
+        fi
+    fi
+}
+
+_ali_sg_refer(){
+    local id
+    if id="$(ali_sg_exactid "$@")"; then
+        ali_log info "SecurityGroup ID: $id"
+        aliyun ecs DescribeSecurityGroupReferences  --SecurityGroupId.1 "$id" | x jq .SecurityGroupReferences.SecurityGroupReference
+        return 0
+    fi
+    return 1
+}
+
+ali_sg_include(){
+    param:void
+    local id
+    if ! id="$(ali_sg_exactid "$1")"; then
+        return
+    fi
+
+    shift
+
+    local ecid
+    if ! ecid="$(ali_ec_exactid "$1")"; then
+        return
+    fi
+    aliyun ecs JoinSecurityGroup --SecurityGroupId "$id" --InstanceId "$ecid"
+}
+
+ali_sg_exclude(){
+    param:void
+    local id
+    if ! id="$(ali_sg_exactid "$1")"; then
+        return
+    fi
+
+    shift
+
+    local ecid
+    if ! ecid="$(ali_ec_exactid "$1")"; then
+        return
+    fi
+    aliyun ecs LeaveSecurityGroup --SecurityGroupId "$id" --InstanceId "$ecid"
+}
+
+ali_sg_quick(){
+    ali_quicker2 sg "$@"
+}
+

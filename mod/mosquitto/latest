@@ -1,13 +1,14 @@
-# Author:       Li Junhao       l@x-cmd.com
-# shellcheck    shell=sh        disable=SC3043,SC2164,SC1091     # xrc
+# shellcheck shell=sh disable=SC2039,SC3043 # xrc
 
-___x_cmd_ucloud(){
-    ___x_cmd___ucloud_origin "$@"
+# author:       Li Junhao           l@x-cmd.com
+
+
+___x_cmd_mosquitto(){
+    local op="$1";
+    case "$op" in
+        sub|pub|ctrl|passwd|rr)     shift; "___x_cmd_mosquitto_${op}" "$@" ;;
+        *)                          shift; "___x_cmd_mosquitto_main" "$@" ;;
+    esac
 }
 
-___x_cmd___ucloud_origin(){
-    x pkg xbin init ucloud "" ___x_cmd___ucloud_origin || return
-    ___x_cmd___ucloud_origin "$@"
-}
-
-xrc setmain ___x_cmd_ucloud
+xrc setmain ___x_cmd_mosquitto

@@ -1,24 +1,35 @@
-# shellcheck shell=sh disable=SC3043 # xrc
+# Author:       Li Junhao           l@x-cmd.com     # xrc
+# shellcheck    shell=sh
 
-xrc:mod:lib wx      util
+xrc param/latest
 
-# wx is a tar.gz file
-# x wx work
-# x wx --verbose work
-# x work.wx
-# x @l/work
-# xwx work
+x log init yanfa
 
-___x_cmd_wx(){
-    case "$1" in
-        pkg)            shift; ___x_cmd_wx_pkg "$@"     ;;
-        unpkg)          shift; ___x_cmd_wx_unpkg "$@"   ;;
-        run)            shift; ___x_cmd_wx_run "$@"     ;;
-        ls)             shift; ___x_cmd_wx_run "$@"     ;;
-        _x_cmd_advise_json) printf "{}"                 ;;
-        *)              ___x_cmd_wx_run "$@"            ;;
-    esac
+xrc:mod:lib yanfa   ws mod pkg init try git release xb xc
+
+# git config --worktree --get-regexp "remote[a-z\.]+.url"
+
+___X_CMD_YANFA_CONCURRENCY=7
+
+___x_cmd_yanfa_fish(){
+    docker run --rm -it dideler/fish-shell
+    # docker run --rm -it xcmd/fish
 }
 
-xrc setmain ___x_cmd_wx
+___x_cmd_yanfa(){
+    param:subcmd ___x_cmd_yanfa     \
+        init        "init"          \
+        mod         "modules"       \
+        pkg         "package"       \
+        release     "release"       \
+        ws          "workspace"     \
+        xb          "x-bash"        \
+        xc          "x-cmd"         \
+        try         "do some experiment on all poxis shell" \
+        fish        "try fish shell"
+    param:subcmd:try
+    param:run
+    ___x_cmd_yanfa help
+}
 
+xrc setmain ___x_cmd_yanfa

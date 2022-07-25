@@ -1,0 +1,42 @@
+# shellcheck shell=dash
+
+if ___x_cmd_is_interative_tty; then
+    alias ___x_cmd_lastcmd_save="[ \"\$1\" = \"lastcmd\" ] || ___X_CMD_MAIN_LASTCMD=\"\$*\""
+else
+    alias ___x_cmd_lastcmd_save=': #'
+fi
+
+___x_cmd_lastcmd(){
+    printf "%s\n" "$___X_CMD_MAIN_LASTCMD"
+}
+
+___x_cmd_spell(){
+    # History
+
+    # Has SubCmd. Navigate the advise.json to get candidate.
+    # Set config for spell
+
+    printf "Is it a new spell for:"
+    printf "1. No. Typing wrongly."
+    printf "2. Choose the spell"
+    printf "3. Set the spell"
+
+    # Set the spell globally, in the cloud, or just in this environment.
+
+}
+
+___x_cmd_spell_set(){
+    :
+}
+
+___x_cmd_spell_set_locally(){
+    :
+}
+
+___x_cmd_spell_set_globally(){
+    :
+}
+
+___x_cmd_spell_set_sync(){
+    :
+}

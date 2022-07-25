@@ -1,0 +1,72 @@
+# shellcheck shell=dash
+
+___x_cmd_zuz_z_tar(){
+    # We should use 7zip for better compresssion rate
+    if [ "$size" != 0 ]; then       ___x_cmd_zuz_run x 7z -v"$size" "$target_file" "$@"
+    else                            ___x_cmd_zuz_run tar cvf "$target_file" "$@"
+    fi
+}
+
+___x_cmd_zuz_z_tgz(){
+    if [ "$#" -eq 0 ]; then
+        if [ "$size" != 0 ]; then       tar cf - --files-from "/dev/stdin" | ___x_cmd_zuz_run x 7z a -v"$size" -si "$target_file"
+        else                            ___x_cmd_zuz_run tar cz --files-from "/dev/stdin" -f "$target_file"
+        fi
+        return
+    fi
+
+    if [ "$size" != 0 ]; then           tar cf - "$@" | ___x_cmd_zuz_run x 7z a -v"$size" -si "$target_file"
+    else                                ___x_cmd_zuz_run tar czf "$target_file" "$@"
+    fi
+
+}
+
+___x_cmd_zuz_z_tarz(){
+    if [ "$size" != 0 ]; then       ___x_cmd_zuz_run x 7z -v"$size" "$target_file" "$@"
+    else                            ___x_cmd_zuz_run tar cZf "$target_file" "$@"
+    fi
+}
+
+___x_cmd_zuz_z_tar_xz(){
+    [ -z "$(command -v xz)" ] && zuz_log err "xz command not exist" && return 1
+    if [ "$size" != 0 ]; then
+        # TODO: We should use 7zip
+        ___x_cmd_zuz_run x 7z -v"$size" "$target_file" "$@"
+    else
+        local extra_logger_msg="&& xz ${target_file%.*}"
+        ___x_cmd_zuz_run tar cvf "${target_file%.*}" "$@" && xz "${target_file%.*}"
+    fi
+}
+
+___x_cmd_zuz_z_bz2(){
+    if [ "$size" != 0 ]; then       ___x_cmd_zuz_run x 7z -v"$size" "$target_file" "$@"
+    else                            ___x_cmd_zuz_run tar cjf "$target_file" "$@"
+    fi
+}
+
+___x_cmd_zuz_z_xz(){
+    # NOTE: xz: Can't compress directory, Will skipping. Can use tar container.
+    # We can use 7zip to handle xz ? Little footprint.
+    local extra_logger_msg="> $target_file"
+    ___x_cmd_zuz_run xz -c -kz "$@" > "$target_file"
+}
+
+___x_cmd_zuz_z_zip(){
+    # Using zip facility
+    # ___x_cmd_zuz_run zip -r "$target_file" "$@"
+    # unzip xfv "$target_file" "$@"
+    ___x_cmd_zuz_run x 7z a -tzip -r "$target_file" "$@"
+}
+
+___x_cmd_zuz_z_rar(){
+    # x rar
+    zuz_log error "Unsupported to compress as rar format."
+    return 1
+}
+
+___x_cmd_zuz_z_7z(){
+    # NOTE: Wait static build. use 7zr command
+    if [ "$size" != 0 ]; then       ___x_cmd_zuz_run x 7z a -v"$size" "$target_file" "$@"
+    else                            ___x_cmd_zuz_run x 7z a "$target_file" "$@"
+    fi
+}

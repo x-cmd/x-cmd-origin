@@ -1,8 +1,0 @@
-. param
-
-param '
-    #1 "Provide owner name" =str
-    #2=none "Provide type name" = user enterprise organization none
-'
-
-echo "${_rest_argv[@]}"

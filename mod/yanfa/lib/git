@@ -1,0 +1,41 @@
+# shellcheck shell=sh disable=SC3043
+
+# TODO: we will find a more suitable place for the code below.
+
+alias giss="git status -s"
+alias gip="x yanfa ws pull"
+alias giP="x yanfa ws push"
+giam(){
+    local msg="${1:-...}"
+    shift
+    if [ $# -eq 0 ]; then
+        ( cd "$(x wsroot)" && git add . )
+    else
+        git add "$@"
+    fi
+    git commit -m "$msg"
+}
+
+
+___x_cmd_yanfa_git_commit()(
+    cd "$name"
+    git commit -m "${MSG:-...}"
+)
+
+
+___x_cmd_yanfa_git_push()(
+    cd "$name"
+    xws push
+)
+
+___x_cmd_yanfa_git_update(){
+    if [ -d "$name" ]; then
+        { cd "$name" && git pull && git pull origin main; }
+    else
+        git clone "git@$(___x_cmd_yanfa_git_domain):$org/$name.git"
+    fi
+}
+
+___x_cmd_yanfa_git_domain(){
+    x ifelse '[ -z "$___X_CMD_IN_CHINA_NET" ]'  "github.com"    "gitee.com"
+}

@@ -1,1 +1,0 @@
-cat image | awk '$1~/[a-z]+awk-[a-z]+sh/{ name=substr($1, 1, length($1)-1); split(name, arr, /-/); gsub(name, arr[2] "-" arr[1], $0); }; { print $0; }' >image.sh

@@ -3,30 +3,43 @@
 
 # license:      GPLv3
 
-# Better But Will Be Slower.
-# Move the files as safe as possible in a batch.
+# TODO:
 
-# mv a/b/c.txt a/b/d.txt a/c/a.txt  dst/
-# mv -p b/c.txt b/d/.txt c/a.txt    dst/
+# For Function Used.
+# rm -rf @file
+# rm -rf @-
 
-xrc:mod:lib     mv      utils
+# For cli, quick, but show
+# rm -rf    # Will Ask
+# rm show facility
 
-___x_cmd_mv(){
-    if [ "$#" -eq 0 ]; then
-        printf "%s\n" "TODO: Will Use Pipe"
-        return 1
-    fi
+# ls :d.i
+# ls :d.ps
 
-    if [ "$#" -eq 1 ]; then
-        ___x_cmd_mv_from_pipe "$1"
-        return
-    fi
+___x_cmd_rm(){
+    # local opt
+    # while [ "$#" -gt 0 ]; do
+    #     case "$1" in
+    #         --)     xargs command rm "$@" ;;
+    #         -*)     ;;
+    #         *)      break ;;
+    #     esac
+    #     opt="$1"
+    #     shift
+    # done
 
-    local lastarg
-    eval 'lastarg="$'$#'"'
-    x mkdirp "${lastarg%/*}"
+    # if [ "$1" = "" ]; then
+    #     local i
+    #     x ui select i "Remove files whose name passed from stdin" yes no
+    #     [ "$i" != 1 ] || xargs command rm
+    #     return
+    # fi
 
-    ___x_cmd_inner_mv "$@"
+    # TODO: add safely rm facility
+    command rm "$@"
+    # while [ "$#" -eq 1 ]; do
+    #     :
+    # fi
 }
 
-xrc setmain ___x_cmd_mv
+xrc setmain ___x_cmd_rm

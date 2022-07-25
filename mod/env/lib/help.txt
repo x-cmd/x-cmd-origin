@@ -1,0 +1,38 @@
+subcommands:
+    ls                      "list all installed environments"
+    x env ls <candidate>
+
+    current                 "Show the version of candidate you are using"
+    x env current <candidate>
+
+    prev
+    x env prev <candidate>  "Show the last version you used"
+
+    try                     "Set environment version in this shell session"
+    x env try <candidate>=<version> <candidate>=<version> <candidate>=<version>  ...
+
+    untry                   "deactivate environment clear up the candidate you choosed in your local shell ; "=-" use last environment"
+    x env untry <candidate>=<version> or  x env try <candidate>=-
+
+    use                     "Set global environment version and record into version config file"
+    x env use <candidate>=<version> <candidate>=<version> <candidate>=<version>  ...
+
+    unuse                   "Remove environment and change version config file where record your environment value"
+    x env unuse <candidate>=<version> <candidate>=<version> <candidate>=<version>  ...
+
+    exec                    "Run an executable with the selected candidates version"
+    x env exec <candidate>=<version> <candidate>=<version> -- <command>(x env ls ) or <file> or <script>
+
+    which                   "Display path of environment installed"
+    x env which <candidate>
+
+    var                                        "backup or recover environment"
+    example:
+    aaa=$PATH                                  "define a variable and record your local PATH"
+    x env var backup <variable(aaa)>                       "record your PATH in a variable(aaa)"
+    x env var ls                               "display your variable"
+    x env var get_backup <variable(aaa)>            "display your recorded PATH"
+    x env var recover <variable(aaa)>  <variable>   "recover your environment"
+    x env var recoverall                       "recover your environment"
+
+    x env var recover <null> equal to x env var recoverall

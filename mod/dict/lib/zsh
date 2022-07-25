@@ -1,269 +1,206 @@
-# shellcheck    shell=sh        disable=SC3043
+# shellcheck    shell=zsh
 
-___x_cmd_list_make(){
-    local O="${1:?Please provide list name}"
-    eval "$O=()"
+# Section: Life Cycle
+# DICT_KEYS_SEP=","
+# DICT_SEP="-"
+___x_cmd_dict_make(){
+    local O="${O:?Please provide object name}"
+    unset "___X_BASH_DICT_$O"
+    ___x_cmd_instance_add "dict" "$O"
+    typeset -gA ___X_BASH_DICT_"$O"
 }
 
-___x_cmd_list_free(){
-    eval "unset $O"
+___x_cmd_dict_clear(){
+    local O="${O:?Please provide object name}"
+    eval "typeset -gA ___X_BASH_DICT_$O=()"
 }
 
-: <<'DOCTEST'
-> ___x_cmd_list_make b
-> O=b ___x_cmd_list_push $(seq 1 3); O=b ___x_cmd_list_print
-1
-2
-3
-DOCTEST
-___x_cmd_list_print(){
-    local IFS="
-"
-    eval printf "%s" "\"\${${O:?Please provide list name}[*]}\""
+___x_cmd_dict_dump(){
+    local O="${O:?Please provide object name}"
+    local key
+    local val
+    local i=0
+
+    IFS="${DICT_SEP}"
+    for key val in $(eval echo "\"\${(kv)___X_BASH_DICT_$O}\""); do
+        printf "%s${DICT_SEP}%s${DICT_SEP}" "${key#*${DICT_KEYS_SEP}}" "$val"
+        i=$((i+1))
+    done
+    printf "%s" "$i"
 }
 
-: <<'DOCTEST'
-> ___x_cmd_list_make b
-> O=b ___x_cmd_list_push $(seq 1 3); O=b ___x_cmd_list_get 0
-1
-> O=b ___x_cmd_list_size
-3
-DOCTEST
-___x_cmd_list_size(){
-    eval printf "%s" "\"\${#${O:?Please provide list name}[@]}\""
-}
+___x_cmd_dict_load(){
+    local O="${O:?Please provide object name}"
+    ___x_cmd_dict_make "$O"
+    local key
+    local val
 
-: <<'DOCTEST'
-> ___x_cmd_list_make b
-> O=b ___x_cmd_list_push $(seq 10);
-> O=b ___x_cmd_list_get 1
-2
-> O=b ___x_cmd_list_get 8
-9
-DOCTEST
-___x_cmd_list_get(){
-    eval printf "%s" "\"\${${O:?Please provide list name}[${1:?idx}]}\""
-}
-
-
-___x_cmd_list_push() {
-    eval "$O"'+=("$@")'
-}
-
-: <<'DOCTEST'
-> ___x_cmd_list_make b
-> O=b ___x_cmd_list_unshift $(seq 10);
-> O=b ___x_cmd_list_get 0
-1
-> O=b ___x_cmd_list_get 8
-9
-DOCTEST
-___x_cmd_list_unshift() {
-    eval "${O:?Please provide list name}"'=("$@" "${'"$O"'[@]}")'
-}
-
-: <<'DOCTEST'
-> ___x_cmd_list_make b
-> O=b ___x_cmd_list_unshift $(seq 10);
-> O=b ___x_cmd_list_head
-1
-DOCTEST
-___x_cmd_list_head(){
-    ___x_cmd_list_get 0
-}
-
-: <<'DOCTEST'
-> ___x_cmd_list_make b
-> O=b ___x_cmd_list_unshift $(seq 10);
-> O=b ___x_cmd_list_tail
-10
-DOCTEST
-___x_cmd_list_tail(){
-    local len
-    len=$(___x_cmd_list_size)
-    ___x_cmd_list_get "$((len-1))"
-}
-
-: <<'DOCTEST'
-> ___x_cmd_list_make b
-> O=b ___x_cmd_list_unshift $(seq 10);
-> O=b ___x_cmd_list_top
-10
-DOCTEST
-___x_cmd_list_top(){ ___x_cmd_list_tail; }
-
-: <<'DOCTEST'
-> ___x_cmd_list_make b
-> O=b ___x_cmd_list_unshift $(seq 3);
-> O=b ___x_cmd_list_map echo
-0 1
-1 2
-2 3
-DOCTEST
-___x_cmd_list_map(){
-    local O="${O:?Please provide list name}"
-
-    local f="${1:?function name}"
-    local len
-    len=$(___x_cmd_list_size)
-    local idx=0
-    while [ "$idx" -lt "$len" ]; do
-        eval "$f" "$idx" '"${'"${O}"'['"$idx"']}"'
-        idx=$((idx+1))
+    while :; do
+        read -d "${DICT_SEP}" -r key || return 0
+        read -d "${DICT_SEP}" -r val || return 0
+        eval "___X_BASH_DICT_${O}[\$DICT_KEYS_SEP\$key]=\"\$val\""
     done
 }
 
-: <<'DOCTEST'
-> ___x_cmd_list_make b
-> O=b ___x_cmd_list_unshift $(seq 10);
-> O=b ___x_cmd_list_pop
-10
-> O=b ___x_cmd_list_size
-9
-DOCTEST
-___x_cmd_list_pop(){
-    local O="${O:?Please provide list name}"
-    local len
-    len=$(___x_cmd_list_size)
-    len=$((len-1))
-    eval printf "%s" '"${'"$O"'['"$len"']}"'
-    eval unset ''"$O"'['"$len"']'
+# EndSection
+
+# Section: size get put scope remove
+
+___x_cmd_dict_size(){
+    : "${O:?Please provide object name}"
+    eval printf "%s" "\"\${#___X_BASH_DICT_${O}[@]}\""
 }
 
-: <<'DOCTEST'
-> ___x_cmd_list_make b
-> O=b ___x_cmd_list_unshift $(seq 10);
-> O=b ___x_cmd_list_shift
-1
-> echo "${#b[@]}"
-9
-> O=b ___x_cmd_list_size
-9
-DOCTEST
-___x_cmd_list_shift(){
-    local O="${O:?Please provide list name}"
-    local IFS=          # Notice! IFS should be empty, or the following line won't work: eval "$O=( \"\${""$O""[@]:1}\" )"
-    local len
-    len=$(___x_cmd_list_size)
-    if [ "$len" -gt 0 ]; then
-        eval printf "%s" "\"\${"$O"[0]}\""
-        eval "$O=( \"\${""$O""[@]:1}\" )"
+___x_cmd_dict_get(){
+    if [ -z "$O" ]; then
+        ___x_cmd_dict___pget "$@"
+        return
     fi
 
-    # len=$((len-1))
-    # eval printf "%s" '"${'"$O"'['"0"']}"'
-    # eval unset ''"$O"'['"$len"']'
-}
+    : "${O:?Please provide object name}"
+    local IFS="${DICT_KEYS_SEP}"
+    local key="$DICT_KEYS_SEP$*"
 
-: <<'DOCTEST'
-> ___x_cmd_list_make b
-> O=b ___x_cmd_list_unshift $(seq 10);
-> O=b ___x_cmd_list_index_of 2
-1
-2
-DOCTEST
-___x_cmd_list_index_of(){
-    local O="${O:?Please provide list name}"
+    local s
+    s="$(eval printf %s "\"\${___X_BASH_DICT_${O}[\$key]}\"")"
 
-    local tgt="${1:?value}"
-    local len
-    len=$(___x_cmd_list_size)
-    local idx=0
-    local v
-    while [ $idx -lt "$len" ]; do
-        eval v='"${'"${O}"'['"$idx"']}"'
-        if [ "$v" == "$tgt" ]; then
-            printf "%s\n%s\n" "$idx" "$v"
-        fi
-        idx=$((idx+1))
-    done
-
-    return 1
-}
-
-: <<'DOCTEST'
-> ___x_cmd_list_make b
-> O=b ___x_cmd_list_unshift $(seq 5);  O=b ___x_cmd_list_remove_by_value 3
-> O=b ___x_cmd_list_print
-1
-2
-4
-5
-DOCTEST
-___x_cmd_list_remove_by_value(){
-    local O="${O:?Please provide list name}"
-
-    local tgt="${1:?value}"
-    local len
-    len=$(___x_cmd_list_size)
-    local idx=0
-    local v
-    local sw=0
-    while [ $idx -lt "$len" ]; do
-        if [ "$sw" -eq 0 ]; then
-            eval v='"${'"${O}"'['"$idx"']}"'
-            if [ "$v" == "$tgt" ]; then
-                sw=1
-            fi
-        else
-            eval "$O"'['"$((idx-1))"']="${'"$O"'['"$idx"']}"'
-        fi
-        idx=$((idx+1))
-    done
-    [ "$sw" -eq 1 ] && eval unset "$O[$((idx-1))]"
-
-    return 1
-}
-
-: <<'DOCTEST'
-> ___x_cmd_list_make b
-> O=b ___x_cmd_list_unshift $(seq 5);  O=b ___x_cmd_list_remove 3
-> O=b ___x_cmd_list_print
-1
-2
-3
-5
-> O=b ___x_cmd_list_remove 0; O=b ___x_cmd_list_print
-2
-3
-5
-DOCTEST
-___x_cmd_list_remove(){
-    local O="${O:?Please provide list name}"
-    local idx="${1:?Provide idx}"
-    local IFS=
-
-    if [ "$idx" -eq 0 ]; then
-        eval "$O"'=("${'"$O"'[@]:1}")'
+    if [ -n "$s" ]; then
+        echo "$s"
     else
-        eval "$O"'=("${'"$O"'[@]:0:'"$idx"'}" "${'"$O"'[@]:'$((idx+1))'}" )'
+        return 1
     fi
 }
 
-: <<'DOCTEST'
-> ___x_cmd_list_make b
-> O=b ___x_cmd_list_unshift $(seq 10);
-> O=b ___x_cmd_list_get_by_regex "^2$"
-1
-2
-DOCTEST
-___x_cmd_list_get_by_regex(){
-    local O="${O:?Please provide list name}"
+___x_cmd_dict_put(){
+    if [ -z "$O" ]; then
+        ___x_cmd_dict___pput "$@"
+        return
+    fi
 
-    local tgt="${1:?regex pattern}"
-    local len
-    len=$(___x_cmd_list_size)
-    local idx=0
-    local v
-    while [ $idx -lt "$len" ]; do
-        eval v='"${'"${O}"'['"$idx"']}"'
-        # We know it is bash, thus [[ is available.
-        if [[ "$v" =~ $tgt ]]; then
-            printf "%s\n%s\n" "$idx" "$v"
-        fi
-        idx=$((idx+1))
-    done
-
-    return 1
+    : "${O:?Please provide object name}"
+    local IFS="${DICT_KEYS_SEP}"
+    local key="$*"
+    local val="${key##*${DICT_KEYS_SEP}}"
+    key="$DICT_KEYS_SEP${key%${DICT_KEYS_SEP}*}"
+    eval "___X_BASH_DICT_${O}[\$key]"="\"\$val\"" 2>/dev/null || ___x_cmd_dict_make "$O"; eval "___X_BASH_DICT_${O}[\$key]"="\"\$val\""
 }
 
+# Not universal enough
+___x_cmd_dict_scope(){
+    if [ -z "$O" ]; then
+        ___x_cmd_dict___pscope "$@"
+        return
+    fi
+
+    : "${O:?Please provide object name}"
+    local IFS="${DICT_KEYS_SEP}"
+    local s
+    s=$(printf "${DICT_KEYS_SEP}%s${DICT_KEYS_SEP}" "$*")
+
+    local key
+    local i=0
+    IFS="${DICT_SEP}"
+
+    for key in $(eval printf %s "\"\${(k)___X_BASH_DICT_"$O"[*]}\""); do
+        if [[ "$key" == "$s"* ]]; then
+            val="$(eval printf "%s" "\"\${(v)"___X_BASH_DICT_$O"[\$key]}\"")"
+            printf "%s${DICT_SEP}%s${DICT_SEP}" "${key#$s}" "$val"
+            i=$((i+1))
+        fi
+    done
+    printf "%s" "$i"
+}
+
+___x_cmd_dict_remove(){
+    if [ -z "$O" ]; then
+        ___x_cmd_dict___premove "$@"
+        return
+    fi
+
+    : "${O:?Please provide object name}"
+    local IFS="${DICT_KEYS_SEP}"
+    local s
+    s=$(printf "${DICT_KEYS_SEP}%s" "$*")
+
+    IFS="${DICT_SEP}"
+
+    local code=1
+    local key
+    for key in $(eval printf %s "\"\${(k)"___X_BASH_DICT_$O"[*]}\""); do
+        if [[ "$key" = "$s" ]]; then
+            eval "unset \"___X_BASH_DICT_${O}[\$key]\""
+            code=0
+        fi
+    done
+    return "$code"
+}
+
+# EndSection
+
+# Section: drop grep iter
+
+___x_cmd_dict_drop(){
+    if [ -z "$O" ]; then
+        ___x_cmd_dict___pdrop "$@"
+        return
+    fi
+
+    : "${O:?Please provide object name}"
+    local IFS="${DICT_KEYS_SEP}"
+    local s
+    s=$(printf "${DICT_KEYS_SEP}%s" "$*")
+
+    IFS="${DICT_SEP}"
+
+    local code=1
+    local key
+    for key in $(eval printf %s "\"\${(k)"___X_BASH_DICT_$O"[*]}\""); do
+        if [[ "$key" =~ $s ]]; then
+            eval "unset \"___X_BASH_DICT_${O}[\$key]\""
+            code=0
+        fi
+    done
+    return "$code"
+}
+
+___x_cmd_dict_grep(){
+    if [ -z "$O" ]; then
+        ___x_cmd_dict___pgrep "$@"
+        return
+    fi
+
+    : "${O:?Please provide object name}"
+    local IFS="${DICT_KEYS_SEP}"
+    local s
+    s=$(printf "%s${DICT_KEYS_SEP}" "$*")
+
+    for key in eval "\${\!$O[@]}"; do
+        if [[ "$key" =~ $s ]]; then
+            eval "echo \"___X_BASH_DICT_\$O[\$DICT_KEYS_SEP\$key]\""
+            break
+        fi
+    done
+}
+
+___x_cmd_dict_grepr(){
+    ___x_cmd_dict_grep "$@"
+}
+
+___x_cmd_dict_iter(){
+    local fun="$*" # "$1 \"\$key\" \"\$val\""
+    if [ "$#" -eq 1 ] && command -v "$1"; then
+        fun="$1 \"\$key\" \"\$val\""
+    fi
+
+    : "${O:?Please provide object name}"
+
+    local key
+    local val
+
+    for key in eval "\${\!$O[@]}"; do
+        val="$(eval "\${___X_BASH_DICT_\$O[\$DICT_KEYS_SEP\$key]}")"
+        eval "$fun"
+    done
+}
+
+# EndSection

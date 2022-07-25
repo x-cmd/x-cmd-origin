@@ -1,0 +1,121 @@
+# shellcheck shell=sh disable=SC3043
+
+# Section(util): normalize_respath
+
+# TODO: Should be review. @el
+___x_cmd_hub_file_normalize_respath(){
+    local respath="${1}"
+    case "$respath" in
+        @me/*|@i/*|@/*)
+            ___X_CMD_WHICH_ONE_RESOURCE_TYPE=me@hub
+            printf "%s" "$respath" ;;
+        *@*)
+            ___X_CMD_WHICH_ONE_RESOURCE_TYPE=hub
+            printf "%s" "$respath" ;;
+        *)
+            ___X_CMD_WHICH_ONE_RESOURCE_TYPE=hub
+            printf "%s" "@me/${respath#/}" ;;
+    esac
+}
+
+# EndSection
+
+# Section(list): ls、 la
+
+___x_cmd_hub_file_list(){
+    local respath="${1:-@me/}"
+    local type="${2:-""}"
+    local recursive="${3:-""}"
+    respath="$(___x_cmd_hub_file_normalize_respath "$respath")"
+
+    local res
+    if ! res="$(___x_cmd_hub_client_file_ls "$respath" "$type" "$recursive")" ; then
+        hub:error "Failed to ls file: $res"
+        return 1
+    fi
+    hub:debug "response: ${res}"
+
+    if [ -z "$type" ] ; then
+        # TODO: Use jo or ja
+        local code
+        code="$(xrc cat awk/lib/default.awk awk/lib/json.awk awk/lib/jiter.awk )"
+        printf "%s" "$res" | awk "$code"'
+            { jiget_after_tokenize_unquote($0, ".") }'
+    else
+        if [ -t 1 ]; then
+            x ui table json PATH=.path IS_PUBLIC=.isPublic SIZE=.size MD5=.md5 CREATE_AT=.createdAt UPDATE_AT=.updateAt \
+                -- 'printf "%s" "$res"'
+        else
+            printf "%s" "$res"
+        fi
+    fi
+}
+
+# EndSection
+
+# Section: rm
+
+___x_cmd_hub_file_rm(){
+    local respath="${1:-@me/}"
+    local recursive="${2:-false}"
+
+    respath="$(___x_cmd_hub_file_normalize_respath "$respath")"
+    local res
+    if ! res="$(___x_cmd_hub_client_file_rm "$respath" "$recursive")" ; then
+        hub:error "Failed to rm file, res:$res, respath:$respath, recursive:$recursive"
+        return 1
+    fi
+    hub:debug "response: ${res}"
+}
+
+# EndSection
+
+# Section: which upload
+
+___x_cmd_hub_file_which(){
+    local respath="${1:?Provide respath}"
+    respath="$(___x_cmd_hub_file_normalize_respath "$respath")"
+
+    if ! res=$(___x_cmd_hub_client_file_cat "$respath"); then
+        hub:error "Failed: $res. Please check the respath."
+        return 1
+    fi
+
+    printf "%s\n" "$res"
+}
+
+___x_cmd_hub_file_upload(){
+    local localfp="${1:?Provide local file}"
+    local respath="${2:?provide respath}"
+
+    [ ! -f "$localfp" ] && {
+        hub:error "File Not Existed: $localfp"
+        return
+    }
+
+    respath="$(___x_cmd_hub_file_normalize_respath "$respath")"
+    ___x_cmd_hub_client_file_upload "$localfp" "$respath"
+}
+
+___x_cmd_hub_file_upload_dist(){
+    local localfp="${1:?Provide local file}"
+    local respath="${2:?provide respath}"
+
+    x wx pkg "$localfp" ___x_cmd_hub_tmp.wx || {
+        hub:error "Failed to wx pkg: $localfp"
+        return 1
+    }
+
+    respath="$(___x_cmd_hub_file_normalize_respath "$respath")"
+
+    if ! res=$(___x_cmd_hub_client_file_upload ___x_cmd_hub_tmp.wx "$respath"); then
+        hub:error "Failed: $res. Please check the respath."
+        rm -rf ___x_cmd_hub_tmp.wx
+        return 1
+    fi
+
+    printf "%s\n" "$res"
+    rm -rf ___x_cmd_hub_tmp.wx
+}
+
+# EndSection

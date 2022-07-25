@@ -1,0 +1,25 @@
+# shellcheck shell=sh disable=SC3043,SC2120
+
+___X_CMD_HUB_WECHAT_AUTHORIZE_URL_PREFIX="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx9564dec6fe13a20a&redirect_uri=https%3A%2F%2Fhub.x-cmd.com%2F"
+
+___x_cmd_hub_qrcode(){
+    x qr enc -s 1 -m 0 -t ANSIUTF8i "$1"
+    hub:debug "QR Code url: $1"
+}
+
+___x_cmd_hub_wechat_register_url(){
+    local token="${1:?provide token}"
+    local username="${2:?provide username}"
+    # If you don't use the state to store the Token here, it will make the url longer
+    printf "%s" "${___X_CMD_HUB_WECHAT_AUTHORIZE_URL_PREFIX}r%3Fu%3D${username}&response_type=code&scope=snsapi_userinfo&state=${token}"
+}
+
+___x_cmd_hub_wechat_login_url(){
+    local token_to_activate="${1:?provide token_to_activate}"
+    printf "%s" "${___X_CMD_HUB_WECHAT_AUTHORIZE_URL_PREFIX}l&response_type=code&scope=snsapi_userinfo&state=${token_to_activate}"
+}
+
+___x_cmd_hub_wechat_connect_url(){
+    local token_to_activate="${1:?provide token_to_activate}"
+    printf "%s" "${___X_CMD_HUB_WECHAT_AUTHORIZE_URL_PREFIX}c&response_type=code&scope=snsapi_userinfo&state=${token_to_activate}"
+}

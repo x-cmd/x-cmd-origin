@@ -1,9 +1,0 @@
-
-c="1,$(seq 100000),3"
-f3(){ echo "${c}" | awk -v RS="," 'NR==3{ print $0; }'; }
-time f3
-time echo "${c##*,}"
-
-f1(){ printf "${c}" | awk -v RS="," 'NR==1{ print $0; exit 0 }'; }
-time f1
-time echo "${c%%,*}"

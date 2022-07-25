@@ -1,31 +1,24 @@
-# shellcheck shell=sh
-# shellcheck disable=SC2039,3043
+# Author:       Li Junhao       l@x-cmd.com                 # xrc
+# shellcheck    shell=sh        disable=SC2039,3043
 
-# author:       Li Junhao           l@x-cmd.com
+___x_cmd_ffmpeg(){
+    local op="$1"
 
-xrc param
-
-
-___x_cmd_ff(){
-    local op
-    op="$1"
-    # file to file
     case "$op" in
-        show)       ___x_cmd_ff_show "$@" ;;
-        convert)    ___x_cmd_ff_convert "$@" ;;
-        play)       ___x_cmd_ff_play "$@" ;;
-        probe)      ___x_cmd_ff_probe "$@" ;;
-        -*)         ___x_cmd_ffmpeg_origin "$@" ;;
-        *)
-            : detect input and output
-            : then convert the input to output
-            ;;
+        show)       shift; ___x_cmd_ffmpeg_show "$@" ;;
+        convert)    shift; ___x_cmd_ffmpeg_convert "$@" ;;
+        play)       shift; ___x_cmd_ffmpeg_play "$@" ;;
+        *)          shift; ___x_cmd_ffmpeg_origin "$@" ;;
     esac
 
 }
 
 ___x_cmd_ffmpeg_origin(){
-    command ffmpeg "$@"
+    if ! ___x_cmd_pkg_xbin_init ffmpeg "N-105323-gdd17c86aa1-tessus" "" ___x_cmd_ffmpeg_origin; then
+        x:error "Fail to pkg_xbin_init ffmpeg"
+        return 1
+    fi
+    ___x_cmd_ffmpeg_origin "$@" 2>/dev/null
 }
 
 ___x_cmd_ffmpeg_show(){
@@ -39,3 +32,6 @@ ___x_cmd_ffmpeg_show(){
 
 }
 
+# EndSection
+
+xrc setmain ___x_cmd_ffmpeg

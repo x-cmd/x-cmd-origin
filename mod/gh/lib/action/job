@@ -1,0 +1,44 @@
+# shellcheck shell=sh
+# shellcheck disable=SC2039,3043
+___x_cmd_gh_job_ls() {
+    param:scope ___x_cmd_github
+    param:dsl <<A
+options:
+    --repo      "Provide owner name and repo name.(default:the current user repo)"      <>:RepoName="$(_____x_cmd_git_repo)"
+    --run_id    "The id of the workflow run."                                           <>
+    --filter    "Filters jobs by their completed_at timestamp."
+    --per_page  "Results per page (max 100)"                                            <>=""
+    --page      "Page number of the results to fetch."                                  <>=""
+A
+    param:run
+    ___x_cmd_gh_param_init_owner_repo
+    ___gh_ui_mutual ___x_cmd_gh_http get "/repos/${owner_repo}/actions/runs/${run_id}/jobs" filter per_page page <<A
+        ___ui_table_json Id=.id Name=.name Status=.status Conclusion=.conclusion Url=.html_url -- \$@ | x jo q0 .jobs
+A
+}
+
+___x_cmd_gh_job() {
+    param:scope ___x_cmd_github
+    param:dsl <<A
+options:
+    --repo      "Provide owner name and repo name.(default:the current user repo)"      <>:RepoName="$(_____x_cmd_git_repo)"
+    --job_id    "Provide job id"                                                        <>
+A
+    param:run
+    ___x_cmd_gh_param_init_owner_repo
+    ___x_cmd_gh_http get "/repos/${owner_repo}/actions/jobs/$job_id" | (
+        x jo env .steps.\* .name .conclusion -- 'x ui tf "$conclusion" "$name"'
+    )
+}
+
+___x_cmd_gh_action_job_log() {
+    param:scope ___x_cmd_github
+    param:dsl <<A
+options:
+    --repo      "Provide owner name and repo name.(default:the current user repo)"      <>:RepoName="$(_____x_cmd_git_repo)"
+    --job_id    ""  <>=""
+A
+    param:run
+    ___x_cmd_gh_param_init_owner_repo
+    ___x_cmd_gh_http download "/repos/${owner_repo}/actions/jobs/${job_id}/logs"  "$___X_CMD_ROOT/.actions"
+}

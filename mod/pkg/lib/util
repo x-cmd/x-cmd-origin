@@ -1,121 +1,105 @@
+# shellcheck    shell=sh            disable=SC3043      # xrc
 
-___x_cmd_install_run(){
-    param:dsl <<A
-advise:
-    #1          ___x_cmd_install_name
-options:
-    #1          "get software name list"
-A
-    param:run
-
-    local YES=
-    case "$1" in
-        -y|--yes)       YES=1; shift
-    esac
-
-    local target
-    if target="$(___x_cmd_install_get "${1:?Provide target}")"; then
-        printf "Executing command:\n> \e[32;1m%s\e[0m\n\n" "$target" >&2
-        if [ -n "$YES" ]; then
-            eval "$target"
-            return
-        fi
-
-        printf "Do you want to continue? Press y to continue, otherwise will abort: " >&2
-        local ch
-        read -r ch
-        if [ "$ch" = y ]; then
-            eval "$target"
-        else
-            printf "Abort becase received non y\n" >&2
-            return 1
-        fi
-    fi
-    shift
+# Section: attr
+___x_cmd_pkg___static_build_attr(){
+    eval "$(___x_cmd_pkg___static_build_attr_code "$@")"
 }
 
-___x_cmd_install_which(){
-    local cache="$___X_CMD_ROOT/.tmp/install/index.yml"
-    if ___x_cmd_httpget_gitx x-cmd install main index.yml "$cache" "${___X_CMD_INSTALL_WHICH_UPDATE:--}"; then
-        printf "%s" "$cache"
-    else
-        return 1
-    fi
+___x_cmd_pkg___static_build_attr_code(){
+    ___x_cmd_pkg___all_info "$@" | awk \
+        -f "$___X_CMD_ROOT_MOD/awk/lib/default.awk" \
+        -f "$___X_CMD_ROOT_MOD/awk/lib/sh.awk" \
+        -f "$___X_CMD_ROOT_MOD/awk/lib/jqparse.awk" \
+        -f "$___X_CMD_ROOT_MOD/pkg/lib/awk/util.awk" \
+        -f "$___X_CMD_ROOT_MOD/pkg/lib/awk/pkg._.awk" \
+        -f "$___X_CMD_ROOT_MOD/pkg/lib/awk/pkg.static_build.awk"
 }
 
-___x_cmd_install_ls(){
-    param:void
-    local CACHE
-
-    if ! CACHE="$(___x_cmd_install_which)"; then
-        printf "Cannot download file.\n" >&2
-        return 1
-    fi
-
-    awk -v pat="${1:-""}" "${___X_CMD_ROOT_MOD}/install/lib/ls.awk" <"$CACHE"
+# ___x_cmd_pkg___attr   hook.install,hook.setup
+___x_cmd_pkg___attr(){
+    eval "$(___x_cmd_pkg___attr_code "$@")"
 }
 
-___x_cmd_install_update(){
-    param:void
-    ___X_CMD_INSTALL_WHICH_UPDATE=0 ___x_cmd_install_which 1>/dev/null && printf "Update success.\n" >&2
+___x_cmd_pkg___attr_code(){
+    local QUERY="${4:?Provide pat}"
+    ___x_cmd_pkg___all_info "$@" | awk \
+        -v QUERY="$QUERY" \
+        -f "$___X_CMD_ROOT_MOD/awk/lib/default.awk" \
+        -f "$___X_CMD_ROOT_MOD/awk/lib/sh.awk" \
+        -f "$___X_CMD_ROOT_MOD/awk/lib/jqparse.awk" \
+        -f "$___X_CMD_ROOT_MOD/pkg/lib/awk/util.awk" \
+        -f "$___X_CMD_ROOT_MOD/pkg/lib/awk/pkg._.awk" \
+        -f "$___X_CMD_ROOT_MOD/pkg/lib/awk/pkg.attr.awk"
 }
-
-___x_cmd_install_name(){
-    local CACHE
-    if ! CACHE="$(___x_cmd_install_which)"; then
-        printf "Cannot download file." >&2
-        return 1
-    fi
-    awk '
-$0!~/^[ +#]/ && NF>0 {
-    print substr($0,1,length($0)-1)
-}
-' <"$CACHE"
-}
-
-___x_cmd_install_get(){
-    param:dsl <<A
-advise:
-    #1          ___x_cmd_install_name
-options:
-    #1          "get software name list"
-A
-    param:run
-
-    local CACHE
-    if ! CACHE="$(___x_cmd_install_which)"; then
-        printf "Cannot download file." >&2
-        return 1
-    fi
-
-    local data
-    data="$(___x_cmd_install_ls "^${1:?Provide software name}$")"
-    local cmd
-    if cmd="$(printf "%s\n" "$data" | awk '
-    $1~/^>/{
-        $1="";
-        cmd=$0;
-        count = count + 1;
-    }
-    END{
-        if (count == 1) {
-            gsub(/^[ ]+/, "", cmd)
-            gsub(/[ ]+$/, "", cmd)
-            print cmd
-            exit(0)
-        } else {
-            exit(1)
-        }
-    }
-')";
-    then
-        printf "%s" "$cmd"
-        return 0
-    else
-        printf "%s\n--------\n" "Found multiple commands" >&2
-        printf "%s" "$data" >&2
-        return 1
-    fi
-}
-
 # EndSection
+
+# Section: script
+# Get Script Path
+___x_cmd_pkg___get_script_path(){
+    local script="${4:?Provide sciprt}"
+
+    ___x_cmd_pkg___all_info "$@" | awk \
+        -v SCRIPT="$script" \
+        -f "$___X_CMD_ROOT_MOD/awk/lib/default.awk" \
+        -f "$___X_CMD_ROOT_MOD/awk/lib/jqparse.awk" \
+        -f "$___X_CMD_ROOT_MOD/pkg/lib/awk/util.awk" \
+        -f "$___X_CMD_ROOT_MOD/pkg/lib/awk/pkg._.awk" \
+        -f "$___X_CMD_ROOT_MOD/pkg/lib/awk/pkg.script.awk"
+}
+# EndSection
+
+# Section: osarch
+___x_cmd_pkg_osarch(){
+    if [ -z "$___X_CMD_PKG_OSARCH" ]; then
+        ___X_CMD_PKG_OSARCH="$(___x_cmd_os name)/$(___x_cmd_os arch)"
+    fi
+    printf "%s\n" "$___X_CMD_PKG_OSARCH"
+}
+# EndSection
+
+# Section: get raw text from all.7z
+___x_cmd_pkg_locate(){
+    local tgt="${1:?Provide name}"
+    ___x_cmd_pkg_ll | awk -v FS=/ -v RS="\t" -v tgt="$tgt" '$2==tgt{ TGT=1; print $0 }END{ if(TGT>0){exit(0);}else{exit(1)}}'
+}
+
+# Default, China
+___x_cmd_pkg___all_info(){
+    local name="${1:?Provide pkg name}"
+    local version="${2:-""}"
+    local osarch="${3:-${___X_CMD_PKG_OSARCH:-$(___x_cmd_pkg_osarch)}}"
+
+    name="$(___x_cmd_pkg_locate "$name")" || return
+
+    pkg:debug "Function ___x_cmd_pkg___all_info(). package: $name $version osarch: $osarch ___X_CMD_PKG_RAWPATH: $___X_CMD_PKG_RAWPATH ___X_CMD_WHICHNET: $___X_CMD_WHICHNET"
+    printf "%s\n%s\n%s\n%s\n%s\n" "$name" "$version" "$osarch" "$___X_CMD_PKG_RAWPATH" "$___X_CMD_WHICHNET"
+
+    cat "$___X_CMD_PKG_RAWPATH/$name/meta.tt.json" || return
+    printf "\n"
+    cat "$___X_CMD_PKG_RAWPATH/$name/version.tt.json" || return
+}
+# EndSection
+
+___x_cmd_pkg___list(){
+    local expr="${4:?Provide EXPR, like bin, url.cn}"
+
+    ___x_cmd_pkg___all_info "$@" | awk \
+        -v EXPR="$expr" \
+        -f "$___X_CMD_ROOT_MOD/awk/lib/default.awk" \
+        -f "$___X_CMD_ROOT_MOD/awk/lib/jqparse.awk" \
+        -f "$___X_CMD_ROOT_MOD/pkg/lib/awk/util.awk" \
+        -f "$___X_CMD_ROOT_MOD/pkg/lib/awk/pkg._.awk" \
+        -f "$___X_CMD_ROOT_MOD/pkg/lib/awk/pkg.list.awk"
+}
+
+
+___x_cmd_pkg_default_version(){
+    ___x_cmd_pkg___which_p7zip || return
+    ___x_cmd_pkg___all_info "$@" | awk \
+        -f "$___X_CMD_ROOT_MOD/awk/lib/default.awk" \
+        -f "$___X_CMD_ROOT_MOD/awk/lib/json.awk"   \
+        -f "$___X_CMD_ROOT_MOD/awk/lib/jqparse.awk" \
+        -f "$___X_CMD_ROOT_MOD/pkg/lib/awk/util.awk" \
+        -f "$___X_CMD_ROOT_MOD/pkg/lib/awk/pkg._.awk" \
+        -f "$___X_CMD_ROOT_MOD/pkg/lib/awk/pkg.default_version.awk"
+}

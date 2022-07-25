@@ -1,21 +1,17 @@
-# Author:       Li Junhao                       l@x-cmd.com     # xrc
-# shellcheck    shell=sh disable=SC2039,3043
+# Author:       Li Junhao           l@x-cmd.com     # xrc
+# shellcheck    shell=sh
 
-xrc:mod:lib shall       all image name try
+xrc:mod:lib     ws          util default/_ exec execfile
 
-___x_cmd_shall(){
+___x_cmd_ws(){
     case "$1" in
-        ""|help)        printf "TODO: help" >&2  ;;
+        "")                 ___x_cmd_ws_help            ;;                 # default behavior
 
-        image)          shift; ___x_cmd_shall_image "$@" ;;
-        ximage)         shift; ___x_cmd_shall_get_ximage "$@" ;;
-
-        try)            shift; ___x_cmd_shall_try "$@" ;;
-        *)              ___x_cmd_shall_try "$@"
+        exec)       shift;  ___x_cmd_ws_exec "$@"       ;;
+        execfile)   shift;  ___x_cmd_ws_execfile "$@"   ;;
+        _x_cmd_advise_json) printf "{}"                 ;;
+        *)                  ___x_cmd_ws_exec "$@"       ;;
     esac
-
-
 }
 
-xrc setmain ___x_cmd_shall
-
+xrc setmain ___x_cmd_ws

@@ -1,0 +1,35 @@
+# shellcheck shell=sh disable=SC3043,SC2120
+
+___x_cmd_hub_user(){
+    ___x_cmd_hub_get_userinfo_by_token "$(___x_cmd_hub_token)"
+}
+
+# TODO: We should cache the user info, and update it when the token is expired
+___x_cmd_hub_get_userinfo_by_token(){
+    local token="${1}"
+    if [ -z "$token" ]; then
+        hub:error "Token is empty, please login first"
+        return 1
+    fi
+
+    local res
+    if ! res="$(___x_cmd_hub_client_userinfo "$token")" ; then
+        hub:error "Failed to get userinfo by token: $res"
+        return 1
+    fi
+    hub:debug "Get response: ${res}"
+
+    local userid
+    local username
+
+    {
+        read -r userid
+        read -r username
+    } <<A
+$res
+A
+
+    userid="${userid#id=}"
+    username="${username#username=}"
+    printf "%s\n" "${username} ${userid}"
+}

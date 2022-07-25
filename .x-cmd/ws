@@ -1,1 +1,1 @@
-x yanfa pkg "$@"
+x yanfa release "$@"

@@ -1,21 +1,20 @@
-# Author:       Li Junhao                       l@x-cmd.com     # xrc
-# shellcheck    shell=sh disable=SC2039,3043
+# shellcheck shell=sh disable=SC3043,SC2120 # xrc
 
-xrc:mod:lib shall       all image name try
+xrc:mod:lib boot mod rc
 
-___x_cmd_shall(){
+___x_cmd_boot(){
+    if [ ! -d "$___X_CMD_ROOT/.boot" ] && ! mkdir -p "$___X_CMD_ROOT/.boot"; then
+        printf "boot abort for mkdir fails: %s\n" "$___X_CMD_ROOT/.boot" >/dev/stderr
+        return 1
+    fi
+
     case "$1" in
-        ""|help)        printf "TODO: help" >&2  ;;
-
-        image)          shift; ___x_cmd_shall_image "$@" ;;
-        ximage)         shift; ___x_cmd_shall_get_ximage "$@" ;;
-
-        try)            shift; ___x_cmd_shall_try "$@" ;;
-        *)              ___x_cmd_shall_try "$@"
+        setup)          xrc:mod boot/lib/setup ;;
+        rc)             shift; ___x_cmd_boot_rc "$@" ;;
+        mod)            shift; ___x_cmd_boot_mod "$@" ;;
+        *)              xrc advise/lib/advise_get
+                        ___x_cmd_advise_get_help "$(xrc which x-cmd/lib/x.json)" boot '' ;;
     esac
-
-
 }
 
-xrc setmain ___x_cmd_shall
-
+xrc setmain ___x_cmd_boot

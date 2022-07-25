@@ -1,13 +1,6 @@
-# Author:       Li Junhao       l@x-cmd.com
-# shellcheck    shell=sh        disable=SC3043,SC2164,SC1091     # xrc
+# shellcheck shell=sh
 
-___x_cmd_ucloud(){
-    ___x_cmd___ucloud_origin "$@"
-}
+# author:       Li Junhao           l@x-cmd.com    edwinjhlee.github.io
+# maintainer:   Li Junhao
 
-___x_cmd___ucloud_origin(){
-    x pkg xbin init ucloud "" ___x_cmd___ucloud_origin || return
-    ___x_cmd___ucloud_origin "$@"
-}
-
-xrc setmain ___x_cmd_ucloud
+xrc ali/v0

@@ -1,0 +1,36 @@
+# shellcheck shell=sh disable=SC3043,2120 # xrc
+
+___x_cmd_yanfa_xc(){
+    param:subcmd ___x_cmd_yanfa_xc \
+        ls          "list modules"                  \
+        update      "clone or update all repos"     \
+        commit      "clone or update all repos"     \
+        push        "clone or update all repos"
+
+    param:subcmd:try
+    param:run
+    ___x_cmd_yanfa_xc_update
+}
+
+___x_cmd_yanfa_xc_commit(){         param:void;     ___x_cmd_yanfa_xc_foreach "${1:-$HOME}" ___x_cmd_yanfa_git_commit;     }
+___x_cmd_yanfa_xc_update()(         param:void;     ___x_cmd_yanfa_xc_foreach "${1:-$HOME}" ___x_cmd_yanfa_git_update;     )
+___x_cmd_yanfa_xc_push(){           param:void;     ___x_cmd_yanfa_xc_foreach "${1:-$HOME}" ___x_cmd_yanfa_git_push;       }
+
+___x_cmd_yanfa_xc_foreach()(
+    local dir="${1:-$HOME}"; shift
+
+    x mcd "$dir/x-cmd" || return 1
+
+    local ___X_CMD_JOB_WRAPPER=report
+    ___x_cmd_yanfa_xc_ls | \
+        x readl mod -- \
+            eval x job put "$___X_CMD_YANFA_CONCURRENCY" \
+                eval org=x-cmd name="\$mod" "$@" |\
+        x job report
+)
+
+___x_cmd_yanfa_xc_ls(){
+    param:void
+    local code='{ if ($0 ~ /^\+/) gsub(/^\+/, "", $0); print $0 }'
+    x retry --max 3 eval '___x_cmd_httpget_gitx_official repolist | awk "$code"'
+}

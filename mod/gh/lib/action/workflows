@@ -1,0 +1,54 @@
+# shellcheck shell=sh
+# shellcheck disable=SC2039,3043
+
+___x_cmd_gh_workflows() {
+    param:subcmd  ___x_cmd_gh_workflows                 \
+        ls      "lists the workflows in a repository."  \
+        view    "View the summary of a workflow"
+    param:subcmd:try
+    param:run
+    ___x_cmd_gh_action_workflows _param_help_doc
+    return 1
+}
+
+___x_cmd_gh_workflows_view() {
+    param:scope ___x_cmd_github
+    param_type github runID - <<A
+$(___x_cmd_gh_workflows_ls "$@" | x jo .workflows.\* .path)
+A
+    param:dsl <<A
+options:
+    --repo              "Provide repo name.(default:the current user repo)"                 <>:RepoName="$(_____x_cmd_git_repo)"
+    --workflow_id       "The ID of the workflow"                                            <>:workflow
+    --actor             "returns someone workflow runs."                                    <>=""
+    --branch            "Returns workflow runs associated with a branch."                   <>="$(_____x_cmd_git_branch)"
+    --event             "Returns workflow run triggered by the event you specify."          <>=""
+    --sta|--status      "Returns workflow runs with the check run status."                  <>=""
+    --per_page          "Results per page (max 100)"                                        <>=""
+    --page              "Page number of the results to fetch."                              <>=""
+    --created           "Returns workflow runs created within the given date-time range."   <>=""
+    --check_suite_id    "Returns workflow runs with the check_suite_id that you specify."   <>=""
+    --exclude_pull_requests
+A
+    param:run
+    ___x_cmd_gh_param_init_owner_repo
+    ___gh_ui_mutual ___x_cmd_gh_http get "/repos/$owner_repo/actions/workflows/${workflow_id##*/}/runs" actor branch \
+        event sta per_page page created check_suite_id exclude_pull_requests <<A
+        ___ui_table_json Id=.id commit=.head_commit.message name=.name conclusion=.conclusion branch=.head_branch -- "\$@ | x jo q0 .workflow_runs"
+A
+}
+
+___x_cmd_gh_workflows_ls() {
+    param:scope ___x_cmd_github
+    param:dsl <<A
+options:
+    --repo      "Provide owner name and repo name.(default:the current user repo)"      <>:RepoName="$(_____x_cmd_git_repo)"
+    --per_page  "Results per page (max 100)"                                            <>=""
+    --page      "Page number of the results to fetch."                                  <>=""
+A
+    param:run
+    ___x_cmd_gh_param_init_owner_repo
+    ___gh_ui_mutual ___x_cmd_gh_http get "/repos/$owner_repo/actions/workflows" per_page page <<A
+        ___ui_table_json Id=.id name=.name path=.path state=.state -- "\$@ | x jo q0 .workflows"
+A
+}

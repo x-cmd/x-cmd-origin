@@ -1,13 +1,67 @@
-# Author:       Li Junhao       l@x-cmd.com
-# shellcheck    shell=sh        disable=SC3043,SC2164,SC1091     # xrc
+# shellcheck shell=sh
+# shellcheck disable=SC2039,3043
 
-___x_cmd_ucloud(){
-    ___x_cmd___ucloud_origin "$@"
+# author:       Li Junhao           edwin.jh.lee@gmail.com    edwinjhlee.github.io
+# maintainer:   Li Junhao
+
+# loading dependencies
+xrc http param ui
+xrc ui/lib/table gh/lib/resource
+
+xrc:inner:lib gitlab utils config current token user issue/main project/main project/member groups/main groups/member
+
+x log init gitlab
+___x_cmd_gitlab(){
+    param:subcmd ___x_cmd_gitlab        \
+        user        "user"              \
+        project     "project command"   \
+        config      "save, load, which" \
+        current     "current user"      \
+        groups      "groups manage"     \
+        subgroup    "subgroups manage"  \
+        issue       "issue manage"      \
+        token       "set token"
+    param:subcmd:try
+    param:run
+
+    ___x_cmd_gitlab _param_help_doc
+    gitlab_log warn "Subcmd Not Found."
+    return 1
 }
 
-___x_cmd___ucloud_origin(){
-    x pkg xbin init ucloud "" ___x_cmd___ucloud_origin || return
-    ___x_cmd___ucloud_origin "$@"
+
+############################
+# Section 10: Instantiation
+############################
+___x_cmd_gitlab_make(){
+    param:void
+
+    local O="___x_cmd_gitlab_${1:?Provide client name by O environment}"
+
+    ___x_cmd_http make  'https://gitlab.com/api/v4'
+    ___x_cmd_http header put type  "application/json;charset=utf-8"
+
+    local token
+    token="$(___x_cmd_gitlab_config_get "oauth_token")"
+
+    if [ -n "$token" ]; then
+        ___x_cmd_http header put "PRIVATE-TOKEN" "$token"
+        ___x_cmd_gitlab_current_owner 1>/dev/null || return 1
+        gitlab_log info "Hi $___X_CMD_GITLAB_DEFAULT_OWNER! You've successfully authenticated."
+        return 0
+    fi
+
+    local info
+    info=$(printf "\n%s %s \n%s" \
+         "$(___x_cmd_ui yellow 'You need run command to add token:')" \
+         "$(___x_cmd_ui bold cyan "\`gitlab token <token>\`")" \
+         "$(___x_cmd_ui 'https://gitee.com/profile/personal_access_tokens')")
+    gitlab_log warn "Token is null.${info}"
 }
 
-xrc setmain ___x_cmd_ucloud
+if [ -z "$DO_NOT_INIT_GITLAB_DEFAULT" ]; then
+    ___x_cmd_gitlab_make "GITLAB_DEFAULT" && DO_NOT_INIT_GITLAB_DEFAULT="true"
+fi
+
+xrc setmain ___x_cmd_gitlab
+

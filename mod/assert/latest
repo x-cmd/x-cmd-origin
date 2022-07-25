@@ -1,63 +1,392 @@
-# shellcheck shell=sh disable=SC3043 # xrc
+# Author:       Li Junhao       l@x-cmd.com                     # xrc
+# shellcheck    shell=sh        disable=SC2039,SC1001,SC3043
 
-# author:       Li Junhao           l@x-cmd.com
-# maintainer:   Li Junhao
+# Section: main
 
-
-# https://serverfault.com/questions/93407/what-command-prints-a-string-as-big-ascii-text-art-in-bash
-cowsay(){
-    local IFS
-    local typ="${1:-cow}"
-
-    case "$typ" in
-        help|h) 
-            cat <<A
-cowsay [tux|cow|help]
-A
-        return 1
-        ;;
-        _x_cmd_advise_json) cat <<A
-{
-    "tux": {},
-    "cow": {},
-    "help|h": {}
+___x_cmd_assert(){
+    if [ -n "$___X_CMD_ASSERT_ERROR_EXIT" ]; then
+        ___x_cmd_assert_main "$@" || exit
+    else
+        ___x_cmd_assert_main "$@"
+    fi
 }
-A
-        return 126
-        ;;
 
-        cow|tux)  shift;  ;;
+___x_cmd_assert_main(){
+    # shellcheck disable=SC2016
+    local CHOICE_LIST_MUST_NOT_BE_EMTPY='
+        [ "${#@}" -eq 0 ] && {
+            printf "%s\n" "ERROR: Please provide candidate list right after $op" >&2
+            return 1
+        }
+    '
+
+    local IFS="
+"
+    local datum
+
+    local val="$1" 
+    local op="$2"; 
+    shift 2
+
+    case "$op" in
+    \=\~)
+        eval "$CHOICE_LIST_MUST_NOT_BE_EMTPY"
+        if ! ___x_cmd_assert_within_regex "$val" "$@"; then
+            >&2 printf "%s\n" "ERROR: '$val' NOT match any regex defined" 
+            # param.help.show
+            return 1
+        fi;;
+    \=)
+        eval "$CHOICE_LIST_MUST_NOT_BE_EMTPY"
+        if ! ___x_cmd_assert_within "$val" "$@"; then
+            >&2 printf "%s\n" "ERROR: '$val' Not one of the candidate set." 
+            return 1
+        fi ;;
+    \=str|\=nullable|\=int)
+
+        if [ "$op" = "=nullable" ]; then
+            if [ -z "$val" ]; then
+                return 0
+            fi
+        fi
+
+        if [ -z "${val}" ]; then
+            >&2 printf "%s\n"  "ERROR: A non-null value is expected for parameter"
+            return 1
+        fi
+
+
+        if [ "${#}" -ne 0 ]; then
+            if ! ___x_cmd_assert_within "$val" "$@"; then
+                >&2 printf "%s\n" "ERROR: '$val' Not inside the $op set."
+                # param.help.show
+                return 1
+            fi 
+        fi
+
+        if [ "$op" = "=int" ]; then
+            # if [[ ! "$val" =~ ^[\ \t]*[0-9]+[\ \t]*$ ]]; then
+            if ! ___x_cmd_assert_str_regex "$val" "^[ \t]*[+-]?[0-9]+[ \t]*$" ; then
+                >&2 printf "%s\n" "ERROR: '$val' An integer expected."
+                # param.help.show
+                return 1
+            fi
+        fi
+        ;;
+    \=\[?\]|\=?)
+        eval "$CHOICE_LIST_MUST_NOT_BE_EMTPY"
+
+        # if [[ "$op" == '=['?']' ]]; then
+        if ___x_cmd_assert_str_regex "$op" "^=\[.\]$"; then
+            # IFS=${op:2:1}
+            IFS=$(printf "%s" "$op" | tr -d "=[]")
+        else
+            # IFS=${op:1:1}
+            IFS=$(printf "%s" "$op" | tr -d "=")
+        fi
+
+        val=$(printf "%s" "$val" | tr "$IFS" "\n" )
+        local datum
+        while read -r datum; do
+            ! ___x_cmd_assert_within "$datum" "$@" || continue
+            >&2 printf "%s\n"  "ERROR: ['$val'] After splited with \'$IFS\', element '$datum' is NOT inside the string set"
+            return 1
+        done <<A
+$val
+A
+    ;;
+    \=\~\[?\]|\=\~? )
+        eval "$CHOICE_LIST_MUST_NOT_BE_EMTPY"
+
+        # if [[ "$op" == '=~['?']' ]]; then
+        if ___x_cmd_assert_str_regex "$op" "^=~\[.\]$"; then
+            # IFS=${op:3:1}
+            IFS=$(printf "%s" "$op" | tr -d "=~[]")
+        else
+            # IFS=${op:2:1}
+            IFS=$(printf "%s" "$op" | tr -d "=~")
+        fi
+
+        val=$(printf "%s" "$val" | tr "$IFS" "\n" )
+        while read -r datum; do
+            ___x_cmd_assert_within_regex "$datum" "$@" && continue
+            >&2 printf "%s\n" "ERROR: ['$val']. After splited with \'$IFS\', element '$datum' does NOT match the regex set."
+            return 1
+        done <<A
+$val
+A
+    ;;
+    *)  ___x_cmd_assert_otherwise "$val" "$op" "$@" ;;
     esac
+}
+
+xrc:mod assert/lib/file
+
+___x_cmd_assert_otherwise(){
+    local op="${1:?Must contains an op}"
+    shift
+    local IFS=" "
+    case "$op" in
+        eq)                 ___x_cmd_assert_eq "$@" ;;
+        set)                ___x_cmd_assert_set "$@" ;;
+
+        true)               ___x_cmd_assert_t "$@" ;;
+        false)              ___x_cmd_assert_f "$@" ;;
+
+        return0)              ___x_cmd_assert_return0 "$@" ;;
+        return*)              ___x_cmd_assert_returnn "${op#return}" "$@" ;;
+
+        exit0)              ___x_cmd_assert_exit0 "$@" ;;
+        exit*)              ___x_cmd_assert_exitn "${op#exit}" "$@" ;;
+        errexit)            ___x_cmd_assert_errexit "$@" ;;
         
-    cat <<-A
- ______________________
-< ${*:-$text} >
- ----------------------
-A
+        func)               ___x_cmd_assert_func "$@" ;;
 
-    case "${typ:-cow}" in
-        tux) cat <<'A'
-   \
-    \
-        .--.
-       |o_o |
-       |:_/ |
-      //   \ \
-     (|     | )
-    /'\_   _/`\
-    \___)=(___/
-A
-    ;;
+        int)                ___x_cmd_assert_int "$@" ;;
+        float)              ___x_cmd_assert_float "$@" ;;
 
-        *) cat <<'A'
-        \   ^__^
-         \  (oo)\_______
-            (__)\       )\/\
-                ||----w |
-                ||     ||
-A
-    ;;
+        file)               ___x_cmd_assert_file "$@" ;;
+        file-unexisted)     ___x_cmd_assert_file_unexisted "$@" ;;
+        file-exsisted)      ___x_cmd_assert_file_existed "$@" ;; 
+        file-readable)      ___x_cmd_assert_file_readable "$@" ;;
+        folder)             ___x_cmd_assert_folder "$@" ;;
+
+        stdout)             ___x_cmd_assert_stdout "$@" ;;
+        stderr)             ___x_cmd_assert_stderr "$@" ;;
+        
+        *)                  ___x_cmd_assert_t "$op" "$@" ;;
     esac
 }
 
-xrc setmain cowsay
+___x_cmd_assert_set(){
+    local op="${1:?Must contains an op}"
+    shift
+    case "$op" in
+        errexit|+errexit)           ___X_CMD_ASSERT_ERROR_EXIT=1 ;;
+        -errexit)                   ___X_CMD_ASSERT_ERROR_EXIT=  ;;
+    esac
+}
+
+# EndSection
+
+# Section: utils
+___X_CMD_ASSERT_STR_REGEX_SEP="$(printf "\001")"
+___x_cmd_assert_str_regex(){
+    # Only dash does not support pattern="${pattern//\\/\\\\}"
+    awk -v FS="${___X_CMD_ASSERT_STR_REGEX_SEP}" '{
+        if (match($1, $2))  exit 0
+        else                exit 1
+    }' <<A
+${1}${___X_CMD_ASSERT_STR_REGEX_SEP}${2:?___x_cmd_assert_str_regex(): Provide pattern}
+A
+}
+# EndSection
+
+# Section: set and regex
+
+: <<'DOCTEST'
+> ___x_cmd_assert_within 1abc 1abc1 1abc2 && printf "%s\n" yes
+> ___x_cmd_assert_within 1abc 1abc1 1abc2 1abc abc3 && printf "%s\n" yes
+yes
+DOCTEST
+___x_cmd_assert_within(){
+    local c
+    local value="$1"
+    shift
+    for c in "$@"; do
+        # for v in $value; do
+        if [ "$value" = "$c" ]; then
+            return 0
+        fi
+        # done
+    done
+    return 1
+}
+
+
+: <<'DOCTEST'
+> ___x_cmd_assert_within_regex 1abc 1abc1 1abc2 && printf "%s\n" yes
+> ___x_cmd_assert_within_regex 1abc 1abc1 1abc2 1abc abc3 && printf "%s\n" yes
+yes
+> ___x_cmd_assert_within_regex 1abc 1abc1 1abc2 [0-9][a-z]+ abc3 && printf "%s\n" yes
+yes
+DOCTEST
+___x_cmd_assert_within_regex(){
+    local c 
+    local value="$1"
+    shift
+    for c in "$@"; do
+        #if [[ "$value" =~ ^($c)$ ]]; then
+        if ___x_cmd_assert_str_regex "$value" "^($c)$"; then
+            return 0
+        fi
+    done
+    return 1
+}
+
+: <<'DOCTEST'
+> ___x_cmd_assert_eq 1abc 1abc1 1abc2 2>/dev/null && printf "%s\n" yes
+> ___x_cmd_assert_eq 1abc 1abc 1abc && printf "%s\n" yes
+yes
+DOCTEST
+___x_cmd_assert_eq(){
+    local real="${1:?Real value}"
+    while [ $# -gt 1 ]; do
+        shift
+        if [ "$real" != "$1" ]; then
+            printf "%s\n" "Failed. Expect '$real' equals to '$1'" >&2
+            return 1
+        fi
+    done
+    return 0
+}
+
+# EndSection
+
+# Section: value and grep
+___x_cmd_assert_stdout(){
+    ___x_cmd_assert_eq "$(cat)" "$(___x_cmd_evex "$@")"
+}
+
+___x_cmd_assert_stderr(){
+    ___x_cmd_assert_eq "$(cat)" "$(___x_cmd_evex "$@" 2>/dev/stdout 1>/dev/null)"
+}
+
+# There is two ways to use ___x_cmd_assert_grep
+# > ___x_cmd_assert_grep "doctest" 2>/dev/null <"$(xrc_which std/test)" && printf "%s\n" yes
+# yes
+
+: <<'DOCTEST'
+> printf "%s\n" "hello hi" | ___x_cmd_assert_grep hi 1>/dev/null && printf "%s\n" yes
+yes
+DOCTEST
+___x_cmd_assert_grep(){
+    if ! grep "${1:?Please provide grep pattern}" 1>/dev/null; then
+        >&2 printf "%s\n" "${MSG:-Grep Pattern Failed matching: $1}"
+        return 1
+    fi
+}
+# EndSection
+
+# Section: value true false int float
+
+___x_cmd_assert_t(){
+    if ! ___x_cmd_evex "$@"; then
+        printf "%s\n" "${MSG:-"Expect command execution to be true: $*"}" >&2
+        return 1
+    fi
+}
+
+___x_cmd_assert_func(){
+    while [ $# -eq 0 ]; do
+        case "${1}" in
+            ^*)     ___x_cmd_assert_f "${1#^}"  ;;
+            *)      ___x_cmd_assert_t "$1" ;; 
+        esac
+        shift
+    done
+}
+
+___x_cmd_assert_f(){
+    if ___x_cmd_evex "$@"; then
+        printf "%s\n" "${MSG:-"Expect command execution to be false: $*"}" >&2
+        return 1
+    fi
+}
+
+___x_cmd_assert_return0(){
+    if ! ___x_cmd_evex "$@"; then
+        printf "%s\n" "${MSG:-"Expect command return 0: $*"}" >&2
+        return 1
+    fi
+}
+
+___x_cmd_assert_returnn(){
+    local code="${1:?Provide exit code}"; shift
+    if [ "$code" -lt 0 ] || [ "$code" -gt 255 ]; then
+        printf "%s\n" "Expect return code 0 to 255" >&2
+        return 1
+    fi 
+
+    if [ "$code" -eq 0 ]; then
+        ___x_cmd_assert_return0 "$@"
+        return
+    fi
+
+    if ___x_cmd_evex "$@"; then
+        printf "%s\n" "${MSG:-"Expect command $*: return $code"}" >&2
+        return 1
+    else
+        local errcode=$?
+        if [ "$errcode" -ne "$code" ]; then
+            printf "%s\n" "${MSG:-"Expect command return $errcode: $*"}" >&2
+            return 1
+        fi
+    fi
+}
+
+___x_cmd_assert_exit0(){
+    if ! ( ___x_cmd_evex "$@"; return 1; ); then
+        printf "%s\n" "${MSG:-"Expect command execution exist normally: $*"}" >&2
+        return 1
+    fi
+}
+
+___x_cmd_assert_exitn(){
+    local code="${1:?Provide exit code}"; shift
+    if [ "$code" -lt 0 ] || [ "$code" -gt 255 ]; then
+        printf "%s\n" "Expect exit1 to exit255" >&2
+        return 1
+    fi 
+
+    if [ "$code" -eq 0 ]; then
+        ___x_cmd_assert_exit0 "$@"
+        return
+    fi
+
+    if ( ___x_cmd_evex "$@"; return 0; ); then
+        printf "%s\n" "${MSG:-"Expect command execution to be errexit but exit with 0: $*"}" >&2
+        return 1
+    else
+        local errcode=$?
+        if [ "$errcode" -ne "$code" ]; then
+            printf "%s\n" "${MSG:-"Expect command execution to be errexit with $code but exit with $errcode: $*"}" >&2
+            return 1
+        fi
+    fi
+}
+
+___x_cmd_assert_errexit(){
+    if ( ___x_cmd_evex "$@"; return 0; ); then
+        printf "%s\n" "${MSG:-"Expect command execution to be errexit: $*"}" >&2
+        return 1
+    fi
+}
+
+___x_cmd_assert_float(){
+    while [ $# -gt 0 ]; do
+        # [[ "$1" =~ ^[\ \t]?[0-9]+(.[0-9]+)?[\ \t]?$ ]] || {
+        ___x_cmd_assert_str_regex "$1" "^[ \t]*[+-]?[0-9]+(.[0-9]+)?[ \t]*$" || {
+            printf "%s\n" "${MSG:-"Expect var to be of float type: $*"}" >&2
+            return 1
+        }
+        shift
+    done
+    return 0
+}
+
+___x_cmd_assert_int(){
+    while [ $# -gt 0 ]; do
+        # [[ "$1" =~ ^[\ \t]?[0-9]+[\ \t]?$ ]] || {
+        ___x_cmd_assert_str_regex "$1" "^[ \t]*[+-]?[0-9]+[ \t]*$" || {
+            printf "%s\n" "${MSG:-"Expect var to be of int type: $*"}" >&2
+            return 1
+        }
+        shift
+    done
+    return 0
+}
+
+# EndSection
+
+xrc setmain ___x_cmd_assert

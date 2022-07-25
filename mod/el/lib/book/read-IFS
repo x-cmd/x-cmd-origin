@@ -1,0 +1,9 @@
+# Read Not effected by IFS
+
+IFS=" "; read -r line <<A
+a
+b
+c
+A
+
+[ "$LINE" = "a" ] || exit 1

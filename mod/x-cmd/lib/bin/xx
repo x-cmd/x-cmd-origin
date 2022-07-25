@@ -1,0 +1,44 @@
+#! /bin/sh
+# Author:       Li Junhao   l@x-cmd.com             # xrc
+# shellcheck    shell=sh    disable=SC2006,SC2016,SC1091,SC3043
+
+___x_cmd___findxrc(){
+    local IFS="$___X_CMD_UNSEENCHAR_NEWLINE"; local folder; while read -r folder; do
+        if [ -f "$folder/xrc/latest" ]; then
+            . "$folder/xrc/latest"
+            return
+        fi
+    done <<A
+$(pwd)/.x-cmd
+$HOME/.x-cmd
+/var/.x-cmd
+/usr/bin/.x-cmd
+A
+
+    printf "%s\n" >&2 '
+No x-cmd found in this computer.
+Type following cmd to setup:        eval `x init`'
+    return 1
+}
+
+___x_cmd___findxrc || exit 1
+___x_cmd___init(){
+    if [ -t 1 ]; then
+        >&2 printf "%s\n" '
+This should be executed by:   eval `x init`
+If you need help, type:       x init help'
+        return 1
+    fi
+
+    if [ -f "$___X_CMD_ROOT/.boot/boot" ]; then
+        printf ". '%s'" "$___X_CMD_ROOT/.boot/boot"
+    else
+        printf "%s" "curl https://get.x-cmd.com"
+    fi
+}
+
+if [ "$1" = init ]; then
+    shift;  ___x_cmd___init "$@"
+else
+    ___x_cmd_main "$@"
+fi

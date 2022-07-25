@@ -1,41 +1,54 @@
-# shellcheck shell=sh
-# shellcheck disable=SC2039,3043
+# shellcheck shell=sh disable=SC3043,SC2164     # xrc
 
 # author:       Li Junhao           l@x-cmd.com
+# license:      GPLv3
 
-xrc param
-
-
-___x_cmd_ff(){
-    local op
-    op="$1"
-    # file to file
-    case "$op" in
-        show)       ___x_cmd_ff_show "$@" ;;
-        convert)    ___x_cmd_ff_convert "$@" ;;
-        play)       ___x_cmd_ff_play "$@" ;;
-        probe)      ___x_cmd_ff_probe "$@" ;;
-        -*)         ___x_cmd_ffmpeg_origin "$@" ;;
-        *)
-            : detect input and output
-            : then convert the input to output
-            ;;
+xrc pkg/lib/staticbin os
+___x_cmd_magick(){
+    local arch
+    arch="$(os arch)"
+    local osname
+    osname="$(os name)"
+    local exe
+    case "$osname" in
+        win)    exe=magick.x64.exe        ;;
+        *)      exe=magick.${osname}.${arch}  ;;
     esac
-
+    ___x_cmd_staticbin_init \
+        ___x_cmd_magick_download \
+        "$___X_CMD_ROOT/.bin/magick" \
+        "$exe" \
+        "$(___x_cmd_pandoc_bin_download_url "$exe")" \
+        &&(
+            cd "$___X_CMD_ROOT/.bin/magick" && {
+                chmod +x "$exe"
+            }
+        )&& ___x_cmd_magick_download "$@"
 }
 
-___x_cmd_ffmpeg_origin(){
-    command ffmpeg "$@"
+# Section: detail
+
+# Reference: https://imagemagick.org/script/download.php
+
+# https://download.imagemagick.org/ImageMagick/download/binaries/magick
+# https://download.imagemagick.org/ImageMagick/download/binaries/ImageMagick-x86_64-apple-darwin20.1.0.tar.gz
+
+# win64
+# https://download.imagemagick.org/ImageMagick/download/binaries/ImageMagick-7.1.0-portable-Q16-HDRI-x64.zip
+
+# China
+
+# https://ftp.acc.umu.se/mirror/imagemagick.org/ftp/binaries/magick
+
+___x_cmd_magick_bin_download_url(){
+    local exe="${1:?Provide app name}"
+    if [ "$___X_CMD_WHICHNET" != cn ]; then
+        printf "%s/%s" "https://raw.githubusercontent.com/static-build/magick/main/bin" "$exe.7z"
+    else
+        printf "%s/%s" "https://gitcode.net/x-bash/magick/-/raw/master/bin" "$exe.7z"
+    fi
 }
 
-___x_cmd_ffmpeg_show(){
-    local op
-    op="$1"
+# EndSection
 
-    case "$op" in
-        buildconf)      ___x_cmd_ffmpeg_origin -buildconf ;;
-        formats)        ___x_cmd_ffmpeg_origin -formats ;;
-    esac
-
-}
-
+xrc setmain ___x_cmd_magick

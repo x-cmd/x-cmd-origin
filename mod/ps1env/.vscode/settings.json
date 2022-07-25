@@ -1,21 +1,22 @@
 {
     "files.defaultLanguage": "shellscript",
     "files.associations": {
+        "*.json": "json",
         "**/*.awk": "awk",
-        "**/*": "shellscript",
-        "**/*.json": "json",
-        "**/*.md": "markdown"
+        "index.html": "shellscript",
+        "**/*.md": "markdown",
+        "*": "shellscript",
+        "LICENSE": "text"
     },
+    "files.trimTrailingWhitespace": true,
     "editor.detectIndentation": true,
     "editor.tabSize": 4,
     "explicitFolding.rules": {
-        "awk": [
-            {
-                "beginRegex": "^\\s*#\\s*Section:?",
-                "endRegex": "^\\s*#\\s*EndSection",
-                "autoFold": true
-            }
-        ],
+        "awk": {
+            "beginRegex": "^\\s*#\\s*Section:?",
+            "endRegex": "^\\s*#\\s*EndSection",
+            "autoFold": true
+        },
         "shellscript": [
             {
                 "beginRegex": "^\\s*#\\s*Section:?",
@@ -23,5 +24,5 @@
                 "autoFold": true
             }
         ]
-    }
+    },
 }

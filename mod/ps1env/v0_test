@@ -1,9 +1,0 @@
-# shellcheck shell=sh
-
-. v0_cmd.sh
-. v0_cmd2.sh
-
-
-cmd_ps1env
-
-cmd2_ps1env

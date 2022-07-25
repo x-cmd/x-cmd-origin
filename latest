@@ -1,381 +1,40 @@
-# Author:       Li Junhao       l@x-cmd.com
-# shellcheck    shell=sh        disable=SC2039,SC1090,SC3043,SC2263
+# Author:       Li Junhao                   l@x-cmd.com
+# shellcheck    shell=sh disable=SC3043     # xrc
 
-# license:      GPLv3
+# Section : install
+xrc param/latest
 
-# Section 0: Prepare source 0
-{
-# if [ -z "$___X_CMD_ROOT" ]; then
-    ___X_CMD_ROOT="${___X_CMD_ROOT:-$HOME/.x-cmd}"           # boot will be placed in "$HOME/.x-cmd/boot"
-    ___X_CMD_ROOT_MOD="$___X_CMD_ROOT"
-    ___X_CMD_ROOT_TMP="$___X_CMD_ROOT/.tmp"
-
-    [ -d "$___X_CMD_ROOT" ] || mkdir -p "$___X_CMD_ROOT" || return 1 || exit 1
-    PATH="$___X_CMD_ROOT/.bin:$___X_CMD_ROOT/x-cmd/lib/bin:$PATH"
-
-    # export ___X_CMD_ROOT
-    # export ___X_CMD_ROOT_MOD
-    # export ___X_CMD_ROOT_TMP
-    # export PATH
-# fi
-}
-
-___x_cmd_source(){
-    . "$@"
-}
-
-___x_cmd_source_inner(){
-    while [ $# -gt 0 ]; do
-        . "$___X_CMD_ROOT_MOD/$1"
-        shift
-    done
-}
-
-# deprecated
-alias xrc:inner=___x_cmd_source_inner
-
-alias xrc:mod=___x_cmd_source_inner
-
-___x_cmd_source_inner_lib(){
-    local mod="${1:?Provide module name}"; shift
-    while [ $# -gt 0 ]; do
-        . "$___X_CMD_ROOT_MOD/$mod/lib/$1"
-        shift
-    done
-}
-
-# deprecated
-alias xrc:inner:lib=___x_cmd_source_inner_lib
-
-alias xrc:mod:lib=___x_cmd_source_inner_lib
-# EndSection
-
-# Section 1: special chars
-___X_CMD_UNSEENCHAR_001=""
-___X_CMD_UNSEENCHAR_002=""
-___X_CMD_UNSEENCHAR_003=""
-___X_CMD_UNSEENCHAR_004=""
-___X_CMD_UNSEENCHAR_005=""
-
-___X_CMD_UNSEENCHAR_033=""
-___X_CMD_UNSEENCHAR_034=""
-___X_CMD_UNSEENCHAR_NEWLINE="
-"
-# EndSection
-
-# Section 1: get ___X_CMD_SHELL and TMPDIR
-if [ -n "$BASH_VERSION" ]; then
-    ___X_CMD_SHELL=bash
-    shopt -s expand_aliases
-elif [ -n "$ZSH_VERSION" ]; then
-    ___X_CMD_SHELL=zsh
-    # The same as 'shopt -s expand_aliases' in bash, refer: https://stackoverflow.com/questions/23258413/expand-aliases-in-non-interactive-shells
-    setopt aliases
-elif [ -n "$KSH_VERSION" ]; then
-    ___X_CMD_SHELL=ksh
-    alias local=typeset
-else
-    # TODO: Otherwise, loading a remarkable script to detect shell
-    ___X_CMD_SHELL="$(
-        res="$(___x_cmd_readlink_recursive "$(command -v "$0")")"
-        if [ "${res%dash}" != "$res" ]; then
-            printf "%s" dash
-        elif /bin/sh --help 2>&1 | grep BusyBox >/dev/null; then
-            printf "%s" ash
-        else
-            printf "WARNING: %s\n" "Unknown shell." >&2
-        fi
-    )"
-fi
-___X_CMD_CUR_SHELL="${___X_CMD_SHELL:-sh}"      # TODO: will remove
-
-[ -z "$TMPDIR" ] && TMPDIR="$(dirname "$(mktemp -u)")/"     # It is posix standard. BUT NOT set in some cases.
-
-# EndSection
-
-# Section 2: xrc:mod   log   xrc: util,mirror,httpget,ldict
-xrc:mod log/latest
-___x_cmd_log init x
-
-xrc:mod:lib xrc         util  mirror httpget ldict/posix instance arglist
-# EndSection
-
-# Section 3: main entrance helper: xrc_set_main, which_one, which_one_with_naming
-___x_cmd_xrc_set_main(){
-    ___X_CMD_XRC_SET_MAIN="${1:?Provide function}"
-}
-
-# RETURN ___X_CMD_WHICH_ONE_NAMING
-___x_cmd_which_one_with_naming(){
-    local RESOURCE_NAME="${1:?Provide resource name for ___x_cmd_which_one_with_naming}"
-
-    ___X_CMD_WHICH_ONE_NAMING=
-
-    case "$RESOURCE_NAME" in
-        *=/*)                   ;;
-        *=http://*|*=https://*) ;;
-        *=*@*/*)                ;;
-        *=./*|*=../*)           ;;
-        *=*)                    ;;
-        *)
-            # TODO: some future work for http
-            case "$RESOURCE_NAME" in
-
-                */*)    ;;  # Should no set alias function when is a path
-                *)      ___X_CMD_WHICH_ONE_NAMING="${RESOURCE_NAME}" ;;     # Only when it is a module name...
-            esac
-            # ___X_CMD_WHICH_ONE_NAMING="${RESOURCE_NAME##*/}"
-            ___x_cmd_which_one "${RESOURCE_NAME}"
-            return
-    esac
-
-    ___X_CMD_WHICH_ONE_NAMING="${RESOURCE_NAME%%=*}"
-    ___x_cmd_which_one "${RESOURCE_NAME#*=}"
-}
-
-# RETURN ___X_CMD_WHICH_ONE_RESULT, ___X_CMD_WHICH_ONE_RESOURCE_TYPE
-___x_cmd_which_one(){
-    local RESOURCE_NAME="${1:?Provide resource name for ___x_cmd_which_one}"
-
-    ___X_CMD_WHICH_ONE_RESOURCE_TYPE=
-    ___X_CMD_WHICH_ONE_RESULT=
-
-    local TGT
-    case "$RESOURCE_NAME" in
-        /*)
-            x:debug "Resource recognized as local file: $RESOURCE_NAME"
-            ___X_CMD_WHICH_ONE_RESOURCE_TYPE=local
-            ___X_CMD_WHICH_ONE_RESULT="$RESOURCE_NAME"
-            return 0
-            ;;
-        http://*|https://*)
-            ___X_CMD_WHICH_ONE_RESOURCE_TYPE=http
-            x:debug "Resource recognized as http resource: $RESOURCE_NAME"
-
-            TGT="$___X_CMD_ROOT/.http_resource/BASE64-URL-$(printf "%s" "$RESOURCE_NAME" | base64 | tr -d '\r\n')"
-            if ! CACHE="$TGT" ___x_cmd_httpget "$RESOURCE_NAME"; then
-                x:debug "ERROR: Fail to load http resource due to network error or other: $RESOURCE_NAME "
-                return 1
-            else
-                ___X_CMD_WHICH_ONE_RESULT="$TGT"
-            fi
-            ;;
-        *@*/*)
-            xrc hub/latest
-            ___X_CMD_WHICH_ONE_RESULT="$(___x_cmd_hub_file_which "$RESOURCE_NAME")"     # Will set ___X_CMD_WHICH_ONE_RESOURCE_TYPE=1 if from unknow source
-            ;;
-        ./*|../*)
-            x:debug "Resource recognized as local file with relative path: $RESOURCE_NAME"
-            local tmp
-            if tmp="$(cd "$(dirname "$RESOURCE_NAME")" || exit 1; pwd)"; then
-                ___X_CMD_WHICH_ONE_RESOURCE_TYPE=local
-                ___X_CMD_WHICH_ONE_RESULT="$tmp/$(basename "$RESOURCE_NAME")"
-                return 0
-            else
-                x:warn "Local file not exists: $RESOURCE_NAME"
-                return 1
-            fi
-            ;;
-        *)
-            if [ -z "$___X_CMD_NO_LOCAL" ]; then
-                # This is ONLY for x-cmd
-                if [ -f "$RESOURCE_NAME" ]; then
-                    ___X_CMD_WHICH_ONE_RESULT="$RESOURCE_NAME"
-                    ___X_CMD_WHICH_ONE_RESOURCE_TYPE=local
-                    return      # local file
-                fi
-
-                if TGT="$(___x_cmd_search_path . ".x-cmd/$RESOURCE_NAME")"; then
-                    ___X_CMD_WHICH_ONE_RESOURCE_TYPE=workspace
-                    ___X_CMD_WHICH_ONE_RESULT="$TGT/.x-cmd/$RESOURCE_NAME"
-                    return                   # .x-cmd
-                fi
-            fi
-
-            ___X_CMD_WHICH_ONE_RESOURCE_TYPE=official
-            # x-bash module
-            x:debug "Resource recognized as x-bash module: $RESOURCE_NAME"
-            local module="$RESOURCE_NAME"
-            if [ "${RESOURCE_NAME#*/}" = "$RESOURCE_NAME" ] ; then
-                module="$module/latest"         # If it is short alias like str (short for str/latest)
-                x:debug "Version suffix unavailable. Using \"latest\" by default: $module"
-            fi
-
-            TGT="$___X_CMD_ROOT/$module"
-            if [ -f "$TGT" ]; then
-                ___X_CMD_WHICH_ONE_RESULT="$TGT"
-                return 0
-            fi
-            # x:debug "Module not found: $module"
-            # return 1
-
-            x:info "Downloading resource=$RESOURCE_NAME to local cache: $TGT"
-            if ___x_cmd_httpget_gitx_official "mod/$module" "$TGT"; then
-                ___X_CMD_WHICH_ONE_RESULT="$TGT"
-                return 0
-            fi
-
-            x:warn "ERROR: Fail to load module due to network error or other: $RESOURCE_NAME"
-            return 1
-    esac
-}
-# EndSection
-
-# Section 4: main entrance helper: cat, source_file
-___x_cmd_xrc_cat(){
-    while [ $# -ne 0 ]; do
-        local ___X_CMD_LOCAL_XRCPATH="$1";   shift
-
-        if ! ___X_CMD_NO_LOCAL=1 ___x_cmd_which_one "$___X_CMD_LOCAL_XRCPATH"; then
-            printf "ERROR: Interrupted because resource not found. %s \n" "$___X_CMD_LOCAL_XRCPATH" >&2
-            return 1
-        fi
-
-        cat "$___X_CMD_WHICH_ONE_RESULT"
-    done
-}
-
-___X_CMD_XRC_MODULE_IMPORTED="
-"
-
-___x_cmd_xrc_source_file(){
-    local ___X_CMD_WHICH_ONE_NAMING
-    local ___X_CMD_WHICH_ONE_RESULT
-    local ___X_CMD_LOCAL_XRCPATH
-
-    while [ $# -ne 0 ]; do
-        ___X_CMD_LOCAL_XRCPATH="$1";   shift
-
-        if ! ___X_CMD_NO_LOCAL=1 ___x_cmd_which_one_with_naming "$___X_CMD_LOCAL_XRCPATH"; then
-            printf "ERROR: Interrupted because resource not found. %s \n" "$___X_CMD_LOCAL_XRCPATH" >&2
-            printf "%s\n" "return 1"
-            return 1
-        fi
-
-        # Ask whether using http or outside resource.
-        if [ "$___X_CMD_WHICH_ONE_RESOURCE_TYPE" = http ] && [ -z "$NOWARN" ]; then
-
-            # We should do it before ___x_cmd_which_one
-            printf "Sourcing script from untrusted location: %s\n" "$___X_CMD_LOCAL_XRCPATH"
-            cat >&2 <<A
-SECURITY WARNING! Sourcing script from untrusted location: $___X_CMD_WHICH_ONE_RESULT
-If you confirm this script is secure and want to skip this warning for some purpose, use the following code.
-> NOWARN=1 xrc "$___X_CMD_LOCAL_XRCPATH"
+___x_cmd_install(){
+    param:dsl <<A
+subcommands:
+    ls          "list all software"
+    get         "get software installation command"
+    run         "run software installation command"
+    update      "update"
 A
-            printf "Input yes to continue. Otherwise exit > " >&2
-            local ___X_CMD_LOCAL_INPUT
-            read -r ___X_CMD_LOCAL_INPUT
+    param:run
 
-            if [ "$___X_CMD_LOCAL_INPUT" != "yes" ]; then
-                rm "$___X_CMD_WHICH_ONE_RESULT"
-                printf "%s\n" "Exit because of a non yes output received: $___X_CMD_LOCAL_INPUT" >&2
-                printf "%s\n" "return 1"
-                return 1
-            fi
-        fi
-
-        ___x_cmd_xrc_source_file_main "$___X_CMD_WHICH_ONE_RESULT"
-    done
-}
-
-___x_cmd_xrc_source_file_main_define_by_setmain(){
-    if [ -n "$___X_CMD_WHICH_ONE_NAMING" ] && [ -n "$___X_CMD_XRC_SET_MAIN" ] && [ "$___X_CMD_WHICH_ONE_NAMING" != "$___X_CMD_XRC_SET_MAIN" ]; then
-        eval "
-        $___X_CMD_WHICH_ONE_NAMING(){
-            \"$___X_CMD_XRC_SET_MAIN\" \"\$@\"
-        }"
-
-        if ___x_cmd_is_suitable_advise_env && [ -n "$___X_CMD_XRC_SET_MAIN" ] && [ -n "$___X_CMD_WHICH_ONE_NAMING" ] ; then
-            ___x_cmd_advise init "$___X_CMD_XRC_SET_MAIN" "" "$___X_CMD_WHICH_ONE_NAMING"
-        fi
-    fi
-}
-
-___x_cmd_xrc_source_file_main(){
-    ___X_CMD_WHICH_ONE_RESULT="${1:?Provide exact file}"
-
-    if [ -z "$___X_CMD_XRC_RELOAD" ]; then
-        if [ "${___X_CMD_XRC_MODULE_IMPORTED#*
-"$___X_CMD_WHICH_ONE_RESULT"
-*}" != "${___X_CMD_XRC_MODULE_IMPORTED}" ]; then
-            local ___X_CMD_XRC_SET_MAIN
-            ___X_CMD_XRC_SET_MAIN="$(___x_cmd_ldict_get ___X_CMD_XRC_SET_MAIN_DICT "${___X_CMD_WHICH_ONE_RESULT}")"
-
-            ___x_cmd_xrc_source_file_main_define_by_setmain
-            return    # exited already. skip
-        fi
+    if [ -z "$PARAM_SUBCMD" ]; then
+        case "$1" in
+            "")     printf "%s\n" "
+SYMPOSIS:
+    x install <software>
+    x install ls
+    x install run <software>
+    x install name"
+                    ___x_cmd_install _param_help_doc ;;
+            *)      ___x_cmd_install run "$@" ;;
+        esac
+        return 0
     fi
 
-    ___X_CMD_XRC_MODULE_IMPORTED="
-${___X_CMD_WHICH_ONE_RESULT}${___X_CMD_XRC_MODULE_IMPORTED}"
-
-    local ___X_CMD_XRC_SET_MAIN
-    ___x_cmd_source "$___X_CMD_WHICH_ONE_RESULT"
-
-    if [ -n "$___X_CMD_XRC_SET_MAIN" ]; then
-        ___x_cmd_ldict_put ___X_CMD_XRC_SET_MAIN_DICT "${___X_CMD_WHICH_ONE_RESULT}" "${___X_CMD_XRC_SET_MAIN}"
-        ___x_cmd_xrc_source_file_main_define_by_setmain
-    fi
+    "___x_cmd_install_$PARAM_SUBCMD" "$@"
 }
 
-
-# EndSection
-
-# Section 5: main entrance
-
-# shellcheck disable=SC1091
-xrc(){
-    [ $# -eq 0 ] && set -- "help"
-    local subcmd="$1";  shift
-    case "$subcmd" in
-        cat)
-            if [ $# -gt 0 ]; then
-                ___x_cmd_xrc_cat "$@"
-                return
-            fi
-            cat "$___X_CMD_ROOT_MOD/xrc/lib/help/cat.txt" >&2
-            return 1
-            ;;
-        which)
-            if [ $# -gt 0 ]; then
-                ___X_CMD_NO_LOCAL=1 ___x_cmd_which_one "$@"
-                printf "%s" "$___X_CMD_WHICH_ONE_RESULT"
-                return
-            fi
-            cat "$___X_CMD_ROOT_MOD/xrc/lib/help/which.txt" >&2
-            return 1
-            ;;
-        ""|help)                cat "$___X_CMD_ROOT_MOD/xrc/lib/help/main.txt" >&2 ;;
-        root)                   printf "%s" "$___X_CMD_ROOT" ;;
-        mirror)                 ___x_cmd_mirror "$@"; printf "%s\n" "$___X_CMD_MIRROR_LIST" ;;
-        export-all)             xrc:mod xrc/lib/export && ___x_cmd_xrc_export_all "$@" ;;
-        update)                 xrc:mod xrc/lib/setup/update && ___x_cmd_xrc_update "$@" ;;
-        upgrade)                xrc:mod xrc/lib/setup/upgrade && ___x_cmd_xrc_upgrade "$@" ;;
-        ls)                     ls "$___X_CMD_ROOT" ;;                      # If tar.gz, using tar ls. If folder, ls $folder
-        setmain)                ___x_cmd_xrc_set_main "$@" ;;
-        reload)                 xrc:mod xrc/lib/reload && ___x_cmd_reload "$@" ;;
-        _x_cmd_advise_json)     xrc cat xrc/lib/xrc.json; return 126 ;;
-        *)                      ___x_cmd_xrc_source_file "$subcmd" "$@";    return
-    esac
-}
-# EndSection
-
-# Section 6: other initialization: advise, lazy loading: x, ldict, awk
-# x(){    unset -f x; xrc reload x-cmd/latest && x "$@";    }
-xrc:mod x-cmd/latest
 
 if ___x_cmd_is_suitable_advise_env; then
-    x:debug "Using module advise for completion."
-    command -v ___x_cmd_advise >/dev/null || xrc advise/latest
-    ___x_cmd_advise init xrc
+    xrc advise/latest
+    advise ___x_cmd_install "" install
 fi
 
-alias xws="x ws"
-alias xdev="x dev"
-
-if [ -n "$ZSH_VERSION" ]; then
-    alias -- +=xrc
-else
-    alias "+=xrc"
-fi
-# EndSection
+xrc setmain ___x_cmd_install

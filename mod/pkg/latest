@@ -1,109 +1,40 @@
-# shellcheck shell=sh disable=SC2039,SC1090,SC3043,SC2263 # xrc
+# Author:       Li Junhao                   l@x-cmd.com
+# shellcheck    shell=sh disable=SC3043     # xrc
 
-# author:       Li Junhao           l@x-cmd.com
-# license:      GPLv3
+# Section : install
+xrc param/latest
 
-# LIB
+___x_cmd_install(){
+    param:dsl <<A
+subcommands:
+    ls          "list all software"
+    get         "get software installation command"
+    run         "run software installation command"
+    update      "update"
+A
+    param:run
 
-xrc:mod:lib awk     stresstest
-
-___x_cmd_awk_lib(){
-    local IFS="
-"
-
-    printf "%s\n" "default,$USE" | tr "," "\n" | while read -r lib; do
-        [ -z "$lib" ] && continue
-        xrc which "awk/lib/${lib}.awk"
-        printf " "
-        # printf "%s\n" "./${lib}.awk"
-    done | tr "\n" " "
-}
-
-___X_CMD_AWK_ALL_LIB="bit,math,ord,char,str,wcwidth,arr,ui,json,jiparse,jiparse_flat"
-___X_CMD_AWK_IMPLEMENTATION=
-
-___x_cmd_awk_detect_implemetation(){
-    if awk -Wv 2>&1 | grep -q "mawk"; then
-        ___X_CMD_AWK_IMPLEMENTATION=mawk
-        return
+    if [ -z "$PARAM_SUBCMD" ]; then
+        case "$1" in
+            "")     printf "%s\n" "
+SYMPOSIS:
+    x install <software>
+    x install ls
+    x install run <software>
+    x install name"
+                    ___x_cmd_install _param_help_doc ;;
+            *)      ___x_cmd_install run "$@" ;;
+        esac
+        return 0
     fi
-    ___X_CMD_AWK_IMPLEMENTATION=awk
-}
-___x_cmd_awk_impl(){
-    if [ -z "$___X_CMD_AWK_IMPLEMENTATION" ]; then
-        ___x_cmd_awk_detect_implemetation
-    fi
-    printf "%s\n" "$___X_CMD_AWK_IMPLEMENTATION"
+
+    "___x_cmd_install_$PARAM_SUBCMD" "$@"
 }
 
-___x_cmd_awk(){
-    local IFS="
-"
 
-    local op="$1";
-    case "$op" in
-        stresstest)     shift; ___x_cmd_awk_stresstest "$@" ;;
-        impl)
-            ___x_cmd_awk_impl ;;
-        file)   # This is core ...
-            local fp="$2"; [ "$#" -gt 1 ] && shift 2
-            local code
-            if ! code="$(eval cat "$(___x_cmd_awk_lib)" "$fp")"; then
-                printf "%s\n" "Cannot find out code."
-                return 1
-            fi
-            command awk "$@" "$code"
-            ;;
-        arg)
-            printf "%s %s" "-f" "awk/lib/default.awk"
-            for i in "$@"; do
-                printf " -f %s " "awk/lib/${i}.awk"
-                # case "$i" in
-                #     arr|bit|char|default|jiprint|jiter|jparse|json|math|ord|re|str|ui|var|wcwdith)
+if ___x_cmd_is_suitable_advise_env; then
+    xrc advise/latest
+    advise ___x_cmd_install "" install
+fi
 
-                # esac
-            done
-            ;;
-        code)   # This will be in file
-            local code="$2"; [ "$#" -gt 1 ] && shift 2
-            command awk "$@" "$(eval cat "$(___x_cmd_awk_lib)")
-${code}"
-            ;;
-        src)
-            [ "$#" -gt 0 ] && shift
-            local IFS=" "
-            eval cat "$(___x_cmd_awk_lib) $*"
-            ;;
-        try)
-            local code="$2"; [ "$#" -gt 1 ] && shift 2
-            local USE="$___X_CMD_AWK_ALL_LIB"
-            command awk "$@" "$(eval cat "$(___x_cmd_awk_lib)")
-$code"
-            ;;
-        end)
-            local code="$2"; [ "$#" -gt 1 ] && shift 2
-            if [ "$code" = - ]; then
-                code="$(cat)"
-            fi
-            local USE="$___X_CMD_AWK_ALL_LIB"
-            printf "" | command awk "$@" "$(eval cat "$(___x_cmd_awk_lib)")
-END{
-    $code
-}"
-            ;;
-        _x_cmd_advise_json) printf "{}" ;;
-        *)
-            command awk "$@"
-            ;;
-    esac
-}
-
-# x awk file=a.txt
-
-# x awk code='{
-#
-# }' $@
-
-alias xawk=___x_cmd_awk
-
-xrc setmain ___x_cmd_awk
+xrc setmain ___x_cmd_install

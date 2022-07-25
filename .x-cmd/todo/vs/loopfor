@@ -1,0 +1,56 @@
+
+loop_awk(){
+    echo "awk"
+    awk -v loops="${1:?Provide}" '
+        BEGIN{
+            for (i=1; i<=loops; ++i) {
+                if (i % 2 == 1)  continue
+                if (i % 3 == 1)  continue
+                s = s + i
+            }
+            print s
+        }
+        '
+}
+
+loop_py(){
+    echo "py3"
+    python3 -c "
+s = 0
+for i in range(1, ${1:?Provide}+1):
+    if i % 2 == 1: continue
+    if i % 3 == 1: continue
+    s = s + i
+print(s)
+    "
+}
+
+loop_py2(){
+    echo "py2"
+    python2 -c "
+s = 0
+for i in xrange(1, ${1:?Provide}+1):
+    if i % 2 == 1: continue
+    if i % 3 == 1: continue
+    s = s + i
+print(s)
+    "
+}
+
+loop_node(){
+    echo "node"
+    node - <<A
+s = 0
+for (i=1; i<=${1:?Provide}; ++i) {
+    if (i % 2 == 1) continue
+    if (i % 3 == 1) continue
+    s = s + i
+}
+console.log(s)
+A
+}
+
+time (loop_awk   1000000)
+time (loop_py    1000000)
+time (loop_py2   1000000)
+time (loop_node  1000000)

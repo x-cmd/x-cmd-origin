@@ -1,6 +1,0 @@
-# TODO: optimization. Consider sharing the big binary in a common folder.
-# But that will introduce risk.
-# How?
-# 1. Local user $HOME/.x-cmd
-# 2. Global sharing folder.
-# Consider using the sha512 to calculate the file hash for this purpose.
